@@ -4,7 +4,7 @@
 #  Frontend  : static, served directly by nginx  (no port, no process)
 #  Backend   : bare Node under systemd, 127.0.0.1:4030  (Step 3)
 #
-#  RUN FROM GIT BASH (mintty). Path form is /f/Download/SMTravels  (NOT F:\...  NOT /mnt/f/...)
+#  RUN FROM GIT BASH (mintty). Path form is /f/Projects/SMTravels  (NOT F:\...  NOT /mnt/f/...)
 #
 #     bash deploy-smtravels.sh --dry-run     # validate paths + show the plan, change NOTHING
 #     bash deploy-smtravels.sh               # real deploy
@@ -25,7 +25,7 @@ SSH_KEY="$HOME/.ssh/smtravels_deploy"        # Git Bash form, e.g. /c/Users/DBL/
 REMOTE_BASE="/var/www/SMTravels"
 
 #  Local source ROOT — Git Bash path form of  F:\Download\SMTravels
-LOCAL_ROOT="/f/Download/SMTravels"
+LOCAL_ROOT="/f/Projects/SMTravels"
 
 #  Post-deploy backend install/migrate on the server (safe before Step 3 exists).
 RUN_BACKEND_INSTALL=1
@@ -56,7 +56,7 @@ nonempty(){ [ -d "$1" ] && [ -n "$(ls -A "$1" 2>/dev/null)" ]; }
 
 # ------------------------------------------------------------------ preflight (fail LOUD)
 say "Preflight (dry-run=$DRY)"
-[ -d "$LOCAL_ROOT" ] || die "LOCAL_ROOT not found: '$LOCAL_ROOT'. In Git Bash the path must be /f/Download/SMTravels (NOT F:\\... and NOT /mnt/f/... which is WSL)."
+[ -d "$LOCAL_ROOT" ] || die "LOCAL_ROOT not found: '$LOCAL_ROOT'. In Git Bash the path must be /f/Projects/SMTravels (NOT F:\\... and NOT /mnt/f/... which is WSL)."
 [ -e "$SSH_KEY" ]    || die "SSH key not found: '$SSH_KEY'."
 
 nonempty "$FE_DIST"              || die "frontend build missing/empty: '$FE_DIST'  — build the frontend first (Vite -> frontend/dist/)."

@@ -20,19 +20,19 @@ The systemd unit uses the system Node at `/usr/bin/node` (**currently v22.22.2**
 ## First build (local, Git Bash)
 After restructuring the Figma export into `frontend/` + `backend/`:
 ```bash
-cd /f/Download/SMTravels/frontend && npm install && npm run build   # -> frontend/dist
-cd /f/Download/SMTravels/backend  && npm install && npm run build   # tsc -> backend/dist
+cd /f/Projects/SMTravels/frontend && npm install && npm run build   # -> frontend/dist
+cd /f/Projects/SMTravels/backend  && npm install && npm run build   # tsc -> backend/dist
 # backend/package.json MUST list `prisma` AND `@prisma/client` in "dependencies"
 # (not devDependencies) so `npm ci --omit=dev` provides the CLI on the server.
 ```
 
 ## Deploy (local, Git Bash)
 ```bash
-cd /f/Download/SMTravels
+cd /f/Projects/SMTravels
 bash deploy-smtravels.sh --dry-run    # validate paths + preview, changes nothing
 bash deploy-smtravels.sh              # rsync/tar artifacts, npm ci --omit=dev, prisma migrate, restart
 ```
-- Path form is `/f/Download/SMTravels` (Git Bash). NOT `F:\...`, NOT `/mnt/f/...`.
+- Path form is `/f/Projects/SMTravels` (Git Bash). NOT `F:\...`, NOT `/mnt/f/...`.
 - Optional, for a true server-diff dry-run + delta transfer: `choco install rsync -y` (admin PowerShell). The script auto-detects it.
 - Fails loudly if any `dist/` is missing/empty. `--delete` is scoped to `frontend/dist`, `backend/dist`, `backend/prisma`; `uploads/`, `backups/`, `.env*` are always excluded.
 
