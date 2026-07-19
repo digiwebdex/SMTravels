@@ -1,0 +1,1354 @@
+import React, { useState } from "react";
+import {
+  Plus, Search, Filter, MoreHorizontal, Edit2, Eye, Copy, Archive,
+  ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Trash2, Star,
+  CheckCircle, XCircle, X, Upload, Calendar, MapPin, Plane,
+  Hotel, Coffee, Sunset, Moon, Users, DollarSign, TrendingUp,
+  Clock, AlertTriangle, Check, ChevronDown, Image, Info,
+  Globe, Package, Tag, BarChart3, ArrowUpRight, Building2,
+  Layers, FileText, Settings2, Zap, RefreshCw, Download,
+} from "lucide-react";
+import { cn, fmtPrice, img } from "../lib/utils";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+type PkgView = "list" | "form" | "detail";
+type FormTab = "basic" | "pricing" | "itinerary" | "hotels" | "inclusions" | "images" | "calendar";
+type DetailTab = "overview" | "pricing" | "itinerary" | "bookings";
+type PkgStatus = "Active" | "Draft" | "Archived" | "Suspended";
+type PkgType = "Hajj" | "Umrah" | "Tour" | "Visa" | "Manpower" | "Hotel";
+
+interface PricingTier {
+  id: string; label: string; price: number; originalPrice?: number; seats: number; occupied: number;
+}
+
+interface ItineraryDay {
+  id: string; day: number; title: string; desc: string;
+  activities: string[]; hotel: string;
+  meals: { breakfast: boolean; lunch: boolean; dinner: boolean };
+  transport: string; expanded: boolean;
+}
+
+interface HotelEntry { id: string; city: string; name: string; stars: number; roomType: string; nights: number; }
+interface FlightEntry { id: string; carrier: string; flightNo: string; from: string; to: string; cabin: string; dep: string; arr: string; }
+
+interface Package {
+  id: string; name: string; slug: string; type: PkgType; season: string;
+  departure: string; duration: string; status: PkgStatus;
+  basePrice: number; originalPrice?: number; totalSeats: number; availableSeats: number;
+  rating: number; bookings: number; revenue: number; image: string;
+  shortDesc: string; featured: boolean;
+  tiers: PricingTier[]; itinerary: ItineraryDay[];
+  hotels: HotelEntry[]; flights: FlightEntry[];
+  includes: string[]; excludes: string[];
+  images: string[]; departureDates: string[];
+}
+
+// ─── Mock data ────────────────────────────────────────────────────────────────
+const TYPE_CFG: Record<PkgType, { color: string; bg: string; text: string }> = {
+  Hajj:     { color: "#14356B", bg: "#EEF2FF", text: "text-[#14356B]" },
+  Umrah:    { color: "#C9A227", bg: "#FFF9E6", text: "text-[#C9A227]" },
+  Tour:     { color: "#EA580C", bg: "#FFF7ED", text: "text-[#EA580C]" },
+  Visa:     { color: "#7C3AED", bg: "#F5F3FF", text: "text-[#7C3AED]" },
+  Manpower: { color: "#2563EB", bg: "#EFF6FF", text: "text-[#2563EB]" },
+  Hotel:    { color: "#0E7C66", bg: "#ECFDF5", text: "text-[#0E7C66]" },
+};
+
+const STATUS_CFG: Record<PkgStatus, { color: string; bg: string; dot: string }> = {
+  Active:    { color: "#065F46", bg: "#D1FAE5", dot: "#0E7C66" },
+  Draft:     { color: "#92400E", bg: "#FEF3C7", dot: "#F59E0B" },
+  Archived:  { color: "#374151", bg: "#F3F4F6", dot: "#9CA3AF" },
+  Suspended: { color: "#991B1B", bg: "#FEE2E2", dot: "#DC2626" },
+};
+
+const SAMPLE_DAYS: ItineraryDay[] = [
+  { id: "d1", day: 1, title: "Arrival in Jeddah (JED)", desc: "Arrive at King Abdulaziz International Airport. Transfer to Makkah hotel. Check-in, rest and orientation briefing.", activities: ["Airport transfer", "Hotel check-in", "Group orientation"], hotel: "Hilton Makkah Convention, Makkah", meals: { breakfast: false, lunch: false, dinner: true }, transport: "Private AC Bus", expanded: true },
+  { id: "d2", day: 2, title: "Makkah — Tawaf & Sa'i", desc: "Perform Tawaf Al-Qudum (arrival circumambulation) around the Kaaba followed by Sa'i between Safa and Marwa. Evening: Quran recitation.", activities: ["Tawaf Al-Qudum", "Sa'i Safa-Marwa", "Zamzam water", "Ziyarat Haram"], hotel: "Hilton Makkah Convention, Makkah", meals: { breakfast: true, lunch: true, dinner: true }, transport: "Walking / Shuttle", expanded: false },
+  { id: "d3", day: 3, title: "Arafat — Day of Hajj", desc: "The most sacred day. Stand on the plain of Arafat from noon to sunset. Supplication, dhikr, and listening to the Hajj sermon.", activities: ["Wuquf Arafat", "Khutbah Al-Hajj", "Maghrib prayer", "Move to Muzdalifah"], hotel: "Camp Mina, Arafat", meals: { breakfast: true, lunch: true, dinner: false }, transport: "Hajj bus convoy", expanded: false },
+  { id: "d4", day: 4, title: "Mina — Stoning & Eid Al-Adha", desc: "Rami Al-Jamarat (stoning of the pillars). Perform Eid sacrifice. Halq (shaving) or Taqsir. Return to Makkah for Ifadah Tawaf.", activities: ["Rami Aqabah", "Eid sacrifice", "Halq/Taqsir", "Tawaf Al-Ifadah", "Sa'i"], hotel: "Camp Mina", meals: { breakfast: true, lunch: true, dinner: true }, transport: "Hajj bus convoy", expanded: false },
+  { id: "d5", day: 5, title: "Madinah — Ziyarat", desc: "Travel to the Prophet's City. Visit Masjid An-Nabawi, Al-Baqi cemetery, Masjid Quba. Evening free for additional worship.", activities: ["Masjid An-Nabawi", "Riyad ul-Jannah", "Al-Baqi", "Masjid Quba", "Masjid Al-Qiblatayn"], hotel: "Al Madinah Millennium, Madinah", meals: { breakfast: true, lunch: false, dinner: true }, transport: "Private AC Bus", expanded: false },
+];
+
+const SAMPLE_TIERS: PricingTier[] = [
+  { id: "t1", label: "Economy",  price: 580000,  originalPrice: 650000,  seats: 20, occupied: 17 },
+  { id: "t2", label: "Standard", price: 720000,  originalPrice: 800000,  seats: 15, occupied: 8  },
+  { id: "t3", label: "Premium",  price: 950000,  originalPrice: undefined, seats: 10, occupied: 2  },
+  { id: "t4", label: "VIP",      price: 1200000, originalPrice: undefined, seats: 5,  occupied: 0  },
+];
+
+const SAMPLE_HOTELS: HotelEntry[] = [
+  { id: "h1", city: "Makkah",  name: "Hilton Makkah Convention Hotel",  stars: 5, roomType: "Deluxe Double",  nights: 7 },
+  { id: "h2", city: "Madinah", name: "Al Madinah Millennium Hotel",     stars: 5, roomType: "Superior Twin",  nights: 4 },
+  { id: "h3", city: "Jeddah",  name: "Jeddah Hilton Hotel",             stars: 4, roomType: "Standard Twin", nights: 1 },
+];
+
+const SAMPLE_FLIGHTS: FlightEntry[] = [
+  { id: "f1", carrier: "Biman Bangladesh Airlines", flightNo: "BG-043", from: "DAC", to: "JED", cabin: "Economy", dep: "09:30", arr: "14:15" },
+  { id: "f2", carrier: "Biman Bangladesh Airlines", flightNo: "BG-044", from: "MED", to: "DAC", cabin: "Economy", dep: "16:00", arr: "01:45+1" },
+];
+
+const PACKAGES: Package[] = [
+  { id: "PKG-001", name: "Hajj Economy Package 2026", slug: "hajj-economy-2026", type: "Hajj", season: "Hajj 2026", departure: "May 2026", duration: "21 Days", status: "Active", basePrice: 580000, originalPrice: 650000, totalSeats: 50, availableSeats: 23, rating: 4.8, bookings: 27, revenue: 15660000, image: "photo-1591604466107-ec97de577aff", shortDesc: "Full Hajj pilgrimage with economy class flights, 4-star Makkah & Madinah hotels.", featured: true, tiers: SAMPLE_TIERS, itinerary: SAMPLE_DAYS, hotels: SAMPLE_HOTELS, flights: SAMPLE_FLIGHTS, includes: ["Return economy airfare", "4-star hotel in Makkah (7 nts)", "4-star hotel in Madinah (4 nts)", "All ground transport", "Ihram material", "Hajj ID badge", "24/7 group guide", "Zamzam water (5L)", "Sacrifice (Qurbani)"], excludes: ["Saudi Arabia visa fee", "Travel insurance", "Personal expenses", "Porter service", "Laundry", "Any Ziyarat tours not listed"], images: ["photo-1591604466107-ec97de577aff", "photo-1576158113928-4c240eaaf360", "photo-1597424216809-3ba9864aeb72"], departureDates: ["2026-05-12", "2026-05-14", "2026-05-18"] },
+  { id: "PKG-002", name: "Umrah Ramadan Premium 2026", slug: "umrah-ramadan-premium-2026", type: "Umrah", season: "Ramadan 2026", departure: "Mar 2026", duration: "14 Days", status: "Active", basePrice: 185000, originalPrice: 210000, totalSeats: 120, availableSeats: 84, rating: 4.9, bookings: 36, revenue: 6660000, image: "photo-1576158113928-4c240eaaf360", shortDesc: "Premium Ramadan Umrah with 5-star hotels, guaranteed Laylatul Qadr stay.", featured: true, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: ["2026-03-10", "2026-03-17"] },
+  { id: "PKG-003", name: "Umrah Economy (Year-Round)", slug: "umrah-economy-yr", type: "Umrah", season: "Year-round", departure: "Monthly", duration: "7 Days", status: "Active", basePrice: 85000, originalPrice: 95000, totalSeats: 200, availableSeats: 142, rating: 4.6, bookings: 58, revenue: 4930000, image: "photo-1597424216809-3ba9864aeb72", shortDesc: "Affordable Umrah package with comfortable 3-star hotels.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
+  { id: "PKG-004", name: "Malaysia Golden Tour — 7D/6N", slug: "malaysia-golden-7d", type: "Tour", season: "Year-round", departure: "Nov 2025", duration: "7 Days", status: "Draft", basePrice: 95000, totalSeats: 40, availableSeats: 40, rating: 0, bookings: 0, revenue: 0, image: "photo-1596422846543-75c6fc197f07", shortDesc: "Kuala Lumpur, Langkawi & Genting Highlands. Halal food throughout.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
+  { id: "PKG-005", name: "KSA Business Visa Processing", slug: "ksa-biz-visa", type: "Visa", season: "Year-round", departure: "—", duration: "7-14 Days", status: "Active", basePrice: 12500, totalSeats: 999, availableSeats: 999, rating: 4.7, bookings: 487, revenue: 6087500, image: "photo-1588421357574-87938a86fa28", shortDesc: "Saudi Arabia business visa with document checklist, submission & tracking.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
+  { id: "PKG-006", name: "UAE Manpower Placement", slug: "uae-manpower", type: "Manpower", season: "Year-round", departure: "Rolling", duration: "Contract", status: "Active", basePrice: 45000, totalSeats: 500, availableSeats: 287, rating: 4.5, bookings: 213, revenue: 9585000, image: "photo-1512453979798-5ea266f8880c", shortDesc: "UAE worker placement — skilled trades, hospitality & construction.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
+  { id: "PKG-007", name: "Cox's Bazar Resort Package 3D/2N", slug: "coxs-bazar-3d", type: "Hotel", season: "Oct–Mar", departure: "Nov 2025", duration: "3 Days", status: "Draft", basePrice: 12000, totalSeats: 30, availableSeats: 30, rating: 0, bookings: 0, revenue: 0, image: "photo-1585409677983-0f6c41ca9c3b", shortDesc: "Sea-beach resort stay with breakfast, sunset cruise & beach bonfire.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
+  { id: "PKG-008", name: "Hajj VIP & Luxury Package 2026", slug: "hajj-vip-2026", type: "Hajj", season: "Hajj 2026", departure: "May 2026", duration: "28 Days", status: "Suspended", basePrice: 1200000, totalSeats: 10, availableSeats: 10, rating: 5.0, bookings: 0, revenue: 0, image: "photo-1591604466107-ec97de577aff", shortDesc: "5-star luxury Hajj with VIP transport, private guide, and Zamzam allocation.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
+];
+
+// ─── Shared atoms ─────────────────────────────────────────────────────────────
+function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn("bg-white border border-[#E5E7EB] rounded-[14px]", className)}>{children}</div>;
+}
+
+function TypeBadge({ type }: { type: PkgType }) {
+  const cfg = TYPE_CFG[type];
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
+      style={{ color: cfg.color, backgroundColor: cfg.bg }}>{type}</span>
+  );
+}
+
+function StatusBadge({ status }: { status: PkgStatus }) {
+  const cfg = STATUS_CFG[status];
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
+      style={{ color: cfg.color, backgroundColor: cfg.bg }}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: cfg.dot }} />
+      {status}
+    </span>
+  );
+}
+
+function FormField({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[11px] font-bold text-[#374151] uppercase tracking-wider mb-1.5">
+        {label}{required && <span className="text-[#DC2626] ml-0.5">*</span>}
+      </label>
+      {children}
+      {hint && <p className="text-[10px] text-[#9CA3AF] mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[9px] text-[13px] text-[#111827] bg-white outline-none focus:border-[#14356B] focus:ring-2 focus:ring-[#14356B]/10 transition-all placeholder:text-[#D1D5DB]";
+const selectCls = cn(inputCls, "cursor-pointer appearance-none");
+
+function PageBreadcrumb({ items, action }: { items: { label: string; onClick?: () => void }[]; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <div className="flex items-center gap-1.5 text-[13px]">
+        {items.map((item, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <ChevronRight size={13} className="text-[#D1D5DB]" />}
+            {item.onClick ? (
+              <button onClick={item.onClick}
+                className="text-[#14356B] font-semibold hover:underline cursor-pointer">{item.label}</button>
+            ) : (
+              <span className="text-[#374151] font-semibold">{item.label}</span>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// ─── PACKAGE LIST VIEW ────────────────────────────────────────────────────────
+function PackageListView({
+  onNew, onEdit, onView,
+}: { onNew: () => void; onEdit: (id: string) => void; onView: (id: string) => void }) {
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<PkgType | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<PkgStatus | "All">("All");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const types: Array<PkgType | "All"> = ["All", "Hajj", "Umrah", "Tour", "Visa", "Manpower", "Hotel"];
+
+  const filtered = PACKAGES.filter(p => {
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.id.toLowerCase().includes(search.toLowerCase());
+    const matchType = typeFilter === "All" || p.type === typeFilter;
+    const matchStatus = statusFilter === "All" || p.status === statusFilter;
+    return matchSearch && matchType && matchStatus;
+  });
+
+  const toggleSelect = (id: string) => {
+    setSelected(s => { const next = new Set(s); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  };
+  const toggleAll = () => {
+    setSelected(s => s.size === filtered.length ? new Set() : new Set(filtered.map(p => p.id)));
+  };
+
+  return (
+    <div className="p-5 md:p-7">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h1 className="text-[20px] font-black text-[#111827]">Package Management</h1>
+          <p className="text-[12px] text-[#9CA3AF] mt-0.5">{PACKAGES.length} total packages · {PACKAGES.filter(p => p.status === "Active").length} active</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#14356B]/30 transition-colors cursor-pointer">
+            <Download size={13} className="text-[#9CA3AF]" /> Export
+          </button>
+          <button onClick={onNew}
+            className="flex items-center gap-1.5 h-9 px-4 bg-[#14356B] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0F2A55] transition-colors cursor-pointer shadow-sm">
+            <Plus size={14} /> New Package
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <Card className="p-4 mb-4">
+        <div className="flex flex-col gap-3">
+          {/* Type pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {types.map(t => (
+              <button key={t} onClick={() => setTypeFilter(t)}
+                className={cn(
+                  "h-7 px-3 rounded-full text-[11px] font-bold transition-all cursor-pointer",
+                  typeFilter === t
+                    ? t === "All" ? "bg-[#14356B] text-white" : "text-white"
+                    : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E9EAEC]"
+                )}
+                style={typeFilter === t && t !== "All" ? { backgroundColor: TYPE_CFG[t as PkgType].color } : {}}>
+                {t}
+              </button>
+            ))}
+            <div className="ml-auto flex items-center gap-2">
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
+                className="h-7 px-2.5 border border-[#E5E7EB] rounded-[7px] text-[11px] text-[#374151] bg-white outline-none cursor-pointer focus:border-[#14356B]">
+                <option value="All">All Status</option>
+                {(["Active","Draft","Archived","Suspended"] as PkgStatus[]).map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          {/* Search */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search packages by name or ID…"
+                className="w-full pl-8 pr-3 h-9 border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#111827] bg-[#F7F8FA] outline-none focus:border-[#14356B] focus:bg-white transition-all" />
+            </div>
+            {selected.size > 0 && (
+              <div className="flex items-center gap-2 ml-auto text-[12px]">
+                <span className="text-[#9CA3AF]">{selected.size} selected</span>
+                <button className="h-7 px-2.5 bg-[#FEF2F2] text-[#DC2626] font-medium rounded-[6px] hover:bg-[#FEE2E2] transition-colors cursor-pointer text-[11px]">Archive</button>
+                <button className="h-7 px-2.5 bg-[#F3F4F6] text-[#374151] font-medium rounded-[6px] hover:bg-[#E9EAEC] transition-colors cursor-pointer text-[11px]">Duplicate</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px]">
+            <thead className="bg-[#F7F8FA] border-b border-[#E5E7EB]">
+              <tr>
+                <th className="w-10 py-3 pl-4">
+                  <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0}
+                    onChange={toggleAll} className="w-3.5 h-3.5 accent-[#14356B] cursor-pointer" />
+                </th>
+                {["Package", "Type", "Price From", "Availability", "Season", "Bookings", "Status", ""].map(h => (
+                  <th key={h} className="text-left py-3 pr-4 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(pkg => {
+                const pct = Math.round(((pkg.totalSeats - pkg.availableSeats) / pkg.totalSeats) * 100);
+                const isSelected = selected.has(pkg.id);
+                return (
+                  <tr key={pkg.id}
+                    className={cn("border-b border-[#F7F8FA] hover:bg-[#FAFBFC] transition-colors group", isSelected && "bg-[#EEF2FF]")}>
+                    <td className="pl-4 py-3.5">
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(pkg.id)}
+                        className="w-3.5 h-3.5 accent-[#14356B] cursor-pointer" />
+                    </td>
+                    <td className="py-3.5 pr-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-[10px] overflow-hidden flex-shrink-0 bg-[#F3F4F6]">
+                          <img src={`https://images.unsplash.com/${pkg.image}?w=96&h=96&fit=crop&auto=format`} alt={pkg.name}
+                            className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="text-[13px] font-bold text-[#111827] leading-tight line-clamp-1 max-w-[200px]">{pkg.name}</span>
+                            {pkg.featured && <Star size={11} fill="#C9A227" className="text-[#C9A227] flex-shrink-0" />}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-[#9CA3AF]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.id}</span>
+                            <span className="text-[10px] text-[#9CA3AF]">·</span>
+                            <span className="text-[10px] text-[#9CA3AF]">{pkg.duration}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 pr-4"><TypeBadge type={pkg.type} /></td>
+                    <td className="py-3.5 pr-4">
+                      <div className="text-[13px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtPrice(pkg.basePrice)}</div>
+                      {pkg.originalPrice && (
+                        <div className="text-[10px] text-[#9CA3AF] line-through">{fmtPrice(pkg.originalPrice)}</div>
+                      )}
+                    </td>
+                    <td className="py-3.5 pr-6">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[12px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.availableSeats}</span>
+                        <span className="text-[10px] text-[#9CA3AF]">/ {pkg.totalSeats}</span>
+                      </div>
+                      <div className="w-20 h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all"
+                          style={{ width: `${pct}%`, backgroundColor: pct >= 90 ? "#DC2626" : pct >= 70 ? "#F59E0B" : "#0E7C66" }} />
+                      </div>
+                    </td>
+                    <td className="py-3.5 pr-4"><span className="text-[12px] text-[#374151]">{pkg.season}</span></td>
+                    <td className="py-3.5 pr-4">
+                      <div className="text-[13px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.bookings}</div>
+                      {pkg.rating > 0 && (
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          <Star size={9} fill="#C9A227" className="text-[#C9A227]" />
+                          <span className="text-[10px] text-[#9CA3AF]">{pkg.rating.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3.5 pr-4"><StatusBadge status={pkg.status} /></td>
+                    <td className="py-3.5 pr-3">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => onView(pkg.id)} title="View" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#14356B] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Eye size={14} /></button>
+                        <button onClick={() => onEdit(pkg.id)} title="Edit" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#14356B] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Edit2 size={14} /></button>
+                        <button title="Duplicate" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><Copy size={14} /></button>
+                        <button title="More" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><MoreHorizontal size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {filtered.length === 0 && (
+          <div className="py-16 text-center text-[#9CA3AF]">
+            <Package size={32} className="mx-auto mb-3 text-[#E5E7EB]" />
+            <p className="text-[13px] font-medium">No packages match your filters</p>
+          </div>
+        )}
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-4 py-3 border-t border-[#F3F4F6]">
+          <span className="text-[11px] text-[#9CA3AF]">Showing {filtered.length} of {PACKAGES.length} packages</span>
+          <div className="flex items-center gap-1">
+            <button className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors flex items-center gap-1">
+              <ChevronLeft size={12} /> Prev
+            </button>
+            {[1,2].map(n => (
+              <button key={n} className={cn("h-7 w-7 rounded-[6px] text-[11px] font-medium cursor-pointer transition-colors",
+                n === 1 ? "bg-[#14356B] text-white" : "text-[#374151] hover:bg-[#F7F8FA] border border-[#E5E7EB]")}>
+                {n}
+              </button>
+            ))}
+            <button className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors flex items-center gap-1">
+              Next <ChevronRight size={12} />
+            </button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ─── ITINERARY BUILDER ────────────────────────────────────────────────────────
+function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: (d: ItineraryDay[]) => void }) {
+  const [actInput, setActInput] = useState<Record<string, string>>({});
+
+  const update = (id: string, patch: Partial<ItineraryDay>) =>
+    onChange(days.map(d => d.id === id ? { ...d, ...patch } : d));
+
+  const toggleExpand = (id: string) =>
+    onChange(days.map(d => d.id === id ? { ...d, expanded: !d.expanded } : d));
+
+  const addDay = () => {
+    const newDay: ItineraryDay = {
+      id: `d${Date.now()}`, day: days.length + 1, title: `Day ${days.length + 1}`,
+      desc: "", activities: [], hotel: "", meals: { breakfast: false, lunch: false, dinner: false },
+      transport: "", expanded: true,
+    };
+    onChange([...days, newDay]);
+  };
+
+  const removeDay = (id: string) => {
+    const next = days.filter(d => d.id !== id).map((d, i) => ({ ...d, day: i + 1 }));
+    onChange(next);
+  };
+
+  const moveDay = (id: string, dir: "up" | "down") => {
+    const idx = days.findIndex(d => d.id === id);
+    if (dir === "up" && idx === 0) return;
+    if (dir === "down" && idx === days.length - 1) return;
+    const next = [...days];
+    const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+    [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+    onChange(next.map((d, i) => ({ ...d, day: i + 1 })));
+  };
+
+  const addActivity = (id: string) => {
+    const val = (actInput[id] || "").trim();
+    if (!val) return;
+    const day = days.find(d => d.id === id)!;
+    update(id, { activities: [...day.activities, val] });
+    setActInput(s => ({ ...s, [id]: "" }));
+  };
+
+  const removeActivity = (dayId: string, act: string) => {
+    const day = days.find(d => d.id === dayId)!;
+    update(dayId, { activities: day.activities.filter(a => a !== act) });
+  };
+
+  return (
+    <div>
+      <div className="relative">
+        {/* Timeline spine */}
+        {days.length > 0 && (
+          <div className="absolute left-[22px] top-8 bottom-8 w-0.5 bg-gradient-to-b from-[#14356B]/30 via-[#C9A227]/30 to-[#0E7C66]/30" />
+        )}
+        <div className="flex flex-col gap-3">
+          {days.map((day, idx) => (
+            <div key={day.id} className="flex gap-4">
+              {/* Day circle */}
+              <div className="flex flex-col items-center flex-shrink-0 pt-3">
+                <div className={cn(
+                  "w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 font-black text-[13px] shadow-sm",
+                  day.expanded
+                    ? "bg-[#14356B] border-[#14356B] text-white"
+                    : "bg-white border-[#E5E7EB] text-[#374151]"
+                )}>
+                  {day.day}
+                </div>
+              </div>
+
+              {/* Day card */}
+              <div className="flex-1 mb-1">
+                <div className={cn(
+                  "bg-white border rounded-[12px] overflow-hidden transition-all",
+                  day.expanded ? "border-[#14356B]/30 shadow-md" : "border-[#E5E7EB] hover:border-[#14356B]/20"
+                )}>
+                  {/* Day header — always visible */}
+                  <button
+                    onClick={() => toggleExpand(day.id)}
+                    className="w-full flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#F7F8FA] transition-colors text-left"
+                  >
+                    <div className="flex-1">
+                      <div className="text-[13px] font-bold text-[#111827]">{day.title || `Day ${day.day} — Untitled`}</div>
+                      {!day.expanded && (
+                        <div className="flex items-center gap-3 mt-0.5 text-[10px] text-[#9CA3AF]">
+                          {day.hotel && <span className="flex items-center gap-0.5"><Hotel size={9} /> {day.hotel.split(",")[0]}</span>}
+                          {day.activities.length > 0 && <span>{day.activities.length} activities</span>}
+                          <span className="flex items-center gap-1">
+                            {day.meals.breakfast && <span>B</span>}
+                            {day.meals.lunch && <span>L</span>}
+                            {day.meals.dinner && <span>D</span>}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button onClick={e => { e.stopPropagation(); moveDay(day.id, "up"); }}
+                        disabled={idx === 0}
+                        className="w-6 h-6 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-[4px] hover:bg-[#F3F4F6] transition-colors">
+                        <ArrowUp size={12} />
+                      </button>
+                      <button onClick={e => { e.stopPropagation(); moveDay(day.id, "down"); }}
+                        disabled={idx === days.length - 1}
+                        className="w-6 h-6 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-[4px] hover:bg-[#F3F4F6] transition-colors">
+                        <ArrowDown size={12} />
+                      </button>
+                      <button onClick={e => { e.stopPropagation(); removeDay(day.id); }}
+                        className="w-6 h-6 flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] cursor-pointer rounded-[4px] hover:bg-[#FEF2F2] transition-colors">
+                        <Trash2 size={12} />
+                      </button>
+                      <ChevronDown size={14} className={cn("text-[#9CA3AF] transition-transform ml-1", day.expanded && "rotate-180")} />
+                    </div>
+                  </button>
+
+                  {/* Expanded content */}
+                  {day.expanded && (
+                    <div className="px-4 pb-4 border-t border-[#F7F8FA] pt-4 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField label="Day Title" required>
+                          <input value={day.title} onChange={e => update(day.id, { title: e.target.value })}
+                            className={inputCls} placeholder="e.g. Arrival in Makkah" />
+                        </FormField>
+                        <FormField label="Hotel / Accommodation">
+                          <input value={day.hotel} onChange={e => update(day.id, { hotel: e.target.value })}
+                            className={inputCls} placeholder="e.g. Hilton Makkah Convention, Makkah" />
+                        </FormField>
+                      </div>
+                      <FormField label="Day Description">
+                        <textarea value={day.desc} onChange={e => update(day.id, { desc: e.target.value })}
+                          rows={2} className={cn(inputCls, "resize-none")} placeholder="Describe the day's program…" />
+                      </FormField>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField label="Activities">
+                          <div className="flex gap-2 mb-2">
+                            <input
+                              value={actInput[day.id] || ""}
+                              onChange={e => setActInput(s => ({ ...s, [day.id]: e.target.value }))}
+                              onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addActivity(day.id))}
+                              className={cn(inputCls, "flex-1")} placeholder="Type activity + Enter" />
+                            <button onClick={() => addActivity(day.id)}
+                              className="h-10 px-3 bg-[#14356B] text-white rounded-[9px] text-[12px] font-medium hover:bg-[#0F2A55] transition-colors cursor-pointer flex-shrink-0">
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {day.activities.map(act => (
+                              <span key={act} className="flex items-center gap-1 bg-[#EEF2FF] text-[#14356B] text-[10px] font-medium px-2.5 py-1 rounded-full">
+                                {act}
+                                <button onClick={() => removeActivity(day.id, act)} className="text-[#14356B]/50 hover:text-[#14356B] cursor-pointer"><X size={10} /></button>
+                              </span>
+                            ))}
+                          </div>
+                        </FormField>
+                        <div>
+                          <FormField label="Transport">
+                            <input value={day.transport} onChange={e => update(day.id, { transport: e.target.value })}
+                              className={inputCls} placeholder="e.g. Private AC Bus" />
+                          </FormField>
+                          <div className="mt-3">
+                            <label className="block text-[11px] font-bold text-[#374151] uppercase tracking-wider mb-1.5">Meals Included</label>
+                            <div className="flex gap-3">
+                              {(["breakfast","lunch","dinner"] as const).map(meal => (
+                                <label key={meal} className="flex items-center gap-1.5 cursor-pointer">
+                                  <input type="checkbox" className="w-3.5 h-3.5 accent-[#14356B]"
+                                    checked={day.meals[meal]} onChange={e => update(day.id, { meals: { ...day.meals, [meal]: e.target.checked } })} />
+                                  <span className="text-[11px] text-[#374151] capitalize">{meal.charAt(0).toUpperCase()}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <button onClick={addDay}
+        className="mt-4 flex items-center gap-2 h-10 px-4 border-2 border-dashed border-[#D1D5DB] rounded-[10px] text-[12px] font-semibold text-[#9CA3AF] hover:border-[#14356B]/50 hover:text-[#14356B] hover:bg-[#EEF2FF]/50 transition-all cursor-pointer w-full justify-center">
+        <Plus size={14} /> Add Day
+      </button>
+    </div>
+  );
+}
+
+// ─── PRICING TIER EDITOR ──────────────────────────────────────────────────────
+function PricingTierEditor({ tiers, onChange }: { tiers: PricingTier[]; onChange: (t: PricingTier[]) => void }) {
+  const update = (id: string, patch: Partial<PricingTier>) =>
+    onChange(tiers.map(t => t.id === id ? { ...t, ...patch } : t));
+  const addTier = () => onChange([...tiers, { id: `t${Date.now()}`, label: "New Tier", price: 0, seats: 10, occupied: 0 }]);
+  const remove = (id: string) => onChange(tiers.filter(t => t.id !== id));
+
+  return (
+    <div>
+      <div className="rounded-[10px] border border-[#E5E7EB] overflow-hidden mb-3">
+        <table className="w-full">
+          <thead className="bg-[#F7F8FA]">
+            <tr>
+              {["Tier Label", "Base Price (৳)", "Original Price (৳)", "Discount", "Total Seats", "Occupied", ""].map(h => (
+                <th key={h} className="text-left py-2.5 px-3 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tiers.map((tier, i) => {
+              const disc = tier.originalPrice ? Math.round((1 - tier.price / tier.originalPrice) * 100) : 0;
+              return (
+                <tr key={tier.id} className="border-t border-[#F3F4F6] group">
+                  <td className="py-2.5 px-3">
+                    <input value={tier.label} onChange={e => update(tier.id, { label: e.target.value })}
+                      className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-bold text-[#111827] focus:border-[#14356B] outline-none" />
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <input type="number" value={tier.price} onChange={e => update(tier.id, { price: +e.target.value })}
+                      className="w-32 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#14356B] outline-none" />
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <input type="number" value={tier.originalPrice || ""} onChange={e => update(tier.id, { originalPrice: +e.target.value || undefined })}
+                      placeholder="—"
+                      className="w-32 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#6B7280] focus:border-[#14356B] outline-none" />
+                  </td>
+                  <td className="py-2.5 px-3">
+                    {disc > 0
+                      ? <span className="text-[11px] font-bold text-[#0E7C66] bg-[#ECFDF5] px-2 py-0.5 rounded-full">{disc}% off</span>
+                      : <span className="text-[11px] text-[#D1D5DB]">—</span>}
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <input type="number" value={tier.seats} onChange={e => update(tier.id, { seats: +e.target.value })}
+                      className="w-16 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#14356B] outline-none" />
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <div>
+                      <span className="text-[12px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{tier.occupied}</span>
+                      <div className="w-12 h-1 bg-[#F3F4F6] rounded-full mt-1 overflow-hidden">
+                        <div className="h-full bg-[#14356B] rounded-full" style={{ width: `${(tier.occupied / tier.seats) * 100}%` }} />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <button onClick={() => remove(tier.id)}
+                      className="w-6 h-6 flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] hover:bg-[#FEF2F2] rounded-[5px] transition-colors cursor-pointer opacity-0 group-hover:opacity-100">
+                      <Trash2 size={12} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot className="border-t border-[#E5E7EB] bg-[#F7F8FA]">
+            <tr>
+              <td colSpan={4} className="py-2 px-3 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">Totals</td>
+              <td className="py-2 px-3 text-[12px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {tiers.reduce((s, t) => s + t.seats, 0)}
+              </td>
+              <td className="py-2 px-3 text-[12px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {tiers.reduce((s, t) => s + t.occupied, 0)}
+              </td>
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button onClick={addTier}
+        className="flex items-center gap-1.5 h-8 px-3 border border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] hover:border-[#14356B]/50 hover:text-[#14356B] transition-colors cursor-pointer">
+        <Plus size={12} /> Add Tier
+      </button>
+    </div>
+  );
+}
+
+// ─── INCLUSION/EXCLUSION EDITOR ───────────────────────────────────────────────
+function InclusionEditor({
+  includes, excludes,
+  onIncludesChange, onExcludesChange,
+}: { includes: string[]; excludes: string[]; onIncludesChange: (v: string[]) => void; onExcludesChange: (v: string[]) => void }) {
+  const [incInput, setIncInput] = useState("");
+  const [excInput, setExcInput] = useState("");
+
+  const addItem = (list: string[], val: string, setter: (v: string[]) => void, inputSetter: (v: string) => void) => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    setter([...list, trimmed]);
+    inputSetter("");
+  };
+
+  const Panel = ({ title, items, onRemove, input, onInput, onAdd, color }: {
+    title: string; items: string[]; onRemove: (i: number) => void;
+    input: string; onInput: (v: string) => void; onAdd: () => void; color: string;
+  }) => (
+    <div className="flex-1">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+          {color === "#0E7C66" ? <CheckCircle size={12} style={{ color }} /> : <XCircle size={12} style={{ color }} />}
+        </div>
+        <span className="text-[12px] font-bold text-[#374151]">{title}</span>
+        <span className="text-[10px] text-[#9CA3AF] ml-auto">{items.length} items</span>
+      </div>
+      <div className="flex gap-2 mb-3">
+        <input value={input} onChange={e => onInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && (e.preventDefault(), onAdd())}
+          className={cn(inputCls, "flex-1")} placeholder="Add item + Enter" />
+        <button onClick={onAdd} className="h-10 px-3 rounded-[9px] text-white text-[12px] font-medium transition-colors cursor-pointer flex-shrink-0"
+          style={{ backgroundColor: color }}>
+          <Plus size={14} />
+        </button>
+      </div>
+      <div className="space-y-1.5">
+        {items.map((item, i) => (
+          <div key={i} className="flex items-center gap-2.5 p-2.5 bg-[#F7F8FA] rounded-[8px] group hover:bg-[#F3F4F6] transition-colors">
+            <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${color}15` }}>
+              {color === "#0E7C66" ? <Check size={9} style={{ color }} /> : <X size={9} style={{ color }} />}
+            </div>
+            <span className="text-[12px] text-[#374151] flex-1 leading-snug">{item}</span>
+            <button onClick={() => onRemove(i)} className="text-[#9CA3AF] hover:text-[#DC2626] opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0">
+              <Trash2 size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex gap-6">
+      <Panel title="What's Included" items={includes} color="#0E7C66"
+        onRemove={i => onIncludesChange(includes.filter((_, j) => j !== i))}
+        input={incInput} onInput={setIncInput} onAdd={() => addItem(includes, incInput, onIncludesChange, setIncInput)} />
+      <div className="w-px bg-[#E5E7EB]" />
+      <Panel title="What's Excluded" items={excludes} color="#DC2626"
+        onRemove={i => onExcludesChange(excludes.filter((_, j) => j !== i))}
+        input={excInput} onInput={setExcInput} onAdd={() => addItem(excludes, excInput, onExcludesChange, setExcInput)} />
+    </div>
+  );
+}
+
+// ─── PACKAGE CALENDAR ─────────────────────────────────────────────────────────
+function PackageCalendar({ dates, onToggle }: { dates: string[]; onToggle: (d: string) => void }) {
+  const [viewYear, setViewYear] = useState(2026);
+  const [viewMonth, setViewMonth] = useState(4); // May
+
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const dayNames = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  const prevMonth = () => { if (viewMonth === 0) { setViewYear(y => y-1); setViewMonth(11); } else setViewMonth(m => m-1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewYear(y => y+1); setViewMonth(0); } else setViewMonth(m => m+1); };
+
+  const dateStr = (day: number) => `${viewYear}-${String(viewMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+  const isSelected = (day: number) => dates.includes(dateStr(day));
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-bold text-[#111827]">{monthNames[viewMonth]} {viewYear}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded-[7px] border border-[#E5E7EB] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors"><ChevronLeft size={14} /></button>
+          <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded-[7px] border border-[#E5E7EB] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors"><ChevronRight size={14} /></button>
+        </div>
+      </div>
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {dayNames.map(d => <div key={d} className="text-center text-[9px] font-bold text-[#9CA3AF] uppercase py-1">{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {Array(firstDay).fill(null).map((_, i) => <div key={`e-${i}`} />)}
+        {Array(daysInMonth).fill(null).map((_, i) => {
+          const day = i + 1;
+          const selected = isSelected(day);
+          return (
+            <button key={day} onClick={() => onToggle(dateStr(day))}
+              className={cn(
+                "h-9 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer",
+                selected
+                  ? "bg-[#14356B] text-white font-bold shadow-sm"
+                  : "text-[#374151] hover:bg-[#EEF2FF] hover:text-[#14356B]"
+              )}>
+              {day}
+              {selected && <div className="w-1 h-1 bg-white/60 rounded-full mx-auto mt-0.5" />}
+            </button>
+          );
+        })}
+      </div>
+      {dates.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-[#F3F4F6]">
+          <div className="text-[11px] font-bold text-[#374151] mb-2">Selected Departure Dates ({dates.length})</div>
+          <div className="flex flex-wrap gap-1.5">
+            {dates.map(d => (
+              <span key={d} className="flex items-center gap-1 bg-[#EEF2FF] text-[#14356B] text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                {d}
+                <button onClick={() => onToggle(d)} className="text-[#14356B]/50 hover:text-[#14356B] cursor-pointer"><X size={9} /></button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── PACKAGE FORM VIEW ────────────────────────────────────────────────────────
+const FORM_TABS: Array<{ id: FormTab; label: string; icon: React.FC<any> }> = [
+  { id: "basic",      label: "Basic Info",    icon: Info },
+  { id: "pricing",    label: "Pricing",        icon: Tag },
+  { id: "itinerary",  label: "Itinerary",      icon: MapPin },
+  { id: "hotels",     label: "Hotels & Flights", icon: Hotel },
+  { id: "inclusions", label: "Inclusions",     icon: CheckCircle },
+  { id: "images",     label: "Images",         icon: Image },
+  { id: "calendar",   label: "Calendar",       icon: Calendar },
+];
+
+function PackageFormView({ pkg, isEdit, onBack, onSave }: {
+  pkg?: Package; isEdit: boolean; onBack: () => void; onSave: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState<FormTab>("basic");
+  const [saving, setSaving] = useState(false);
+
+  // Form state
+  const [name, setName] = useState(pkg?.name || "");
+  const [type, setType] = useState<PkgType>(pkg?.type || "Hajj");
+  const [season, setSeason] = useState(pkg?.season || "");
+  const [duration, setDuration] = useState(pkg?.duration || "");
+  const [departure, setDeparture] = useState(pkg?.departure || "");
+  const [status, setStatus] = useState<PkgStatus>(pkg?.status || "Draft");
+  const [shortDesc, setShortDesc] = useState(pkg?.shortDesc || "");
+  const [longDesc, setLongDesc] = useState("");
+  const [featured, setFeatured] = useState(pkg?.featured || false);
+  const [tiers, setTiers] = useState<PricingTier[]>(pkg?.tiers?.length ? pkg.tiers : SAMPLE_TIERS);
+  const [days, setDays] = useState<ItineraryDay[]>(pkg?.itinerary?.length ? pkg.itinerary : SAMPLE_DAYS);
+  const [hotels, setHotels] = useState<HotelEntry[]>(pkg?.hotels?.length ? pkg.hotels : SAMPLE_HOTELS);
+  const [flights, setFlights] = useState<FlightEntry[]>(pkg?.flights?.length ? pkg.flights : SAMPLE_FLIGHTS);
+  const [includes, setIncludes] = useState<string[]>(pkg?.includes?.length ? pkg.includes : ["Return economy airfare", "Hotel accommodation", "All ground transport", "Group guide"]);
+  const [excludes, setExcludes] = useState<string[]>(pkg?.excludes?.length ? pkg.excludes : ["Visa fee", "Travel insurance", "Personal expenses"]);
+  const [departureDates, setDepartureDates] = useState<string[]>(pkg?.departureDates || ["2026-05-12", "2026-05-14"]);
+
+  const handleSave = () => {
+    setSaving(true);
+    setTimeout(() => { setSaving(false); onSave(); }, 1200);
+  };
+
+  const addHotel = () => setHotels(h => [...h, { id: `h${Date.now()}`, city: "", name: "", stars: 4, roomType: "", nights: 3 }]);
+  const removeHotel = (id: string) => setHotels(h => h.filter(x => x.id !== id));
+  const updateHotel = (id: string, patch: Partial<HotelEntry>) => setHotels(h => h.map(x => x.id === id ? { ...x, ...patch } : x));
+
+  const addFlight = () => setFlights(f => [...f, { id: `f${Date.now()}`, carrier: "", flightNo: "", from: "", to: "", cabin: "Economy", dep: "", arr: "" }]);
+  const removeFlight = (id: string) => setFlights(f => f.filter(x => x.id !== id));
+  const updateFlight = (id: string, patch: Partial<FlightEntry>) => setFlights(f => f.map(x => x.id === id ? { ...x, ...patch } : x));
+
+  const toggleDate = (d: string) =>
+    setDepartureDates(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+
+  return (
+    <div className="p-5 md:p-7">
+      <PageBreadcrumb
+        items={[{ label: "Packages", onClick: onBack }, { label: isEdit ? `Edit: ${pkg?.name || "Package"}` : "New Package" }]}
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={onBack} className="h-9 px-3 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer">
+              Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving}
+              className="flex items-center gap-1.5 h-9 px-4 bg-[#14356B] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0F2A55] transition-colors cursor-pointer disabled:opacity-60 shadow-sm">
+              {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> {isEdit ? "Update Package" : "Create Package"}</>}
+            </button>
+          </div>
+        }
+      />
+
+      <div className="flex gap-6">
+        {/* Vertical tab nav */}
+        <div className="w-44 flex-shrink-0">
+          <Card className="p-1.5 sticky top-20">
+            {FORM_TABS.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-left transition-all cursor-pointer mb-0.5",
+                    activeTab === tab.id
+                      ? "bg-[#14356B] text-white shadow-sm"
+                      : "text-[#6B7280] hover:bg-[#F7F8FA] hover:text-[#374151]"
+                  )}>
+                  <Icon size={14} className="flex-shrink-0" />
+                  <span className="text-[12px] font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+          </Card>
+        </div>
+
+        {/* Tab content */}
+        <div className="flex-1 min-w-0">
+          {activeTab === "basic" && (
+            <Card className="p-5 space-y-5">
+              <div className="flex items-center justify-between pb-4 border-b border-[#F3F4F6]">
+                <div>
+                  <h2 className="text-[15px] font-black text-[#111827]">Basic Information</h2>
+                  <p className="text-[11px] text-[#9CA3AF]">Core package details and metadata</p>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <span className="text-[11px] text-[#374151] font-medium">Featured</span>
+                  <div onClick={() => setFeatured(f => !f)}
+                    className={cn("w-10 h-5 rounded-full transition-colors cursor-pointer relative", featured ? "bg-[#C9A227]" : "bg-[#D1D5DB]")}>
+                    <div className={cn("absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform", featured ? "left-5" : "left-0.5")} />
+                  </div>
+                </label>
+              </div>
+              <FormField label="Package Name" required>
+                <input value={name} onChange={e => setName(e.target.value)} className={inputCls} placeholder="e.g. Hajj Economy Package 2026" />
+              </FormField>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Package Type" required>
+                  <select value={type} onChange={e => setType(e.target.value as PkgType)} className={selectCls}>
+                    {(["Hajj","Umrah","Tour","Visa","Manpower","Hotel"] as PkgType[]).map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </FormField>
+                <FormField label="Status" required>
+                  <select value={status} onChange={e => setStatus(e.target.value as PkgStatus)} className={selectCls}>
+                    {(["Active","Draft","Archived","Suspended"] as PkgStatus[]).map(s => <option key={s}>{s}</option>)}
+                  </select>
+                </FormField>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField label="Duration" required hint="e.g. 21 Days">
+                  <input value={duration} onChange={e => setDuration(e.target.value)} className={inputCls} placeholder="21 Days" />
+                </FormField>
+                <FormField label="Season / Occasion" required>
+                  <input value={season} onChange={e => setSeason(e.target.value)} className={inputCls} placeholder="Hajj 2026" />
+                </FormField>
+                <FormField label="Departure Period">
+                  <input value={departure} onChange={e => setDeparture(e.target.value)} className={inputCls} placeholder="May 2026" />
+                </FormField>
+              </div>
+              <FormField label="Short Description" required hint="Shown on package cards — keep under 120 chars">
+                <textarea value={shortDesc} onChange={e => setShortDesc(e.target.value)} rows={2}
+                  className={cn(inputCls, "resize-none")} placeholder="Brief, compelling description of the package…" />
+                <div className="text-right text-[10px] text-[#9CA3AF] mt-1">{shortDesc.length}/120</div>
+              </FormField>
+              <FormField label="Full Description">
+                <textarea value={longDesc} onChange={e => setLongDesc(e.target.value)} rows={5}
+                  className={cn(inputCls, "resize-none")} placeholder="Detailed description with highlights, conditions, and notes…" />
+              </FormField>
+            </Card>
+          )}
+
+          {activeTab === "pricing" && (
+            <Card className="p-5">
+              <div className="pb-4 mb-5 border-b border-[#F3F4F6]">
+                <h2 className="text-[15px] font-black text-[#111827]">Pricing Tiers</h2>
+                <p className="text-[11px] text-[#9CA3AF]">Define multiple pricing options per person. Agent commission is set globally in Settings.</p>
+              </div>
+              <PricingTierEditor tiers={tiers} onChange={setTiers} />
+              <div className="mt-5 pt-5 border-t border-[#F3F4F6] grid grid-cols-3 gap-4">
+                <FormField label="Agent Commission %" hint="Overrides global default">
+                  <input type="number" defaultValue={8} className={inputCls} placeholder="8" />
+                </FormField>
+                <FormField label="Tax / VAT %" hint="Applied at checkout">
+                  <input type="number" defaultValue={0} className={inputCls} placeholder="0" />
+                </FormField>
+                <FormField label="Early Bird Discount %" hint="Applied before cutoff date">
+                  <input type="number" defaultValue={5} className={inputCls} placeholder="5" />
+                </FormField>
+              </div>
+            </Card>
+          )}
+
+          {activeTab === "itinerary" && (
+            <Card className="p-5">
+              <div className="pb-4 mb-5 border-b border-[#F3F4F6] flex items-center justify-between">
+                <div>
+                  <h2 className="text-[15px] font-black text-[#111827]">Itinerary Builder</h2>
+                  <p className="text-[11px] text-[#9CA3AF]">Day-by-day program. Drag to reorder. Click a day to expand.</p>
+                </div>
+                <span className="text-[11px] font-bold text-[#14356B] bg-[#EEF2FF] px-2.5 py-1 rounded-full">{days.length} days</span>
+              </div>
+              <ItineraryBuilder days={days} onChange={setDays} />
+            </Card>
+          )}
+
+          {activeTab === "hotels" && (
+            <div className="space-y-4">
+              <Card className="p-5">
+                <div className="pb-4 mb-4 border-b border-[#F3F4F6] flex items-center justify-between">
+                  <div>
+                    <h2 className="text-[15px] font-black text-[#111827]">Hotel Configuration</h2>
+                    <p className="text-[11px] text-[#9CA3AF]">Add hotels per destination city.</p>
+                  </div>
+                  <button onClick={addHotel} className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#14356B] font-bold rounded-[8px] text-[11px] hover:bg-[#14356B] hover:text-white transition-colors cursor-pointer">
+                    <Plus size={12} /> Add Hotel
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {hotels.map(hotel => (
+                    <div key={hotel.id} className="p-4 bg-[#F7F8FA] rounded-[10px] border border-[#E5E7EB] group">
+                      <div className="flex items-start gap-3">
+                        <Hotel size={16} className="text-[#0E7C66] mt-2.5 flex-shrink-0" />
+                        <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
+                          <FormField label="City">
+                            <input value={hotel.city} onChange={e => updateHotel(hotel.id, { city: e.target.value })} className={inputCls} placeholder="Makkah" />
+                          </FormField>
+                          <div className="md:col-span-2">
+                            <FormField label="Hotel Name">
+                              <input value={hotel.name} onChange={e => updateHotel(hotel.id, { name: e.target.value })} className={inputCls} placeholder="Hotel name" />
+                            </FormField>
+                          </div>
+                          <FormField label="Stars">
+                            <select value={hotel.stars} onChange={e => updateHotel(hotel.id, { stars: +e.target.value })} className={selectCls}>
+                              {[3,4,5].map(s => <option key={s} value={s}>{s}★</option>)}
+                            </select>
+                          </FormField>
+                          <FormField label="Nights">
+                            <input type="number" value={hotel.nights} onChange={e => updateHotel(hotel.id, { nights: +e.target.value })} className={inputCls} placeholder="7" />
+                          </FormField>
+                        </div>
+                        <button onClick={() => removeHotel(hotel.id)} className="mt-2 text-[#9CA3AF] hover:text-[#DC2626] opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="p-5">
+                <div className="pb-4 mb-4 border-b border-[#F3F4F6] flex items-center justify-between">
+                  <div>
+                    <h2 className="text-[15px] font-black text-[#111827]">Flight Configuration</h2>
+                    <p className="text-[11px] text-[#9CA3AF]">Manual airline & flight entry. No live GDS — for display only.</p>
+                  </div>
+                  <button onClick={addFlight} className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#14356B] font-bold rounded-[8px] text-[11px] hover:bg-[#14356B] hover:text-white transition-colors cursor-pointer">
+                    <Plus size={12} /> Add Flight
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {flights.map(flight => (
+                    <div key={flight.id} className="p-4 bg-[#F7F8FA] rounded-[10px] border border-[#E5E7EB] group">
+                      <div className="flex items-start gap-3">
+                        <Plane size={16} className="text-[#2563EB] mt-2.5 flex-shrink-0" />
+                        <div className="flex-1 grid grid-cols-2 md:grid-cols-6 gap-3">
+                          <div className="md:col-span-2">
+                            <FormField label="Carrier">
+                              <input value={flight.carrier} onChange={e => updateFlight(flight.id, { carrier: e.target.value })} className={inputCls} placeholder="Biman Bangladesh Airlines" />
+                            </FormField>
+                          </div>
+                          <FormField label="Flight No.">
+                            <input value={flight.flightNo} onChange={e => updateFlight(flight.id, { flightNo: e.target.value })} className={inputCls} placeholder="BG-043" />
+                          </FormField>
+                          <FormField label="Route">
+                            <div className="flex items-center gap-1">
+                              <input value={flight.from} onChange={e => updateFlight(flight.id, { from: e.target.value })} className={cn(inputCls, "w-16 text-center font-mono")} placeholder="DAC" maxLength={3} />
+                              <ArrowRight size={12} className="text-[#9CA3AF] flex-shrink-0" />
+                              <input value={flight.to} onChange={e => updateFlight(flight.id, { to: e.target.value })} className={cn(inputCls, "w-16 text-center font-mono")} placeholder="JED" maxLength={3} />
+                            </div>
+                          </FormField>
+                          <FormField label="Cabin">
+                            <select value={flight.cabin} onChange={e => updateFlight(flight.id, { cabin: e.target.value })} className={selectCls}>
+                              {["Economy","Premium Economy","Business","First"].map(c => <option key={c}>{c}</option>)}
+                            </select>
+                          </FormField>
+                          <FormField label="Dep / Arr">
+                            <div className="flex gap-1">
+                              <input value={flight.dep} onChange={e => updateFlight(flight.id, { dep: e.target.value })} className={cn(inputCls, "font-mono text-center")} placeholder="09:30" />
+                            </div>
+                          </FormField>
+                        </div>
+                        <button onClick={() => removeFlight(flight.id)} className="mt-2 text-[#9CA3AF] hover:text-[#DC2626] opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "inclusions" && (
+            <Card className="p-5">
+              <div className="pb-4 mb-5 border-b border-[#F3F4F6]">
+                <h2 className="text-[15px] font-black text-[#111827]">Inclusions & Exclusions</h2>
+                <p className="text-[11px] text-[#9CA3AF]">Clearly define what is and isn't covered. Type and press Enter to add.</p>
+              </div>
+              <InclusionEditor includes={includes} excludes={excludes}
+                onIncludesChange={setIncludes} onExcludesChange={setExcludes} />
+            </Card>
+          )}
+
+          {activeTab === "images" && (
+            <Card className="p-5">
+              <div className="pb-4 mb-5 border-b border-[#F3F4F6]">
+                <h2 className="text-[15px] font-black text-[#111827]">Package Images</h2>
+                <p className="text-[11px] text-[#9CA3AF]">First image is the cover. Supported: JPG, PNG, WebP. Max 5MB each.</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Current images */}
+                {(pkg?.images || ["photo-1591604466107-ec97de577aff", "photo-1576158113928-4c240eaaf360"]).map((imgId, i) => (
+                  <div key={imgId} className="relative aspect-video rounded-[10px] overflow-hidden bg-[#F3F4F6] group">
+                    <img src={`https://images.unsplash.com/${imgId}?w=400&h=225&fit=crop`} alt="Package image" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#374151] hover:text-[#DC2626] cursor-pointer"><Trash2 size={13} /></button>
+                    </div>
+                    {i === 0 && <span className="absolute top-2 left-2 text-[9px] font-black bg-[#C9A227] text-[#14356B] px-1.5 py-0.5 rounded-full">COVER</span>}
+                  </div>
+                ))}
+                {/* Upload slot */}
+                <button className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 hover:border-[#14356B]/50 hover:bg-[#EEF2FF]/50 transition-all cursor-pointer group">
+                  <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#14356B] transition-colors" />
+                  <span className="text-[10px] font-medium text-[#9CA3AF] group-hover:text-[#14356B] transition-colors">Upload Image</span>
+                </button>
+              </div>
+              <div className="mt-4 p-3 bg-[#F7F8FA] rounded-[8px] text-[11px] text-[#9CA3AF] flex items-center gap-2">
+                <Info size={13} className="flex-shrink-0" /> Images are optimized automatically. Recommended: 1280×720px landscape.
+              </div>
+            </Card>
+          )}
+
+          {activeTab === "calendar" && (
+            <Card className="p-5">
+              <div className="pb-4 mb-5 border-b border-[#F3F4F6]">
+                <h2 className="text-[15px] font-black text-[#111827]">Departure Calendar</h2>
+                <p className="text-[11px] text-[#9CA3AF]">Click dates to toggle departure days. Bookings are attached to these dates.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <PackageCalendar dates={departureDates} onToggle={toggleDate} />
+                <div>
+                  <div className="text-[12px] font-bold text-[#374151] mb-3">Seat Availability by Departure</div>
+                  {departureDates.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {departureDates.map(d => (
+                        <div key={d} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[9px] border border-[#E5E7EB]">
+                          <div className="text-[11px] font-bold text-[#14356B]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d}</div>
+                          <div className="flex-1">
+                            <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                              <div className="h-full bg-[#14356B] rounded-full" style={{ width: "54%" }} />
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-[#9CA3AF]">27/50 seats</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-[#D1D5DB]">
+                      <Calendar size={24} className="mx-auto mb-2" />
+                      <p className="text-[11px]">No departure dates selected</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PACKAGE DETAIL VIEW ──────────────────────────────────────────────────────
+function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () => void; onEdit: () => void }) {
+  const [tab, setTab] = useState<DetailTab>("overview");
+
+  const DETAIL_TABS: Array<{ id: DetailTab; label: string }> = [
+    { id: "overview",  label: "Overview" },
+    { id: "pricing",   label: "Pricing & Tiers" },
+    { id: "itinerary", label: "Itinerary" },
+    { id: "bookings",  label: "Bookings" },
+  ];
+
+  const pct = Math.round(((pkg.totalSeats - pkg.availableSeats) / pkg.totalSeats) * 100);
+
+  return (
+    <div className="p-5 md:p-7">
+      <PageBreadcrumb
+        items={[{ label: "Packages", onClick: onBack }, { label: pkg.name }]}
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={onBack} className="h-9 px-3 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer">
+              <ChevronLeft size={14} className="inline" /> Back
+            </button>
+            <button onClick={onEdit}
+              className="flex items-center gap-1.5 h-9 px-4 bg-[#14356B] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0F2A55] transition-colors cursor-pointer">
+              <Edit2 size={13} /> Edit Package
+            </button>
+          </div>
+        }
+      />
+
+      {/* Hero */}
+      <Card className="overflow-hidden mb-5">
+        <div className="relative h-52 bg-[#14356B]">
+          <img src={`https://images.unsplash.com/${pkg.image}?w=1200&h=420&fit=crop&auto=format`} alt={pkg.name}
+            className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#14356B]/90 via-[#14356B]/60 to-transparent" />
+          <div className="absolute bottom-5 left-6 right-6">
+            <div className="flex items-center gap-2 mb-2">
+              <TypeBadge type={pkg.type} />
+              <StatusBadge status={pkg.status} />
+              {pkg.featured && (
+                <span className="inline-flex items-center gap-1 text-[#C9A227] text-[10px] font-bold">
+                  <Star size={10} fill="#C9A227" /> Featured
+                </span>
+              )}
+            </div>
+            <h1 className="text-2xl font-black text-white leading-tight mb-1">{pkg.name}</h1>
+            <div className="flex items-center gap-4 text-[12px] text-white/70">
+              <span className="flex items-center gap-1"><Clock size={12} /> {pkg.duration}</span>
+              <span className="flex items-center gap-1"><MapPin size={12} /> {pkg.season}</span>
+              <span className="flex items-center gap-1"><Users size={12} /> {pkg.totalSeats} seats total</span>
+              {pkg.rating > 0 && <span className="flex items-center gap-1"><Star size={11} fill="#C9A227" className="text-[#C9A227]" /> {pkg.rating}/5</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* KPI strip */}
+        <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-[#F3F4F6]">
+          {[
+            { label: "Base Price",   value: fmtPrice(pkg.basePrice), sub: pkg.originalPrice ? `was ${fmtPrice(pkg.originalPrice)}` : "per person" },
+            { label: "Bookings",     value: pkg.bookings.toString(), sub: "confirmed" },
+            { label: "Revenue",      value: pkg.revenue > 0 ? `৳${(pkg.revenue/100000).toFixed(1)}L` : "৳0", sub: "total collected" },
+            { label: "Seats Left",   value: `${pkg.availableSeats}/${pkg.totalSeats}`, sub: `${pct}% occupied` },
+            { label: "Rating",       value: pkg.rating > 0 ? `${pkg.rating}/5` : "—", sub: pkg.rating > 0 ? "avg review" : "no reviews yet" },
+          ].map(stat => (
+            <div key={stat.label} className="px-5 py-4">
+              <div className="text-[18px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.value}</div>
+              <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{stat.label}</div>
+              <div className="text-[10px] text-[#9CA3AF]">{stat.sub}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-4 bg-[#F3F4F6] p-1 rounded-[10px] w-fit">
+        {DETAIL_TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={cn("h-8 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer",
+              tab === t.id ? "bg-white text-[#14356B] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]")}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "overview" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-4">
+            <Card className="p-5">
+              <h3 className="text-[13px] font-bold text-[#111827] mb-2">Description</h3>
+              <p className="text-[12px] text-[#6B7280] leading-relaxed">{pkg.shortDesc}</p>
+            </Card>
+            <Card className="p-5">
+              <h3 className="text-[13px] font-bold text-[#111827] mb-3">Hotels</h3>
+              <div className="space-y-2">
+                {SAMPLE_HOTELS.map(h => (
+                  <div key={h.id} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
+                    <Hotel size={14} className="text-[#0E7C66] flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-[12px] font-semibold text-[#111827]">{h.name}</div>
+                      <div className="text-[10px] text-[#9CA3AF]">{h.city} · {h.nights} nights · {"★".repeat(h.stars)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="p-5">
+              <h3 className="text-[13px] font-bold text-[#111827] mb-3">Flights</h3>
+              <div className="space-y-2">
+                {SAMPLE_FLIGHTS.map(f => (
+                  <div key={f.id} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
+                    <Plane size={14} className="text-[#2563EB] flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-[12px] font-semibold text-[#111827]">{f.carrier}</div>
+                      <div className="text-[10px] text-[#9CA3AF]">{f.flightNo} · {f.from} → {f.to} · {f.cabin}</div>
+                    </div>
+                    <div className="text-[10px] font-mono text-[#374151]">{f.dep}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+          <div className="space-y-4">
+            <Card className="p-5">
+              <h3 className="text-[13px] font-bold text-[#111827] mb-3">Inclusions</h3>
+              <div className="space-y-1.5">
+                {SAMPLE_DAYS[0] && pkg.includes?.slice(0, 6).map((item, i) => (
+                  <div key={i} className="flex items-start gap-2 text-[11px] text-[#374151]">
+                    <CheckCircle size={12} className="text-[#0E7C66] flex-shrink-0 mt-0.5" /> {item}
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="p-5">
+              <h3 className="text-[13px] font-bold text-[#111827] mb-3">Departure Dates</h3>
+              <div className="space-y-1.5">
+                {(pkg.departureDates.length ? pkg.departureDates : ["2026-05-12", "2026-05-14", "2026-05-18"]).map(d => (
+                  <div key={d} className="flex items-center justify-between p-2.5 bg-[#F7F8FA] rounded-[7px]">
+                    <span className="text-[11px] font-bold text-[#14356B]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d}</span>
+                    <span className="text-[10px] text-[#9CA3AF]">27/50 seats</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {tab === "pricing" && (
+        <Card className="p-5">
+          <PricingTierEditor tiers={tiers} onChange={setTiers => {}} />
+        </Card>
+      )}
+
+      {tab === "itinerary" && (
+        <Card className="p-5">
+          <div className="relative">
+            {SAMPLE_DAYS.map((day, i) => (
+              <div key={day.id} className="flex gap-4 mb-5">
+                <div className="flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full bg-[#14356B] text-white flex items-center justify-center font-black text-[13px] flex-shrink-0 z-10">{day.day}</div>
+                  {i < SAMPLE_DAYS.length - 1 && <div className="w-px flex-1 bg-[#E5E7EB] mt-2" />}
+                </div>
+                <div className="flex-1 pb-2">
+                  <h4 className="text-[13px] font-bold text-[#111827] mb-1">{day.title}</h4>
+                  <p className="text-[11px] text-[#6B7280] leading-relaxed mb-2">{day.desc}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {day.activities.map(a => (
+                      <span key={a} className="bg-[#EEF2FF] text-[#14356B] text-[10px] font-medium px-2 py-0.5 rounded-full">{a}</span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-4 text-[10px] text-[#9CA3AF]">
+                    {day.hotel && <span className="flex items-center gap-1"><Hotel size={10} /> {day.hotel.split(",")[0]}</span>}
+                    {day.transport && <span className="flex items-center gap-1"><Plane size={10} /> {day.transport}</span>}
+                    <span>{day.meals.breakfast ? "B " : ""}{day.meals.lunch ? "L " : ""}{day.meals.dinner ? "D" : ""}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {tab === "bookings" && (
+        <Card className="p-5">
+          <div className="py-12 text-center text-[#D1D5DB]">
+            <BarChart3 size={32} className="mx-auto mb-3" />
+            <p className="text-[13px] text-[#9CA3AF] font-medium">Booking history for this package</p>
+            <p className="text-[11px] text-[#D1D5DB]">27 bookings · Navigate to Bookings module for full details</p>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
+export function PackageManagementPage() {
+  const [view, setView] = useState<PkgView>("list");
+  const [isEdit, setIsEdit] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [tiers, setTiers] = useState<PricingTier[]>(SAMPLE_TIERS);
+
+  const selectedPkg = PACKAGES.find(p => p.id === selectedId);
+
+  const goList = () => { setView("list"); setSelectedId(null); };
+  const goCreate = () => { setIsEdit(false); setSelectedId(null); setView("form"); };
+  const goEdit = (id: string) => { setIsEdit(true); setSelectedId(id); setView("form"); };
+  const goDetail = (id: string) => { setSelectedId(id); setView("detail"); };
+
+  return (
+    <div>
+      {view === "list" && <PackageListView onNew={goCreate} onEdit={goEdit} onView={goDetail} />}
+      {view === "form" && <PackageFormView pkg={selectedPkg} isEdit={isEdit} onBack={goList} onSave={goList} />}
+      {view === "detail" && selectedPkg && (
+        <PackageDetailView pkg={selectedPkg} onBack={goList} onEdit={() => goEdit(selectedPkg.id)} />
+      )}
+    </div>
+  );
+}
+
+// ─── Fix: missing ArrowRight import ──────────────────────────────────────────
+function ArrowRight({ size, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size ?? 16} height={size ?? 16} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
