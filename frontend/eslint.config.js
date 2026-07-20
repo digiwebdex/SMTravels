@@ -23,6 +23,17 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Data policy: nothing is persisted in the browser. Auth tokens live in
+      // memory (access) or an httpOnly cookie (refresh) — never web storage.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name='localStorage'], MemberExpression[object.name='sessionStorage'], MemberExpression[property.name='localStorage'], MemberExpression[property.name='sessionStorage']",
+          message:
+            'Web Storage (localStorage/sessionStorage) is banned by the data policy: no browser persistence. Keep the access token in memory (AuthContext); the refresh token is an httpOnly cookie.',
+        },
+      ],
     },
   },
 )

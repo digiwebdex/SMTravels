@@ -31,6 +31,18 @@ export default defineConfig({
     },
   },
 
+  // Dev only: proxy /api to the local backend so the browser sees a SAME-ORIGIN
+  // API. That lets the httpOnly refresh cookie (SameSite=Lax) flow on fetch in
+  // dev exactly as it does in prod (where nginx serves SPA + /api on one origin).
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4030',
+        changeOrigin: true,
+      },
+    },
+  },
+
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
 })

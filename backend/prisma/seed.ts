@@ -6,8 +6,8 @@
  *
  * Run: npm run prisma:seed   (uses the PII-encrypting Prisma client)
  */
-import { createHash, scryptSync } from "node:crypto";
 import { prisma } from "../src/lib/prisma";
+import { deterministicHash } from "../src/lib/password";
 import {
   UserRole,
   ServiceType,
@@ -17,11 +17,10 @@ import {
   ContentStatus,
 } from "@prisma/client";
 
-// deterministic password hash so re-seeding doesn't churn the column
-function hashPw(pw: string, email: string): string {
-  const salt = createHash("sha256").update(email).digest().subarray(0, 16);
-  return `scrypt$${salt.toString("hex")}$${scryptSync(pw, salt, 64).toString("hex")}`;
-}
+// Password hashing is shared with the login path (src/lib/password) so seeded
+// hashes and runtime verification can never drift. Deterministic salt keeps
+// re-seeding from churning the column.
+const hashPw = (pw: string, email: string) => deterministicHash(pw, email);
 const DEMO_PW = "Password123!";
 
 const COMPANY_ID = "cmp_smtravels";
@@ -99,6 +98,17 @@ async function main() {
   }
   const roleByKey = Object.fromEntries((await prisma.role.findMany()).map((r) => [r.key, r.id]));
 
+  const linkRole = async (userId: string, roleKey: string) => {
+    const roleId = roleByKey[roleKey];
+    if (roleId) {
+      await prisma.userRoleLink.upsert({
+        where: { userId_roleId: { userId, roleId } },
+        create: { userId, roleId },
+        update: {},
+      });
+    }
+  };
+
   // 5) One demo user per role, linked to the matching RBAC role
   for (const role of Object.values(UserRole)) {
     const email = `${role.toLowerCase()}@smtravel.com.bd`;
@@ -111,15 +121,21 @@ async function main() {
       },
       update: { name: `Demo ${role.replace(/_/g, " ")}`, role, branchId: "brn_dhaka" },
     });
-    const roleId = roleByKey[role];
-    if (roleId) {
-      await prisma.userRoleLink.upsert({
-        where: { userId_roleId: { userId: u.id, roleId } },
-        create: { userId: u.id, roleId },
-        update: {},
-      });
-    }
+    await linkRole(u.id, role);
   }
+
+  // 5b) An extra BRANCH_MANAGER in Chittagong so branch scoping can be proven
+  //     across two branches (Dhaka users vs this CTG user).
+  const ctgEmail = "ctg.manager@smtravel.com.bd";
+  const ctgUser = await prisma.user.upsert({
+    where: { id: "usr_ctg_manager" },
+    create: {
+      id: "usr_ctg_manager", email: ctgEmail, name: "Demo CTG Manager", role: UserRole.BRANCH_MANAGER,
+      passwordHash: hashPw(DEMO_PW, ctgEmail), branchId: "brn_ctg", status: "active",
+    },
+    update: { name: "Demo CTG Manager", role: UserRole.BRANCH_MANAGER, branchId: "brn_ctg" },
+  });
+  await linkRole(ctgUser.id, UserRole.BRANCH_MANAGER);
 
   // 6) Commission tiers (volume-driven)
   const tiers: { tier: AgentTier; rate: number; min: number; max: number | null }[] = [
@@ -185,7 +201,8 @@ async function main() {
     }
   }
 
-  // 9) Demo customer — PII (nid/passport) is auto-encrypted by the Prisma extension
+  // 9) Demo customers in two branches — PII (nid/passport) auto-encrypted by the
+  //    Prisma extension. Two branches let branch scoping be proven end to end.
   await prisma.customer.upsert({
     where: { id: "cus_demo" },
     create: {
@@ -194,6 +211,15 @@ async function main() {
       nid: "1990123456789", passportNo: "BX0912345", district: "Dhaka", division: "Dhaka",
     },
     update: { name: "Md. Karim Ullah" },
+  });
+  await prisma.customer.upsert({
+    where: { id: "cus_ctg" },
+    create: {
+      id: "cus_ctg", branchId: "brn_ctg", type: CustomerType.INDIVIDUAL,
+      name: "Fatima Begum", phone: "+880 1812-000002", email: "fatima.demo@example.com",
+      nid: "1988987654321", passportNo: "BW1122334", district: "Chittagong", division: "Chittagong",
+    },
+    update: { name: "Fatima Begum" },
   });
 
   // 10) A promo code + a menu (so CMS isn't empty)

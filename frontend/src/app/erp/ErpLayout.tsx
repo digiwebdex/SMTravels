@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, NavLink, Link, useLocation } from "react-router";
+import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router";
+import { useAuth } from "../auth/AuthContext";
 import {
   LayoutDashboard, Users, CalendarDays, Package, Layers, Wallet,
   Receipt, BarChart3, FileEdit, Settings2, Settings, ChevronLeft,
@@ -20,49 +21,51 @@ const MOBILE_NAV = [
 ];
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
+// `module` maps each item to an RBAC permission module (see backend seed). The
+// sidebar hides any item the signed-in user's roles don't grant (view|full).
 const NAV_GROUPS = [
   {
     label: "Core",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard",       path: "/erp",          exact: true },
-      { icon: Users,           label: "CRM & Leads",     path: "/erp/crm" },
-      { icon: CalendarDays,    label: "Bookings",         path: "/erp/bookings" },
+      { icon: LayoutDashboard, label: "Dashboard",       path: "/erp",          exact: true, module: "dashboard" },
+      { icon: Users,           label: "CRM & Leads",     path: "/erp/crm",                   module: "crm" },
+      { icon: CalendarDays,    label: "Bookings",         path: "/erp/bookings",             module: "bookings" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { icon: Package,         label: "Packages",         path: "/erp/packages" },
-      { icon: Layers,          label: "Services",         path: "/erp/services" },
+      { icon: Package,         label: "Packages",         path: "/erp/packages",            module: "packages" },
+      { icon: Layers,          label: "Services",         path: "/erp/services",            module: "packages" },
     ],
   },
   {
     label: "Finance",
     items: [
-      { icon: Wallet,          label: "Accounts",         path: "/erp/accounts" },
-      { icon: Receipt,         label: "Invoices & Payments", path: "/erp/invoices" },
+      { icon: Wallet,          label: "Accounts",         path: "/erp/accounts",            module: "accounts" },
+      { icon: Receipt,         label: "Invoices & Payments", path: "/erp/invoices",         module: "invoices" },
     ],
   },
   {
     label: "Intelligence",
     items: [
-      { icon: BarChart3,       label: "Reports & Analytics", path: "/erp/reports" },
-      { icon: LineChart,       label: "Reports & BI",         path: "/erp/reports-bi" },
+      { icon: BarChart3,       label: "Reports & Analytics", path: "/erp/reports",          module: "reports" },
+      { icon: LineChart,       label: "Reports & BI",         path: "/erp/reports-bi",       module: "reports" },
     ],
   },
   {
     label: "Workspace",
     items: [
-      { icon: FolderOpen,     label: "Documents",            path: "/erp/documents" },
-      { icon: MessageSquare,  label: "Communications",        path: "/erp/communications" },
+      { icon: FolderOpen,     label: "Documents",            path: "/erp/documents",        module: "documents" },
+      { icon: MessageSquare,  label: "Communications",        path: "/erp/communications",   module: "crm" },
     ],
   },
   {
     label: "Content & System",
     items: [
-      { icon: FileEdit,        label: "CMS",              path: "/erp/cms" },
-      { icon: Settings2,       label: "Operations",       path: "/erp/ops" },
-      { icon: Settings,        label: "Settings",         path: "/erp/settings" },
+      { icon: FileEdit,        label: "CMS",              path: "/erp/cms",                 module: "cms" },
+      { icon: Settings2,       label: "Operations",       path: "/erp/ops",                 module: "ops" },
+      { icon: Settings,        label: "Settings",         path: "/erp/settings",            module: "settings" },
     ],
   },
 ];
@@ -90,11 +93,27 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
   collapsed: boolean; onToggle: () => void; onMobileClose?: () => void;
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, can, logout } = useAuth();
 
   const isActive = (path: string, exact?: boolean) => {
     if (exact) return location.pathname === path;
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
+
+  // Hide items/groups the signed-in user's RBAC permissions don't grant.
+  const visibleGroups = NAV_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter((it) => can(it.module)) }))
+    .filter((g) => g.items.length > 0);
+
+  const handleSignOut = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
+  const initials = (user?.name ?? "")
+    .split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "SM";
+  const roleLabel = (user?.role ?? "").replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <aside className={cn(
@@ -125,7 +144,7 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 no-scrollbar">
-        {NAV_GROUPS.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.label} className="mb-1">
             {!collapsed && (
               <div className="px-4 pt-3 pb-1">
@@ -186,17 +205,17 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
           collapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
         )}>
           <div className="w-7 h-7 rounded-full bg-[#E8471F] flex items-center justify-center flex-shrink-0">
-            <span className="text-[#0E6BB8] text-[10px] font-black">AR</span>
+            <span className="text-[#0E6BB8] text-[10px] font-black">{initials}</span>
           </div>
           {!collapsed && (
             <>
               <div className="flex-1 overflow-hidden">
-                <div className="text-white text-[12px] font-semibold truncate">Md. Abdur Rahman</div>
-                <div className="text-white/40 text-[10px]">Super Admin</div>
+                <div className="text-white text-[12px] font-semibold truncate">{user?.name ?? "—"}</div>
+                <div className="text-white/40 text-[10px]">{roleLabel || "—"}</div>
               </div>
-              <Link to="/login" title="Sign out" className="text-white/40 hover:text-white/80 transition-colors cursor-pointer">
+              <button onClick={handleSignOut} title="Sign out" className="text-white/40 hover:text-white/80 transition-colors cursor-pointer">
                 <LogOut size={14} />
-              </Link>
+              </button>
             </>
           )}
         </div>
@@ -232,6 +251,8 @@ function Topbar({
   dateRange: string;
   onDateRangeChange: (r: string) => void;
 }) {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [notifOpen, setNotifOpen] = useState(false);
   const [branchOpen, setBranchOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
@@ -240,6 +261,11 @@ function Topbar({
   const branchRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+
+  const initials = (user?.name ?? "")
+    .split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "SM";
+  const roleLabel = (user?.role ?? "").replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  const handleSignOut = async () => { await logout(); navigate("/login", { replace: true }); };
 
   const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
 
@@ -394,19 +420,19 @@ function Topbar({
             className="flex items-center gap-2.5 h-9 pl-1 pr-2.5 hover:bg-[#F7F8FA] rounded-[8px] transition-colors cursor-pointer"
           >
             <div className="w-7 h-7 rounded-full bg-[#0E6BB8] flex items-center justify-center">
-              <span className="text-white text-[10px] font-black">AR</span>
+              <span className="text-white text-[10px] font-black">{initials}</span>
             </div>
             <div className="hidden sm:block text-left">
-              <div className="text-[12px] font-semibold text-[#111827] leading-tight">Md. Abdur Rahman</div>
-              <div className="text-[10px] text-[#9CA3AF]">Super Admin</div>
+              <div className="text-[12px] font-semibold text-[#111827] leading-tight">{user?.name ?? "—"}</div>
+              <div className="text-[10px] text-[#9CA3AF]">{roleLabel || "—"}</div>
             </div>
             <ChevronDown size={12} className="text-[#9CA3AF] hidden sm:block" />
           </button>
           {userOpen && (
             <div className="absolute right-0 top-full mt-1.5 bg-white border border-[#E5E7EB] rounded-[12px] shadow-xl w-52 z-50 py-1.5">
               <div className="px-4 py-3 border-b border-[#F3F4F6]">
-                <div className="text-[12px] font-bold text-[#111827]">Md. Abdur Rahman</div>
-                <div className="text-[11px] text-[#9CA3AF]">admin@smtravel.com.bd</div>
+                <div className="text-[12px] font-bold text-[#111827]">{user?.name ?? "—"}</div>
+                <div className="text-[11px] text-[#9CA3AF]">{user?.email ?? ""}</div>
               </div>
               {[
                 { icon: UserCircle, label: "My Profile" },
@@ -429,9 +455,9 @@ function Topbar({
                 )
               ))}
               <div className="border-t border-[#F3F4F6] mt-1.5 pt-1.5">
-                <Link to="/login" className="flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
+                <button onClick={handleSignOut} className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
                   <LogOut size={13} /> Sign Out
-                </Link>
+                </button>
               </div>
             </div>
           )}

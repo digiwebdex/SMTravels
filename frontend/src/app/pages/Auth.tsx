@@ -1,5 +1,8 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
+import { useAuth } from "../auth/AuthContext";
+import { dashboardFor } from "../auth/roles";
+import { authApi, type ApiError } from "../lib/api";
 import {
   Eye, EyeOff, Mail, Phone, Lock, User, Building, Globe, ArrowRight,
   ArrowLeft, CheckCircle, AlertCircle, Shield, Briefcase, Star,
@@ -384,6 +387,8 @@ const ROLE_ROUTES: Record<string, string> = {
 
 function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [resetToken, setResetToken] = useState("");
   const [state, setState] = useState<AuthState>({
     view: initialView,
     loading: false,
@@ -410,31 +415,48 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
   };
 
   // ── LOGIN ──────────────────────────────────────────────────────────────────
-  const [loginId, setLoginId] = useState("agent@smtravel.com.bd");
-  const [loginPass, setLoginPass] = useState("password");
+  const [loginId, setLoginId] = useState("super_admin@smtravel.com.bd");
+  const [loginPass, setLoginPass] = useState("");
   const [loginMode, setLoginMode] = useState<"email" | "phone">("email");
   const [remember, setRemember] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!loginId || !loginPass) { set({ error: "Please fill in all fields." }); return; }
-    if (loginAttempts >= 2 && loginPass === "wrong") {
-      go("locked"); return;
+    set({ loading: true, error: null });
+    try {
+      const user = await login(loginId.trim(), loginPass);
+      navigate(dashboardFor(user.role), { replace: true });
+    } catch (e) {
+      const err = e as ApiError;
+      if (err.status === 423) { go("locked"); return; }
+      set({
+        loading: false,
+        error: err.status === 401 ? "Invalid email or password."
+             : err.status === 403 ? "This account is not active. Contact your administrator."
+             : (err.message || "Sign in failed. Please try again."),
+      });
     }
-    simulateLoad(() => {
-      if (loginPass === "2fa") { go("two-factor", { identifier: loginId }); return; }
-      if (loginPass === "roles") { go("role-select"); return; }
-      if (loginPass === "wrong") { setLoginAttempts(a => a + 1); set({ error: `Invalid credentials. ${3 - loginAttempts - 1} attempt(s) remaining.` }); return; }
-      go("role-select");
-    });
   };
 
   // ── OTP verify ─────────────────────────────────────────────────────────────
-  const handleOTPVerify = () => {
-    if (otp.replace(/\s/g, "").length < 6) { set({ error: "Please enter the complete 6-digit code." }); return; }
+  const handleOTPVerify = async () => {
+    const code = otp.replace(/\s/g, "");
+    if (code.length < 6) { set({ error: "Please enter the complete 6-digit code." }); return; }
+    if (state.otpContext === "forgot") {
+      set({ loading: true, error: null });
+      try {
+        const { resetToken: rt } = await authApi.verifyOtp(state.identifier, code);
+        setResetToken(rt);
+        go("reset-password");
+      } catch (e) {
+        const err = e as ApiError;
+        set({ loading: false, error: err.status === 400 ? "Invalid or expired code." : (err.message || "Verification failed.") });
+      }
+      return;
+    }
+    // 2FA / email-verification screens have no backend endpoint yet — left as-is.
     simulateLoad(() => {
-      if (state.otpContext === "forgot") go("reset-password");
-      else if (state.otpContext === "2fa") go("role-select");
+      if (state.otpContext === "2fa") go("role-select");
       else go("success", { successMsg: "Email verified!", successSub: "Your account is now active. Welcome to SMTravel!", successRedirect: "/login" });
     });
   };
@@ -532,9 +554,9 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   </button>
                 </div>
 
-                {/* Quick-access hint */}
+                {/* Demo credentials hint */}
                 <div className="mt-5 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] p-3 text-[11px] text-[#9CA3AF] text-center">
-                  Try: type <span className="font-bold text-[#374151]">2fa</span> or <span className="font-bold text-[#374151]">roles</span> as password to preview screens
+                  Demo: <span className="font-bold text-[#374151]">super_admin@smtravel.com.bd</span> · <span className="font-bold text-[#374151]">Password123!</span>
                 </div>
               </div>
             )}
@@ -695,7 +717,18 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 </FieldGroup>
                 <div className="mt-5">
                   <PrimaryButton loading={state.loading}
-                    onClick={() => simulateLoad(() => go("otp-verify", { identifier: forgotId, otpContext: "forgot" }))}>
+                    onClick={async () => {
+                      const id = forgotId.trim();
+                      if (!id) { set({ error: "Enter your email address." }); return; }
+                      set({ loading: true, error: null });
+                      try {
+                        const r = await authApi.forgotPassword(id);
+                        if (r.devOtp) setOtp(r.devOtp); // dev only: backend returns the code so the flow is testable
+                        go("otp-verify", { identifier: id, otpContext: "forgot" });
+                      } catch (e) {
+                        set({ loading: false, error: (e as ApiError).message || "Could not send a reset code." });
+                      }
+                    }}>
                     Send Reset Code <ArrowRight size={14} />
                   </PrimaryButton>
                 </div>
@@ -755,10 +788,17 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
               <div>
                 <FormHeader icon={Lock} title="Set new password" sub="Choose a strong password that you haven't used before." />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
-                <form className="flex flex-col gap-4" onSubmit={e => {
+                <form className="flex flex-col gap-4" onSubmit={async e => {
                   e.preventDefault();
                   if (resetPass.pass !== resetPass.confirm) { set({ error: "Passwords don't match." }); return; }
-                  simulateLoad(() => go("success", { successMsg: "Password updated!", successSub: "Your password has been changed. Sign in with your new credentials.", successRedirect: "/login" }));
+                  if (resetPass.pass.length < 8) { set({ error: "Password must be at least 8 characters." }); return; }
+                  set({ loading: true, error: null });
+                  try {
+                    await authApi.resetPassword(resetToken, resetPass.pass);
+                    go("success", { successMsg: "Password updated!", successSub: "Your password has been changed. Sign in with your new credentials.", successRedirect: "/login" });
+                  } catch (err) {
+                    set({ loading: false, error: (err as ApiError).message || "Could not reset password." });
+                  }
                 }}>
                   <FieldGroup label="New Password" required>
                     <PasswordField value={resetPass.pass} onChange={v => setResetPass(f => ({ ...f, pass: v }))} placeholder="Choose a strong password" />

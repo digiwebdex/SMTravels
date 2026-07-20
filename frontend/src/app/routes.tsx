@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { SkeletonPage } from "./lib/ds";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { ERP_ROLES, type Role } from "./auth/roles";
 
 // ── Eager: public website (the landing path — must load fast) ────────────────
 import { Layout } from "./components/Layout";
@@ -55,6 +57,12 @@ const withSuspense = (el: ReactNode): ReactNode => (
   <Suspense fallback={<SkeletonPage />}>{el}</Suspense>
 );
 
+// Role-gate a subtree, then lazy-load it. ProtectedRoute handles the loading/
+// anon/wrong-role cases before the chunk is ever fetched.
+const guard = (allow: Role[], el: ReactNode): ReactNode => (
+  <ProtectedRoute allow={allow}>{withSuspense(el)}</ProtectedRoute>
+);
+
 // ── Service page wrappers (eager, tiny) ──────────────────────────────────────
 function HajjPage() { return <ServicePage serviceId="hajj" />; }
 function UmrahPage() { return <ServicePage serviceId="umrah" />; }
@@ -67,7 +75,7 @@ function HotelBookingPage() { return <ServicePage serviceId="hotel-booking" />; 
 export const router = createBrowserRouter([
   {
     path: "/erp",
-    element: withSuspense(<ErpLayout />),
+    element: guard(ERP_ROLES, <ErpLayout />),
     children: [
       { index: true, element: withSuspense(<SuperAdminDashboard />) },
       { path: "bookings", element: withSuspense(<BookingsModule />) },
@@ -86,11 +94,11 @@ export const router = createBrowserRouter([
   },
   { path: "/sitemap", element: withSuspense(<SitemapWorkflow />) },
   { path: "/ds", element: withSuspense(<DesignSystemPage />) },
-  { path: "/portal", element: withSuspense(<CustomerPortal />) },
-  { path: "/agent", element: withSuspense(<AgentPortal />) },
-  { path: "/supplier", element: withSuspense(<SupplierPortal />) },
-  { path: "/staff", element: withSuspense(<StaffPortal />) },
-  { path: "/accountant", element: withSuspense(<AccountantPortal />) },
+  { path: "/portal", element: guard(["CUSTOMER"], <CustomerPortal />) },
+  { path: "/agent", element: guard(["AGENT"], <AgentPortal />) },
+  { path: "/supplier", element: guard(["SUPPLIER"], <SupplierPortal />) },
+  { path: "/staff", element: guard(["STAFF"], <StaffPortal />) },
+  { path: "/accountant", element: guard(["ACCOUNTANT"], <AccountantPortal />) },
   {
     path: "/",
     Component: Layout,
