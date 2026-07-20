@@ -1,24 +1,9 @@
 import { createBrowserRouter } from "react-router";
+import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
+import { SkeletonPage } from "./lib/ds";
+
+// ── Eager: public website (the landing path — must load fast) ────────────────
 import { Layout } from "./components/Layout";
-import { ErpLayout } from "./erp/ErpLayout";
-import { SuperAdminDashboard } from "./erp/SuperAdminDashboard";
-import { BookingsModule } from "./erp/bookings/BookingsModule";
-import { PackageManagementPage } from "./erp/PackageManagement";
-import { ServicesConfigPage } from "./erp/ServicesConfig";
-import { AccountsModule } from "./erp/AccountsModule";
-import { InvoicesModule } from "./erp/InvoicesModule";
-import { ReportsModule } from "./erp/ReportsModule";
-import { DocumentsModule } from "./erp/DocumentsModule";
-import { CommunicationsModule } from "./erp/CommunicationsModule";
-import { ReportsBIModule } from "./erp/ReportsBIModule";
-import { CmsModule } from "./erp/CmsModule";
-import { OperationsModule } from "./erp/OperationsModule";
-import { SettingsModule } from "./erp/SettingsModule";
-import { CustomerPortal } from "./portal/CustomerPortal";
-import { AgentPortal } from "./portal/AgentPortal";
-import { SupplierPortal } from "./portal/SupplierPortal";
-import { StaffPortal } from "./portal/StaffPortal";
-import { AccountantPortal } from "./portal/AccountantPortal";
 import { Home } from "./pages/Home";
 import { About } from "./pages/About";
 import { ServicePage } from "./pages/ServicePage";
@@ -30,10 +15,47 @@ import { ContactPage } from "./pages/Contact";
 import { BookingPage } from "./pages/Booking";
 import { LoginPage, RegisterPage } from "./pages/Auth";
 import { NotFoundPage } from "./pages/NotFound";
-import { SitemapWorkflow } from "./pages/Sitemap";
-import { DesignSystemPage } from "./pages/DesignSystem";
 
-// Service page wrappers
+// ── Lazy: heavy app sections (each becomes its own chunk, loaded on demand) ──
+function lazyNamed<M, N extends keyof M>(factory: () => Promise<M>, name: N) {
+  return lazy(() =>
+    factory().then((m) => ({ default: m[name] as unknown as ComponentType })),
+  );
+}
+
+// ERP shell + modules
+const ErpLayout            = lazyNamed(() => import("./erp/ErpLayout"), "ErpLayout");
+const SuperAdminDashboard  = lazyNamed(() => import("./erp/SuperAdminDashboard"), "SuperAdminDashboard");
+const BookingsModule       = lazyNamed(() => import("./erp/bookings/BookingsModule"), "BookingsModule");
+const PackageManagementPage = lazyNamed(() => import("./erp/PackageManagement"), "PackageManagementPage");
+const ServicesConfigPage   = lazyNamed(() => import("./erp/ServicesConfig"), "ServicesConfigPage");
+const AccountsModule       = lazyNamed(() => import("./erp/AccountsModule"), "AccountsModule");
+const InvoicesModule       = lazyNamed(() => import("./erp/InvoicesModule"), "InvoicesModule");
+const ReportsModule        = lazyNamed(() => import("./erp/ReportsModule"), "ReportsModule");
+const DocumentsModule      = lazyNamed(() => import("./erp/DocumentsModule"), "DocumentsModule");
+const CommunicationsModule = lazyNamed(() => import("./erp/CommunicationsModule"), "CommunicationsModule");
+const ReportsBIModule      = lazyNamed(() => import("./erp/ReportsBIModule"), "ReportsBIModule");
+const CmsModule            = lazyNamed(() => import("./erp/CmsModule"), "CmsModule");
+const OperationsModule     = lazyNamed(() => import("./erp/OperationsModule"), "OperationsModule");
+const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
+
+// Portals
+const CustomerPortal   = lazyNamed(() => import("./portal/CustomerPortal"), "CustomerPortal");
+const AgentPortal      = lazyNamed(() => import("./portal/AgentPortal"), "AgentPortal");
+const SupplierPortal   = lazyNamed(() => import("./portal/SupplierPortal"), "SupplierPortal");
+const StaffPortal      = lazyNamed(() => import("./portal/StaffPortal"), "StaffPortal");
+const AccountantPortal = lazyNamed(() => import("./portal/AccountantPortal"), "AccountantPortal");
+
+// Standalone heavy pages
+const SitemapWorkflow  = lazyNamed(() => import("./pages/Sitemap"), "SitemapWorkflow");
+const DesignSystemPage = lazyNamed(() => import("./pages/DesignSystem"), "DesignSystemPage");
+
+// Suspense wrapper using the app's EXISTING full-page skeleton (no new spinner)
+const withSuspense = (el: ReactNode): ReactNode => (
+  <Suspense fallback={<SkeletonPage />}>{el}</Suspense>
+);
+
+// ── Service page wrappers (eager, tiny) ──────────────────────────────────────
 function HajjPage() { return <ServicePage serviceId="hajj" />; }
 function UmrahPage() { return <ServicePage serviceId="umrah" />; }
 function VisaPage() { return <ServicePage serviceId="visa" />; }
@@ -45,51 +67,30 @@ function HotelBookingPage() { return <ServicePage serviceId="hotel-booking" />; 
 export const router = createBrowserRouter([
   {
     path: "/erp",
-    Component: ErpLayout,
+    element: withSuspense(<ErpLayout />),
     children: [
-      { index: true, Component: SuperAdminDashboard },
-      { path: "bookings", Component: BookingsModule },
-      { path: "packages", Component: PackageManagementPage },
-      { path: "services", Component: ServicesConfigPage },
-      { path: "accounts", Component: AccountsModule },
-      { path: "invoices", Component: InvoicesModule },
-      { path: "reports", Component: ReportsModule },
-      { path: "documents", Component: DocumentsModule },
-      { path: "communications", Component: CommunicationsModule },
-      { path: "reports-bi", Component: ReportsBIModule },
-      { path: "cms", Component: CmsModule },
-      { path: "ops", Component: OperationsModule },
-      { path: "settings", Component: SettingsModule },
+      { index: true, element: withSuspense(<SuperAdminDashboard />) },
+      { path: "bookings", element: withSuspense(<BookingsModule />) },
+      { path: "packages", element: withSuspense(<PackageManagementPage />) },
+      { path: "services", element: withSuspense(<ServicesConfigPage />) },
+      { path: "accounts", element: withSuspense(<AccountsModule />) },
+      { path: "invoices", element: withSuspense(<InvoicesModule />) },
+      { path: "reports", element: withSuspense(<ReportsModule />) },
+      { path: "documents", element: withSuspense(<DocumentsModule />) },
+      { path: "communications", element: withSuspense(<CommunicationsModule />) },
+      { path: "reports-bi", element: withSuspense(<ReportsBIModule />) },
+      { path: "cms", element: withSuspense(<CmsModule />) },
+      { path: "ops", element: withSuspense(<OperationsModule />) },
+      { path: "settings", element: withSuspense(<SettingsModule />) },
     ],
   },
-  {
-    path: "/sitemap",
-    Component: SitemapWorkflow,
-  },
-  {
-    path: "/ds",
-    Component: DesignSystemPage,
-  },
-  {
-    path: "/portal",
-    Component: CustomerPortal,
-  },
-  {
-    path: "/agent",
-    Component: AgentPortal,
-  },
-  {
-    path: "/supplier",
-    Component: SupplierPortal,
-  },
-  {
-    path: "/staff",
-    Component: StaffPortal,
-  },
-  {
-    path: "/accountant",
-    Component: AccountantPortal,
-  },
+  { path: "/sitemap", element: withSuspense(<SitemapWorkflow />) },
+  { path: "/ds", element: withSuspense(<DesignSystemPage />) },
+  { path: "/portal", element: withSuspense(<CustomerPortal />) },
+  { path: "/agent", element: withSuspense(<AgentPortal />) },
+  { path: "/supplier", element: withSuspense(<SupplierPortal />) },
+  { path: "/staff", element: withSuspense(<StaffPortal />) },
+  { path: "/accountant", element: withSuspense(<AccountantPortal />) },
   {
     path: "/",
     Component: Layout,
