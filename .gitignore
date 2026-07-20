@@ -3,3 +3,6 @@ dist/
 .env*
 !.env.example
 .DS_Store
+
+# local throwaway Postgres (portable binaries + data)
+.localpg/

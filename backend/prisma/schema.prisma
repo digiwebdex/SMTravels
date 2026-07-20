@@ -1,5 +1,24 @@
-// SM Travels International — Prisma schema
-// No models yet; they will be added as features land.
+// ============================================================================
+//  SM Travels International — Prisma schema (single-tenant)
+//  Derived from the ERP/portal UI. See SCHEMA_DECISIONS.md for the rationale
+//  and every UI ambiguity + assumption.
+//
+//  Conventions:
+//   - Money: @db.Decimal(18,4); exchangeRate @db.Decimal(18,8); base = BDT.
+//     Invariant baseAmount = amount * exchangeRate is enforced in the service
+//     layer (BDT rows must have exchangeRate = 1).
+//   - Timestamps: @db.Timestamptz(6), stored UTC (app renders Asia/Dhaka).
+//   - Dates that are calendar dates (departure/expiry/dob/due) are @db.Date.
+//   - Soft delete: deletedAt on business models — EXCEPT the immutable ledger
+//     (JournalEntry, JournalLine, Payment, Receipt, WalletTransaction), which is
+//     append-only; corrections are reversals.
+//   - onDelete defaults to Restrict; Cascade only on fully-owned child rows
+//     (justified in SCHEMA_DECISIONS.md).
+//   - Partial unique indexes (WHERE deleted_at IS NULL), the journal-balance
+//     constraint trigger, and gapless numbering live in raw-SQL migrations.
+//   - PII (passport/NID) columns hold ciphertext (app-level AES-256-GCM); a
+//     companion *Hash column is an HMAC blind index for exact-match lookup.
+// ============================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -8,4 +27,2011 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ──────────────────────────────────────────────────────────────────
+enum UserRole {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  BRANCH_MANAGER
+  STAFF
+  ACCOUNTANT
+  SALES_EXECUTIVE
+  VISA_EXECUTIVE
+  HAJJ_EXECUTIVE
+  UMRAH_EXECUTIVE
+  AGENT
+  SUPPLIER
+  CUSTOMER
+}
+
+enum Currency {
+  BDT
+  USD
+  SAR
+}
+
+enum ServiceType {
+  HAJJ
+  UMRAH
+  VISA
+  AIR_TICKET
+  MANPOWER
+  TOUR
+  HOTEL
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING
+  PROCESSING
+  CONFIRMED
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum StageStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  NOT_APPLICABLE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MahramRelation {
+  HUSBAND
+  FATHER
+  BROTHER
+  SON
+  UNCLE
+  OTHER
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  CORPORATE
+}
+
+enum DocumentType {
+  PASSPORT
+  PHOTO
+  VISA
+  NID
+  MEDICAL
+  VACCINATION
+  AIR_TICKET
+  HOTEL
+  INSURANCE
+  CONTRACT
+  LICENSE
+  MAHRAM_CERT
+  OTHER
+}
+
+enum DocumentStatus {
+  MISSING
+  UPLOADED
+  PENDING
+  VERIFIED
+  EXPIRING
+  EXPIRED
+  FAILED
+  NOT_REQUIRED
+}
+
+enum DocumentOwnerType {
+  BOOKING
+  TRAVELER
+  CUSTOMER
+  SUPPLIER
+  COMPANY
+}
+
+enum PackageStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+  SUSPENDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  BKASH
+  NAGAD
+  ROCKET
+  CHEQUE
+  CARD
+  SSLCOMMERZ
+}
+
+enum PaymentDirection {
+  IN
+  OUT
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  REVERSED
+}
+
+enum InstallmentStatus {
+  UPCOMING
+  DUE
+  PAID
+  OVERDUE
+}
+
+enum PayableStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  PROCESSED
+  REJECTED
+}
+
+enum PromoType {
+  FLAT
+  PERCENT
+}
+
+enum PromoStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum AccountClass {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum AccountRole {
+  HEADER
+  DETAIL
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum BankAccountType {
+  CURRENT
+  SAVINGS
+  PETTY_CASH
+  CASH
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+}
+
+enum ExpenseStatus {
+  PENDING
+  PAID
+}
+
+enum IncomeStatus {
+  PENDING
+  CONFIRMED
+}
+
+enum LeadStage {
+  NEW
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadInterest {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+enum AgentTier {
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+enum WalletTxnType {
+  CREDIT
+  DEBIT
+}
+
+enum SupplierStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+}
+
+enum BookingRequestStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum ContentStatus {
+  PUBLISHED
+  DRAFT
+  SCHEDULED
+  ARCHIVED
+}
+
+enum BannerType {
+  PROMO
+  HERO
+  SIDEBAR
+  CTA
+}
+
+enum MenuLocation {
+  MAIN_NAV
+  FOOTER_NAV
+  MOBILE_NAV
+}
+
+enum MediaType {
+  IMAGE
+  PDF
+  DOC
+}
+
+enum MessageChannel {
+  INTERNAL
+  GROUP
+  ANNOUNCEMENTS
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum TemplateChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ─── ORG & IDENTITY ─────────────────────────────────────────────────────────
+model Company {
+  id               String   @id @default(cuid())
+  name             String
+  legalName        String?
+  registrationNo   String?
+  tin              String?
+  address          String?
+  phone            String?
+  email            String?
+  website          String?
+  logoUrl          String?
+  primaryColor     String?  @default("#0E6BB8")
+  defaultCurrency  Currency @default(BDT)
+  defaultLanguage  String   @default("en")
+  timezone         String   @default("Asia/Dhaka")
+  fiscalYearStart  Int      @default(1) // month 1-12
+  createdAt        DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @db.Timestamptz(6)
+
+  branches Branch[]
+  settings Setting[]
+}
+
+model Branch {
+  id        String    @id @default(cuid())
+  companyId String
+  code      String // e.g. DHK, CTG — used in document numbers
+  name      String
+  city      String
+  address   String?
+  phone     String?
+  mobile    String?
+  email     String?
+  hours     String?
+  mapUrl    String?
+  isHq      Boolean   @default(false)
+  status    String    @default("active")
+  managerId String?
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  manager User?   @relation("BranchManager", fields: [managerId], references: [id], onDelete: Restrict)
+
+  users     User[]     @relation("UserBranch")
+  customers Customer[]
+  bookings  Booking[]
+  invoices  Invoice[]
+  leads     Lead[]
+  payments  Payment[]
+  refunds   Refund[]
+  expenses  Expense[]
+  incomes   Income[]
+
+  @@index([companyId])
+  @@index([managerId])
+}
+
+model User {
+  id           String    @id @default(cuid())
+  branchId     String?
+  email        String
+  phone        String?
+  name         String
+  passwordHash String
+  role         UserRole  @default(STAFF) // drives UI affordances; RBAC roles are authoritative
+  status       String    @default("active")
+  avatarUrl    String?
+  employeeId   String?
+  department   String?
+  // per-role profile PII (ciphertext + blind index + key version)
+  nid          String?
+  nidHash      String?
+  piiKeyId     Int?
+  lastActiveAt DateTime? @db.Timestamptz(6)
+  twoFactor    Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+
+  branch          Branch?          @relation("UserBranch", fields: [branchId], references: [id], onDelete: Restrict)
+  managedBranches Branch[]         @relation("BranchManager")
+  roles           UserRoleLink[]
+  agent           Agent?
+  supplier        Supplier?
+  customer        Customer?
+
+  leadsAssigned     Lead[]              @relation("LeadAssignee")
+  tasksAssigned     Task[]              @relation("TaskAssignee")
+  bookingsStaffed   Booking[]           @relation("BookingStaff")
+  leadActivities    LeadActivity[]
+  followUps         FollowUp[]
+  callLogs          CallLog[]
+  notesAuthored     Note[]
+  stageEvents       BookingStageEvent[]
+  bookingActivities BookingActivity[]
+  notifications     Notification[]
+
+  @@index([branchId])
+  @@index([role])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  key         String   @unique // matches a UserRole enum value for the default roles
+  name        String
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+  users       UserRoleLink[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique // e.g. "bookings.view", "invoices.manage"
+  module      String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  access       String @default("full") // full | view | none
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model UserRoleLink {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+// ─── CRM ────────────────────────────────────────────────────────────────────
+model Customer {
+  id           String       @id @default(cuid())
+  branchId     String
+  userId       String?      @unique
+  agentId      String?
+  type         CustomerType @default(INDIVIDUAL)
+  name         String
+  phone        String
+  email        String?
+  // PII (ciphertext + blind index)
+  nid          String?
+  nidHash      String?
+  passportNo   String?
+  passportHash String?
+  piiKeyId     Int?
+  dob          DateTime?    @db.Date
+  addressLine  String?
+  district     String?
+  division     String?
+  country      String?      @default("Bangladesh")
+  rating       String? // e.g. "Trusted Client"
+  createdById  String?
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?    @db.Timestamptz(6)
+
+  branch    Branch           @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  agent     Agent?           @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  corporate CorporateClient?
+  bookings  Booking[]
+  invoices  Invoice[]
+  leads     Lead[]
+  notes     Note[]
+
+  @@index([branchId, createdAt])
+  @@index([agentId])
+  @@index([userId])
+}
+
+model CorporateClient {
+  id            String    @id @default(cuid())
+  customerId    String    @unique
+  companyName   String
+  contactPerson String?
+  tradeLicense  String?
+  tin           String?
+  address       String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Lead {
+  id              String       @id @default(cuid())
+  branchId        String
+  name            String
+  phone           String
+  email           String?
+  source          String?
+  serviceInterest ServiceType?
+  quantity        Int?
+  interest        LeadInterest @default(MEDIUM)
+  stage           LeadStage    @default(NEW)
+  assignedToId    String?
+  agentId         String?
+  customerId      String? // set when converted
+  createdById     String?
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?    @db.Timestamptz(6)
+
+  branch     Branch         @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  assignedTo User?          @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: Restrict)
+  agent      Agent?         @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  activities LeadActivity[]
+  followUps  FollowUp[]
+  callLogs   CallLog[]
+  notes      Note[]
+  tasks      Task[]
+
+  @@index([branchId, stage, assignedToId])
+  @@index([agentId])
+  @@index([customerId])
+}
+
+model LeadActivity {
+  id        String   @id @default(cuid())
+  leadId    String
+  type      String
+  note      String?
+  actorId   String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([leadId, createdAt])
+  @@index([actorId])
+}
+
+model FollowUp {
+  id           String    @id @default(cuid())
+  leadId       String?
+  customerId   String?
+  assignedToId String?
+  dueAt        DateTime  @db.Timestamptz(6)
+  note         String?
+  done         Boolean   @default(false)
+  createdById  String?
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+
+  lead       Lead? @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedTo User? @relation(fields: [assignedToId], references: [id], onDelete: Restrict)
+
+  @@index([leadId])
+  @@index([assignedToId, done, dueAt])
+}
+
+model CallLog {
+  id         String   @id @default(cuid())
+  leadId     String?
+  customerId String?
+  direction  String // inbound | outbound
+  durationSec Int?
+  note       String?
+  byId       String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  lead Lead? @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  by   User? @relation(fields: [byId], references: [id], onDelete: Restrict)
+
+  @@index([leadId, createdAt])
+  @@index([byId])
+}
+
+model Task {
+  id               String       @id @default(cuid())
+  title            String
+  description      String?
+  assigneeId       String?
+  priority         TaskPriority @default(MEDIUM)
+  status           TaskStatus   @default(TODO)
+  category         String?
+  tags             String[]
+  dueAt            DateTime?    @db.Timestamptz(6)
+  commentsCount    Int          @default(0)
+  relatedBookingId String?
+  relatedLeadId    String?
+  createdById      String?
+  createdAt        DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime?    @db.Timestamptz(6)
+
+  assignee       User?    @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
+  relatedBooking Booking? @relation(fields: [relatedBookingId], references: [id], onDelete: SetNull)
+  relatedLead    Lead?    @relation(fields: [relatedLeadId], references: [id], onDelete: SetNull)
+
+  @@index([assigneeId, status, dueAt])
+  @@index([relatedBookingId])
+  @@index([relatedLeadId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  body       String
+  leadId     String?
+  customerId String?
+  bookingId  String?
+  authorId   String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  booking  Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  author   User?     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([leadId])
+  @@index([customerId])
+  @@index([bookingId])
+}
+
+// ─── CATALOG ────────────────────────────────────────────────────────────────
+model Service {
+  id                   String      @id @default(cuid())
+  key                  String      @unique // hajj, umrah, visa, air_ticket, manpower, tour, hotel
+  type                 ServiceType
+  name                 String
+  category             String?
+  description          String?
+  icon                 String?
+  color                String?
+  defaultCurrency      Currency    @default(BDT)
+  refPrefix            String?
+  maxGroupSize         Int?
+  minLeadTimeDays      Int?
+  showOnWebsite        Boolean     @default(true)
+  allowDirectBooking   Boolean     @default(true)
+  requireApproval      Boolean     @default(false)
+  enableAgentCommission Boolean    @default(true)
+  active               Boolean     @default(true)
+  featured             Boolean     @default(false)
+  createdAt            DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt            DateTime?   @db.Timestamptz(6)
+
+  packages Package[]
+
+  @@index([type])
+}
+
+model Package {
+  id             String        @id @default(cuid())
+  code           String // PKG-001
+  slug           String
+  serviceId      String?
+  type           ServiceType
+  name           String
+  season         String?
+  departure      String? // free-text period label
+  duration       String?
+  status         PackageStatus @default(DRAFT)
+  basePrice      Decimal       @db.Decimal(18, 4)
+  originalPrice  Decimal?      @db.Decimal(18, 4)
+  currency       Currency      @default(BDT)
+  exchangeRate   Decimal       @default(1) @db.Decimal(18, 8)
+  baseAmount     Decimal       @db.Decimal(18, 4)
+  totalSeats     Int           @default(0)
+  availableSeats Int           @default(0)
+  rating         Decimal?      @db.Decimal(3, 2)
+  bookingsCount  Int           @default(0)
+  revenue        Decimal       @default(0) @db.Decimal(18, 4)
+  image          String?
+  images         String[]
+  shortDesc      String?
+  longDesc       String?
+  featured       Boolean       @default(false)
+  hotels         Json? // nested hotel entries (display config)
+  flights        Json? // nested flight entries (display config)
+  createdById    String?
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?     @db.Timestamptz(6)
+
+  service      Service?              @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  pricingTiers PackagePricing[]
+  itinerary    PackageItinerary[]
+  inclusions   PackageInclusion[]
+  availability PackageAvailability[]
+  bookings     Booking[]
+
+  @@index([serviceId])
+  @@index([type, status])
+}
+
+model PackagePricing {
+  id            String   @id @default(cuid())
+  packageId     String
+  label         String // Economy | Standard | Premium | VIP (per person)
+  price         Decimal  @db.Decimal(18, 4)
+  originalPrice Decimal? @db.Decimal(18, 4)
+  currency      Currency @default(BDT)
+  exchangeRate  Decimal  @default(1) @db.Decimal(18, 8)
+  baseAmount    Decimal  @db.Decimal(18, 4)
+  seats         Int      @default(0)
+  occupied      Int      @default(0)
+  sortOrder     Int      @default(0)
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+model PackageItinerary {
+  id        String   @id @default(cuid())
+  packageId String
+  day       Int
+  title     String
+  description String?
+  activities String[]
+  hotel     String?
+  breakfast Boolean  @default(false)
+  lunch     Boolean  @default(false)
+  dinner    Boolean  @default(false)
+  transport String?
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+model PackageInclusion {
+  id        String  @id @default(cuid())
+  packageId String
+  kind      String // include | exclude
+  text      String
+  sortOrder Int     @default(0)
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+model PackageAvailability {
+  id            String   @id @default(cuid())
+  packageId     String
+  departureDate DateTime @db.Date
+  totalSeats    Int      @default(0)
+  soldSeats     Int      @default(0)
+  status        String   @default("open")
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, departureDate])
+  @@index([departureDate])
+}
+
+// ─── BOOKINGS ───────────────────────────────────────────────────────────────
+model Booking {
+  id             String        @id @default(cuid())
+  bookingNo      String? // allocated at confirmation; null while DRAFT
+  branchId       String
+  customerId     String?
+  packageId      String?
+  serviceType    ServiceType
+  status         BookingStatus @default(DRAFT)
+  currentStep    Int           @default(0) // wizard resume position for DRAFT
+  wizardData     Json? // partial per-step data captured while DRAFT
+  assignedStaffId String?
+  agentId        String?
+  source         String?
+  // money
+  amount         Decimal       @db.Decimal(18, 4)
+  currency       Currency      @default(BDT)
+  exchangeRate   Decimal       @default(1) @db.Decimal(18, 8)
+  baseAmount     Decimal       @db.Decimal(18, 4)
+  paidAmount     Decimal       @default(0) @db.Decimal(18, 4)
+  discountType   String?
+  discountValue  Decimal?      @db.Decimal(18, 4)
+  discountApprovedById String?
+  travelersCount Int           @default(1)
+  departureDate  DateTime?     @db.Date
+  returnDate     DateTime?     @db.Date
+  notes          String?
+  createdById    String?
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?     @db.Timestamptz(6)
+
+  branch        Branch    @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  package       Package?  @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  assignedStaff User?     @relation("BookingStaff", fields: [assignedStaffId], references: [id], onDelete: Restrict)
+  agent         Agent?    @relation(fields: [agentId], references: [id], onDelete: Restrict)
+
+  hajj      HajjBooking?
+  umrah     UmrahBooking?
+  visa      VisaBooking?
+  airTicket AirTicketBooking?
+  hotel     HotelBooking?
+  manpower  ManpowerBooking?
+  tour      TourBooking?
+
+  travelers   Traveler[]
+  documents   Document[]
+  charges     BookingCharge[]
+  stageEvents BookingStageEvent[]
+  activities  BookingActivity[]
+  invoices    Invoice[]
+  installmentPlans InstallmentPlan[]
+  noteEntries Note[]
+  tasks       Task[]
+  commissions AgentCommission[]
+  bookingRequests BookingRequest[]
+
+  @@index([branchId, createdAt])
+  @@index([branchId, serviceType, status])
+  @@index([agentId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([packageId])
+  @@index([assignedStaffId])
+}
+
+model HajjBooking {
+  id           String       @id @default(cuid())
+  bookingId    String       @unique
+  packageTier  String?
+  season       String?
+  groupAssign  String?
+  departureDate DateTime?   @db.Date
+  returnDate   DateTime?    @db.Date
+  roomType     String?
+  transport    String?
+  hotelMakkah  String?
+  hotelMadinah String?
+  daysMakkah   Int?
+  daysMadinah  Int?
+  mahramRequired Boolean    @default(false)
+  specialRequests String?
+  stageStatus  StageStatus  @default(PENDING)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model UmrahBooking {
+  id           String      @id @default(cuid())
+  bookingId    String      @unique
+  packageTier  String?
+  season       String?
+  departureDate DateTime?  @db.Date
+  returnDate   DateTime?   @db.Date
+  roomType     String?
+  transport    String?
+  hotelMakkah  String?
+  hotelMadinah String?
+  daysMakkah   Int?
+  daysMadinah  Int?
+  mahramRequired Boolean   @default(false)
+  specialRequests String?
+  stageStatus  StageStatus @default(PENDING)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model VisaBooking {
+  id              String      @id @default(cuid())
+  bookingId       String      @unique
+  destinationCountry String
+  visaType        String
+  processingSpeed String?
+  passportCount   Int         @default(1)
+  purpose         String?
+  visaNumber      String?
+  visaExpiry      DateTime?   @db.Date
+  stageStatus     StageStatus @default(PENDING)
+  notes           String?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model AirTicketBooking {
+  id           String    @id @default(cuid())
+  bookingId    String    @unique
+  airline      String?
+  pnr          String?
+  journeyType  String?
+  origin       String?
+  destination  String?
+  cabinClass   String?
+  departAt     DateTime? @db.Timestamptz(6)
+  returnAt     DateTime? @db.Timestamptz(6)
+  baseFare     Decimal?  @db.Decimal(18, 4)
+  taxAmount    Decimal?  @db.Decimal(18, 4)
+  agentMarkup  Decimal?  @db.Decimal(18, 4)
+  fareType     String?
+  baggage      String?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model HotelBooking {
+  id           String    @id @default(cuid())
+  bookingId    String    @unique
+  city         String?
+  hotelName    String?
+  starRating   Int?
+  checkIn      DateTime? @db.Date
+  checkOut     DateTime? @db.Date
+  roomType     String?
+  rooms        Int?
+  guests       Int?
+  boardBasis   String?
+  confirmationNo String?
+  distanceFromHaram String?
+  specialRequests String?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model ManpowerBooking {
+  id            String      @id @default(cuid())
+  bookingId     String      @unique
+  workerCategory String?
+  jobTitle      String?
+  destinationCountry String?
+  destinationCity String?
+  employer      String?
+  contractDuration String?
+  monthlySalary String? // free text incl. foreign currency label
+  accommodation String?
+  stageStatus   StageStatus @default(PENDING)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model TourBooking {
+  id            String    @id @default(cuid())
+  bookingId     String    @unique
+  packageTier   String?
+  tourType      String?
+  destinations  String?
+  duration      String?
+  departureDate DateTime? @db.Date
+  returnDate    DateTime? @db.Date
+  travelers     Int?
+  hotelCategory String?
+  roomSharing   String?
+  mealPlan      String?
+  itineraryNote String?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Traveler {
+  id             String         @id @default(cuid())
+  bookingId      String
+  name           String
+  dob            DateTime?      @db.Date
+  gender         Gender?
+  nationality    String?        @default("Bangladeshi")
+  // PII (ciphertext + blind index)
+  passportNo     String?
+  passportHash   String?
+  piiKeyId       Int?
+  passportExpiry DateTime?      @db.Date
+  phone          String?
+  email          String?
+  isPrimary      Boolean        @default(false)
+  mahramRelation MahramRelation?
+  mahramOfId     String?
+  createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?      @db.Timestamptz(6)
+
+  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  mahramOf  Traveler?  @relation("Mahram", fields: [mahramOfId], references: [id], onDelete: SetNull)
+  mahramFor Traveler[] @relation("Mahram")
+  documents Document[]
+
+  @@index([bookingId])
+  @@index([mahramOfId])
+}
+
+model Document {
+  id            String            @id @default(cuid())
+  ownerType     DocumentOwnerType
+  bookingId     String?
+  travelerId    String?
+  customerId    String?
+  supplierId    String?
+  type          DocumentType
+  name          String
+  filePath      String? // path on the server volume (files never in DB)
+  mimeType      String?
+  sizeBytes     Int?
+  status        DocumentStatus    @default(MISSING)
+  required      Boolean           @default(false)
+  expiryAt      DateTime?         @db.Date
+  tags          String[]
+  // OCR metadata
+  ocrStatus     String?
+  ocrConfidence Int?
+  ocrName       String?
+  ocrPassportNo String? // ciphertext
+  ocrPassportHash String?
+  ocrDob        DateTime?         @db.Date
+  ocrExpiry     DateTime?         @db.Date
+  ocrNationality String?
+  piiKeyId      Int?
+  uploadedById  String?
+  verifiedById  String?
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime          @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?         @db.Timestamptz(6)
+
+  booking  Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  traveler Traveler? @relation(fields: [travelerId], references: [id], onDelete: Cascade)
+
+  @@index([status, expiryAt])
+  @@index([ownerType, bookingId])
+  @@index([travelerId])
+  @@index([customerId])
+  @@index([supplierId])
+}
+
+model BookingCharge {
+  id           String   @id @default(cuid())
+  bookingId    String
+  label        String
+  amount       Decimal  @db.Decimal(18, 4)
+  currency     Currency @default(BDT)
+  exchangeRate Decimal  @default(1) @db.Decimal(18, 8)
+  baseAmount   Decimal  @db.Decimal(18, 4)
+  kind         String? // fee | markup | tax | addon
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+model BookingStageEvent {
+  id        String      @id @default(cuid())
+  bookingId String
+  stage     String // e.g. "BMET", "GAMCA Medical", "Visa Under Review"
+  status    StageStatus @default(PENDING)
+  note      String?
+  byId      String?
+  createdAt DateTime    @default(now()) @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  by      User?   @relation(fields: [byId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, createdAt])
+}
+
+model BookingActivity {
+  id        String   @id @default(cuid())
+  bookingId String
+  actorId   String?
+  action    String
+  note      String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId, createdAt])
+}
+
+// ─── FINANCE ────────────────────────────────────────────────────────────────
+model Invoice {
+  id           String        @id @default(cuid())
+  invoiceNo    String? // gapless per branch/year, allocated at issue
+  fiscalYear   Int
+  branchId     String
+  customerId   String
+  bookingId    String?
+  issueDate    DateTime?     @db.Date
+  dueDate      DateTime?     @db.Date
+  currency     Currency      @default(BDT)
+  exchangeRate Decimal       @default(1) @db.Decimal(18, 8)
+  subtotal     Decimal       @db.Decimal(18, 4)
+  discountAmount Decimal     @default(0) @db.Decimal(18, 4)
+  taxRate      Decimal       @default(0) @db.Decimal(9, 4)
+  taxAmount    Decimal       @default(0) @db.Decimal(18, 4)
+  total        Decimal       @db.Decimal(18, 4)
+  baseAmount   Decimal       @db.Decimal(18, 4)
+  paidAmount   Decimal       @default(0) @db.Decimal(18, 4)
+  status       InvoiceStatus @default(DRAFT)
+  notes        String?
+  createdById  String?
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?     @db.Timestamptz(6) // only DRAFT invoices may be soft-deleted
+
+  branch   Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  customer Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  booking  Booking?        @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  items    InvoiceItem[]
+  payments Payment[]
+  refunds  Refund[]
+  plan     InstallmentPlan?
+
+  @@index([branchId, issueDate])
+  @@index([customerId, issueDate])
+  @@index([status, dueDate])
+  @@index([bookingId])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  description String
+  qty         Int     @default(1)
+  unitPrice   Decimal @db.Decimal(18, 4)
+  amount      Decimal @db.Decimal(18, 4)
+  bookingId   String?
+  sortOrder   Int     @default(0)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+// IMMUTABLE LEDGER — append-only, no deletedAt; corrections via reversal.
+model Payment {
+  id           String           @id @default(cuid())
+  paymentNo    String?
+  direction    PaymentDirection
+  branchId     String
+  invoiceId    String?
+  bookingId    String?
+  customerId   String?
+  supplierId   String?
+  amount       Decimal          @db.Decimal(18, 4)
+  currency     Currency         @default(BDT)
+  exchangeRate Decimal          @default(1) @db.Decimal(18, 8)
+  baseAmount   Decimal          @db.Decimal(18, 4)
+  method       PaymentMethod
+  gateway      String?
+  reference    String?
+  status       PaymentStatus    @default(CONFIRMED)
+  receivedById String?
+  paidAt       DateTime         @default(now()) @db.Timestamptz(6)
+  // reversal (immutability)
+  isReversed   Boolean          @default(false)
+  reversalOfId String?          @unique
+  reversedById String?          @unique
+  postedAt     DateTime         @default(now()) @db.Timestamptz(6)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+
+  branch     Branch    @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  invoice    Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  reversalOf Payment?  @relation("PaymentReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reverses   Payment?  @relation("PaymentReversal")
+  receipt    Receipt?
+
+  @@index([branchId, paidAt])
+  @@index([invoiceId])
+  @@index([customerId])
+  @@index([supplierId])
+}
+
+model Receipt {
+  id        String   @id @default(cuid())
+  receiptNo String   @unique
+  paymentId String   @unique
+  branchId  String
+  amount    Decimal  @db.Decimal(18, 4)
+  currency  Currency @default(BDT)
+  baseAmount Decimal @db.Decimal(18, 4)
+  issuedById String?
+  issuedAt  DateTime @default(now()) @db.Timestamptz(6)
+  postedAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, issuedAt])
+}
+
+model InstallmentPlan {
+  id          String        @id @default(cuid())
+  branchId    String
+  invoiceId   String?       @unique
+  bookingId   String?
+  customerId  String
+  total       Decimal       @db.Decimal(18, 4)
+  currency    Currency      @default(BDT)
+  baseAmount  Decimal       @db.Decimal(18, 4)
+  downAmount  Decimal       @default(0) @db.Decimal(18, 4)
+  status      String        @default("active")
+  createdById String?
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?     @db.Timestamptz(6)
+
+  invoice      Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  booking      Booking?      @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  installments Installment[]
+
+  @@index([branchId])
+  @@index([bookingId])
+  @@index([customerId])
+}
+
+model Installment {
+  id         String            @id @default(cuid())
+  planId     String
+  number     Int
+  label      String?
+  amountDue  Decimal           @db.Decimal(18, 4)
+  currency   Currency          @default(BDT)
+  baseAmount Decimal           @db.Decimal(18, 4)
+  dueDate    DateTime          @db.Date
+  paidDate   DateTime?         @db.Date
+  paidAmount Decimal           @default(0) @db.Decimal(18, 4)
+  status     InstallmentStatus @default(UPCOMING)
+
+  plan InstallmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, number])
+  @@index([status, dueDate])
+}
+
+model Refund {
+  id           String       @id @default(cuid())
+  refundNo     String?
+  branchId     String
+  invoiceId    String?
+  bookingId    String?
+  customerId   String?
+  reason       String?
+  amount       Decimal      @db.Decimal(18, 4)
+  currency     Currency     @default(BDT)
+  exchangeRate Decimal      @default(1) @db.Decimal(18, 8)
+  baseAmount   Decimal      @db.Decimal(18, 4)
+  method       PaymentMethod?
+  status       RefundStatus @default(PENDING)
+  approvedById String?
+  createdById  String?
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?    @db.Timestamptz(6)
+
+  branch  Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, createdAt])
+  @@index([invoiceId])
+}
+
+model PromoCode {
+  id          String      @id @default(cuid())
+  code        String
+  type        PromoType
+  value       Decimal     @db.Decimal(18, 4)
+  currency    Currency    @default(BDT) // meaningful for FLAT
+  scope       String? // e.g. "Hajj Packages", "All Services"
+  usedCount   Int         @default(0)
+  usageLimit  Int?
+  expiresAt   DateTime?   @db.Date
+  status      PromoStatus @default(ACTIVE)
+  createdById String?
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?   @db.Timestamptz(6)
+}
+
+model Account {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  name          String
+  parentId      String?
+  accountClass  AccountClass
+  role          AccountRole   @default(DETAIL)
+  normalBalance NormalBalance
+  currency      Currency      @default(BDT)
+  balance       Decimal       @default(0) @db.Decimal(18, 4)
+  active        Boolean       @default(true)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?     @db.Timestamptz(6)
+
+  parent       Account?      @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children     Account[]     @relation("AccountTree")
+  journalLines JournalLine[]
+  bankAccounts BankAccount[]
+
+  @@index([parentId])
+  @@index([accountClass])
+}
+
+model BankAccount {
+  id            String          @id @default(cuid())
+  name          String
+  bankName      String?
+  type          BankAccountType @default(CURRENT)
+  accountNumber String?
+  iban          String?
+  branchName    String?
+  currency      Currency        @default(BDT)
+  balance       Decimal         @default(0) @db.Decimal(18, 4)
+  coaAccountId  String?
+  active        Boolean         @default(true)
+  createdAt     DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime        @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?       @db.Timestamptz(6)
+
+  coaAccount Account? @relation(fields: [coaAccountId], references: [id], onDelete: Restrict)
+
+  @@index([coaAccountId])
+}
+
+// IMMUTABLE LEDGER — no deletedAt.
+model JournalEntry {
+  id           String        @id @default(cuid())
+  ref          String        @unique // gapless per branch/year
+  fiscalYear   Int
+  branchId     String
+  date         DateTime      @db.Date
+  description  String?
+  currency     Currency      @default(BDT)
+  status       JournalStatus @default(DRAFT)
+  relatedType  String?
+  relatedId    String?
+  postedById   String?
+  postedAt     DateTime?     @db.Timestamptz(6)
+  // reversal
+  isReversed   Boolean       @default(false)
+  reversalOfId String?       @unique
+  reversedById String?       @unique
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+
+  reversalOf JournalEntry?  @relation("JournalReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reverses   JournalEntry?  @relation("JournalReversal")
+  lines      JournalLine[]
+
+  @@index([branchId, date])
+  @@index([status])
+}
+
+// IMMUTABLE LEDGER — no deletedAt. Balance (Σdebit=Σcredit) enforced by a
+// deferred DB constraint trigger (raw-SQL migration) + service pre-check.
+model JournalLine {
+  id        String  @id @default(cuid())
+  entryId   String
+  accountId String
+  debit     Decimal @default(0) @db.Decimal(18, 4)
+  credit    Decimal @default(0) @db.Decimal(18, 4)
+  narration String?
+
+  entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete: Restrict)
+  account Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([entryId])
+  @@index([accountId])
+}
+
+model Expense {
+  id           String        @id @default(cuid())
+  ref          String?
+  branchId     String
+  category     String
+  description  String?
+  vendorName   String?
+  supplierId   String?
+  accountId    String?
+  amount       Decimal       @db.Decimal(18, 4)
+  currency     Currency      @default(BDT)
+  exchangeRate Decimal       @default(1) @db.Decimal(18, 8)
+  baseAmount   Decimal       @db.Decimal(18, 4)
+  method       PaymentMethod?
+  status       ExpenseStatus @default(PENDING)
+  date         DateTime      @db.Date
+  createdById  String?
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?     @db.Timestamptz(6)
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, date])
+  @@index([category])
+}
+
+model Income {
+  id           String        @id @default(cuid())
+  ref          String?
+  branchId     String
+  category     String
+  description  String?
+  payerName    String?
+  accountId    String?
+  amount       Decimal       @db.Decimal(18, 4)
+  currency     Currency      @default(BDT)
+  exchangeRate Decimal       @default(1) @db.Decimal(18, 8)
+  baseAmount   Decimal       @db.Decimal(18, 4)
+  method       PaymentMethod?
+  status       IncomeStatus  @default(PENDING)
+  date         DateTime      @db.Date
+  createdById  String?
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?     @db.Timestamptz(6)
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, date])
+  @@index([category])
+}
+
+// SupplierPayable = payable SCHEDULE (mirror of InstallmentPlan), not a movement.
+model SupplierPayable {
+  id                String        @id @default(cuid())
+  branchId          String
+  supplierId        String
+  supplierInvoiceId String?
+  amount            Decimal       @db.Decimal(18, 4)
+  currency          Currency      @default(BDT)
+  exchangeRate      Decimal       @default(1) @db.Decimal(18, 8)
+  baseAmount        Decimal       @db.Decimal(18, 4)
+  paidAmount        Decimal       @default(0) @db.Decimal(18, 4)
+  dueDate           DateTime?     @db.Date
+  status            PayableStatus @default(PENDING)
+  createdById       String?
+  createdAt         DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt         DateTime?     @db.Timestamptz(6)
+
+  supplier        Supplier         @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  supplierInvoice SupplierInvoice? @relation(fields: [supplierInvoiceId], references: [id], onDelete: Restrict)
+
+  @@index([branchId, status, dueDate])
+  @@index([supplierId])
+}
+
+// ─── AGENTS & SUPPLIERS ─────────────────────────────────────────────────────
+model Agent {
+  id            String    @id @default(cuid())
+  agentCode     String
+  userId        String?   @unique
+  branchId      String?
+  parentAgentId String?
+  name          String
+  phone         String?
+  email         String?
+  nid           String?
+  nidHash       String?
+  piiKeyId      Int?
+  tradeLicense  String?
+  tier          AgentTier @default(SILVER)
+  commissionRate Decimal  @default(0) @db.Decimal(9, 4)
+  bankName      String?
+  accountNo     String?
+  bankBranch    String?
+  bkashNo       String?
+  nagadNo       String?
+  status        String    @default("active")
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  user        User?             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  parentAgent Agent?            @relation("AgentHierarchy", fields: [parentAgentId], references: [id], onDelete: Restrict)
+  subAgents   Agent[]           @relation("AgentHierarchy")
+  wallet      AgentWallet?
+  commissions AgentCommission[]
+  customers   Customer[]
+  leads       Lead[]
+  bookings    Booking[]
+
+  @@index([parentAgentId])
+  @@index([branchId])
+}
+
+model CommissionTier {
+  id          String    @id @default(cuid())
+  tier        AgentTier @unique
+  rate        Decimal   @db.Decimal(9, 4)
+  minBookings Int       @default(0)
+  maxBookings Int?
+  active      Boolean   @default(true)
+}
+
+model AgentCommission {
+  id          String           @id @default(cuid())
+  agentId     String
+  bookingId   String?
+  period      String? // e.g. "2026-07" for monthly rollups
+  grossAmount Decimal          @db.Decimal(18, 4)
+  rate        Decimal          @db.Decimal(9, 4)
+  amount      Decimal          @db.Decimal(18, 4)
+  currency    Currency         @default(BDT)
+  baseAmount  Decimal          @db.Decimal(18, 4)
+  isOverride  Boolean          @default(false) // 1% sub-agent override
+  status      CommissionStatus @default(PENDING)
+  createdAt   DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?        @db.Timestamptz(6)
+
+  agent   Agent    @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@index([agentId, period])
+  @@index([bookingId])
+}
+
+model AgentWallet {
+  id           String   @id @default(cuid())
+  agentId      String   @unique
+  balance      Decimal  @default(0) @db.Decimal(18, 4)
+  currency     Currency @default(BDT)
+  lastCreditAt DateTime? @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+  agent        Agent             @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  transactions WalletTransaction[]
+}
+
+// IMMUTABLE LEDGER — append-only, no deletedAt.
+model WalletTransaction {
+  id           String        @id @default(cuid())
+  walletId     String
+  type         WalletTxnType
+  description  String?
+  amount       Decimal       @db.Decimal(18, 4)
+  currency     Currency      @default(BDT)
+  baseAmount   Decimal       @db.Decimal(18, 4)
+  method       String?
+  reference    String?
+  relatedBookingId String?
+  isReversed   Boolean       @default(false)
+  reversalOfId String?       @unique
+  reversedById String?       @unique
+  postedAt     DateTime      @default(now()) @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+
+  wallet     AgentWallet        @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  reversalOf WalletTransaction? @relation("WalletReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reverses   WalletTransaction? @relation("WalletReversal")
+
+  @@index([walletId, postedAt])
+}
+
+model Supplier {
+  id            String         @id @default(cuid())
+  supplierCode  String
+  userId        String?        @unique
+  name          String
+  category      String?
+  contactPerson String?
+  phone         String?
+  email         String?
+  website       String?
+  tradeLicense  String?
+  tin           String?
+  address       String?
+  bankName      String?
+  accountNo     String?
+  routingNo     String?
+  rating        Decimal?       @db.Decimal(3, 2)
+  status        SupplierStatus @default(PENDING)
+  createdAt     DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime       @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?      @db.Timestamptz(6)
+
+  user            User?             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  services        SupplierService[]
+  invoices        SupplierInvoice[]
+  payables        SupplierPayable[]
+  bookingRequests BookingRequest[]
+}
+
+model SupplierService {
+  id            String    @id @default(cuid())
+  supplierId    String
+  name          String
+  category      String?
+  price         Decimal?  @db.Decimal(18, 4)
+  currency      Currency  @default(BDT)
+  priceLabel    String? // original free-text price ("From ৳3,500/night/room")
+  active        Boolean   @default(true)
+  bookingsCount Int       @default(0)
+  rating        Decimal?  @db.Decimal(3, 2)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  @@index([supplierId])
+}
+
+model SupplierInvoice {
+  id            String    @id @default(cuid())
+  supplierId    String
+  invoiceNo     String // the supplier's own number
+  bookingRequestId String?
+  description   String?
+  amount        Decimal   @db.Decimal(18, 4)
+  currency      Currency  @default(BDT)
+  exchangeRate  Decimal   @default(1) @db.Decimal(18, 8)
+  baseAmount    Decimal   @db.Decimal(18, 4)
+  issueDate     DateTime? @db.Date
+  dueDate       DateTime? @db.Date
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  supplier       Supplier          @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  bookingRequest BookingRequest?   @relation(fields: [bookingRequestId], references: [id], onDelete: Restrict)
+  payables       SupplierPayable[]
+
+  @@index([supplierId])
+  @@index([bookingRequestId])
+}
+
+model BookingRequest {
+  id          String               @id @default(cuid())
+  requestNo   String
+  supplierId  String
+  bookingId   String?
+  branchId    String?
+  serviceLabel String?
+  clientLabel String?
+  property    String?
+  dates       String?
+  rooms       Int?
+  nights      Int?
+  amount      Decimal              @db.Decimal(18, 4)
+  currency    Currency             @default(BDT)
+  baseAmount  Decimal              @db.Decimal(18, 4)
+  status      BookingRequestStatus @default(PENDING)
+  deadline    DateTime?            @db.Timestamptz(6)
+  notes       String?
+  createdAt   DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?            @db.Timestamptz(6)
+
+  supplier        Supplier          @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  booking         Booking?          @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  supplierInvoices SupplierInvoice[]
+
+  @@index([supplierId, status])
+  @@index([bookingId])
+}
+
+// ─── CMS ────────────────────────────────────────────────────────────────────
+model CmsPage {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String
+  body         String?
+  status       ContentStatus @default(DRAFT)
+  metaTitle    String?
+  metaDesc     String?
+  template     String?
+  parentPageId String?
+  visibility   String        @default("public")
+  authorId     String?
+  views        Int           @default(0)
+  publishedAt  DateTime?     @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?     @db.Timestamptz(6)
+
+  parentPage CmsPage?  @relation("PageTree", fields: [parentPageId], references: [id], onDelete: Restrict)
+  children   CmsPage[] @relation("PageTree")
+
+  @@index([parentPageId])
+}
+
+model Menu {
+  id        String       @id @default(cuid())
+  location  MenuLocation @unique
+  name      String
+  createdAt DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @db.Timestamptz(6)
+
+  items MenuItem[]
+}
+
+model MenuItem {
+  id        String  @id @default(cuid())
+  menuId    String
+  parentId  String?
+  label     String
+  url       String
+  sortOrder Int     @default(0)
+
+  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent   MenuItem?  @relation("MenuTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuTree")
+
+  @@index([menuId])
+  @@index([parentId])
+}
+
+model Slider {
+  id        String    @id @default(cuid())
+  title     String
+  subtitle  String?
+  image     String?
+  ctaText   String?
+  ctaUrl    String?
+  active    Boolean   @default(true)
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model Banner {
+  id        String     @id @default(cuid())
+  title     String
+  position  String
+  type      BannerType @default(PROMO)
+  image     String?
+  linkUrl   String?
+  active    Boolean    @default(true)
+  expiresAt DateTime?  @db.Date
+  createdAt DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime   @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime?  @db.Timestamptz(6)
+}
+
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String
+  color     String?
+  createdAt DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime   @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime?  @db.Timestamptz(6)
+
+  posts BlogPost[]
+}
+
+model BlogPost {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String
+  categoryId  String?
+  body        String?
+  excerpt     String?
+  featImg     String?
+  status      ContentStatus @default(DRAFT)
+  authorName  String?
+  tags        String[]
+  metaTitle   String?
+  metaDesc    String?
+  views       Int           @default(0)
+  featured    Boolean       @default(false)
+  publishedAt DateTime?     @db.Timestamptz(6)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?     @db.Timestamptz(6)
+
+  category BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([categoryId])
+  @@index([status, publishedAt])
+}
+
+model Testimonial {
+  id        String    @id @default(cuid())
+  name      String
+  location  String?
+  packageName String?
+  rating    Int       @default(5)
+  text      String
+  approved  Boolean   @default(false)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model Faq {
+  id        String    @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  sortOrder Int       @default(0)
+  published Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  @@index([category])
+}
+
+model MediaAsset {
+  id           String    @id @default(cuid())
+  name         String
+  type         MediaType @default(IMAGE)
+  filePath     String
+  sizeBytes    Int?
+  dimensions   String?
+  uploadedById String?
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+}
+
+// ─── COMMS & SYSTEM ─────────────────────────────────────────────────────────
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String?
+  icon      String?
+  color     String?
+  type      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  body        String
+  authorId    String?
+  audience    String?
+  pinned      Boolean   @default(false)
+  branchId    String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+
+  @@index([pinned, createdAt])
+}
+
+model Conversation {
+  id        String         @id @default(cuid())
+  name      String?
+  channel   MessageChannel @default(INTERNAL)
+  isGroup   Boolean        @default(false)
+  createdAt DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(6)
+
+  messages Message[]
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String
+  senderId       String?
+  content        String
+  status         String? // sent | delivered | read
+  attachmentName String?
+  attachmentSize Int?
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageTemplate {
+  id        String          @id @default(cuid())
+  channel   TemplateChannel
+  name      String
+  event     String?
+  content   String?
+  category  String?
+  status    String          @default("active")
+  createdAt DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime        @updatedAt @db.Timestamptz(6)
+
+  @@index([channel])
+}
+
+model SupportTicket {
+  id            String       @id @default(cuid())
+  ticketNo      String
+  subject       String
+  requesterType String // customer | agent | supplier | staff
+  requesterId   String?
+  category      String?
+  priority      TaskPriority @default(MEDIUM)
+  status        TicketStatus @default(OPEN)
+  assignedToId  String?
+  branchId      String?
+  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?    @db.Timestamptz(6)
+
+  messages TicketMessage[]
+
+  @@index([status, priority])
+  @@index([requesterType, requesterId])
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  fromId     String?
+  fromLabel  String?
+  body       String
+  attachment String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  target    String?
+  module    String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([module, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id        String        @id @default(cuid())
+  userId    String?
+  ip        String?
+  event     String
+  resource  String?
+  severity  AuditSeverity @default(INFO)
+  detail    String?
+  createdAt DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([resource, createdAt])
+  @@index([userId, createdAt])
+  @@index([severity])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  value     String?
+  group     String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+}
+
+// Gapless per-branch/year sequence counters (Invoice, Receipt, JournalEntry).
+// Allocation uses SELECT ... FOR UPDATE inside the document's transaction.
+model DocumentSequence {
+  id        String @id @default(cuid())
+  scope     String // INVOICE | RECEIPT | JOURNAL
+  branchId  String
+  year      Int
+  lastValue Int    @default(0)
+
+  @@unique([scope, branchId, year])
 }

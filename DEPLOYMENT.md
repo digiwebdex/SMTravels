@@ -87,3 +87,31 @@ Local `DATABASE_URL` (already set in `backend/.env`):
 `postgresql://smtravels_user:devpassword@localhost:5432/smtravels_db?schema=public`
 
 The **server's** `DATABASE_URL` lives in `/var/www/SMTravels/.env.production` (native PG :5440, db `smtravels_db`) — never connect to it from your machine.
+
+## Raw SQL in migrations — DO NOT let these get dropped
+Some invariants can't be expressed in `schema.prisma`, so they live as hand-written SQL
+inside ordinary Prisma migrations. They **are** applied by `prisma migrate deploy` (the
+server path — verified locally). But:
+
+> ⚠️ `prisma db push` and `prisma migrate reset` BYPASS/WIPE them.
+> `db push` syncs the schema directly and never runs migration SQL → the triggers and
+> partial indexes silently vanish. On the server use **only** `prisma migrate deploy`
+> (the deploy script already does). Never `db push`/`reset` against a real DB.
+
+- `backend/prisma/migrations/20260720181300_partial_unique_and_blind_indexes/migration.sql`
+  - **Partial unique indexes** (`WHERE deleted_at IS NULL`) on natural keys (user email,
+    customer email/phone, invoice_no, booking_no, package code/slug, agent/supplier code,
+    promo code, cms/blog slugs) — so a soft-deleted row doesn't block re-registration.
+  - **Blind-index** lookup indexes on the HMAC hash columns (customer NID/passport, agent
+    NID, traveler passport, user NID) — exact-match lookup of encrypted PII.
+- `backend/prisma/migrations/20260720181400_journal_balance_trigger/migration.sql`
+  - **Deferred constraint trigger**: every POSTED journal entry must balance
+    (Σdebits = Σcredits) and have ≥1 line — enforced at COMMIT, on every write path.
+
+**PII columns** (`Traveler/Customer/Agent/User/Document` passport/NID) store AES-256-GCM
+**ciphertext** (`src/lib/pii.ts`). The app **fails to start** without `PII_KEK_CURRENT_ID`,
+`PII_KEK_<id>`, `PII_INDEX_KEY` — set these in `/var/www/SMTravels/.env.production`
+alongside `DATABASE_URL`. The gapless-numbering allocator and the
+`baseAmount = amount × exchangeRate` money invariant live in the service layer.
+
+See `SCHEMA_DECISIONS.md` for the full rationale and UI-ambiguity log.
