@@ -24,7 +24,7 @@ SSH_USER="deploy"
 SSH_KEY="$HOME/.ssh/smtravels_deploy"        # Git Bash form, e.g. /c/Users/DBL/.ssh/smtravels_deploy
 REMOTE_BASE="/var/www/SMTravels"
 
-#  Local source ROOT — Git Bash path form of  F:\Download\SMTravels
+#  Local source ROOT — Git Bash path form of  F:\Projects\SMTravels
 LOCAL_ROOT="/f/Projects/SMTravels"
 
 #  Post-deploy backend install/migrate on the server (safe before Step 3 exists).
@@ -59,13 +59,19 @@ say "Preflight (dry-run=$DRY)"
 [ -d "$LOCAL_ROOT" ] || die "LOCAL_ROOT not found: '$LOCAL_ROOT'. In Git Bash the path must be /f/Projects/SMTravels (NOT F:\\... and NOT /mnt/f/... which is WSL)."
 [ -e "$SSH_KEY" ]    || die "SSH key not found: '$SSH_KEY'."
 
+# Frontend is REQUIRED
 nonempty "$FE_DIST"              || die "frontend build missing/empty: '$FE_DIST'  — build the frontend first (Vite -> frontend/dist/)."
 [ -f "$FE_DIST/index.html" ]     || die "'$FE_DIST/index.html' not found — that is not a valid Vite build output."
-nonempty "$BE_DIST"              || die "backend build missing/empty: '$BE_DIST'  — build the backend first (tsc -> backend/dist/)."
-[ -f "$BE_DIR/package.json" ]      || die "'$BE_DIR/package.json' missing."
-[ -f "$BE_DIR/package-lock.json" ] || die "'$BE_DIR/package-lock.json' missing (npm ci requires it)."
-[ -d "$BE_DIR/prisma" ]            || die "'$BE_DIR/prisma' missing."
-ok "local artifacts present: frontend/dist (+index.html), backend/dist, package.json, package-lock.json, prisma/"
+ok "frontend build present: frontend/dist (+index.html)"
+
+# Backend is OPTIONAL — deploy it only if it has actually been built; otherwise FRONTEND-ONLY deploy
+DEPLOY_BACKEND=1
+if nonempty "$BE_DIST" && [ -f "$BE_DIR/package.json" ] && [ -f "$BE_DIR/package-lock.json" ] && [ -d "$BE_DIR/prisma" ]; then
+  ok "backend build present: backend/dist + package.json + package-lock.json + prisma/  -> will deploy backend"
+else
+  DEPLOY_BACKEND=0
+  say "backend not built (no backend/dist) -> FRONTEND-ONLY deploy (SPA runs on mock data; /api stays 502 until the backend ships)"
+fi
 
 command -v ssh >/dev/null || die "ssh not found in PATH."
 command -v tar >/dev/null || die "tar not found in PATH."
@@ -96,7 +102,7 @@ mirror_dir(){
     if [ "$DRY" = 1 ]; then
       echo "   [dry-run] would upload $(find "$src" -type f | wc -l | tr -d ' ') files (~$(du -sh "$src" 2>/dev/null | cut -f1)); then on server: rsync -a --delete <stage>/ ${dest}/"
       ( cd "$src" && find . -type f | sed 's/^/       + /' | head -40 )
-      local n; n=$(cd "$src" && find . -type f | wc -l | tr -d ' '); [ "$n" -gt 40 ] && echo "       ... (+$((n-40)) more)"
+      local n; n=$(cd "$src" && find . -type f | wc -l | tr -d ' '); if [ "$n" -gt 40 ]; then echo "       ... (+$((n-40)) more)"; fi
     else
       rsh "rm -rf '$stage' && mkdir -p '$stage'"
       tar -C "$src" -czf - . | rsh "tar -C '$stage' -xzf -"
@@ -123,9 +129,11 @@ put_files(){
 
 # ==================================  DEPLOY  ==================================
 mirror_dir "$FE_DIST"        "frontend/dist"     # static SPA -> nginx root
-mirror_dir "$BE_DIST"        "backend/dist"      # compiled backend
-mirror_dir "$BE_DIR/prisma"  "backend/prisma"    # schema + migrations
-put_files  "backend"         "package.json" "package-lock.json"
+if [ "$DEPLOY_BACKEND" = 1 ]; then
+  mirror_dir "$BE_DIST"        "backend/dist"      # compiled backend
+  mirror_dir "$BE_DIR/prisma"  "backend/prisma"    # schema + migrations
+  put_files  "backend"         "package.json" "package-lock.json"
+fi
 
 if [ "$DRY" = 1 ]; then
   say "DRY-RUN complete — the server was NOT modified."
@@ -133,25 +141,28 @@ if [ "$DRY" = 1 ]; then
 fi
 
 # ------------------------------------------------------------------ post-deploy (on server, as deploy)
-if [ "$RUN_BACKEND_INSTALL" = 1 ]; then
-  say "backend: npm ci --omit=dev  (+ prisma migrate/generate if prisma CLI is in prod deps)"
-  rsh "set -e; cd '$REMOTE_BASE/backend'
-       echo '   server node:' \$(node -v)
-       npm ci --omit=dev
-       if [ -x node_modules/.bin/prisma ]; then
-         node_modules/.bin/prisma migrate deploy
-         node_modules/.bin/prisma generate
+if [ "$DEPLOY_BACKEND" = 1 ]; then
+  if [ "$RUN_BACKEND_INSTALL" = 1 ]; then
+    say "backend: npm ci --omit=dev  (+ prisma migrate/generate if prisma CLI is in prod deps)"
+    rsh "set -e; cd '$REMOTE_BASE/backend'
+         echo '   server node:' \$(node -v)
+         npm ci --omit=dev
+         if [ -x node_modules/.bin/prisma ]; then
+           node_modules/.bin/prisma migrate deploy
+           node_modules/.bin/prisma generate
+         else
+           echo '   WARNING: prisma CLI not installed by --omit=dev. Put \"prisma\" in dependencies (not devDependencies) so migrate/generate can run on the server.'
+         fi"
+    ok "backend deps installed"
+  fi
+  say "restart ${SERVICE_NAME} if installed (Step 3 installs it + a narrow sudoers rule)"
+  rsh "if systemctl list-unit-files 2>/dev/null | grep -q '^${SERVICE_NAME}'; then
+         sudo -n systemctl restart '${SERVICE_NAME}' 2>/dev/null && echo '   restarted ${SERVICE_NAME}' || echo '   NOTE: could not restart (needs the Step-3 scoped sudoers). Restart as root: systemctl restart ${SERVICE_NAME}'
        else
-         echo '   WARNING: prisma CLI not installed by --omit=dev. Put \"prisma\" in dependencies (not devDependencies) so migrate/generate can run on the server.'
+         echo '   (${SERVICE_NAME} not installed yet — skipping restart)'
        fi"
-  ok "backend deps installed"
+else
+  say "frontend-only deploy — skipped backend install + service restart."
 fi
-
-say "restart ${SERVICE_NAME} if installed (Step 3 installs it + a narrow sudoers rule)"
-rsh "if systemctl list-unit-files 2>/dev/null | grep -q '^${SERVICE_NAME}'; then
-       sudo -n systemctl restart '${SERVICE_NAME}' 2>/dev/null && echo '   restarted ${SERVICE_NAME}' || echo '   NOTE: could not restart (needs the Step-3 scoped sudoers). Restart as root: systemctl restart ${SERVICE_NAME}'
-     else
-       echo '   (${SERVICE_NAME} not installed yet — skipping restart)'
-     fi"
 
 say "DEPLOY COMPLETE."
