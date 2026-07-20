@@ -24,8 +24,9 @@
     /* Path alias — must match vite.config.ts resolve.alias */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@contracts/*": ["../backend/src/contracts/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../backend/src/contracts"]
 }

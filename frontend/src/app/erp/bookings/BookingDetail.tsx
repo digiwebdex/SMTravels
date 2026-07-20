@@ -728,7 +728,7 @@ export function BookingDetail({ booking, onBack, onEdit }: DetailProps) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[16px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{booking.id}</span>
+                <span className="text-[16px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{booking.ref}</span>
                 <StatusBadge status={booking.status} />
                 <ServiceBadge service={booking.service} small />
               </div>

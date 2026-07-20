@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import {
-  ChevronLeft, ChevronRight, ChevronDown, Check, Plus, Trash2, Upload,
-  User, Star, MapPin, Globe, Plane, Hotel, Briefcase, Map,
-  AlertCircle, Eye, EyeOff, FileText, Camera, CreditCard, Banknote,
-  Smartphone, Building2, CheckCircle2, Info,
+  ChevronLeft, ChevronRight, Check, Plus, Trash2, Upload,
+  AlertCircle, FileText, CreditCard, Banknote,
+  Smartphone, Building2, CheckCircle2, Info, Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { cn, fmtPrice } from "../../lib/utils";
 import { ServiceType, SERVICE_CFG } from "./BookingsModule";
+import { useCreateBooking, useSaveDraft, useConfirmBooking, SERVICE_ENUM } from "../../hooks/bookings";
+import type { ApiError } from "../../lib/api";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface WizardProps {
@@ -19,6 +21,60 @@ interface TravelerForm {
   name: string; dob: string; gender: string; nationality: string;
   passportNo: string; passportExpiry: string; phone: string; email: string;
   mahram: string;
+}
+
+interface ChargeForm { label: string; amount: number }
+interface PricingForm { unitPrice: number; qty: number; discountType: string; discountValue: number; approvedBy: string; charges: ChargeForm[] }
+interface PaymentForm { mode: "full" | "installment"; installments: number; method: string; received: number; txnRef: string; notes: string }
+
+type Detail = Record<string, string | number | boolean>;
+
+interface WizardForm {
+  detail: Detail;
+  travelers: TravelerForm[];
+  pricing: PricingForm;
+  payment: PaymentForm;
+}
+
+// Sensible per-service defaults so a click-through yields mostly-valid data.
+function initialDetail(service: ServiceType): Detail {
+  switch (service) {
+    case "Hajj": return { packageTier: "", season: "Hajj 1447 (May–Jun 2026)", groupAssign: "", departureDate: "", returnDate: "", roomType: "Quad (4/room)", transport: "Saudi Public Bus", hotelMakkah: "Makkah Towers Hotel", hotelMadinah: "Al Salam Hotel Madinah", daysMakkah: "", daysMadinah: "", specialRequests: "" };
+    case "Umrah": return { packageTier: "", season: "Ramadan 2026", departureDate: "", returnDate: "", roomType: "Quad (4/room)", transport: "Saudi Public Bus", hotelMakkah: "Makkah Towers Hotel", hotelMadinah: "Al Salam Hotel Madinah", daysMakkah: "", daysMadinah: "", specialRequests: "" };
+    case "Visa": return { destinationCountry: "Saudi Arabia", visaType: "Tourist", processingSpeed: "Normal (15 working days)", passportCount: 1, purpose: "", notes: "" };
+    case "Air Ticket": return { airline: "Saudi Arabian Airlines", pnr: "", journeyType: "Return", origin: "", destination: "", cabinClass: "Economy", departAt: "", returnAt: "", baseFare: "", taxAmount: "", agentMarkup: "", fareType: "Net Fare (SMT)", baggage: "" };
+    case "Hotel": return { city: "", hotelName: "", starRating: "", checkIn: "", checkOut: "", roomType: "Standard", rooms: 1, guests: 2, boardBasis: "Bed & Breakfast", confirmationNo: "", distanceFromHaram: "", specialRequests: "" };
+    case "Manpower": return { workerCategory: "Unskilled", jobTitle: "Construction Worker", destinationCountry: "Saudi Arabia", destinationCity: "", employer: "", contractDuration: "12 months", monthlySalary: "", accommodation: "Employer-provided" };
+    case "Tour": return { packageTier: "Malaysia 7D/6N", tourType: "Group Tour", destinations: "", duration: "", departureDate: "", returnDate: "", travelers: 2, hotelCategory: "3 Star", roomSharing: "Twin sharing", mealPlan: "Breakfast Only", itineraryNote: "" };
+  }
+}
+
+function computeTotal(p: PricingForm): number {
+  const sub = (Number(p.unitPrice) || 0) * (Number(p.qty) || 0);
+  const disc = p.discountType === "pct" ? (sub * (Number(p.discountValue) || 0)) / 100
+    : p.discountType === "amount" ? Number(p.discountValue) || 0 : 0;
+  const extras = (p.charges || []).reduce((s, c) => s + (Number(c.amount) || 0), 0);
+  return Math.max(0, sub - disc + extras);
+}
+
+// Build the server-side wizardData (DTO-shaped) from the local form.
+function buildWizardData(form: WizardForm) {
+  const primary = form.travelers[0];
+  const cleanDetail = Object.fromEntries(Object.entries(form.detail).filter(([, v]) => v !== "" && v != null));
+  return {
+    detail: cleanDetail,
+    travelers: form.travelers.filter((t) => t.name.trim()).map((t, i) => ({
+      name: t.name, dob: t.dob || undefined, gender: (t.gender || "Male").toUpperCase(),
+      nationality: t.nationality || undefined, passportNo: t.passportNo || undefined,
+      passportExpiry: t.passportExpiry || undefined, phone: t.phone || undefined, email: t.email || undefined,
+      isPrimary: i === 0, mahramRelation: t.mahram ? t.mahram.toUpperCase() : undefined,
+    })),
+    charges: (form.pricing.charges || []).filter((c) => c.label?.trim()).map((c) => ({ label: c.label, amount: Number(c.amount) || 0 })),
+    customer: primary && primary.name.trim() && primary.phone.trim()
+      ? { name: primary.name, phone: primary.phone, email: primary.email || undefined } : undefined,
+    pricing: { unitPrice: Number(form.pricing.unitPrice) || 0, qty: Number(form.pricing.qty) || 0, discountType: form.pricing.discountType, discountValue: Number(form.pricing.discountValue) || 0, total: computeTotal(form.pricing) },
+    payment: { mode: form.payment.mode, installments: form.payment.installments, method: form.payment.method, received: Number(form.payment.received) || 0 },
+  };
 }
 
 // ─── Shared form atoms ─────────────────────────────────────────────────────────
@@ -42,6 +98,10 @@ function Grid2({ children }: { children: React.ReactNode }) {
 function Grid3({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-3 gap-4">{children}</div>;
 }
+
+// value/onChange binder over the detail object
+type DetailProps = { detail: Detail; set: (k: string, v: string | number) => void };
+const val = (d: Detail, k: string) => (d[k] === undefined || d[k] === null ? "" : String(d[k]));
 
 // ─── Step 1: Choose service ────────────────────────────────────────────────────
 const SERVICES: { type: ServiceType; desc: string }[] = [
@@ -92,7 +152,7 @@ function StepService({ selected, onSelect }: { selected: ServiceType | null; onS
 }
 
 // ─── Step 2: Service-specific details ─────────────────────────────────────────
-function HajjUmrahDetails({ service }: { service: ServiceType }) {
+function HajjUmrahDetails({ service, detail, set }: { service: ServiceType } & DetailProps) {
   const packages = service === "Hajj"
     ? ["Economy (40D — Quad)", "Standard (40D — Triple)", "Premium (40D — Double)", "VIP Elite (40D — Single)"]
     : ["Economy (10D/7N)", "Standard (14D/12N)", "Premium (21D/19N)", "VIP (21D/19N — 5★)", "Custom Duration"];
@@ -101,23 +161,23 @@ function HajjUmrahDetails({ service }: { service: ServiceType }) {
     <div className="flex flex-col gap-5">
       <Grid2>
         <Field label="Package" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "packageTier")} onChange={e => set("packageTier", e.target.value)}>
             <option value="">Select package</option>
             {packages.map(p => <option key={p}>{p}</option>)}
           </select>
         </Field>
         <Field label="Season / Period" required>
-          <select className={selectCls}>
-            {service === "Hajj"
-              ? ["Hajj 1447 (May–Jun 2026)"].map(o => <option key={o}>{o}</option>)
-              : ["Ramadan 2026", "Off-peak Jan–Feb", "School Break Mar–Apr", "Summer Jul–Aug", "Custom"].map(o => <option key={o}>{o}</option>)
-            }
+          <select className={selectCls} value={val(detail, "season")} onChange={e => set("season", e.target.value)}>
+            {(service === "Hajj"
+              ? ["Hajj 1447 (May–Jun 2026)"]
+              : ["Ramadan 2026", "Off-peak Jan–Feb", "School Break Mar–Apr", "Summer Jul–Aug", "Custom"]
+            ).map(o => <option key={o}>{o}</option>)}
           </select>
         </Field>
       </Grid2>
       {service === "Hajj" && (
         <Field label="Group Assignment">
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "groupAssign")} onChange={e => set("groupAssign", e.target.value)}>
             <option value="">Unassigned</option>
             {["Group A — Dhaka North", "Group B — Dhaka South", "Group C — Chittagong", "Group D — Sylhet", "Group E — Special"].map(g => <option key={g}>{g}</option>)}
           </select>
@@ -125,96 +185,76 @@ function HajjUmrahDetails({ service }: { service: ServiceType }) {
       )}
       <Grid2>
         <Field label="Departure Date" required>
-          <input type="date" className={inputCls} />
+          <input type="date" className={inputCls} value={val(detail, "departureDate")} onChange={e => set("departureDate", e.target.value)} />
         </Field>
         <Field label="Return Date">
-          <input type="date" className={inputCls} />
+          <input type="date" className={inputCls} value={val(detail, "returnDate")} onChange={e => set("returnDate", e.target.value)} />
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Room Type" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "roomType")} onChange={e => set("roomType", e.target.value)}>
             {["Quad (4/room)", "Triple (3/room)", "Double (2/room)", "Single (1/room)"].map(o => <option key={o}>{o}</option>)}
           </select>
         </Field>
         <Field label="Transport" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "transport")} onChange={e => set("transport", e.target.value)}>
             {["Saudi Public Bus", "Private Van", "Intercity Train + Bus", "Full Private"].map(o => <option key={o}>{o}</option>)}
           </select>
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Hotel — Makkah" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "hotelMakkah")} onChange={e => set("hotelMakkah", e.target.value)}>
             {["Makkah Towers Hotel", "Hilton Suites Makkah", "Al Marwa Rayhaan", "Grand Zamzam Hotel", "Economy Hotel (≤1km)"].map(h => <option key={h}>{h}</option>)}
           </select>
         </Field>
         <Field label="Hotel — Madinah" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "hotelMadinah")} onChange={e => set("hotelMadinah", e.target.value)}>
             {["Al Salam Hotel Madinah", "Madinah Hilton", "Oberoi Madinah", "Al Anwar Hotel", "Economy Hotel (≤500m)"].map(h => <option key={h}>{h}</option>)}
           </select>
         </Field>
       </Grid2>
       <Field label="Days in Makkah / Madinah">
         <Grid2>
-          <input type="number" className={inputCls} placeholder="Days in Makkah (e.g. 14)" />
-          <input type="number" className={inputCls} placeholder="Days in Madinah (e.g. 8)" />
+          <input type="number" className={inputCls} placeholder="Days in Makkah (e.g. 14)" value={val(detail, "daysMakkah")} onChange={e => set("daysMakkah", e.target.value)} />
+          <input type="number" className={inputCls} placeholder="Days in Madinah (e.g. 8)" value={val(detail, "daysMadinah")} onChange={e => set("daysMadinah", e.target.value)} />
         </Grid2>
       </Field>
-      <div className="bg-[#FFF9E6] border border-[#E8471F]/30 rounded-[10px] p-4">
-        <div className="text-[11px] font-bold text-[#92400E] mb-3 uppercase tracking-wide">Mahram Information</div>
-        <Grid2>
-          <Field label="Mahram Required?">
-            <select className={selectCls}>
-              <option>Not required (male traveler)</option>
-              <option>Yes — adding as traveler</option>
-              <option>Yes — separate booking reference</option>
-            </select>
-          </Field>
-          <Field label="Mahram Relationship">
-            <select className={selectCls}>
-              <option value="">N/A</option>
-              {["Husband", "Father", "Brother", "Son", "Uncle"].map(r => <option key={r}>{r}</option>)}
-            </select>
-          </Field>
-        </Grid2>
-      </div>
       <Field label="Special Requests / Notes">
-        <textarea className={cn(inputCls, "resize-none")} rows={3} placeholder="Wheelchair, dietary requirements, adjoining rooms, etc." />
+        <textarea className={cn(inputCls, "resize-none")} rows={3} placeholder="Wheelchair, dietary requirements, adjoining rooms, etc." value={val(detail, "specialRequests")} onChange={e => set("specialRequests", e.target.value)} />
       </Field>
     </div>
   );
 }
 
-function VisaDetails() {
+function VisaDetails({ detail, set }: DetailProps) {
   return (
     <div className="flex flex-col gap-5">
       <Grid2>
         <Field label="Destination Country" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "destinationCountry")} onChange={e => set("destinationCountry", e.target.value)}>
             {["Saudi Arabia", "UAE", "Malaysia", "Qatar", "Kuwait", "Bahrain", "Oman", "UK", "Schengen (Multiple)", "USA", "Canada"].map(c => <option key={c}>{c}</option>)}
           </select>
         </Field>
         <Field label="Visa Type" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "visaType")} onChange={e => set("visaType", e.target.value)}>
             {["Tourist", "Business", "Work/Employment", "Student", "Transit", "Medical", "Family Visit"].map(v => <option key={v}>{v}</option>)}
           </select>
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Processing Speed" required>
-          <select className={selectCls}>
-            <option>Normal (15 working days)</option>
-            <option>Express (7 working days)</option>
-            <option>Super Express (3 working days)</option>
+          <select className={selectCls} value={val(detail, "processingSpeed")} onChange={e => set("processingSpeed", e.target.value)}>
+            {["Normal (15 working days)", "Express (7 working days)", "Super Express (3 working days)"].map(o => <option key={o}>{o}</option>)}
           </select>
         </Field>
         <Field label="No. of Passports" required>
-          <input type="number" min="1" max="50" className={inputCls} defaultValue="1" />
+          <input type="number" min="1" max="50" className={inputCls} value={val(detail, "passportCount")} onChange={e => set("passportCount", e.target.value)} />
         </Field>
       </Grid2>
       <Field label="Travel Purpose / Details">
-        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="Brief purpose of travel (required for some visa types)" />
+        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="Brief purpose of travel (required for some visa types)" value={val(detail, "purpose")} onChange={e => set("purpose", e.target.value)} />
       </Field>
 
       <div>
@@ -241,13 +281,13 @@ function VisaDetails() {
       </div>
 
       <Field label="Notes / Special Instructions">
-        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="Any additional notes for the visa team" />
+        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="Any additional notes for the visa team" value={val(detail, "notes")} onChange={e => set("notes", e.target.value)} />
       </Field>
     </div>
   );
 }
 
-function AirTicketDetails() {
+function AirTicketDetails({ detail, set }: DetailProps) {
   return (
     <div className="flex flex-col gap-5">
       <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-[10px] px-4 py-3 flex items-start gap-2.5">
@@ -256,19 +296,19 @@ function AirTicketDetails() {
       </div>
       <Grid2>
         <Field label="Airline" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "airline")} onChange={e => set("airline", e.target.value)}>
             {["Saudi Arabian Airlines", "Biman Bangladesh Airlines", "Emirates", "Qatar Airways", "Air Arabia", "Flydubai", "IndiGo", "US-Bangla Airlines", "Regent Airways", "Other"].map(a => <option key={a}>{a}</option>)}
           </select>
         </Field>
         <Field label="PNR / Booking Reference" required hint="Enter the 6-character GDS locator">
-          <input className={inputCls} placeholder="e.g. XAB123" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.08em" }} />
+          <input className={inputCls} placeholder="e.g. XAB123" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.08em" }} value={val(detail, "pnr")} onChange={e => set("pnr", e.target.value)} />
         </Field>
       </Grid2>
       <Field label="Journey Type" required>
         <div className="flex gap-3">
           {["One-way", "Return", "Multi-city"].map(t => (
             <label key={t} className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="journey" value={t} className="accent-[#0E6BB8]" defaultChecked={t === "Return"} />
+              <input type="radio" name="journey" value={t} className="accent-[#0E6BB8]" checked={val(detail, "journeyType") === t} onChange={() => set("journeyType", t)} />
               <span className="text-[12px] text-[#374151]">{t}</span>
             </label>
           ))}
@@ -276,23 +316,23 @@ function AirTicketDetails() {
       </Field>
       <Grid3>
         <Field label="Origin" required>
-          <input className={inputCls} placeholder="DAC — Dhaka" />
+          <input className={inputCls} placeholder="DAC — Dhaka" value={val(detail, "origin")} onChange={e => set("origin", e.target.value)} />
         </Field>
         <Field label="Destination" required>
-          <input className={inputCls} placeholder="JED — Jeddah" />
+          <input className={inputCls} placeholder="JED — Jeddah" value={val(detail, "destination")} onChange={e => set("destination", e.target.value)} />
         </Field>
         <Field label="Class" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "cabinClass")} onChange={e => set("cabinClass", e.target.value)}>
             {["Economy", "Premium Economy", "Business", "First"].map(c => <option key={c}>{c}</option>)}
           </select>
         </Field>
       </Grid3>
       <Grid2>
         <Field label="Departure Date & Time" required>
-          <input type="datetime-local" className={inputCls} />
+          <input type="datetime-local" className={inputCls} value={val(detail, "departAt")} onChange={e => set("departAt", e.target.value)} />
         </Field>
         <Field label="Return Date & Time">
-          <input type="datetime-local" className={inputCls} />
+          <input type="datetime-local" className={inputCls} value={val(detail, "returnAt")} onChange={e => set("returnAt", e.target.value)} />
         </Field>
       </Grid2>
       <div className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
@@ -301,70 +341,71 @@ function AirTicketDetails() {
         </div>
         <div className="p-4 grid grid-cols-2 gap-4">
           <Field label="Base Fare (৳)" required>
-            <input type="number" className={inputCls} placeholder="0" />
+            <input type="number" className={inputCls} placeholder="0" value={val(detail, "baseFare")} onChange={e => set("baseFare", e.target.value)} />
           </Field>
           <Field label="Tax / Surcharge (৳)">
-            <input type="number" className={inputCls} placeholder="0" />
+            <input type="number" className={inputCls} placeholder="0" value={val(detail, "taxAmount")} onChange={e => set("taxAmount", e.target.value)} />
           </Field>
           <Field label="Agent Markup (৳)">
-            <input type="number" className={inputCls} placeholder="0" />
+            <input type="number" className={inputCls} placeholder="0" value={val(detail, "agentMarkup")} onChange={e => set("agentMarkup", e.target.value)} />
           </Field>
           <Field label="Fare Type">
-            <select className={selectCls}>
+            <select className={selectCls} value={val(detail, "fareType")} onChange={e => set("fareType", e.target.value)}>
               {["Net Fare (SMT)", "Full Published Fare", "Special Corporate Fare", "Group Fare"].map(f => <option key={f}>{f}</option>)}
             </select>
           </Field>
         </div>
       </div>
       <Field label="Baggage Allowance">
-        <input className={inputCls} placeholder="e.g. 30kg checked + 7kg hand luggage" />
+        <input className={inputCls} placeholder="e.g. 30kg checked + 7kg hand luggage" value={val(detail, "baggage")} onChange={e => set("baggage", e.target.value)} />
       </Field>
     </div>
   );
 }
 
-function HotelDetails() {
+function HotelDetails({ detail, set }: DetailProps) {
   return (
     <div className="flex flex-col gap-5">
       <Grid2>
         <Field label="City / Destination" required>
-          <input className={inputCls} placeholder="e.g. Makkah, Dubai, Cox's Bazar" />
+          <input className={inputCls} placeholder="e.g. Makkah, Dubai, Cox's Bazar" value={val(detail, "city")} onChange={e => set("city", e.target.value)} />
         </Field>
         <Field label="Hotel Name" required>
-          <input className={inputCls} placeholder="Full hotel name" />
+          <input className={inputCls} placeholder="Full hotel name" value={val(detail, "hotelName")} onChange={e => set("hotelName", e.target.value)} />
         </Field>
       </Grid2>
       <Grid3>
         <Field label="Star Rating">
-          <select className={selectCls}>
-            {["3 Star", "4 Star", "5 Star", "Unrated / Budget"].map(s => <option key={s}>{s}</option>)}
+          <select className={selectCls} value={val(detail, "starRating")} onChange={e => set("starRating", e.target.value)}>
+            <option value="">Select</option>
+            {[{ l: "3 Star", v: 3 }, { l: "4 Star", v: 4 }, { l: "5 Star", v: 5 }].map(s => <option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
         </Field>
         <Field label="Check-in Date" required>
-          <input type="date" className={inputCls} />
+          <input type="date" className={inputCls} value={val(detail, "checkIn")} onChange={e => set("checkIn", e.target.value)} />
         </Field>
         <Field label="Check-out Date" required>
-          <input type="date" className={inputCls} />
+          <input type="date" className={inputCls} value={val(detail, "checkOut")} onChange={e => set("checkOut", e.target.value)} />
         </Field>
       </Grid3>
       <Grid3>
         <Field label="Room Type" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "roomType")} onChange={e => set("roomType", e.target.value)}>
             {["Standard", "Deluxe", "Superior", "Junior Suite", "Suite", "Executive"].map(r => <option key={r}>{r}</option>)}
           </select>
         </Field>
         <Field label="No. of Rooms" required>
-          <input type="number" min="1" className={inputCls} defaultValue="1" />
+          <input type="number" min="1" className={inputCls} value={val(detail, "rooms")} onChange={e => set("rooms", e.target.value)} />
         </Field>
         <Field label="No. of Guests" required>
-          <input type="number" min="1" className={inputCls} defaultValue="2" />
+          <input type="number" min="1" className={inputCls} value={val(detail, "guests")} onChange={e => set("guests", e.target.value)} />
         </Field>
       </Grid3>
       <Field label="Board Basis" required>
         <div className="grid grid-cols-2 gap-2">
           {["Room Only", "Bed & Breakfast", "Half Board (2 meals)", "Full Board (3 meals)", "All Inclusive"].map(b => (
             <label key={b} className="flex items-center gap-2 p-2.5 border border-[#E5E7EB] rounded-[8px] cursor-pointer hover:border-[#0E6BB8]/30 transition-colors">
-              <input type="radio" name="board" value={b} className="accent-[#0E6BB8]" defaultChecked={b === "Bed & Breakfast"} />
+              <input type="radio" name="board" value={b} className="accent-[#0E6BB8]" checked={val(detail, "boardBasis") === b} onChange={() => set("boardBasis", b)} />
               <span className="text-[12px] text-[#374151]">{b}</span>
             </label>
           ))}
@@ -372,63 +413,61 @@ function HotelDetails() {
       </Field>
       <Grid2>
         <Field label="Confirmation No. (if pre-booked)">
-          <input className={inputCls} placeholder="Hotel confirmation number" />
+          <input className={inputCls} placeholder="Hotel confirmation number" value={val(detail, "confirmationNo")} onChange={e => set("confirmationNo", e.target.value)} />
         </Field>
         <Field label="Distance from Haram (if applicable)">
-          <input className={inputCls} placeholder="e.g. 200m, 1.5km" />
+          <input className={inputCls} placeholder="e.g. 200m, 1.5km" value={val(detail, "distanceFromHaram")} onChange={e => set("distanceFromHaram", e.target.value)} />
         </Field>
       </Grid2>
       <Field label="Special Requests">
-        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="Early check-in, high floor, smoking/non-smoking, etc." />
+        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="Early check-in, high floor, smoking/non-smoking, etc." value={val(detail, "specialRequests")} onChange={e => set("specialRequests", e.target.value)} />
       </Field>
     </div>
   );
 }
 
-function ManpowerDetails() {
+function ManpowerDetails({ detail, set }: DetailProps) {
   return (
     <div className="flex flex-col gap-5">
       <Grid2>
         <Field label="Worker Category" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "workerCategory")} onChange={e => set("workerCategory", e.target.value)}>
             {["Unskilled", "Semi-Skilled", "Skilled", "Technical / Professional"].map(c => <option key={c}>{c}</option>)}
           </select>
         </Field>
         <Field label="Job / Subcategory" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "jobTitle")} onChange={e => set("jobTitle", e.target.value)}>
             {["Construction Worker", "Electrician", "Plumber", "Mason / Bricklayer", "Painter", "Carpenter", "Driver", "Security Guard", "Housemaid", "Nurse", "Engineer", "Other"].map(j => <option key={j}>{j}</option>)}
           </select>
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Destination Country" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "destinationCountry")} onChange={e => set("destinationCountry", e.target.value)}>
             {["Saudi Arabia", "UAE", "Qatar", "Kuwait", "Malaysia", "Oman", "Bahrain", "Jordan", "Singapore"].map(c => <option key={c}>{c}</option>)}
           </select>
         </Field>
         <Field label="Destination City">
-          <input className={inputCls} placeholder="e.g. Riyadh, Dubai, Doha" />
+          <input className={inputCls} placeholder="e.g. Riyadh, Dubai, Doha" value={val(detail, "destinationCity")} onChange={e => set("destinationCity", e.target.value)} />
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Employer / Company Name" required>
-          <input className={inputCls} placeholder="Employer or recruiting agency name" />
+          <input className={inputCls} placeholder="Employer or recruiting agency name" value={val(detail, "employer")} onChange={e => set("employer", e.target.value)} />
         </Field>
         <Field label="Contract Duration" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "contractDuration")} onChange={e => set("contractDuration", e.target.value)}>
             {["6 months", "12 months", "24 months (2 years)", "36 months (3 years)", "Open-ended"].map(d => <option key={d}>{d}</option>)}
           </select>
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Monthly Salary" required>
-          <input className={inputCls} placeholder="e.g. SAR 1,200" />
+          <input className={inputCls} placeholder="e.g. SAR 1,200" value={val(detail, "monthlySalary")} onChange={e => set("monthlySalary", e.target.value)} />
         </Field>
         <Field label="Accommodation">
-          <select className={selectCls}>
-            <option>Employer-provided</option>
-            <option>Worker self-arranged</option>
-            <option>Allowance provided</option>
+          <select className={selectCls} value={val(detail, "accommodation")} onChange={e => set("accommodation", e.target.value)}>
+            {["Employer-provided", "Worker self-arranged", "Allowance provided"].map(a => <option key={a}>{a}</option>)}
           </select>
         </Field>
       </Grid2>
@@ -462,48 +501,48 @@ function ManpowerDetails() {
   );
 }
 
-function TourDetails() {
+function TourDetails({ detail, set }: DetailProps) {
   return (
     <div className="flex flex-col gap-5">
       <Grid2>
         <Field label="Tour Package" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "packageTier")} onChange={e => set("packageTier", e.target.value)}>
             {["Malaysia 7D/6N", "Thailand 10D/9N Premium", "Singapore + Malaysia 8D", "Dubai 5D/4N", "Maldives 4D/3N", "Cox's Bazar 3D/2N", "Sundarbans 2D/1N", "Sylhet 3D/2N", "Custom Package"].map(p => <option key={p}>{p}</option>)}
           </select>
         </Field>
         <Field label="Tour Type">
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "tourType")} onChange={e => set("tourType", e.target.value)}>
             {["Group Tour", "Private / Customized", "Honeymoon Package", "Family Package", "Corporate Group"].map(t => <option key={t}>{t}</option>)}
           </select>
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Primary Destination(s)" required>
-          <input className={inputCls} placeholder="e.g. Kuala Lumpur, Genting, Penang" />
+          <input className={inputCls} placeholder="e.g. Kuala Lumpur, Genting, Penang" value={val(detail, "destinations")} onChange={e => set("destinations", e.target.value)} />
         </Field>
         <Field label="Duration">
-          <input className={inputCls} placeholder="e.g. 7D/6N" />
+          <input className={inputCls} placeholder="e.g. 7D/6N" value={val(detail, "duration")} onChange={e => set("duration", e.target.value)} />
         </Field>
       </Grid2>
       <Grid2>
         <Field label="Departure Date" required>
-          <input type="date" className={inputCls} />
+          <input type="date" className={inputCls} value={val(detail, "departureDate")} onChange={e => set("departureDate", e.target.value)} />
         </Field>
         <Field label="Return Date">
-          <input type="date" className={inputCls} />
+          <input type="date" className={inputCls} value={val(detail, "returnDate")} onChange={e => set("returnDate", e.target.value)} />
         </Field>
       </Grid2>
       <Grid3>
         <Field label="No. of Travelers" required>
-          <input type="number" min="1" className={inputCls} defaultValue="2" />
+          <input type="number" min="1" className={inputCls} value={val(detail, "travelers")} onChange={e => set("travelers", e.target.value)} />
         </Field>
         <Field label="Hotel Category" required>
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "hotelCategory")} onChange={e => set("hotelCategory", e.target.value)}>
             {["3 Star", "4 Star", "5 Star", "Budget"].map(h => <option key={h}>{h}</option>)}
           </select>
         </Field>
         <Field label="Room Sharing">
-          <select className={selectCls}>
+          <select className={selectCls} value={val(detail, "roomSharing")} onChange={e => set("roomSharing", e.target.value)}>
             {["Twin sharing", "Double room", "Triple sharing", "Single rooms"].map(r => <option key={r}>{r}</option>)}
           </select>
         </Field>
@@ -512,44 +551,28 @@ function TourDetails() {
         <div className="flex gap-3 flex-wrap">
           {["No Meals", "Breakfast Only", "Breakfast + 2 Dinners", "All Meals Included"].map(m => (
             <label key={m} className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="meal" value={m} className="accent-[#0E6BB8]" defaultChecked={m === "Breakfast Only"} />
+              <input type="radio" name="meal" value={m} className="accent-[#0E6BB8]" checked={val(detail, "mealPlan") === m} onChange={() => set("mealPlan", m)} />
               <span className="text-[12px] text-[#374151]">{m}</span>
             </label>
           ))}
         </div>
       </Field>
-      <Field label="Transport Inclusions">
-        <div className="grid grid-cols-2 gap-2">
-          {["Airport transfers (in/out)", "City sightseeing coach", "Cable car / boat", "Internal flights", "Train / Monorail pass"].map(t => (
-            <label key={t} className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 accent-[#0E6BB8]" defaultChecked />
-              <span className="text-[12px] text-[#374151]">{t}</span>
-            </label>
-          ))}
-        </div>
-      </Field>
       <Field label="Itinerary / Day Plan">
-        <textarea className={cn(inputCls, "resize-none")} rows={4} placeholder="Day 1: Arrival, transfer to hotel...&#10;Day 2: City tour...&#10;Day 3: ..." />
+        <textarea className={cn(inputCls, "resize-none")} rows={4} placeholder="Day 1: Arrival, transfer to hotel...&#10;Day 2: City tour...&#10;Day 3: ..." value={val(detail, "itineraryNote")} onChange={e => set("itineraryNote", e.target.value)} />
       </Field>
     </div>
   );
 }
 
 // ─── Step 3: Travelers ─────────────────────────────────────────────────────────
-function StepTravelers({ service }: { service: ServiceType | null }) {
-  const [travelers, setTravelers] = useState<TravelerForm[]>([{
-    id: "1", name: "", dob: "", gender: "Male", nationality: "Bangladeshi",
+function StepTravelers({ service, travelers, setTravelers }: { service: ServiceType | null; travelers: TravelerForm[]; setTravelers: (t: TravelerForm[]) => void }) {
+  const add = () => setTravelers([...travelers, {
+    id: String(travelers.length + 1), name: "", dob: "", gender: "Male", nationality: "Bangladeshi",
     passportNo: "", passportExpiry: "", phone: "", email: "", mahram: "",
   }]);
-
-  const add = () => setTravelers(ts => [...ts, {
-    id: String(ts.length + 1), name: "", dob: "", gender: "Male", nationality: "Bangladeshi",
-    passportNo: "", passportExpiry: "", phone: "", email: "", mahram: "",
-  }]);
-
-  const remove = (id: string) => setTravelers(ts => ts.filter(t => t.id !== id));
-  const update = (id: string, field: keyof TravelerForm, val: string) =>
-    setTravelers(ts => ts.map(t => t.id === id ? { ...t, [field]: val } : t));
+  const remove = (id: string) => setTravelers(travelers.filter(t => t.id !== id));
+  const update = (id: string, field: keyof TravelerForm, v: string) =>
+    setTravelers(travelers.map(t => t.id === id ? { ...t, [field]: v } : t));
 
   const needsMahram = service === "Hajj" || service === "Umrah";
 
@@ -675,13 +698,16 @@ function StepDocuments({ service }: { service: ServiceType | null }) {
 }
 
 // ─── Step 5: Pricing & Discounts ───────────────────────────────────────────────
-function StepPricing() {
-  const [discType, setDiscType] = useState("none");
-  const basePrice = 120000;
-  const qty = 2;
-  const discount = discType === "amount" ? 5000 : discType === "pct" ? basePrice * qty * 0.05 : 0;
-  const extras = 3500;
-  const total = basePrice * qty - discount + extras;
+function StepPricing({ pricing, setPricing }: { pricing: PricingForm; setPricing: (p: PricingForm) => void }) {
+  const set = (patch: Partial<PricingForm>) => setPricing({ ...pricing, ...patch });
+  const subtotal = (Number(pricing.unitPrice) || 0) * (Number(pricing.qty) || 0);
+  const discount = pricing.discountType === "pct" ? subtotal * (Number(pricing.discountValue) || 0) / 100
+    : pricing.discountType === "amount" ? Number(pricing.discountValue) || 0 : 0;
+  const extras = pricing.charges.reduce((s, c) => s + (Number(c.amount) || 0), 0);
+  const total = Math.max(0, subtotal - discount + extras);
+
+  const setCharge = (i: number, field: keyof ChargeForm, v: string) =>
+    set({ charges: pricing.charges.map((c, idx) => idx === i ? { ...c, [field]: field === "amount" ? Number(v) : v } : c) });
 
   return (
     <div className="flex flex-col gap-5">
@@ -692,15 +718,15 @@ function StepPricing() {
         </div>
         <div className="p-4 grid grid-cols-3 gap-4">
           <Field label="Unit Price (per person)" required>
-            <input type="number" className={inputCls} defaultValue={basePrice} />
+            <input type="number" className={inputCls} value={pricing.unitPrice || ""} onChange={e => set({ unitPrice: Number(e.target.value) })} />
           </Field>
           <Field label="Quantity (travelers)" required>
-            <input type="number" className={inputCls} defaultValue={qty} />
+            <input type="number" className={inputCls} value={pricing.qty || ""} onChange={e => set({ qty: Number(e.target.value) })} />
           </Field>
           <Field label="Subtotal">
             <div className="flex items-center h-[42px] px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] font-bold text-[#111827]"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmtPrice(basePrice * qty)}
+              {fmtPrice(subtotal)}
             </div>
           </Field>
         </div>
@@ -712,7 +738,7 @@ function StepPricing() {
         </div>
         <div className="p-4 grid grid-cols-2 gap-4">
           <Field label="Discount Type">
-            <select className={selectCls} value={discType} onChange={e => setDiscType(e.target.value)}>
+            <select className={selectCls} value={pricing.discountType} onChange={e => set({ discountType: e.target.value })}>
               <option value="none">No discount</option>
               <option value="amount">Fixed amount (৳)</option>
               <option value="pct">Percentage (%)</option>
@@ -720,13 +746,14 @@ function StepPricing() {
               <option value="promo">Promo code</option>
             </select>
           </Field>
-          {discType !== "none" && (
-            <Field label={discType === "pct" ? "Discount %" : "Discount Amount (৳)"}>
-              <input type="number" className={inputCls} placeholder={discType === "pct" ? "5" : "5000"} />
+          {pricing.discountType !== "none" && (
+            <Field label={pricing.discountType === "pct" ? "Discount %" : "Discount Amount (৳)"}>
+              <input type="number" className={inputCls} placeholder={pricing.discountType === "pct" ? "5" : "5000"}
+                value={pricing.discountValue || ""} onChange={e => set({ discountValue: Number(e.target.value) })} />
             </Field>
           )}
-          {discType !== "none" && <Field label="Approved By">
-            <input className={inputCls} placeholder="Manager name / authorization" />
+          {pricing.discountType !== "none" && <Field label="Approved By">
+            <input className={inputCls} placeholder="Manager name / authorization" value={pricing.approvedBy} onChange={e => set({ approvedBy: e.target.value })} />
           </Field>}
         </div>
       </div>
@@ -734,19 +761,18 @@ function StepPricing() {
       <div className="border border-[#E5E7EB] rounded-[12px] overflow-hidden">
         <div className="flex items-center justify-between bg-[#F7F8FA] px-4 py-2.5 border-b border-[#E5E7EB]">
           <span className="text-[11px] font-bold text-[#374151] uppercase tracking-wide">Additional Charges</span>
-          <button className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer flex items-center gap-1"><Plus size={11} /> Add charge</button>
+          <button onClick={() => set({ charges: [...pricing.charges, { label: "", amount: 0 }] })}
+            className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer flex items-center gap-1"><Plus size={11} /> Add charge</button>
         </div>
         <div className="divide-y divide-[#F3F4F6]">
-          {[
-            { label: "Visa processing fee", amount: 2500 },
-            { label: "SMT service charge", amount: 1000 },
-          ].map((c, i) => (
+          {pricing.charges.map((c, i) => (
             <div key={i} className="flex items-center gap-3 px-4 py-2.5">
-              <input className="flex-1 text-[12px] text-[#374151] bg-transparent outline-none" defaultValue={c.label} />
-              <input type="number" className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[12px] outline-none text-right" defaultValue={c.amount} />
-              <button className="text-[#9CA3AF] hover:text-[#DC2626] cursor-pointer"><Trash2 size={12} /></button>
+              <input className="flex-1 text-[12px] text-[#374151] bg-transparent outline-none" value={c.label} placeholder="Charge label" onChange={e => setCharge(i, "label", e.target.value)} />
+              <input type="number" className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[12px] outline-none text-right" value={c.amount || ""} onChange={e => setCharge(i, "amount", e.target.value)} />
+              <button onClick={() => set({ charges: pricing.charges.filter((_, idx) => idx !== i) })} className="text-[#9CA3AF] hover:text-[#DC2626] cursor-pointer"><Trash2 size={12} /></button>
             </div>
           ))}
+          {pricing.charges.length === 0 && <div className="px-4 py-3 text-[11px] text-[#9CA3AF]">No additional charges.</div>}
         </div>
       </div>
 
@@ -754,7 +780,7 @@ function StepPricing() {
       <div className="bg-[#0E6BB8] rounded-[12px] p-5 text-white">
         <div className="flex flex-col gap-2 mb-4">
           {[
-            ["Subtotal", fmtPrice(basePrice * qty)],
+            ["Subtotal", fmtPrice(subtotal)],
             ["Discount", discount > 0 ? `− ${fmtPrice(discount)}` : "—"],
             ["Additional charges", fmtPrice(extras)],
           ].map(([l, v]) => (
@@ -774,11 +800,9 @@ function StepPricing() {
 }
 
 // ─── Step 6: Payment Plan ──────────────────────────────────────────────────────
-function StepPayment() {
-  const [mode, setMode] = useState<"full" | "installment">("installment");
-  const [installments, setInstallments] = useState(3);
-  const total = 243500;
-  const perInst = Math.ceil(total / installments);
+function StepPayment({ payment, setPayment, total }: { payment: PaymentForm; setPayment: (p: PaymentForm) => void; total: number }) {
+  const set = (patch: Partial<PaymentForm>) => setPayment({ ...payment, ...patch });
+  const perInst = Math.ceil(total / Math.max(1, payment.installments));
 
   const PAYMENT_METHODS = [
     { key: "cash", icon: Banknote, label: "Cash" },
@@ -788,7 +812,6 @@ function StepPayment() {
     { key: "cheque", icon: FileText, label: "Cheque" },
     { key: "card", icon: CreditCard, label: "Card" },
   ];
-  const [payMethod, setPayMethod] = useState("cash");
 
   return (
     <div className="flex flex-col gap-6">
@@ -799,31 +822,31 @@ function StepPayment() {
             { key: "full", label: "Full Payment", sub: "Pay entire amount now" },
             { key: "installment", label: "Installment Plan", sub: "Split into multiple payments" },
           ].map(m => (
-            <button key={m.key} onClick={() => setMode(m.key as "full" | "installment")}
+            <button key={m.key} onClick={() => set({ mode: m.key as "full" | "installment" })}
               className={cn("flex-1 p-4 rounded-[12px] border-2 text-left transition-all cursor-pointer",
-                mode === m.key ? "border-[#0E6BB8] bg-[#0E6BB8]/3" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
+                payment.mode === m.key ? "border-[#0E6BB8] bg-[#0E6BB8]/3" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
               )}>
-              <div className={cn("text-[13px] font-bold mb-0.5", mode === m.key ? "text-[#0E6BB8]" : "text-[#111827]")}>{m.label}</div>
+              <div className={cn("text-[13px] font-bold mb-0.5", payment.mode === m.key ? "text-[#0E6BB8]" : "text-[#111827]")}>{m.label}</div>
               <div className="text-[11px] text-[#9CA3AF]">{m.sub}</div>
             </button>
           ))}
         </div>
 
-        {mode === "installment" && (
+        {payment.mode === "installment" && (
           <div className="border border-[#E5E7EB] rounded-[12px] p-4 mb-4">
             <div className="flex items-center justify-between mb-4">
               <div className={labelCls}>Number of Installments</div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setInstallments(n => Math.max(2, n - 1))} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer text-lg leading-none">−</button>
-                <span className="w-8 text-center text-[14px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{installments}</span>
-                <button onClick={() => setInstallments(n => Math.min(12, n + 1))} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer text-lg leading-none">+</button>
+                <button onClick={() => set({ installments: Math.max(2, payment.installments - 1) })} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer text-lg leading-none">−</button>
+                <span className="w-8 text-center text-[14px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{payment.installments}</span>
+                <button onClick={() => set({ installments: Math.min(12, payment.installments + 1) })} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer text-lg leading-none">+</button>
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              {Array.from({ length: installments }).map((_, i) => (
+              {Array.from({ length: payment.installments }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-[#0E6BB8]/8 text-[#0E6BB8] text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                  <span className="text-[12px] text-[#374151] w-32">{i === 0 ? "Booking Deposit" : i === installments - 1 ? "Final Payment" : `Installment ${i + 1}`}</span>
+                  <span className="text-[12px] text-[#374151] w-32">{i === 0 ? "Booking Deposit" : i === payment.installments - 1 ? "Final Payment" : `Installment ${i + 1}`}</span>
                   <input type="number" className="flex-1 px-2.5 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[12px] outline-none focus:border-[#0E6BB8] text-right" defaultValue={perInst} />
                   <input type="date" className="px-2.5 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[11px] outline-none focus:border-[#0E6BB8] cursor-pointer" />
                 </div>
@@ -839,12 +862,12 @@ function StepPayment() {
           {PAYMENT_METHODS.map(m => {
             const Icon = m.icon;
             return (
-              <button key={m.key} onClick={() => setPayMethod(m.key)}
+              <button key={m.key} onClick={() => set({ method: m.key })}
                 className={cn("flex items-center gap-2.5 p-3 rounded-[10px] border-2 transition-all cursor-pointer",
-                  payMethod === m.key ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
+                  payment.method === m.key ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
                 )}>
-                <Icon size={15} style={{ color: payMethod === m.key ? "#0E6BB8" : "#9CA3AF" }} />
-                <span className={cn("text-[12px] font-medium", payMethod === m.key ? "text-[#0E6BB8]" : "text-[#374151]")}>{m.label}</span>
+                <Icon size={15} style={{ color: payment.method === m.key ? "#0E6BB8" : "#9CA3AF" }} />
+                <span className={cn("text-[12px] font-medium", payment.method === m.key ? "text-[#0E6BB8]" : "text-[#374151]")}>{m.label}</span>
               </button>
             );
           })}
@@ -853,29 +876,31 @@ function StepPayment() {
 
       <Grid2>
         <Field label="Received Amount (৳)" required>
-          <input type="number" className={inputCls} placeholder="Amount received today" />
+          <input type="number" className={inputCls} placeholder="Amount received today" value={payment.received || ""} onChange={e => set({ received: Number(e.target.value) })} />
         </Field>
         <Field label="Transaction / Receipt No.">
-          <input className={inputCls} placeholder="Bank ref. / mobile transaction ID" />
+          <input className={inputCls} placeholder="Bank ref. / mobile transaction ID" value={payment.txnRef} onChange={e => set({ txnRef: e.target.value })} />
         </Field>
       </Grid2>
       <Field label="Payment Notes">
-        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="e.g. Deposited to Dhaka HQ main account — SB ref: 123456" />
+        <textarea className={cn(inputCls, "resize-none")} rows={2} placeholder="e.g. Deposited to Dhaka HQ main account — SB ref: 123456" value={payment.notes} onChange={e => set({ notes: e.target.value })} />
       </Field>
     </div>
   );
 }
 
 // ─── Step 7: Review & Confirm ──────────────────────────────────────────────────
-function StepReview({ service }: { service: ServiceType | null }) {
+function StepReview({ service, form, total }: { service: ServiceType | null; form: WizardForm; total: number }) {
   const cfg = service ? SERVICE_CFG[service] : null;
   const Icon = cfg?.icon;
+  const primary = form.travelers[0];
+  const received = Number(form.payment.received) || 0;
 
   const sections = [
-    { title: "Service", items: [["Type", service || "—"], ["Package", "Economy Plus (14D)"], ["Departure", "15 Dec 2025"]] },
-    { title: "Travelers", items: [["Count", "2"], ["Primary", "Md. Harunur Rashid"], ["Passport", "AB1234567"]] },
-    { title: "Pricing", items: [["Unit Price", "৳ 1,20,000"], ["Quantity", "×2"], ["Total", "৳ 2,43,500"]] },
-    { title: "Payment", items: [["Plan", "3 Installments"], ["Received", "৳ 30,000"], ["Remaining", "৳ 2,13,500"]] },
+    { title: "Service", items: [["Type", service || "—"], ["Package", String(form.detail.packageTier || form.detail.hotelName || form.detail.destinations || "—")], ["Departure", String(form.detail.departureDate || form.detail.checkIn || form.detail.departAt || "—")]] },
+    { title: "Travelers", items: [["Count", String(form.travelers.filter(t => t.name.trim()).length)], ["Primary", primary?.name || "—"], ["Passport", primary?.passportNo || "—"]] },
+    { title: "Pricing", items: [["Unit Price", fmtPrice(Number(form.pricing.unitPrice) || 0)], ["Quantity", `×${form.pricing.qty}`], ["Total", fmtPrice(total)]] },
+    { title: "Payment", items: [["Plan", form.payment.mode === "installment" ? `${form.payment.installments} Installments` : "Full Payment"], ["Received", fmtPrice(received)], ["Remaining", fmtPrice(Math.max(0, total - received))]] },
   ];
 
   return (
@@ -892,7 +917,7 @@ function StepReview({ service }: { service: ServiceType | null }) {
           </div>
           <div>
             <div className="text-[16px] font-black" style={{ color: cfg.color }}>{service} Booking</div>
-            <div className="text-[12px] text-[#6B7280]">Economy Plus (14D) · 2 Travelers · ৳ 2,43,500</div>
+            <div className="text-[12px] text-[#6B7280]">{form.travelers.filter(t => t.name.trim()).length} Traveler(s) · {fmtPrice(total)}</div>
           </div>
           <div className="ml-auto px-3 py-1 bg-[#FEF3C7] border border-[#E8471F]/30 rounded-full text-[11px] font-bold text-[#92400E]">Pending Confirmation</div>
         </div>
@@ -921,14 +946,9 @@ function StepReview({ service }: { service: ServiceType | null }) {
         </div>
       </div>
 
-      <label className="flex items-start gap-2.5 cursor-pointer">
-        <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#0E6BB8]" />
-        <span className="text-[12px] text-[#374151]">I confirm that all provided information is accurate and the booking is ready for processing. I agree to the <a href="#" className="text-[#0E6BB8] font-semibold hover:underline">SMTravel booking terms</a>.</span>
-      </label>
-
       <div className="flex items-center gap-3 p-3 bg-[#ECFDF5] border border-[#6EE7B7] rounded-[10px]">
         <CheckCircle2 size={14} className="text-[#0E7C66] flex-shrink-0" />
-        <span className="text-[11px] text-[#065F46]">Booking ID will be auto-generated on confirmation. Confirmation email + SMS will be sent automatically.</span>
+        <span className="text-[11px] text-[#065F46]">Booking number will be auto-generated (gapless, per branch/year) on confirmation.</span>
       </div>
     </div>
   );
@@ -945,32 +965,87 @@ const STEPS = [
   { label: "Review",    sub: "Confirm" },
 ];
 
+const emptyForm = (): WizardForm => ({
+  detail: {},
+  travelers: [{ id: "1", name: "", dob: "", gender: "Male", nationality: "Bangladeshi", passportNo: "", passportExpiry: "", phone: "", email: "", mahram: "" }],
+  pricing: { unitPrice: 0, qty: 1, discountType: "none", discountValue: 0, approvedBy: "", charges: [] },
+  payment: { mode: "installment", installments: 3, method: "cash", received: 0, txnRef: "", notes: "" },
+});
+
 export function BookingWizard({ onBack, onComplete }: WizardProps) {
   const [step, setStep] = useState(0);
   const [service, setService] = useState<ServiceType | null>(null);
+  const [form, setForm] = useState<WizardForm>(emptyForm);
+  const [draftId, setDraftId] = useState<string | null>(null);
+
+  const create = useCreateBooking();
+  const saveDraft = useSaveDraft();
+  const confirm = useConfirmBooking();
+  const busy = create.isPending || saveDraft.isPending || confirm.isPending;
 
   const canNext = step === 0 ? !!service : true;
   const cfg = service ? SERVICE_CFG[service] : null;
+  const total = computeTotal(form.pricing);
 
-  const next = () => { if (canNext) setStep(s => Math.min(STEPS.length - 1, s + 1)); };
+  const selectService = (s: ServiceType) => {
+    setService(s);
+    setForm(f => ({ ...f, detail: initialDetail(s) }));
+  };
+
+  const next = async () => {
+    if (!canNext || busy) return;
+    try {
+      if (step === 0 && service) {
+        // create the DRAFT once the service is known (gives us an id to autosave against)
+        if (!draftId) {
+          const res = await create.mutateAsync({
+            serviceType: SERVICE_ENUM[service], amount: 0, currency: "BDT",
+            detail: {}, customer: buildWizardData(form).customer,
+            wizardData: buildWizardData(form), currentStep: 1,
+          });
+          setDraftId(res.id);
+        }
+      } else if (draftId) {
+        // per-step server-side autosave (resume on any device — never browser storage)
+        await saveDraft.mutateAsync({ id: draftId, currentStep: step + 1, wizardData: buildWizardData(form) });
+      }
+      setStep(s => Math.min(STEPS.length - 1, s + 1));
+    } catch (e) {
+      toast.error((e as ApiError).message || "Could not save this step.");
+    }
+  };
+
   const prev = () => { if (step === 0) onBack(); else setStep(s => Math.max(0, s - 1)); };
-  const confirm = () => onComplete("BK-2848");
+
+  const doConfirm = async () => {
+    if (!draftId || busy) return;
+    try {
+      await saveDraft.mutateAsync({ id: draftId, currentStep: STEPS.length - 1, wizardData: buildWizardData(form) });
+      const res = await confirm.mutateAsync(draftId);
+      toast.success(`Booking confirmed — ${res.bookingNo}`);
+      onComplete(res.id);
+    } catch (e) {
+      toast.error((e as ApiError).message || "Could not confirm booking. Check required fields.");
+    }
+  };
+
+  const setDetail = (k: string, v: string | number) => setForm(f => ({ ...f, detail: { ...f.detail, [k]: v } }));
 
   const stepContent = [
-    <StepService selected={service} onSelect={setService} />,
-    service && <div>
-      {(service === "Hajj" || service === "Umrah") && <HajjUmrahDetails service={service} />}
-      {service === "Visa" && <VisaDetails />}
-      {service === "Air Ticket" && <AirTicketDetails />}
-      {service === "Hotel" && <HotelDetails />}
-      {service === "Manpower" && <ManpowerDetails />}
-      {service === "Tour" && <TourDetails />}
-    </div>,
-    <StepTravelers service={service} />,
+    <StepService selected={service} onSelect={selectService} />,
+    service ? <div>
+      {(service === "Hajj" || service === "Umrah") && <HajjUmrahDetails service={service} detail={form.detail} set={setDetail} />}
+      {service === "Visa" && <VisaDetails detail={form.detail} set={setDetail} />}
+      {service === "Air Ticket" && <AirTicketDetails detail={form.detail} set={setDetail} />}
+      {service === "Hotel" && <HotelDetails detail={form.detail} set={setDetail} />}
+      {service === "Manpower" && <ManpowerDetails detail={form.detail} set={setDetail} />}
+      {service === "Tour" && <TourDetails detail={form.detail} set={setDetail} />}
+    </div> : <div />,
+    <StepTravelers service={service} travelers={form.travelers} setTravelers={(t) => setForm(f => ({ ...f, travelers: t }))} />,
     <StepDocuments service={service} />,
-    <StepPricing />,
-    <StepPayment />,
-    <StepReview service={service} />,
+    <StepPricing pricing={form.pricing} setPricing={(p) => setForm(f => ({ ...f, pricing: p }))} />,
+    <StepPayment payment={form.payment} setPayment={(p) => setForm(f => ({ ...f, payment: p }))} total={total} />,
+    <StepReview service={service} form={form} total={total} />,
   ];
 
   return (
@@ -988,6 +1063,7 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
                 {React.createElement(cfg.icon, { size: 11, style: { color: cfg.color } })}
               </div>
               <span className="text-[12px] font-semibold" style={{ color: cfg.color }}>{service}</span>
+              {draftId && <span className="text-[9px] text-[#9CA3AF] bg-[#F3F4F6] px-1.5 py-0.5 rounded-full">Draft saved</span>}
             </div>
           )}
         </div>
@@ -1032,22 +1108,22 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
 
         {/* Footer nav */}
         <div className="flex-shrink-0 bg-white border-t border-[#E5E7EB] px-8 py-4 flex items-center justify-between">
-          <button onClick={prev}
-            className="flex items-center gap-2 px-4 py-2.5 border border-[#E5E7EB] text-[#374151] font-medium text-[13px] rounded-[8px] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
+          <button onClick={prev} disabled={busy}
+            className="flex items-center gap-2 px-4 py-2.5 border border-[#E5E7EB] text-[#374151] font-medium text-[13px] rounded-[8px] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer disabled:opacity-50">
             <ChevronLeft size={15} /> {step === 0 ? "Cancel" : "Back"}
           </button>
           <div className="flex items-center gap-2">
             {step === STEPS.length - 1 ? (
-              <button onClick={confirm}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#0E7C66] text-white font-bold text-[13px] rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer shadow-lg shadow-[#0E7C66]/20">
-                <CheckCircle2 size={15} /> Confirm Booking
+              <button onClick={doConfirm} disabled={busy}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0E7C66] text-white font-bold text-[13px] rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer shadow-lg shadow-[#0E7C66]/20 disabled:opacity-60">
+                {confirm.isPending ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Confirm Booking
               </button>
             ) : (
-              <button onClick={next} disabled={!canNext}
+              <button onClick={next} disabled={!canNext || busy}
                 className={cn("flex items-center gap-2 px-6 py-2.5 font-bold text-[13px] rounded-[8px] transition-colors cursor-pointer",
-                  canNext ? "bg-[#0E6BB8] text-white hover:bg-[#0B5794] shadow-lg shadow-[#0E6BB8]/20" : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
+                  canNext && !busy ? "bg-[#0E6BB8] text-white hover:bg-[#0B5794] shadow-lg shadow-[#0E6BB8]/20" : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
                 )}>
-                Continue <ChevronRight size={15} />
+                {busy ? <Loader2 size={15} className="animate-spin" /> : null} Continue <ChevronRight size={15} />
               </button>
             )}
           </div>
