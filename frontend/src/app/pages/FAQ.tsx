@@ -10,12 +10,12 @@ const FAQ_ARRAY = Object.entries(FAQS).map(([category, items]) => ({ category, i
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={cn("border rounded-[12px] overflow-hidden transition-all", open ? "border-[#14356B]/30 shadow-sm" : "border-[#E5E7EB]")}>
+    <div className={cn("border rounded-[12px] overflow-hidden transition-all", open ? "border-[#0E6BB8]/30 shadow-sm" : "border-[#E5E7EB]")}>
       <button onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between p-4 text-left bg-white hover:bg-[#F7F8FA] transition-colors cursor-pointer gap-3">
         <span className="text-[14px] font-semibold text-[#111827]">{q}</span>
         {open
-          ? <ChevronUp size={16} className="text-[#14356B] flex-shrink-0" />
+          ? <ChevronUp size={16} className="text-[#0E6BB8] flex-shrink-0" />
           : <ChevronDown size={16} className="text-[#9CA3AF] flex-shrink-0" />}
       </button>
       {open && (
@@ -42,9 +42,9 @@ export function FAQPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-[#14356B] py-16 text-center text-white">
+      <section className="bg-[#0E6BB8] py-16 text-center text-white">
         <div className="max-w-[700px] mx-auto px-6">
-          <div className="text-[#C9A227] text-[12px] font-bold uppercase tracking-widest mb-2">Help Center</div>
+          <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Help Center</div>
           <h1 className="text-3xl font-black mb-3">Frequently Asked Questions</h1>
           <p className="text-white/60 text-sm mb-7">Find answers to the most common questions about our services.</p>
           <div className="relative max-w-lg mx-auto">
@@ -68,7 +68,7 @@ export function FAQPage() {
               {categories.map((cat, i) => (
                 <button key={cat} onClick={() => { setActive(i); }}
                   className={cn("flex-shrink-0 px-4 py-2.5 rounded-full text-[12px] font-bold transition-all cursor-pointer min-h-[44px]",
-                    active === i ? "bg-[#14356B] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#14356B]/30 hover:text-[#14356B]"
+                    active === i ? "bg-[#0E6BB8] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#0E6BB8]/30 hover:text-[#0E6BB8]"
                   )}>
                   {cat}
                 </button>
@@ -78,7 +78,7 @@ export function FAQPage() {
 
           {search && (
             <div className="mb-4 text-[13px] text-[#6B7280]">
-              Found <strong className="text-[#111827]">{allFiltered.length}</strong> result{allFiltered.length !== 1 ? "s" : ""} for "<strong className="text-[#14356B]">{search}</strong>"
+              Found <strong className="text-[#111827]">{allFiltered.length}</strong> result{allFiltered.length !== 1 ? "s" : ""} for "<strong className="text-[#0E6BB8]">{search}</strong>"
             </div>
           )}
 
@@ -99,10 +99,10 @@ export function FAQPage() {
             <h3 className="text-[17px] font-black text-[#111827] mb-2">Still have questions?</h3>
             <p className="text-[13px] text-[#6B7280] mb-5">Our team is available 6 days a week to help you.</p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <Link to="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#14356B] text-white font-bold rounded-[10px] text-sm hover:bg-[#0F2A55] transition-colors">
+              <Link to="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0E6BB8] text-white font-bold rounded-[10px] text-sm hover:bg-[#0B5794] transition-colors">
                 <MessageCircle size={14} /> Contact Us
               </Link>
-              <a href="tel:+88029553421" className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#14356B] text-[#14356B] font-bold rounded-[10px] text-sm hover:bg-[#14356B]/5 transition-colors">
+              <a href="tel:+88029553421" className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#0E6BB8] text-[#0E6BB8] font-bold rounded-[10px] text-sm hover:bg-[#0E6BB8]/5 transition-colors">
                 <Phone size={14} /> Call Hotline
               </a>
             </div>

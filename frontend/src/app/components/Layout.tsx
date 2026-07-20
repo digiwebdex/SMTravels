@@ -18,8 +18,8 @@ function WhatsAppIcon({ size = 24 }: { size?: number }) {
 }
 
 const SERVICE_NAV = [
-  { label: "Hajj Management",  path: "/hajj",          icon: Star,     desc: "Govt-approved Hajj packages", color: "#C9A227" },
-  { label: "Umrah Packages",   path: "/umrah",         icon: MapPin,   desc: "Year-round Umrah services",   color: "#14356B" },
+  { label: "Hajj Management",  path: "/hajj",          icon: Star,     desc: "Govt-approved Hajj packages", color: "#E8471F" },
+  { label: "Umrah Packages",   path: "/umrah",         icon: MapPin,   desc: "Year-round Umrah services",   color: "#0E6BB8" },
   { label: "Visa Services",    path: "/visa",          icon: Shield,   desc: "50+ countries worldwide",      color: "#0E7C66" },
   { label: "Air Tickets",      path: "/air-ticket",    icon: Plane,    desc: "Best fares guaranteed",        color: "#2563EB" },
   { label: "Manpower",         path: "/manpower",      icon: Briefcase,desc: "International recruitment",   color: "#7C3AED" },
@@ -80,11 +80,11 @@ export function Header() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-9 h-9 md:w-10 md:h-10 bg-[#14356B] rounded-[10px] flex items-center justify-center flex-shrink-0">
-              <span className="text-[#C9A227] font-black text-[12px] md:text-[13px]">SM</span>
+            <div className="w-9 h-9 md:w-10 md:h-10 bg-[#0E6BB8] rounded-[10px] flex items-center justify-center flex-shrink-0">
+              <span className="text-[#C43A15] font-black text-[12px] md:text-[13px]">SM</span>
             </div>
             <div className="leading-none">
-              <div className="text-[14px] md:text-[15px] font-black text-[#14356B] tracking-tight">SMTravel</div>
+              <div className="text-[14px] md:text-[15px] font-black text-[#0E6BB8] tracking-tight">SMTravel</div>
               <div className="text-[9px] md:text-[10px] text-[#6B7280] tracking-wide hidden xs:block">International</div>
             </div>
           </Link>
@@ -96,7 +96,7 @@ export function Header() {
               return (
                 <Link key={item.path} to={item.path}
                   className={cn("px-3 py-2 rounded-[8px] text-[13px] font-medium transition-colors",
-                    isActive(item.path) ? "text-[#14356B] bg-[#14356B]/8 font-semibold" : "text-[#374151] hover:text-[#14356B] hover:bg-[#F3F4F6]"
+                    isActive(item.path) ? "text-[#0E6BB8] bg-[#0E6BB8]/8 font-semibold" : "text-[#374151] hover:text-[#0E6BB8] hover:bg-[#F3F4F6]"
                   )}>
                   {label}
                 </Link>
@@ -107,7 +107,7 @@ export function Header() {
             <div className="relative" onMouseEnter={() => setServicesOpen(true)} onMouseLeave={() => setServicesOpen(false)}>
               <button className={cn(
                 "flex items-center gap-1 px-3 py-2 rounded-[8px] text-[13px] font-medium transition-colors cursor-pointer",
-                isServiceActive ? "text-[#14356B] bg-[#14356B]/8 font-semibold" : "text-[#374151] hover:text-[#14356B] hover:bg-[#F3F4F6]"
+                isServiceActive ? "text-[#0E6BB8] bg-[#0E6BB8]/8 font-semibold" : "text-[#374151] hover:text-[#0E6BB8] hover:bg-[#F3F4F6]"
               )}>
                 Services <ChevronDown size={13} className={cn("transition-transform duration-200", servicesOpen && "rotate-180")} />
               </button>
@@ -123,7 +123,7 @@ export function Header() {
                             <Icon size={17} style={{ color: s.color }} />
                           </div>
                           <div>
-                            <div className="text-[13px] font-semibold text-[#111827] group-hover:text-[#14356B] transition-colors">{s.label}</div>
+                            <div className="text-[13px] font-semibold text-[#111827] group-hover:text-[#0E6BB8] transition-colors">{s.label}</div>
                             <div className="text-[11px] text-[#9CA3AF]">{s.desc}</div>
                           </div>
                         </Link>
@@ -131,12 +131,12 @@ export function Header() {
                     })}
                   </div>
                   <div className="mt-3 pt-3 border-t border-[#F3F4F6]">
-                    <Link to="/packages" className="flex items-center justify-between p-3 bg-[#14356B] rounded-[10px] hover:bg-[#0F2A55] transition-colors">
+                    <Link to="/packages" className="flex items-center justify-between p-3 bg-[#0E6BB8] rounded-[10px] hover:bg-[#0B5794] transition-colors">
                       <div>
                         <div className="text-[13px] font-bold text-white">View All Packages</div>
                         <div className="text-[11px] text-white/60">Hajj, Umrah, Tour & more</div>
                       </div>
-                      <ArrowRight size={16} className="text-[#C9A227]" />
+                      <ArrowRight size={16} className="text-[#C43A15]" />
                     </Link>
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export function Header() {
             {MAIN_NAV.slice(2).map(item => (
               <Link key={item.path} to={item.path}
                 className={cn("px-3 py-2 rounded-[8px] text-[13px] font-medium transition-colors",
-                  isActive(item.path) ? "text-[#14356B] bg-[#14356B]/8 font-semibold" : "text-[#374151] hover:text-[#14356B] hover:bg-[#F3F4F6]"
+                  isActive(item.path) ? "text-[#0E6BB8] bg-[#0E6BB8]/8 font-semibold" : "text-[#374151] hover:text-[#0E6BB8] hover:bg-[#F3F4F6]"
                 )}>
                 {item.label}
               </Link>
@@ -157,25 +157,25 @@ export function Header() {
           <div className="flex items-center gap-1.5 md:gap-2 ml-auto lg:ml-0">
             {/* Language — tablet+ */}
             <button onClick={() => setLang(l => l === "EN" ? "বাং" : "EN")}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-2 border border-[#E5E7EB] rounded-[8px] text-[12px] font-semibold text-[#374151] hover:border-[#14356B] transition-all cursor-pointer min-h-[40px]">
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-2 border border-[#E5E7EB] rounded-[8px] text-[12px] font-semibold text-[#374151] hover:border-[#0E6BB8] transition-all cursor-pointer min-h-[40px]">
               <Globe size={13} className="text-[#9CA3AF]" /> {lang}
             </button>
 
             {/* Login — desktop only */}
             <Link to="/login"
-              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 border-2 border-[#14356B] text-[#14356B] text-[12px] font-bold rounded-[8px] hover:bg-[#14356B]/5 transition-all min-h-[40px]">
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 border-2 border-[#0E6BB8] text-[#0E6BB8] text-[12px] font-bold rounded-[8px] hover:bg-[#0E6BB8]/5 transition-all min-h-[40px]">
               Login
             </Link>
 
             {/* Agent Register — tablet+ */}
             <Link to="/register"
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#C9A227] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#B8911F] transition-all min-h-[40px]">
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#E8471F] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#CC3C17] transition-all min-h-[40px]">
               Agent Register
             </Link>
 
             {/* Book Now — desktop */}
             <Link to="/book"
-              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#0F2A55] transition-all min-h-[40px]">
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#0B5794] transition-all min-h-[40px]">
               Book Now
             </Link>
 
@@ -211,10 +211,10 @@ export function Header() {
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 h-[60px] border-b border-[#F3F4F6] flex-shrink-0">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#14356B] rounded-[8px] flex items-center justify-center">
-              <span className="text-[#C9A227] font-black text-[11px]">SM</span>
+            <div className="w-8 h-8 bg-[#0E6BB8] rounded-[8px] flex items-center justify-center">
+              <span className="text-[#C43A15] font-black text-[11px]">SM</span>
             </div>
-            <span className="text-[14px] font-black text-[#14356B]">SMTravel</span>
+            <span className="text-[14px] font-black text-[#0E6BB8]">SMTravel</span>
           </Link>
           <button onClick={() => setDrawerOpen(false)}
             className="w-10 h-10 flex items-center justify-center rounded-[8px] hover:bg-[#F3F4F6] text-[#374151] cursor-pointer">
@@ -231,7 +231,7 @@ export function Header() {
                 <Link key={item.path} to={item.path}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3.5 rounded-[10px] text-[14px] font-medium transition-colors min-h-[48px]",
-                    isActive(item.path) ? "bg-[#14356B] text-white font-semibold" : "text-[#374151] hover:bg-[#F3F4F6]"
+                    isActive(item.path) ? "bg-[#0E6BB8] text-white font-semibold" : "text-[#374151] hover:bg-[#F3F4F6]"
                   )}>
                   {item.label}
                 </Link>
@@ -268,16 +268,16 @@ export function Header() {
             {/* Auth + Lang */}
             <div className="border-t border-[#F3F4F6] pt-3 flex flex-col gap-2 px-1">
               <Link to="/login"
-                className="flex items-center justify-center min-h-[48px] border-2 border-[#14356B] text-[#14356B] font-bold rounded-[10px] text-[14px] hover:bg-[#14356B]/5 transition-colors">
+                className="flex items-center justify-center min-h-[48px] border-2 border-[#0E6BB8] text-[#0E6BB8] font-bold rounded-[10px] text-[14px] hover:bg-[#0E6BB8]/5 transition-colors">
                 Customer Login
               </Link>
               <Link to="/register"
-                className="flex items-center justify-center min-h-[48px] bg-[#C9A227] text-white font-bold rounded-[10px] text-[14px] hover:bg-[#B8911F] transition-colors">
+                className="flex items-center justify-center min-h-[48px] bg-[#E8471F] text-white font-bold rounded-[10px] text-[14px] hover:bg-[#CC3C17] transition-colors">
                 Agent Register
               </Link>
               <button
                 onClick={() => setLang(l => l === "EN" ? "বাং" : "EN")}
-                className="flex items-center justify-center gap-2 min-h-[44px] border border-[#E5E7EB] text-[#374151] font-semibold rounded-[10px] text-[13px] hover:border-[#14356B]/30 transition-colors cursor-pointer">
+                className="flex items-center justify-center gap-2 min-h-[44px] border border-[#E5E7EB] text-[#374151] font-semibold rounded-[10px] text-[13px] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
                 <Globe size={14} className="text-[#9CA3AF]" />
                 {lang === "EN" ? "Switch to বাংলা" : "Switch to English"}
               </button>
@@ -288,7 +288,7 @@ export function Header() {
         {/* Drawer footer */}
         <div className="border-t border-[#F3F4F6] px-4 py-3 flex-shrink-0 bg-[#F7F8FA]">
           <div className="text-[10px] text-[#9CA3AF] text-center">
-            Hotline: <a href="tel:+88029553421" className="text-[#14356B] font-bold">+880 2 9553421</a>
+            Hotline: <a href="tel:+88029553421" className="text-[#0E6BB8] font-bold">+880 2 9553421</a>
             {" · "}Sun–Thu 9AM–6PM
           </div>
         </div>
@@ -305,15 +305,15 @@ export function Footer() {
   const [email, setEmail] = useState("");
 
   return (
-    <footer className="bg-[#14356B] text-white">
+    <footer className="bg-[#17456B] text-white">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
 
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-2">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-[#C9A227] rounded-[10px] flex items-center justify-center flex-shrink-0">
-                <span className="text-[#14356B] font-black text-[14px]">SM</span>
+              <div className="w-11 h-11 bg-[#E8471F] rounded-[10px] flex items-center justify-center flex-shrink-0">
+                <span className="text-[#0E6BB8] font-black text-[14px]">SM</span>
               </div>
               <div>
                 <div className="text-[17px] font-black leading-tight">SMTravel International</div>
@@ -330,7 +330,7 @@ export function Footer() {
             </div>
             <div className="flex gap-3">
               {[Facebook, Instagram, Youtube, Twitter].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#C9A227] transition-colors">
+                <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#E8471F] transition-colors">
                   <Icon size={15} />
                 </a>
               ))}
@@ -352,7 +352,7 @@ export function Footer() {
                 { label: "Book Online",   path: "/book" },
               ].map(l => (
                 <li key={l.path}>
-                  <Link to={l.path} className="text-[13px] text-white/60 hover:text-[#C9A227] transition-colors flex items-center gap-1.5">
+                  <Link to={l.path} className="text-[13px] text-white/60 hover:text-[#C43A15] transition-colors flex items-center gap-1.5">
                     <ChevronRight size={11} className="text-white/30" /> {l.label}
                   </Link>
                 </li>
@@ -366,7 +366,7 @@ export function Footer() {
             <ul className="flex flex-col gap-2.5">
               {SERVICE_NAV.map(s => (
                 <li key={s.path}>
-                  <Link to={s.path} className="text-[13px] text-white/60 hover:text-[#C9A227] transition-colors flex items-center gap-1.5">
+                  <Link to={s.path} className="text-[13px] text-white/60 hover:text-[#C43A15] transition-colors flex items-center gap-1.5">
                     <ChevronRight size={11} className="text-white/30" /> {s.label}
                   </Link>
                 </li>
@@ -379,17 +379,17 @@ export function Footer() {
             <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">Contact</h4>
             <ul className="flex flex-col gap-3 mb-5">
               <li className="flex items-start gap-2 text-[13px] text-white/60">
-                <MapPin size={13} className="text-[#C9A227] flex-shrink-0 mt-0.5" />
+                <MapPin size={13} className="text-[#C43A15] flex-shrink-0 mt-0.5" />
                 32 Motijheel C/A, Dhaka-1000
               </li>
               <li><a href="tel:+88029553421" className="flex items-center gap-2 text-[13px] text-white/60 hover:text-white transition-colors">
-                <Phone size={13} className="text-[#C9A227]" /> +880 2 9553421
+                <Phone size={13} className="text-[#C43A15]" /> +880 2 9553421
               </a></li>
               <li><a href="mailto:info@smtravel.com.bd" className="flex items-center gap-2 text-[13px] text-white/60 hover:text-white transition-colors">
-                <Mail size={13} className="text-[#C9A227]" /> info@smtravel.com.bd
+                <Mail size={13} className="text-[#C43A15]" /> info@smtravel.com.bd
               </a></li>
               <li className="flex items-center gap-2 text-[13px] text-white/60">
-                <Clock size={13} className="text-[#C9A227]" /> Sun–Thu: 9AM – 6PM
+                <Clock size={13} className="text-[#C43A15]" /> Sun–Thu: 9AM – 6PM
               </li>
             </ul>
             {/* Newsletter */}
@@ -398,9 +398,9 @@ export function Footer() {
               <div className="flex gap-2">
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-[8px] text-[12px] text-white placeholder-white/30 outline-none focus:border-[#C9A227] transition-all" />
+                  className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-[8px] text-[12px] text-white placeholder-white/30 outline-none focus:border-[#E8471F] transition-all" />
                 <button onClick={() => setEmail("")}
-                  className="w-9 h-9 flex-shrink-0 bg-[#C9A227] hover:bg-[#B8911F] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
+                  className="w-9 h-9 flex-shrink-0 bg-[#E8471F] hover:bg-[#CC3C17] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
                   <Mail size={14} />
                 </button>
               </div>
@@ -462,7 +462,7 @@ function MobileBottomBar() {
         </a>
         {/* Book Now */}
         <Link to="/book"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#14356B] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#0F2A55] transition-colors">
+          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#0E6BB8] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#0B5794] transition-colors">
           Book Now
         </Link>
       </div>

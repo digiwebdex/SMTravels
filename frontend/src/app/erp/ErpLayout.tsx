@@ -78,10 +78,10 @@ const NOTIFICATIONS = [
 ];
 
 const typeIcon: Record<string, { icon: React.FC<{ size?: number; className?: string }>, color: string, bg: string }> = {
-  booking: { icon: CalendarDays, color: "#14356B", bg: "#EEF2FF" },
+  booking: { icon: CalendarDays, color: "#0E6BB8", bg: "#EEF2FF" },
   payment: { icon: Wallet,        color: "#0E7C66", bg: "#ECFDF5" },
   alert:   { icon: AlertTriangle, color: "#DC2626", bg: "#FEF2F2" },
-  lead:    { icon: TrendingUp,    color: "#C9A227", bg: "#FFF9E6" },
+  lead:    { icon: TrendingUp,    color: "#E8471F", bg: "#FFF9E6" },
   system:  { icon: Settings,      color: "#6B7280", bg: "#F3F4F6" },
 };
 
@@ -99,7 +99,7 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
   return (
     <aside className={cn(
       "fixed top-0 left-0 h-screen z-30 flex flex-col transition-all duration-200 ease-in-out select-none",
-      "bg-[#14356B]",
+      "bg-[#17456B]",
       collapsed ? "w-16" : "w-60",
     )}>
       {/* Logo */}
@@ -107,8 +107,8 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
         "flex items-center h-16 flex-shrink-0 border-b border-white/10",
         collapsed ? "justify-center px-0" : "px-5 gap-3"
       )}>
-        <div className="w-8 h-8 bg-[#C9A227] rounded-[8px] flex items-center justify-center flex-shrink-0">
-          <span className="text-[#14356B] font-black text-[11px]">SM</span>
+        <div className="w-8 h-8 bg-[#E8471F] rounded-[8px] flex items-center justify-center flex-shrink-0">
+          <span className="text-[#0E6BB8] font-black text-[11px]">SM</span>
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
@@ -145,19 +145,19 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
                     "flex items-center mx-2 rounded-[8px] transition-all duration-150 cursor-pointer group relative",
                     collapsed ? "justify-center p-2.5 mb-0.5" : "gap-3 px-3 py-2 mb-0.5",
                     active
-                      ? "bg-[#C9A227]/15 text-[#C9A227]"
+                      ? "bg-[#E8471F]/15 text-[#C43A15]"
                       : "text-white/65 hover:text-white hover:bg-white/8"
                   )}
                 >
                   {active && (
-                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#C9A227] rounded-r-full" />
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#E8471F] rounded-r-full" />
                   )}
                   <Icon size={16} className="flex-shrink-0" />
                   {!collapsed && (
                     <span className="text-[13px] font-medium whitespace-nowrap">{item.label}</span>
                   )}
                   {collapsed && (
-                    <span className="absolute left-full ml-3 px-2 py-1 bg-[#0F2A55] text-white text-[11px] font-medium rounded-[6px] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-xl z-50">
+                    <span className="absolute left-full ml-3 px-2 py-1 bg-[#0B5794] text-white text-[11px] font-medium rounded-[6px] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-xl z-50">
                       {item.label}
                     </span>
                   )}
@@ -173,7 +173,7 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
         {!collapsed && (
           <div className="px-4 py-3">
             <div className="flex items-center gap-2 px-2.5 py-2 bg-white/6 rounded-[8px]">
-              <Building2 size={12} className="text-[#C9A227] flex-shrink-0" />
+              <Building2 size={12} className="text-[#C43A15] flex-shrink-0" />
               <div className="flex-1 overflow-hidden">
                 <div className="text-white/40 text-[9px] font-bold uppercase tracking-wide">Branch</div>
                 <div className="text-white text-[11px] font-semibold truncate">Dhaka HQ (Main)</div>
@@ -185,8 +185,8 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
           "flex items-center border-t border-white/10",
           collapsed ? "justify-center p-3" : "gap-3 px-4 py-3"
         )}>
-          <div className="w-7 h-7 rounded-full bg-[#C9A227] flex items-center justify-center flex-shrink-0">
-            <span className="text-[#14356B] text-[10px] font-black">AR</span>
+          <div className="w-7 h-7 rounded-full bg-[#E8471F] flex items-center justify-center flex-shrink-0">
+            <span className="text-[#0E6BB8] text-[10px] font-black">AR</span>
           </div>
           {!collapsed && (
             <>
@@ -271,7 +271,7 @@ function Topbar({
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-[12px] text-[#6B7280] mr-2 hidden sm:flex">
-          <span className="font-semibold text-[#14356B]">ERP</span>
+          <span className="font-semibold text-[#0E6BB8]">ERP</span>
           <ChevronRight size={12} />
           <span className="font-medium text-[#374151]">Super Admin Dashboard</span>
         </div>
@@ -282,9 +282,9 @@ function Topbar({
         <div className="relative hidden md:block" ref={branchRef}>
           <button
             onClick={() => { setBranchOpen(v => !v); setDateOpen(false); setNotifOpen(false); setUserOpen(false); }}
-            className="flex items-center gap-2 h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#14356B]/30 transition-colors cursor-pointer"
+            className="flex items-center gap-2 h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer"
           >
-            <Building2 size={13} className="text-[#14356B]" />
+            <Building2 size={13} className="text-[#0E6BB8]" />
             <span className="max-w-[120px] truncate">{selectedBranch}</span>
             <ChevronDown size={12} className="text-[#9CA3AF]" />
           </button>
@@ -294,10 +294,10 @@ function Topbar({
                 <button key={b} onClick={() => { onBranchChange(b); setBranchOpen(false); }}
                   className={cn(
                     "w-full text-left px-3 py-2 text-[12px] hover:bg-[#F7F8FA] transition-colors cursor-pointer flex items-center justify-between",
-                    selectedBranch === b ? "text-[#14356B] font-semibold" : "text-[#374151]"
+                    selectedBranch === b ? "text-[#0E6BB8] font-semibold" : "text-[#374151]"
                   )}>
                   {b}
-                  {selectedBranch === b && <div className="w-1.5 h-1.5 rounded-full bg-[#14356B]" />}
+                  {selectedBranch === b && <div className="w-1.5 h-1.5 rounded-full bg-[#0E6BB8]" />}
                 </button>
               ))}
             </div>
@@ -308,9 +308,9 @@ function Topbar({
         <div className="relative hidden md:block" ref={dateRef}>
           <button
             onClick={() => { setDateOpen(v => !v); setBranchOpen(false); setNotifOpen(false); setUserOpen(false); }}
-            className="flex items-center gap-2 h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#14356B]/30 transition-colors cursor-pointer"
+            className="flex items-center gap-2 h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer"
           >
-            <CalendarDays size={13} className="text-[#14356B]" />
+            <CalendarDays size={13} className="text-[#0E6BB8]" />
             <span>{dateRange}</span>
             <ChevronDown size={12} className="text-[#9CA3AF]" />
           </button>
@@ -320,10 +320,10 @@ function Topbar({
                 <button key={r} onClick={() => { onDateRangeChange(r); setDateOpen(false); }}
                   className={cn(
                     "w-full text-left px-3 py-2 text-[12px] hover:bg-[#F7F8FA] transition-colors cursor-pointer flex items-center justify-between",
-                    dateRange === r ? "text-[#14356B] font-semibold" : "text-[#374151]"
+                    dateRange === r ? "text-[#0E6BB8] font-semibold" : "text-[#374151]"
                   )}>
                   {r}
-                  {dateRange === r && <div className="w-1.5 h-1.5 rounded-full bg-[#14356B]" />}
+                  {dateRange === r && <div className="w-1.5 h-1.5 rounded-full bg-[#0E6BB8]" />}
                 </button>
               ))}
             </div>
@@ -357,7 +357,7 @@ function Topbar({
             <div className="absolute right-0 top-full mt-1.5 bg-white border border-[#E5E7EB] rounded-[12px] shadow-xl w-80 z-50">
               <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
                 <span className="text-[13px] font-bold text-[#111827]">Notifications</span>
-                <button className="text-[11px] text-[#14356B] font-semibold hover:underline cursor-pointer">Mark all read</button>
+                <button className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">Mark all read</button>
               </div>
               <div className="max-h-72 overflow-y-auto no-scrollbar py-1.5">
                 {NOTIFICATIONS.map(n => {
@@ -366,7 +366,7 @@ function Topbar({
                   return (
                     <div key={n.id} className={cn(
                       "flex items-start gap-3 px-4 py-3 hover:bg-[#F7F8FA] transition-colors cursor-pointer",
-                      n.unread && "bg-[#14356B]/3"
+                      n.unread && "bg-[#0E6BB8]/3"
                     )}>
                       <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: cfg.bg }}>
                         <Icon size={14} style={{ color: cfg.color }} />
@@ -375,13 +375,13 @@ function Topbar({
                         <p className={cn("text-[12px] leading-snug", n.unread ? "text-[#111827] font-medium" : "text-[#6B7280]")}>{n.msg}</p>
                         <p className="text-[10px] text-[#9CA3AF] mt-0.5">{n.time} ago</p>
                       </div>
-                      {n.unread && <div className="w-2 h-2 bg-[#14356B] rounded-full flex-shrink-0 mt-1.5" />}
+                      {n.unread && <div className="w-2 h-2 bg-[#0E6BB8] rounded-full flex-shrink-0 mt-1.5" />}
                     </div>
                   );
                 })}
               </div>
               <div className="px-4 py-2.5 border-t border-[#F3F4F6] text-center">
-                <button className="text-[12px] text-[#14356B] font-semibold hover:underline cursor-pointer">View all notifications</button>
+                <button className="text-[12px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">View all notifications</button>
               </div>
             </div>
           )}
@@ -393,7 +393,7 @@ function Topbar({
             onClick={() => { setUserOpen(v => !v); setBranchOpen(false); setDateOpen(false); setNotifOpen(false); }}
             className="flex items-center gap-2.5 h-9 pl-1 pr-2.5 hover:bg-[#F7F8FA] rounded-[8px] transition-colors cursor-pointer"
           >
-            <div className="w-7 h-7 rounded-full bg-[#14356B] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-[#0E6BB8] flex items-center justify-center">
               <span className="text-white text-[10px] font-black">AR</span>
             </div>
             <div className="hidden sm:block text-left">
@@ -418,12 +418,12 @@ function Topbar({
               ].map(item => (
                 item.to ? (
                   <Link key={item.label} to={item.to}
-                    className="flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#374151] hover:bg-[#F7F8FA] hover:text-[#14356B] transition-colors cursor-pointer">
+                    className="flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#374151] hover:bg-[#F7F8FA] hover:text-[#0E6BB8] transition-colors cursor-pointer">
                     <item.icon size={13} className="text-[#9CA3AF]" /> {item.label}
                   </Link>
                 ) : (
                   <button key={item.label}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#374151] hover:bg-[#F7F8FA] hover:text-[#14356B] transition-colors cursor-pointer">
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#374151] hover:bg-[#F7F8FA] hover:text-[#0E6BB8] transition-colors cursor-pointer">
                     <item.icon size={13} className="text-[#9CA3AF]" /> {item.label}
                   </button>
                 )
@@ -499,15 +499,15 @@ export function ErpLayout() {
                 className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl relative"
                 style={{ minHeight: 44, minWidth: 52 }}
               >
-                <item.icon size={21} className={active ? "text-[#14356B]" : "text-slate-400"} />
+                <item.icon size={21} className={active ? "text-[#0E6BB8]" : "text-slate-400"} />
                 <span className={cn(
                   "text-[10px] font-semibold leading-none",
-                  active ? "text-[#14356B]" : "text-slate-400"
+                  active ? "text-[#0E6BB8]" : "text-slate-400"
                 )}>
                   {item.label}
                 </span>
                 {active && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[#14356B] rounded-full" />
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[#0E6BB8] rounded-full" />
                 )}
               </NavLink>
             );

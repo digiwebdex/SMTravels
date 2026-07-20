@@ -3,8 +3,8 @@
  * Single source of truth for all shared UI patterns.
  *
  * Brand tokens:
- *   Navy   #14356B  (primary)
- *   Gold   #C9A227  (accent)
+ *   Navy   #0E6BB8  (primary)
+ *   Gold   #E8471F  (accent)
  *   Emerald #0E7C66 (success / finance)
  *   BG     #F0F2F5  (ERP background)
  */
@@ -19,9 +19,9 @@ import { cn } from "./utils";
 
 // ─── Brand tokens (use these constants, not raw hex) ─────────────────────────
 export const BRAND = {
-  navy:    "#14356B",
-  navyDk:  "#0f2a56",
-  gold:    "#C9A227",
+  navy:    "#0E6BB8",
+  navyDk:  "#0B5794",
+  gold:    "#E8471F",
   emerald: "#0E7C66",
   erpBg:   "#F0F2F5",
 } as const;
@@ -113,11 +113,11 @@ type BtnVariant = "primary" | "secondary" | "ghost" | "danger" | "gold";
 type BtnSize    = "xs" | "sm" | "md" | "lg";
 
 const BTN_VARIANT: Record<BtnVariant, string> = {
-  primary:   "bg-[#14356B] text-white hover:bg-[#0f2a56] border-transparent shadow-sm",
-  secondary: "bg-white text-slate-700 border-slate-200 hover:border-[#14356B]/30 hover:bg-slate-50",
+  primary:   "bg-[#0E6BB8] text-white hover:bg-[#0B5794] border-transparent shadow-sm",
+  secondary: "bg-white text-slate-700 border-slate-200 hover:border-[#0E6BB8]/30 hover:bg-slate-50",
   ghost:     "bg-transparent text-slate-600 border-transparent hover:bg-slate-100",
   danger:    "bg-red-600 text-white hover:bg-red-700 border-transparent shadow-sm",
-  gold:      "bg-[#C9A227] text-white hover:bg-[#b8911f] border-transparent shadow-sm",
+  gold:      "bg-[#E8471F] text-white hover:bg-[#CC3C17] border-transparent shadow-sm",
 };
 
 const BTN_SIZE: Record<BtnSize, string> = {
@@ -261,11 +261,11 @@ type EmptyVariant = "no-data" | "no-results" | "no-connection" | "error" | "comi
 const EMPTY_CFG: Record<EmptyVariant, {
   icon: React.ElementType; title: string; desc: string; color: string; bg: string;
 }> = {
-  "no-data":       { icon: Inbox,       title: "Nothing here yet",         desc: "Add your first item to get started.",                color: "#14356B", bg: "#EEF2FF" },
+  "no-data":       { icon: Inbox,       title: "Nothing here yet",         desc: "Add your first item to get started.",                color: "#0E6BB8", bg: "#EEF2FF" },
   "no-results":    { icon: Search,      title: "No results found",          desc: "Try adjusting your filters or search term.",         color: "#374151", bg: "#F9FAFB" },
   "no-connection": { icon: WifiOff,     title: "Connection lost",           desc: "Check your internet and try again.",                 color: "#DC2626", bg: "#FEF2F2" },
   "error":         { icon: ServerCrash, title: "Something went wrong",      desc: "An unexpected error occurred. Please try again.",    color: "#DC2626", bg: "#FEF2F2" },
-  "coming-soon":   { icon: Package,     title: "Coming soon",               desc: "This section is under construction.",                color: "#C9A227", bg: "#FFF9E6" },
+  "coming-soon":   { icon: Package,     title: "Coming soon",               desc: "This section is under construction.",                color: "#E8471F", bg: "#FFF9E6" },
 };
 
 export function EmptyState({
@@ -293,7 +293,7 @@ export function EmptyState({
       <p className="text-xs text-slate-400 max-w-xs leading-relaxed">{desc ?? cfg.desc}</p>
       {action && (
         <button onClick={action}
-          className="mt-5 flex items-center gap-1.5 px-4 py-2 bg-[#14356B] text-white text-xs font-bold rounded-xl hover:bg-[#0f2a56] transition-colors"
+          className="mt-5 flex items-center gap-1.5 px-4 py-2 bg-[#0E6BB8] text-white text-xs font-bold rounded-xl hover:bg-[#0B5794] transition-colors"
           style={{ minHeight: 40 }}>
           <Plus size={13} /> {actionLabel}
         </button>
@@ -447,7 +447,7 @@ export function FormField({
 const inputBase = [
   "w-full px-3 py-2.5 text-sm border rounded-xl bg-white text-slate-800",
   "placeholder:text-slate-300 outline-none transition-all",
-  "focus:border-[#14356B] focus:ring-2 focus:ring-[#14356B]/10",
+  "focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10",
 ].join(" ");
 
 export function TextInput({

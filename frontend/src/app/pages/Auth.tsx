@@ -31,16 +31,16 @@ interface AuthState {
 // ─── Roles config ─────────────────────────────────────────────────────────────
 const ROLES = [
   { id: "super-admin",  label: "Super Admin",       desc: "Full system access & configuration",     icon: Shield,         color: "#DC2626", bg: "#FEF2F2" },
-  { id: "admin",        label: "Admin",              desc: "Branch management & staff oversight",    icon: LayoutDashboard,color: "#14356B", bg: "#EEF2FF" },
+  { id: "admin",        label: "Admin",              desc: "Branch management & staff oversight",    icon: LayoutDashboard,color: "#0E6BB8", bg: "#EEF2FF" },
   { id: "accountant",   label: "Accountant",         desc: "Finance, ledgers & payroll",             icon: Calculator,     color: "#0E7C66", bg: "#ECFDF5" },
-  { id: "hajj-exec",    label: "Hajj Executive",     desc: "Pilgrim management & coordination",      icon: Star,           color: "#C9A227", bg: "#FFF9E6" },
+  { id: "hajj-exec",    label: "Hajj Executive",     desc: "Pilgrim management & coordination",      icon: Star,           color: "#E8471F", bg: "#FFF9E6" },
   { id: "umrah-exec",   label: "Umrah Executive",    desc: "Umrah packages & pilgrim tracking",      icon: MapPin,         color: "#7C3AED", bg: "#F5F3FF" },
   { id: "visa-exec",    label: "Visa Executive",     desc: "Visa applications & processing",         icon: Globe,          color: "#0891B2", bg: "#F0F9FF" },
   { id: "sales-exec",   label: "Sales Executive",    desc: "Leads, CRM & package sales",             icon: TrendingUp,     color: "#EA580C", bg: "#FFF7ED" },
   { id: "air-exec",     label: "Air Ticket Exec",    desc: "Flight bookings & ticketing",            icon: Plane,          color: "#2563EB", bg: "#EFF6FF" },
   { id: "agent",        label: "Agent Portal",       desc: "B2B partner bookings & commission",      icon: Briefcase,      color: "#374151", bg: "#F9FAFB" },
   { id: "supplier",     label: "Supplier Portal",    desc: "Hotel, transport & vendor services",     icon: Hotel,          color: "#6B7280", bg: "#F9FAFB" },
-  { id: "customer",     label: "Customer Portal",    desc: "My bookings, profile & documents",       icon: User,           color: "#14356B", bg: "#EEF2FF" },
+  { id: "customer",     label: "Customer Portal",    desc: "My bookings, profile & documents",       icon: User,           color: "#0E6BB8", bg: "#EEF2FF" },
 ];
 
 // Demo: user has these roles
@@ -59,7 +59,7 @@ function FieldGroup({ label, required, children }: { label: string; required?: b
   );
 }
 
-const inputCls = "w-full px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] text-[#111827] bg-white outline-none transition-all min-h-[48px] focus:border-[#14356B] focus:ring-2 focus:ring-[#14356B]/10 placeholder:text-[#D1D5DB]";
+const inputCls = "w-full px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] text-[#111827] bg-white outline-none transition-all min-h-[48px] focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]";
 const inputErrCls = "border-[#DC2626] focus:border-[#DC2626] focus:ring-[#DC2626]/10";
 
 function PasswordField({ value, onChange, placeholder = "Enter password", error }: {
@@ -155,8 +155,8 @@ function OTPInput({ value, onChange }: { value: string; onChange: (v: string) =>
             className={cn(
               "w-10 h-14 sm:w-12 sm:h-14 text-center text-xl font-black rounded-[12px] border-2 outline-none transition-all cursor-text",
               filled
-                ? "border-[#14356B] bg-[#14356B]/5 text-[#14356B]"
-                : "border-[#E5E7EB] bg-white text-[#111827] focus:border-[#14356B] focus:ring-2 focus:ring-[#14356B]/10"
+                ? "border-[#0E6BB8] bg-[#0E6BB8]/5 text-[#0E6BB8]"
+                : "border-[#E5E7EB] bg-white text-[#111827] focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10"
             )}
           />
         );
@@ -179,7 +179,7 @@ function ResendTimer({ onResend }: { onResend: () => void }) {
   );
   return (
     <button onClick={() => { onResend(); setSecs(59); }}
-      className="text-[12px] font-bold text-[#14356B] hover:underline flex items-center gap-1 cursor-pointer">
+      className="text-[12px] font-bold text-[#0E6BB8] hover:underline flex items-center gap-1 cursor-pointer">
       <RefreshCw size={12} /> Resend code
     </button>
   );
@@ -197,8 +197,8 @@ function PrimaryButton({ children, loading, onClick, type = "button", variant = 
         "w-full min-h-[52px] flex items-center justify-center gap-2 font-black rounded-[12px] text-[14px] transition-all cursor-pointer",
         "disabled:opacity-60 disabled:cursor-not-allowed",
         variant === "gold"
-          ? "bg-[#C9A227] hover:bg-[#B8911F] text-[#14356B]"
-          : "bg-[#14356B] hover:bg-[#0F2A55] text-white shadow-lg shadow-[#14356B]/20"
+          ? "bg-[#E8471F] hover:bg-[#CC3C17] text-[#0E6BB8]"
+          : "bg-[#0E6BB8] hover:bg-[#0B5794] text-white shadow-lg shadow-[#0E6BB8]/20"
       )}
     >
       {loading ? <Loader2 size={18} className="animate-spin" /> : children}
@@ -254,7 +254,7 @@ function BrandPanel({ view }: { view: AuthView }) {
         className="absolute inset-0 w-full h-full object-cover"
       />
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#14356B]/95 via-[#14356B]/80 to-[#0a1e3d]/95" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0E6BB8]/95 via-[#0E6BB8]/80 to-[#0a1e3d]/95" />
       {/* Geometric texture */}
       <div className="absolute inset-0 opacity-[0.04]"
         style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)", backgroundSize: "20px 20px" }} />
@@ -262,8 +262,8 @@ function BrandPanel({ view }: { view: AuthView }) {
       <div className="relative z-10 flex flex-col h-full p-10 xl:p-12">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 mb-auto">
-          <div className="w-11 h-11 bg-[#C9A227] rounded-[12px] flex items-center justify-center flex-shrink-0">
-            <span className="text-[#14356B] font-black text-[14px]">SM</span>
+          <div className="w-11 h-11 bg-[#E8471F] rounded-[12px] flex items-center justify-center flex-shrink-0">
+            <span className="text-[#0E6BB8] font-black text-[14px]">SM</span>
           </div>
           <div>
             <div className="text-white font-black text-[17px] leading-tight">SMTravel International</div>
@@ -280,7 +280,7 @@ function BrandPanel({ view }: { view: AuthView }) {
           <div className="flex flex-wrap gap-2 mt-8">
             {trustItems.map(t => (
               <span key={t} className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1.5 text-[11px] text-white/70 font-medium">
-                <CheckCircle size={10} className="text-[#C9A227]" /> {t}
+                <CheckCircle size={10} className="text-[#C43A15]" /> {t}
               </span>
             ))}
           </div>
@@ -291,13 +291,13 @@ function BrandPanel({ view }: { view: AuthView }) {
               "SMTravel made our Hajj experience flawless — from registration to return. Their system is professional and their team truly cares."
             </p>
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-[#C9A227]/30 flex items-center justify-center text-[#C9A227] font-black text-[11px]">M</div>
+              <div className="w-7 h-7 rounded-full bg-[#E8471F]/30 flex items-center justify-center text-[#C43A15] font-black text-[11px]">M</div>
               <div>
                 <div className="text-white/80 text-[11px] font-bold">Md. Harunur Rashid</div>
                 <div className="text-white/40 text-[10px]">Hajj Pilgrim 2024 · Dhaka</div>
               </div>
               <div className="ml-auto flex gap-0.5">
-                {[1,2,3,4,5].map(i => <Star key={i} size={10} fill="#C9A227" className="text-[#C9A227]" />)}
+                {[1,2,3,4,5].map(i => <Star key={i} size={10} fill="#E8471F" className="text-[#C43A15]" />)}
               </div>
             </div>
           </div>
@@ -320,10 +320,10 @@ function BrandPanel({ view }: { view: AuthView }) {
 // ─── Mobile brand strip ───────────────────────────────────────────────────────
 function MobileBrandStrip({ view }: { view: AuthView }) {
   return (
-    <div className="md:hidden bg-[#14356B] px-5 py-4 flex items-center justify-between flex-shrink-0">
+    <div className="md:hidden bg-[#0E6BB8] px-5 py-4 flex items-center justify-between flex-shrink-0">
       <Link to="/" className="flex items-center gap-2.5">
-        <div className="w-9 h-9 bg-[#C9A227] rounded-[10px] flex items-center justify-center">
-          <span className="text-[#14356B] font-black text-[12px]">SM</span>
+        <div className="w-9 h-9 bg-[#E8471F] rounded-[10px] flex items-center justify-center">
+          <span className="text-[#0E6BB8] font-black text-[12px]">SM</span>
         </div>
         <div>
           <div className="text-white font-black text-[14px] leading-tight">SMTravel</div>
@@ -351,7 +351,7 @@ function BackLink({ onClick, label = "Back" }: { onClick: () => void; label?: st
 }
 
 // ─── Form screen wrappers ──────────────────────────────────────────────────────
-function FormHeader({ icon: Icon, iconColor = "#14356B", iconBg = "#EEF2FF", title, sub }: {
+function FormHeader({ icon: Icon, iconColor = "#0E6BB8", iconBg = "#EEF2FF", title, sub }: {
   icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>;
   iconColor?: string; iconBg?: string; title: string; sub?: string;
 }) {
@@ -473,7 +473,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   {(["email", "phone"] as const).map(m => (
                     <button key={m} onClick={() => setLoginMode(m)}
                       className={cn("flex-1 py-2 rounded-[8px] text-[12px] font-bold transition-all capitalize cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]",
-                        loginMode === m ? "bg-white text-[#14356B] shadow" : "text-[#9CA3AF] hover:text-[#374151]"
+                        loginMode === m ? "bg-white text-[#0E6BB8] shadow" : "text-[#9CA3AF] hover:text-[#374151]"
                       )}>
                       {m === "email" ? <Mail size={13} /> : <Phone size={13} />}
                       {m === "email" ? "Email" : "Phone"}
@@ -502,11 +502,11 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 <div className="flex items-center justify-between mb-5">
                   <label className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                      className="w-4 h-4 accent-[#14356B]" />
+                      className="w-4 h-4 accent-[#0E6BB8]" />
                     <span className="text-[12px] text-[#6B7280]">Remember me for 30 days</span>
                   </label>
                   <button onClick={() => go("forgot")}
-                    className="text-[12px] font-bold text-[#14356B] hover:underline cursor-pointer min-h-[44px] flex items-center">
+                    className="text-[12px] font-bold text-[#0E6BB8] hover:underline cursor-pointer min-h-[44px] flex items-center">
                     Forgot password?
                   </button>
                 </div>
@@ -523,11 +523,11 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => go("register-customer")}
-                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#14356B]/20 text-[#14356B] font-bold rounded-[10px] text-[12px] hover:border-[#14356B]/50 hover:bg-[#14356B]/3 transition-all cursor-pointer">
+                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#0E6BB8]/20 text-[#0E6BB8] font-bold rounded-[10px] text-[12px] hover:border-[#0E6BB8]/50 hover:bg-[#0E6BB8]/3 transition-all cursor-pointer">
                     <User size={13} /> Customer
                   </button>
                   <button onClick={() => go("register-agent")}
-                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#C9A227]/40 text-[#C9A227] font-bold rounded-[10px] text-[12px] hover:border-[#C9A227] hover:bg-[#C9A227]/5 transition-all cursor-pointer">
+                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#E8471F]/40 text-[#C43A15] font-bold rounded-[10px] text-[12px] hover:border-[#E8471F] hover:bg-[#E8471F]/5 transition-all cursor-pointer">
                     <Briefcase size={13} /> Agent
                   </button>
                 </div>
@@ -546,20 +546,20 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 <FormHeader icon={UserPlus} title="Create your account" sub="Choose the account type that fits your role" />
                 <div className="flex flex-col gap-4">
                   {[
-                    { id: "register-customer", icon: User, label: "Customer Account", desc: "Book Hajj, Umrah & travel packages. Track your bookings, upload documents, and communicate with our team.", color: "#14356B", bg: "#EEF2FF", cta: "Register as Customer" },
-                    { id: "register-agent", icon: Briefcase, label: "Travel Agent Account", desc: "B2B partner portal. Access wholesale rates, manage client bookings, and earn commissions.", color: "#C9A227", bg: "#FFF9E6", cta: "Register as Agent" },
+                    { id: "register-customer", icon: User, label: "Customer Account", desc: "Book Hajj, Umrah & travel packages. Track your bookings, upload documents, and communicate with our team.", color: "#0E6BB8", bg: "#EEF2FF", cta: "Register as Customer" },
+                    { id: "register-agent", icon: Briefcase, label: "Travel Agent Account", desc: "B2B partner portal. Access wholesale rates, manage client bookings, and earn commissions.", color: "#E8471F", bg: "#FFF9E6", cta: "Register as Agent" },
                   ].map(t => (
                     <button key={t.id} onClick={() => go(t.id as AuthView)}
-                      className="w-full text-left p-5 bg-white border-2 border-[#E5E7EB] hover:border-[#14356B]/30 hover:shadow-md rounded-[16px] transition-all group cursor-pointer">
+                      className="w-full text-left p-5 bg-white border-2 border-[#E5E7EB] hover:border-[#0E6BB8]/30 hover:shadow-md rounded-[16px] transition-all group cursor-pointer">
                       <div className="flex items-start gap-4">
                         <div className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.bg }}>
                           <t.icon size={20} style={{ color: t.color }} />
                         </div>
                         <div className="flex-1">
-                          <div className="text-[14px] font-black text-[#111827] mb-1 group-hover:text-[#14356B] transition-colors">{t.label}</div>
+                          <div className="text-[14px] font-black text-[#111827] mb-1 group-hover:text-[#0E6BB8] transition-colors">{t.label}</div>
                           <div className="text-[12px] text-[#6B7280] leading-relaxed">{t.desc}</div>
                         </div>
-                        <ChevronRight size={16} className="text-[#D1D5DB] group-hover:text-[#14356B] mt-1 transition-colors" />
+                        <ChevronRight size={16} className="text-[#D1D5DB] group-hover:text-[#0E6BB8] mt-1 transition-colors" />
                       </div>
                       <div className="mt-4 pt-3 border-t border-[#F3F4F6] text-[12px] font-bold flex items-center gap-1.5" style={{ color: t.color }}>
                         {t.cta} <ArrowRight size={12} />
@@ -569,7 +569,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 </div>
                 <p className="text-center text-[12px] text-[#9CA3AF] mt-6">
                   Already have an account?{" "}
-                  <button onClick={() => go("login")} className="text-[#14356B] font-bold hover:underline cursor-pointer">Sign in</button>
+                  <button onClick={() => go("login")} className="text-[#0E6BB8] font-bold hover:underline cursor-pointer">Sign in</button>
                 </p>
               </div>
             )}
@@ -609,13 +609,13 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <PasswordField value={custForm.confirm} onChange={v => setCustForm(f => ({ ...f, confirm: v }))} placeholder="Repeat password" />
                   </FieldGroup>
                   <label className="flex items-start gap-2.5 cursor-pointer">
-                    <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#14356B]" />
-                    <span className="text-[12px] text-[#6B7280]">I agree to the <a href="#" className="text-[#14356B] font-semibold hover:underline">Terms of Service</a> and <a href="#" className="text-[#14356B] font-semibold hover:underline">Privacy Policy</a></span>
+                    <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#0E6BB8]" />
+                    <span className="text-[12px] text-[#6B7280]">I agree to the <a href="#" className="text-[#0E6BB8] font-semibold hover:underline">Terms of Service</a> and <a href="#" className="text-[#0E6BB8] font-semibold hover:underline">Privacy Policy</a></span>
                   </label>
                   <PrimaryButton type="submit" loading={state.loading}>Create Account <ArrowRight size={14} /></PrimaryButton>
                 </form>
                 <p className="text-center text-[12px] text-[#9CA3AF] mt-4">
-                  Already have an account? <button onClick={() => go("login")} className="text-[#14356B] font-bold hover:underline cursor-pointer">Sign in</button>
+                  Already have an account? <button onClick={() => go("login")} className="text-[#0E6BB8] font-bold hover:underline cursor-pointer">Sign in</button>
                 </p>
               </div>
             )}
@@ -624,7 +624,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {v === "register-agent" && (
               <div>
                 <BackLink onClick={() => go("register-select")} />
-                <FormHeader icon={Briefcase} iconColor="#C9A227" iconBg="#FFF9E6" title="Agent Registration" sub="Join our B2B partner network — approval within 24 hours" />
+                <FormHeader icon={Briefcase} iconColor="#E8471F" iconBg="#FFF9E6" title="Agent Registration" sub="Join our B2B partner network — approval within 24 hours" />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
                 <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); simulateLoad(() => go("success", { successMsg: "Application submitted!", successSub: "We'll review your agent application within 24 business hours and contact you by email.", successRedirect: "/login" })); }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -672,8 +672,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <PasswordField value={agentForm.confirm} onChange={v => setAgentForm(f => ({ ...f, confirm: v }))} placeholder="Repeat password" />
                   </FieldGroup>
                   <label className="flex items-start gap-2.5 cursor-pointer">
-                    <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#14356B]" />
-                    <span className="text-[12px] text-[#6B7280]">I agree to the <a href="#" className="text-[#14356B] font-semibold hover:underline">Agent Agreement</a> and <a href="#" className="text-[#14356B] font-semibold hover:underline">Terms of Service</a></span>
+                    <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#0E6BB8]" />
+                    <span className="text-[12px] text-[#6B7280]">I agree to the <a href="#" className="text-[#0E6BB8] font-semibold hover:underline">Agent Agreement</a> and <a href="#" className="text-[#0E6BB8] font-semibold hover:underline">Terms of Service</a></span>
                   </label>
                   <PrimaryButton type="submit" loading={state.loading} variant="gold">Submit Application <ArrowRight size={14} /></PrimaryButton>
                 </form>
@@ -717,8 +717,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 <PrimaryButton loading={state.loading} onClick={handleOTPVerify}>
                   Verify Code <ArrowRight size={14} />
                 </PrimaryButton>
-                <div className="mt-4 bg-[#FFF9E6] border border-[#C9A227]/30 rounded-[10px] p-3 text-[11px] text-[#78590F] flex items-center gap-2">
-                  <AlertTriangle size={13} className="text-[#C9A227] flex-shrink-0" />
+                <div className="mt-4 bg-[#FFF9E6] border border-[#E8471F]/30 rounded-[10px] p-3 text-[11px] text-[#78590F] flex items-center gap-2">
+                  <AlertTriangle size={13} className="text-[#C43A15] flex-shrink-0" />
                   Code expires in 10 minutes. Do not share this code with anyone.
                 </div>
               </div>
@@ -745,7 +745,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 </PrimaryButton>
                 <div className="mt-3 flex items-center gap-2 p-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px]">
                   <HelpCircle size={13} className="text-[#9CA3AF] flex-shrink-0" />
-                  <span className="text-[11px] text-[#9CA3AF]">Lost access to your device? <a href="#" className="text-[#14356B] font-bold hover:underline">Contact support</a></span>
+                  <span className="text-[11px] text-[#9CA3AF]">Lost access to your device? <a href="#" className="text-[#0E6BB8] font-bold hover:underline">Contact support</a></span>
                 </div>
               </div>
             )}
@@ -798,19 +798,19 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                         className={cn(
                           "w-full flex items-center gap-4 p-4 rounded-[14px] border-2 text-left transition-all cursor-pointer",
                           isSelected
-                            ? "border-[#14356B] bg-[#14356B]/3 shadow-md"
-                            : "border-[#E5E7EB] bg-white hover:border-[#14356B]/30 hover:shadow-sm"
+                            ? "border-[#0E6BB8] bg-[#0E6BB8]/3 shadow-md"
+                            : "border-[#E5E7EB] bg-white hover:border-[#0E6BB8]/30 hover:shadow-sm"
                         )}>
                         <div className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 transition-all"
                           style={{ backgroundColor: isSelected ? `${role.color}20` : role.bg }}>
                           <Icon size={20} style={{ color: role.color }} />
                         </div>
                         <div className="flex-1">
-                          <div className={cn("text-[14px] font-bold transition-colors", isSelected ? "text-[#14356B]" : "text-[#111827]")}>{role.label}</div>
+                          <div className={cn("text-[14px] font-bold transition-colors", isSelected ? "text-[#0E6BB8]" : "text-[#111827]")}>{role.label}</div>
                           <div className="text-[11px] text-[#9CA3AF] mt-0.5">{role.desc}</div>
                         </div>
                         <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                          isSelected ? "border-[#14356B] bg-[#14356B]" : "border-[#D1D5DB]")}>
+                          isSelected ? "border-[#0E6BB8] bg-[#0E6BB8]" : "border-[#D1D5DB]")}>
                           {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                         </div>
                       </button>
@@ -818,7 +818,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   })}
                 </div>
                 <label className="flex items-center gap-2.5 mb-5 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 accent-[#14356B]" />
+                  <input type="checkbox" className="w-4 h-4 accent-[#0E6BB8]" />
                   <span className="text-[12px] text-[#6B7280]">Remember my selection and skip this screen next time</span>
                 </label>
                 <PrimaryButton
@@ -895,7 +895,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     Reset Password to Unlock
                   </PrimaryButton>
                   <a href="mailto:support@smtravel.com.bd"
-                    className="min-h-[48px] flex items-center justify-center gap-2 border-2 border-[#E5E7EB] text-[#374151] font-bold rounded-[12px] text-[13px] hover:border-[#14356B]/30 transition-colors">
+                    className="min-h-[48px] flex items-center justify-center gap-2 border-2 border-[#E5E7EB] text-[#374151] font-bold rounded-[12px] text-[13px] hover:border-[#0E6BB8]/30 transition-colors">
                     <Mail size={14} /> Contact Support
                   </a>
                   <button onClick={() => go("login")}
@@ -912,7 +912,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
         {/* Mobile bottom link */}
         <div className="md:hidden flex-shrink-0 pb-24 px-5 text-center text-[11px] text-[#9CA3AF]">
           {v !== "login" && (
-            <button onClick={() => go("login")} className="text-[#14356B] font-bold hover:underline">
+            <button onClick={() => go("login")} className="text-[#0E6BB8] font-bold hover:underline">
               Back to Sign In
             </button>
           )}

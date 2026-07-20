@@ -2,20 +2,20 @@
 
 :root {
   --font-size: 15px;
-  /* SMTravel Brand Colors */
+  /* SM Travels International — Brand Colors (logo: orange plane + blue swoosh) */
   --background: #F7F8FA;
   --foreground: #111827;
   --card: #FFFFFF;
   --card-foreground: #111827;
   --popover: #FFFFFF;
   --popover-foreground: #111827;
-  --primary: #14356B;
+  --primary: #0E6BB8;
   --primary-foreground: #FFFFFF;
   --secondary: #F3F4F6;
   --secondary-foreground: #111827;
   --muted: #F3F4F6;
   --muted-foreground: #6B7280;
-  --accent: #C9A227;
+  --accent: #E8471F;
   --accent-foreground: #FFFFFF;
   --destructive: #DC2626;
   --destructive-foreground: #FFFFFF;
@@ -25,21 +25,31 @@
   --switch-background: #D1D5DB;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --ring: #14356B;
-  --chart-1: #14356B;
-  --chart-2: #C9A227;
-  --chart-3: #0E7C66;
-  --chart-4: #2563EB;
-  --chart-5: #F59E0B;
+  --ring: #0E6BB8;
+  --chart-1: #0E6BB8;
+  --chart-2: #E8471F;
+  --chart-3: #17456B;
+  --chart-4: #7EB8E3;
+  --chart-5: #16A34A;
   --radius: 0.5rem;
-  --sidebar: #14356B;
+  --sidebar: #17456B;
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #C9A227;
-  --sidebar-primary-foreground: #14356B;
+  --sidebar-primary: #E8471F;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(255,255,255,0.12);
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: rgba(255,255,255,0.1);
-  --sidebar-ring: #C9A227;
+  --sidebar-ring: #E8471F;
+
+  /* Brand tokens — SM Travels International */
+  --brand-blue: #0E6BB8;
+  --brand-blue-hover: #0B5794;
+  --brand-navy: #17456B;
+  --brand-orange: #E8471F;
+  --brand-orange-hover: #CC3C17;
+  --brand-orange-text: #C43A15;
+  --tint-blue: #E8F2FA;
+  --tint-orange: #FDEDE8;
 }
 
 .dark {

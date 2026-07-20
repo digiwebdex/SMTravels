@@ -24,9 +24,9 @@ export function GalleryPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-[#14356B] py-14 text-white">
+      <section className="bg-[#0E6BB8] py-14 text-white">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#C9A227] text-[12px] font-bold uppercase tracking-widest mb-2">Visual Journey</div>
+          <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Visual Journey</div>
           <h1 className="text-3xl font-black mb-2">Photo Gallery</h1>
           <p className="text-white/60 text-sm">Moments from our Hajj, Umrah & tour experiences around the world</p>
         </div>
@@ -39,7 +39,7 @@ export function GalleryPage() {
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setActive(c)}
                 className={cn("px-4 py-2 rounded-full text-[12px] font-bold transition-all cursor-pointer",
-                  active === c ? "bg-[#14356B] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#14356B]/30"
+                  active === c ? "bg-[#0E6BB8] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#0E6BB8]/30"
                 )}>
                 {c}
               </button>
@@ -53,10 +53,10 @@ export function GalleryPage() {
                 onClick={() => setLightbox(i)}>
                 <img src={img(g.image, 600, 500)} alt={g.title}
                   className="w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-[#14356B]/0 group-hover:bg-[#14356B]/40 transition-all duration-300 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#0E6BB8]/0 group-hover:bg-[#0E6BB8]/40 transition-all duration-300 flex items-center justify-center">
                   <ZoomIn size={28} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-[#14356B]/80 to-transparent">
+                <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-[#0E6BB8]/80 to-transparent">
                   <div className="text-white text-[11px] font-semibold">{g.title}</div>
                   <div className="text-white/60 text-[10px]">{g.category}</div>
                 </div>

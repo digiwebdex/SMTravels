@@ -98,16 +98,16 @@ const MESSAGES_MAP: Record<string, Message[]> = {
 
 // ─── Channel tab config ───────────────────────────────────────────────────────
 const CHANNELS: { id: Channel; label: string; icon: React.ElementType; color: string }[] = [
-  { id:"internal",     label:"Internal",     icon:MessageSquare, color:"#14356B" },
+  { id:"internal",     label:"Internal",     icon:MessageSquare, color:"#0E6BB8" },
   { id:"group",        label:"Groups",       icon:Users,         color:"#0E7C66" },
-  { id:"announcements",label:"Announcements",icon:Megaphone,     color:"#C9A227" },
+  { id:"announcements",label:"Announcements",icon:Megaphone,     color:"#E8471F" },
   { id:"email",        label:"Email",        icon:Mail,          color:"#2563EB" },
   { id:"sms",          label:"SMS",          icon:Phone,         color:"#7C3AED" },
   { id:"whatsapp",     label:"WhatsApp",     icon:Globe,         color:"#25D366" },
 ];
 
 // ─── Avatar circle ────────────────────────────────────────────────────────────
-function Avatar({ initials, color = "#14356B", size = "md", online }: {
+function Avatar({ initials, color = "#0E6BB8", size = "md", online }: {
   initials: string; color?: string; size?: "sm" | "md" | "lg"; online?: boolean;
 }) {
   const sz = size === "sm" ? "w-7 h-7 text-xs" : size === "lg" ? "w-12 h-12 text-base" : "w-9 h-9 text-sm";
@@ -129,14 +129,14 @@ function MsgBubble({ msg, channel }: { msg: Message; channel: Channel }) {
   const isEmail = channel === "email";
   return (
     <div className={cn("flex gap-2.5 mb-4", msg.mine ? "flex-row-reverse" : "flex-row")}>
-      {!msg.mine && <Avatar initials={msg.avatar} size="sm" color={msg.avatar === "SY" ? "#64748B" : "#14356B"} />}
+      {!msg.mine && <Avatar initials={msg.avatar} size="sm" color={msg.avatar === "SY" ? "#64748B" : "#0E6BB8"} />}
       <div className={cn("max-w-[70%]", isEmail && "max-w-[85%]")}>
         {!msg.mine && (
           <p className="text-xs font-medium text-slate-500 mb-1 ml-1">{msg.sender}</p>
         )}
         <div className={cn("rounded-2xl px-4 py-2.5 text-sm",
           msg.mine
-            ? "bg-[#14356B] text-white rounded-tr-sm"
+            ? "bg-[#0E6BB8] text-white rounded-tr-sm"
             : "bg-white border border-slate-200 text-slate-700 rounded-tl-sm",
           isEmail && "rounded-xl"
         )}>
@@ -179,7 +179,7 @@ function ComposeBar({ channel, onSend }: { channel: Channel; onSend: (msg: strin
         </div>
         <textarea value={text} onChange={e => setText(e.target.value)}
           placeholder="Compose email…" rows={4}
-          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20 resize-none" />
+          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20 resize-none" />
         <div className="flex items-center justify-between">
           <div className="flex gap-1">
             {[Paperclip, Image, Link2].map((Icon, i) => (
@@ -189,7 +189,7 @@ function ComposeBar({ channel, onSend }: { channel: Channel; onSend: (msg: strin
           <div className="flex gap-2">
             <button className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save Draft</button>
             <button onClick={() => { onSend(text); setText(""); }}
-              className="px-4 py-1.5 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56] flex items-center gap-2">
+              className="px-4 py-1.5 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794] flex items-center gap-2">
               <Send size={13} /> Send
             </button>
           </div>
@@ -221,7 +221,7 @@ function ComposeBar({ channel, onSend }: { channel: Channel; onSend: (msg: strin
           }
           rows={1}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(text); setText(""); } }}
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20 resize-none" />
+          className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20 resize-none" />
         {!isSms && (
           <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 flex-shrink-0">
             <Smile size={16} />
@@ -230,7 +230,7 @@ function ComposeBar({ channel, onSend }: { channel: Channel; onSend: (msg: strin
         <button onClick={() => { onSend(text); setText(""); }} disabled={!text.trim()}
           className={cn("p-2 rounded-xl flex-shrink-0 transition-all",
             text.trim()
-              ? channel === "whatsapp" ? "bg-[#25D366] text-white" : "bg-[#14356B] text-white"
+              ? channel === "whatsapp" ? "bg-[#25D366] text-white" : "bg-[#0E6BB8] text-white"
               : "bg-slate-100 text-slate-300 cursor-not-allowed")}>
           <Send size={16} />
         </button>
@@ -244,7 +244,7 @@ function AnnouncementCompose({ onPost }: { onPost: () => void }) {
   return (
     <div className="border-t border-slate-100 bg-white p-4 space-y-2">
       <div className="flex items-center gap-2 mb-1">
-        <Megaphone size={15} className="text-[#C9A227]" />
+        <Megaphone size={15} className="text-[#C43A15]" />
         <span className="text-sm font-semibold text-slate-700">New Announcement</span>
       </div>
       <input placeholder="Title…" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
@@ -253,13 +253,13 @@ function AnnouncementCompose({ onPost }: { onPost: () => void }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 text-sm text-slate-500">
           <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" className="accent-[#14356B]" defaultChecked /> All Staff
+            <input type="checkbox" className="accent-[#0E6BB8]" defaultChecked /> All Staff
           </label>
           <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" className="accent-[#14356B]" /> Send Email
+            <input type="checkbox" className="accent-[#0E6BB8]" /> Send Email
           </label>
         </div>
-        <button onClick={onPost} className="px-4 py-1.5 text-sm bg-[#C9A227] text-white rounded-lg hover:bg-amber-600 flex items-center gap-2">
+        <button onClick={onPost} className="px-4 py-1.5 text-sm bg-[#E8471F] text-white rounded-lg hover:bg-amber-600 flex items-center gap-2">
           <Megaphone size={13} /> Post Announcement
         </button>
       </div>
@@ -288,7 +288,7 @@ function ConvInfo({ conv, channel }: { conv: Conversation; channel: Channel }) {
                 <span className="text-xs text-slate-600">{m}</span>
               </div>
             ))}
-            <button className="text-xs text-[#14356B] hover:underline mt-1 flex items-center gap-1">
+            <button className="text-xs text-[#0E6BB8] hover:underline mt-1 flex items-center gap-1">
               <UserPlus size={11} /> Add member
             </button>
           </div>
@@ -382,7 +382,7 @@ export function CommunicationsModule() {
             return (
               <button key={ch.id} onClick={() => setChannel(ch.id)}
                 className={cn("w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors",
-                  channel === ch.id ? "bg-[#14356B]/8 text-[#14356B] font-medium" : "text-slate-600 hover:bg-slate-50")}>
+                  channel === ch.id ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium" : "text-slate-600 hover:bg-slate-50")}>
                 <ch.icon size={15} style={{ color: channel === ch.id ? ch.color : undefined }}
                   className={channel === ch.id ? "" : "text-slate-400"} />
                 <span className="flex-1 text-left">{ch.label}</span>
@@ -397,7 +397,7 @@ export function CommunicationsModule() {
           })}
         </nav>
         <div className="p-3 border-t border-slate-100">
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+          <button className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
             <Plus size={14} />
             {channel === "group" ? "New Group" : channel === "announcements" ? "New Announcement" : "New Message"}
           </button>
@@ -514,7 +514,7 @@ function ConvItem({ conv, selected, channelColor, onClick }: {
   return (
     <button onClick={onClick}
       className={cn("w-full flex items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-slate-50",
-        selected ? "bg-blue-50/60 border-r-2 border-[#14356B]" : "")}>
+        selected ? "bg-blue-50/60 border-r-2 border-[#0E6BB8]" : "")}>
       <Avatar initials={conv.avatar} online={conv.online} color={channelColor} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">

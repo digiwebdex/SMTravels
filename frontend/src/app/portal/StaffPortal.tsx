@@ -71,10 +71,10 @@ const DOCS_DATA = [
 ];
 
 const NOTIFS_DATA = [
-  { id:1, title:"New booking assigned to you",          body:"BK-0891 (Nasrin Begum — Umrah Standard) has been assigned to your queue.", time:"2h ago",  read:false, color:"#14356B" },
+  { id:1, title:"New booking assigned to you",          body:"BK-0891 (Nasrin Begum — Umrah Standard) has been assigned to your queue.", time:"2h ago",  read:false, color:"#0E6BB8" },
   { id:2, title:"Task overdue: Collect balance payment", body:"Task #5 was due at 10:00am. Please action immediately.",                    time:"3h ago",  read:false, color:"#EF4444" },
   { id:3, title:"Customer document approved",           body:"Md. Karim Ullah's visa documents have been verified by the visa team.",      time:"Yesterday",read:false,color:"#0E7C66" },
-  { id:4, title:"New announcement from Management",     body:"Ramadan office hours update. Please check the announcements section.",       time:"Jul 15",  read:true,  color:"#C9A227" },
+  { id:4, title:"New announcement from Management",     body:"Ramadan office hours update. Please check the announcements section.",       time:"Jul 15",  read:true,  color:"#E8471F" },
 ];
 
 const SUP_TICKETS = [
@@ -116,7 +116,7 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
           <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Good morning, Rafiq!</h1>
           <p className="text-sm text-slate-500 mt-0.5">Saturday, Jul 20, 2024 · Branch: Agrabad HO</p>
         </div>
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#14356B] to-[#0E7C66] flex items-center justify-center text-white font-bold">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white font-bold">
           RI
         </div>
       </div>
@@ -125,7 +125,7 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
       <div className="grid grid-cols-4 gap-3">
         {[
           { label:"Pending Tasks",   val: pending.length,                  sub:"Today",         color:"bg-amber-500",    Icon:CheckSquare  },
-          { label:"My Bookings",     val: BOOKINGS.length,                 sub:"Active",        color:"bg-[#14356B]",    Icon:Briefcase    },
+          { label:"My Bookings",     val: BOOKINGS.length,                 sub:"Active",        color:"bg-[#0E6BB8]",    Icon:Briefcase    },
           { label:"Customers",       val: CUSTOMERS_DATA.length,           sub:"Assigned",      color:"bg-[#0E7C66]",    Icon:Users        },
           { label:"Completed",       val: TASKS.filter(t=>t.done).length,  sub:"Today",         color:"bg-purple-500",   Icon:CheckCircle  },
         ].map(k => (
@@ -166,12 +166,12 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
       <div className="bg-white rounded-2xl border border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <p className="font-bold text-slate-800">My Bookings</p>
-          <button onClick={() => onGo("bookings")} className="text-xs text-[#14356B] font-semibold hover:underline">View all</button>
+          <button onClick={() => onGo("bookings")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">View all</button>
         </div>
         <div className="divide-y divide-slate-100">
           {BOOKINGS.slice(0, 3).map(b => (
             <div key={b.id} className="flex items-center gap-3 px-5 py-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#14356B]/8 flex items-center justify-center text-[#14356B] text-xs font-bold flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center text-[#0E6BB8] text-xs font-bold flex-shrink-0">
                 {b.customer.split(" ").map(n => n[0]).slice(0, 2).join("")}
               </div>
               <div className="flex-1 min-w-0">
@@ -188,10 +188,10 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
       <div className="bg-white rounded-2xl border border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Pin size={14} className="text-[#C9A227]" />
+            <Pin size={14} className="text-[#C43A15]" />
             <p className="font-bold text-slate-800">Pinned Announcements</p>
           </div>
-          <button onClick={() => onGo("announcements")} className="text-xs text-[#14356B] font-semibold hover:underline">All</button>
+          <button onClick={() => onGo("announcements")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">All</button>
         </div>
         <div className="divide-y divide-slate-100">
           {ANNOUNCEMENTS.filter(a => a.pinned).map(a => (
@@ -201,7 +201,7 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
                 <span className="text-xs text-slate-400 whitespace-nowrap">{a.date}</span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{a.body}</p>
-              <p className="text-xs text-[#14356B] mt-1 font-medium">From: {a.from}</p>
+              <p className="text-xs text-[#0E6BB8] mt-1 font-medium">From: {a.from}</p>
             </div>
           ))}
         </div>
@@ -212,7 +212,7 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
         <p className="font-bold text-slate-800 mb-4">Today's Progress</p>
         <div className="space-y-3">
           {[
-            { label:"Tasks completed", done: TASKS.filter(t=>t.done).length, total: TASKS.length, color:"#14356B" },
+            { label:"Tasks completed", done: TASKS.filter(t=>t.done).length, total: TASKS.length, color:"#0E6BB8" },
             { label:"Bookings active",  done: BOOKINGS.filter(b=>b.status==="confirmed").length, total:BOOKINGS.length, color:"#0E7C66" },
           ].map(p => (
             <div key={p.label}>
@@ -250,7 +250,7 @@ function TasksView() {
           </p>
         </div>
         <button onClick={() => setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14} /> Add Task
         </button>
       </div>
@@ -260,7 +260,7 @@ function TasksView() {
         {([["all","All"],["pending","Pending"],["done","Done"]] as const).map(([k,l]) => (
           <button key={k} onClick={() => setFilter(k)}
             className={cn("px-4 py-2 rounded-xl text-sm font-semibold transition-all",
-              filter === k ? "bg-[#14356B] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#14356B]/30")}>
+              filter === k ? "bg-[#0E6BB8] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#0E6BB8]/30")}>
             {l}
           </button>
         ))}
@@ -280,10 +280,10 @@ function TasksView() {
             <div className="space-y-2">
               {group.map(t => (
                 <div key={t.id} className={cn("flex items-start gap-3 p-4 bg-white rounded-xl border transition-all",
-                  t.done ? "border-slate-100 opacity-60" : "border-slate-200 hover:border-[#14356B]/20")}>
+                  t.done ? "border-slate-100 opacity-60" : "border-slate-200 hover:border-[#0E6BB8]/20")}>
                   <button onClick={() => toggle(t.id)}
                     className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
-                      t.done ? "border-emerald-500 bg-emerald-500" : "border-slate-300 hover:border-[#14356B]")}>
+                      t.done ? "border-emerald-500 bg-emerald-500" : "border-slate-300 hover:border-[#0E6BB8]")}>
                     {t.done && <Check size={11} className="text-white" />}
                   </button>
                   <div className="flex-1 min-w-0">
@@ -310,7 +310,7 @@ function TasksView() {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Task Description</label>
-              <input className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" placeholder="What needs to be done?" />
+              <input className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" placeholder="What needs to be done?" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -331,7 +331,7 @@ function TasksView() {
               </select>
             </div>
             <button onClick={() => setAddModal(false)}
-              className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56]">
+              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794]">
               Save Task
             </button>
           </div>
@@ -387,7 +387,7 @@ function StaffBookings() {
                 <td className="px-4 py-3.5 text-xs font-mono text-slate-500">{b.id}</td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#14356B]/10 flex items-center justify-center text-[#14356B] text-xs font-bold">
+                    <div className="w-7 h-7 rounded-lg bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
                       {b.customer.split(" ").map(n=>n[0]).slice(0,2).join("")}
                     </div>
                     <span className="text-sm font-semibold text-slate-800">{b.customer}</span>
@@ -435,7 +435,7 @@ function StaffCustomers() {
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-2.5">
                     <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold",
-                      c.status==="vip"?"bg-[#C9A227]/20 text-[#C9A227]":"bg-[#14356B]/10 text-[#14356B]")}>
+                      c.status==="vip"?"bg-[#E8471F]/20 text-[#C43A15]":"bg-[#0E6BB8]/10 text-[#0E6BB8]")}>
                       {c.name.split(" ").map(n=>n[0]).slice(0,2).join("")}
                     </div>
                     <div>
@@ -449,7 +449,7 @@ function StaffCustomers() {
                 <td className="px-4 py-3.5 text-sm font-bold text-slate-700">{c.bookings}</td>
                 <td className="px-4 py-3.5">
                   {c.status === "vip"
-                    ? <span className="flex items-center gap-1 text-xs text-[#C9A227] font-bold"><Star size={11} className="fill-[#C9A227]"/>VIP</span>
+                    ? <span className="flex items-center gap-1 text-xs text-[#C43A15] font-bold"><Star size={11} className="fill-[#E8471F]"/>VIP</span>
                     : <span className="text-xs text-emerald-600 font-semibold">Active</span>}
                 </td>
                 <td className="px-4 py-3.5">
@@ -498,7 +498,7 @@ function StaffReports() {
         <div className="flex items-end gap-2 h-28">
           {vals.map((v,i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-t-lg" style={{ height:`${(v/max)*100}%`, background: i===vals.length-1?"#14356B":"#14356B33" }} />
+              <div className="w-full rounded-t-lg" style={{ height:`${(v/max)*100}%`, background: i===vals.length-1?"#0E6BB8":"#0E6BB833" }} />
               <p className="text-xs text-slate-400">{months[i]}</p>
             </div>
           ))}
@@ -508,14 +508,14 @@ function StaffReports() {
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
           <p className="font-bold text-slate-800">Performance Summary</p>
-          <button className="flex items-center gap-1.5 text-xs text-[#14356B] font-semibold border border-[#14356B]/30 px-3 py-1.5 rounded-lg hover:bg-[#14356B]/5">
+          <button className="flex items-center gap-1.5 text-xs text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-lg hover:bg-[#0E6BB8]/5">
             <Download size={12}/> Export
           </button>
         </div>
         {[
-          { label:"Task Completion Rate", val:"78%",   bar:78,  color:"#14356B" },
+          { label:"Task Completion Rate", val:"78%",   bar:78,  color:"#0E6BB8" },
           { label:"Booking Close Rate",   val:"64%",   bar:64,  color:"#0E7C66" },
-          { label:"Customer Satisfaction",val:"4.7★",  bar:94,  color:"#C9A227" },
+          { label:"Customer Satisfaction",val:"4.7★",  bar:94,  color:"#E8471F" },
           { label:"Response Time (avg)",  val:"1.8h",  bar:75,  color:"#7C3AED" },
         ].map(r => (
           <div key={r.label} className="mb-3 last:mb-0">
@@ -552,7 +552,7 @@ function StaffDocuments() {
       {/* Categories */}
       <div className="flex gap-2 flex-wrap">
         {["All","Procedures","Visa","Templates","Policy","Contracts"].map(c => (
-          <button key={c} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:border-[#14356B]/30 hover:text-[#14356B] transition-colors">
+          <button key={c} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:border-[#0E6BB8]/30 hover:text-[#0E6BB8] transition-colors">
             {c}
           </button>
         ))}
@@ -582,7 +582,7 @@ function StaffDocuments() {
                 <td className="px-4 py-3.5 text-xs text-slate-400 font-mono">{d.size}</td>
                 <td className="px-4 py-3.5 text-xs text-slate-400">{d.date}</td>
                 <td className="px-4 py-3.5">
-                  <button className="flex items-center gap-1 text-xs text-[#14356B] font-semibold hover:underline">
+                  <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
                     <Download size={12}/> Download
                   </button>
                 </td>
@@ -604,13 +604,13 @@ function StaffAnnouncements() {
       <div className="space-y-3">
         {ANNOUNCEMENTS.map(a => (
           <div key={a.id} className={cn("bg-white rounded-2xl border overflow-hidden",
-            a.pinned ? "border-[#C9A227]/40" : "border-slate-200")}>
+            a.pinned ? "border-[#E8471F]/40" : "border-slate-200")}>
             <button className="w-full flex items-start gap-3 p-5 text-left" onClick={() => setExpanded(expanded===a.id?null:a.id)}>
-              {a.pinned && <Pin size={14} className="text-[#C9A227] flex-shrink-0 mt-0.5" />}
+              {a.pinned && <Pin size={14} className="text-[#C43A15] flex-shrink-0 mt-0.5" />}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <p className="font-bold text-slate-800">{a.title}</p>
-                  {a.pinned && <span className="text-xs px-2 py-0.5 bg-[#C9A227]/15 text-[#C9A227] rounded-full font-bold border border-[#C9A227]/30">Pinned</span>}
+                  {a.pinned && <span className="text-xs px-2 py-0.5 bg-[#E8471F]/15 text-[#C43A15] rounded-full font-bold border border-[#E8471F]/30">Pinned</span>}
                 </div>
                 <p className="text-xs text-slate-400">From: {a.from} · {a.date}</p>
               </div>
@@ -650,8 +650,8 @@ function StaffSupport() {
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
         {MSGS.map((m,i) => (
           <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">IT</div>}
-            <div className={cn("max-w-sm px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#14356B] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
+            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">IT</div>}
+            <div className={cn("max-w-sm px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#0E6BB8] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
             </div>
@@ -660,7 +660,7 @@ function StaffSupport() {
       </div>
       <div className="flex items-center gap-2">
         <input placeholder="Type reply…" className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#14356B] text-white rounded-xl"><Send size={16} /></button>
+        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl"><Send size={16} /></button>
       </div>
     </div>
   );
@@ -669,7 +669,7 @@ function StaffSupport() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support Tickets</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14}/> New Ticket
         </button>
       </div>
@@ -704,20 +704,20 @@ function StaffNotifications() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Notifications</h2>
         <button onClick={() => setList(n => n.map(x => ({ ...x, read:true })))}
-          className="text-sm text-[#14356B] font-semibold hover:underline">Mark all read</button>
+          className="text-sm text-[#0E6BB8] font-semibold hover:underline">Mark all read</button>
       </div>
       <div className="space-y-2.5">
         {list.map(n => (
           <div key={n.id} onClick={() => setList(ls => ls.map(x => x.id===n.id?{...x,read:true}:x))}
             className={cn("flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all",
-              n.read?"bg-white border-slate-200":"bg-[#14356B]/3 border-[#14356B]/15")}>
+              n.read?"bg-white border-slate-200":"bg-[#0E6BB8]/3 border-[#0E6BB8]/15")}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:n.color+"18" }}>
               <div className="w-3 h-3 rounded-full" style={{ background:n.color }} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-slate-800">{n.title}</p>
-                {!n.read && <div className="w-2 h-2 rounded-full bg-[#14356B] flex-shrink-0" />}
+                {!n.read && <div className="w-2 h-2 rounded-full bg-[#0E6BB8] flex-shrink-0" />}
               </div>
               <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
             </div>
@@ -735,7 +735,7 @@ function StaffProfile() {
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
-      <div className="bg-gradient-to-br from-[#14356B] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
+      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black flex-shrink-0">RI</div>
         <div>
           <p className="text-xl font-bold">Rafiqul Islam</p>
@@ -759,13 +759,13 @@ function StaffProfile() {
             <input defaultValue={v} disabled={!editing || ["Employee ID","Role","Department","Branch"].includes(l)}
               className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
                 editing && !["Employee ID","Role","Department","Branch"].includes(l)
-                  ? "border-[#14356B]/40 bg-white focus:outline-none"
+                  ? "border-[#0E6BB8]/40 bg-white focus:outline-none"
                   : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
           </div>
         ))}
         {editing && (
           <button onClick={() => setEditing(false)}
-            className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56] flex items-center justify-center gap-2">
+            className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
             <Check size={15}/> Save
           </button>
         )}
@@ -791,7 +791,7 @@ function StaffProfile() {
 // ─── Sidebar inner component (shared desktop + drawer) ───────────────────────
 function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void }) {
   return (
-    <aside className="w-56 bg-[#14356B] flex flex-col h-full">
+    <aside className="w-56 bg-[#17456B] flex flex-col h-full">
       <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-black">BDH</div>
@@ -889,7 +889,7 @@ export function StaffPortal() {
                   </span>
                 )}
               </button>
-              <button onClick={() => go("profile")} className="w-7 h-7 rounded-full bg-[#14356B]/15 flex items-center justify-center text-[#14356B] text-xs font-bold">
+              <button onClick={() => go("profile")} className="w-7 h-7 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
                 RI
               </button>
             </div>
@@ -915,7 +915,7 @@ export function StaffPortal() {
               className="w-9 h-9 flex items-center justify-center rounded-xl"
               style={{ minWidth: 44 }}
             >
-              <div className="w-8 h-8 rounded-lg bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight">{currentLabel}</p>
@@ -932,7 +932,7 @@ export function StaffPortal() {
               )}
             </button>
             <button onClick={() => go("profile")}
-              className="w-8 h-8 rounded-full bg-[#14356B]/15 flex items-center justify-center text-[#14356B] text-xs font-bold">
+              className="w-8 h-8 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
               RI
             </button>
           </div>

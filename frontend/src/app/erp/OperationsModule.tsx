@@ -56,7 +56,7 @@ function StBadge({ s }: { s: string }) {
     </span>
   );
 }
-function Av({ name, color = "#14356B", size = "sm" }: { name: string; color?: string; size?: "sm" | "md" }) {
+function Av({ name, color = "#0E6BB8", size = "sm" }: { name: string; color?: string; size?: "sm" | "md" }) {
   return (
     <div className={cn("rounded-full flex items-center justify-center text-white font-bold flex-shrink-0",
       size === "sm" ? "w-6 h-6 text-xs" : "w-8 h-8 text-sm")}
@@ -121,7 +121,7 @@ function TasksView() {
             ))}
           </div>
         </div>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
           <Plus size={14}/> New Task
         </button>
       </div>
@@ -149,7 +149,7 @@ function TasksView() {
                       <p className={cn("text-xs font-medium leading-snug", t.status==="done"?"line-through text-slate-400":"text-slate-700")}>{t.title}</p>
                     </div>
                     <div className="flex flex-wrap gap-1 mb-2">
-                      {t.tags.map(tag=><span key={tag} className="text-xs px-1.5 py-0.5 bg-[#14356B]/8 text-[#14356B] rounded-md">{tag}</span>)}
+                      {t.tags.map(tag=><span key={tag} className="text-xs px-1.5 py-0.5 bg-[#0E6BB8]/8 text-[#0E6BB8] rounded-md">{tag}</span>)}
                     </div>
                     <div className="flex items-center justify-between">
                       <PriBadge p={t.priority}/>
@@ -187,7 +187,7 @@ function TasksView() {
                 <td className="px-4 py-3"><PriBadge p={t.priority}/></td>
                 <td className="px-4 py-3"><StBadge s={t.status}/></td>
                 <td className="px-4 py-3 text-sm text-slate-500">{t.due}</td>
-                <td className="px-4 py-3"><div className="flex gap-1">{t.tags.map(tag=><span key={tag} className="text-xs px-1.5 py-0.5 bg-[#14356B]/8 text-[#14356B] rounded-md">{tag}</span>)}</div></td>
+                <td className="px-4 py-3"><div className="flex gap-1">{t.tags.map(tag=><span key={tag} className="text-xs px-1.5 py-0.5 bg-[#0E6BB8]/8 text-[#0E6BB8] rounded-md">{tag}</span>)}</div></td>
                 <td className="px-4 py-3 opacity-0 group-hover:opacity-100"><div className="flex gap-1">
                   <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={12}/></button>
                   <button className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={12}/></button>
@@ -203,15 +203,15 @@ function TasksView() {
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────────────
 const CAL_EVENTS = [
-  { id:1,  date:8,  title:"Hajj Batch Departure",    color:"#14356B" },
-  { id:2,  date:10, title:"Saudi Visa Submission",   color:"#C9A227" },
+  { id:1,  date:8,  title:"Hajj Batch Departure",    color:"#0E6BB8" },
+  { id:2,  date:10, title:"Saudi Visa Submission",   color:"#E8471F" },
   { id:3,  date:14, title:"Staff Meeting",           color:"#0E7C66" },
   { id:4,  date:15, title:"P&L Review",              color:"#2563EB" },
   { id:5,  date:18, title:"Umrah Group Check-in",    color:"#7C3AED" },
   { id:6,  date:20, title:"Commission Payout",       color:"#EF4444" },
-  { id:7,  date:22, title:"Malaysia Tour Departure", color:"#14356B" },
+  { id:7,  date:22, title:"Malaysia Tour Departure", color:"#0E6BB8" },
   { id:8,  date:25, title:"Board Meeting",           color:"#0E7C66" },
-  { id:9,  date:28, title:"Passport Collection",     color:"#C9A227" },
+  { id:9,  date:28, title:"Passport Collection",     color:"#E8471F" },
 ];
 const TODAY = 18;
 
@@ -241,9 +241,9 @@ function CalendarView() {
             const isToday = d===TODAY;
             return (
               <div key={i} className={cn("min-h-16 rounded-xl p-1.5 cursor-pointer hover:bg-slate-50 transition-colors border",
-                isToday ? "border-[#14356B] bg-[#14356B]/4" : "border-transparent")}>
+                isToday ? "border-[#0E6BB8] bg-[#0E6BB8]/4" : "border-transparent")}>
                 <span className={cn("text-xs font-semibold w-5 h-5 flex items-center justify-center rounded-full mb-1",
-                  isToday ? "bg-[#14356B] text-white" : "text-slate-600")}>{d}</span>
+                  isToday ? "bg-[#0E6BB8] text-white" : "text-slate-600")}>{d}</span>
                 {evs.slice(0,2).map(e=>(
                   <div key={e.id} className="text-xs rounded px-1 py-0.5 mb-0.5 truncate text-white"
                     style={{ background: e.color }}>{e.title}</div>
@@ -257,7 +257,7 @@ function CalendarView() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-slate-800 text-sm">Upcoming</p>
-          <button className="flex items-center gap-1 text-xs text-[#14356B] hover:underline"><Plus size={11}/> Add</button>
+          <button className="flex items-center gap-1 text-xs text-[#0E6BB8] hover:underline"><Plus size={11}/> Add</button>
         </div>
         {CAL_EVENTS.filter(e=>e.date>=TODAY).slice(0,6).map(e=>(
           <div key={e.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200">
@@ -267,7 +267,7 @@ function CalendarView() {
               <p className="text-xs text-slate-400">Jul {e.date}, 2024</p></div>
           </div>
         ))}
-        <button className="w-full py-2.5 text-sm bg-[#14356B] text-white rounded-xl hover:bg-[#0f2a56] flex items-center justify-center gap-1.5">
+        <button className="w-full py-2.5 text-sm bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-1.5">
           <Plus size={14}/> New Event
         </button>
       </div>
@@ -284,7 +284,7 @@ const REMIND_DATA = [
   { id:5, title:"Staff KPI review — Q2 2024",               type:"hr",     priority:"low",    due:"Jul 31", done:false },
   { id:6, title:"Insurance renewal — office building",      type:"admin",  priority:"low",    due:"Aug 15", done:true  },
 ];
-const R_COLOR: Record<string,string> = { doc:"#14356B",visa:"#C9A227",finance:"#EF4444",admin:"#0E7C66",hr:"#7C3AED" };
+const R_COLOR: Record<string,string> = { doc:"#0E6BB8",visa:"#E8471F",finance:"#EF4444",admin:"#0E7C66",hr:"#7C3AED" };
 
 function RemindersView() {
   const [items, setItems] = useState(REMIND_DATA);
@@ -292,7 +292,7 @@ function RemindersView() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-bold text-slate-800">Reminders</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]"><Plus size={14}/> Add Reminder</button>
+        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]"><Plus size={14}/> Add Reminder</button>
       </div>
       <div className="space-y-2">
         {items.map(r=>(
@@ -300,7 +300,7 @@ function RemindersView() {
             r.done ? "opacity-50 border-slate-100" : "border-slate-200")}>
             <button onClick={()=>setItems(i=>i.map(x=>x.id===r.id?{...x,done:!x.done}:x))}>
               {r.done ? <CheckCircle2 size={18} className="text-emerald-500 fill-emerald-500"/>
-                      : <Circle size={18} className="text-slate-300 hover:text-[#14356B]"/>}
+                      : <Circle size={18} className="text-slate-300 hover:text-[#0E6BB8]"/>}
             </button>
             <div className="w-2 h-8 rounded-full flex-shrink-0" style={{ background: R_COLOR[r.type]||"#94A3B8" }}/>
             <div className="flex-1">
@@ -325,8 +325,8 @@ function RemindersView() {
 // ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
 const NOTIF_DATA = [
   { id:1, icon:CheckSquare,  color:"#0E7C66", title:"New booking received",         body:"Hajj Economy — Md. Karim Ullah, ৳5,20,000",    time:"2m ago",  read:false },
-  { id:2, icon:TrendingUp,   color:"#14356B", title:"Payment received",             body:"bKash #0892 — ৳92,500 from NMT Travels",        time:"15m ago", read:false },
-  { id:3, icon:Check,        color:"#C9A227", title:"Visa batch approved",          body:"Saudi batch #08 — 42 applicants approved",      time:"1h ago",  read:false },
+  { id:2, icon:TrendingUp,   color:"#0E6BB8", title:"Payment received",             body:"bKash #0892 — ৳92,500 from NMT Travels",        time:"15m ago", read:false },
+  { id:3, icon:Check,        color:"#E8471F", title:"Visa batch approved",          body:"Saudi batch #08 — 42 applicants approved",      time:"1h ago",  read:false },
   { id:4, icon:AlertTriangle,color:"#EF4444", title:"Document expiry alert",        body:"3 passports expire within 30 days",             time:"2h ago",  read:true  },
   { id:5, icon:Shield,       color:"#64748B", title:"Backup completed",             body:"Automated daily backup — 14 Jul 02:00 AM",     time:"6h ago",  read:true  },
   { id:6, icon:CheckSquare,  color:"#7C3AED", title:"Task assigned to you",         body:"Process Hajj batch documents — by Abdullah C.",time:"1d ago",  read:true  },
@@ -349,14 +349,14 @@ function NotificationsView() {
         {items.map(n=>(
           <div key={n.id} onClick={()=>setItems(ns=>ns.map(x=>x.id===n.id?{...x,read:true}:x))}
             className={cn("flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all",
-              n.read ? "bg-white border-slate-100" : "bg-[#14356B]/3 border-[#14356B]/15")}>
+              n.read ? "bg-white border-slate-100" : "bg-[#0E6BB8]/3 border-[#0E6BB8]/15")}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: n.color+"20" }}>
               <n.icon size={16} style={{ color: n.color }}/>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-slate-800">{n.title}</p>
-                {!n.read && <span className="w-2 h-2 rounded-full bg-[#14356B] flex-shrink-0"/>}
+                {!n.read && <span className="w-2 h-2 rounded-full bg-[#0E6BB8] flex-shrink-0"/>}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">{n.body}</p>
             </div>
@@ -383,10 +383,10 @@ function AnnouncementsView() {
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-bold text-slate-800">Announcements</h2>
         <button onClick={()=>setComposing(v=>!v)}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]"><Plus size={14}/> New Announcement</button>
+          className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]"><Plus size={14}/> New Announcement</button>
       </div>
       {composing && (
-        <div className="bg-white rounded-xl border border-[#14356B]/20 p-5 mb-5 space-y-3">
+        <div className="bg-white rounded-xl border border-[#0E6BB8]/20 p-5 mb-5 space-y-3">
           <input placeholder="Announcement title…" className="w-full text-base font-semibold border-none focus:outline-none text-slate-800 placeholder:text-slate-300"/>
           <div className="h-px bg-slate-100"/>
           <textarea rows={3} placeholder="Write your announcement here…"
@@ -398,17 +398,17 @@ function AnnouncementsView() {
             <label className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer"><input type="checkbox" className="rounded"/> Pin announcement</label>
             <div className="flex gap-2 ml-auto">
               <button onClick={()=>setComposing(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600">Cancel</button>
-              <button onClick={()=>setComposing(false)} className="px-4 py-2 text-sm bg-[#14356B] text-white rounded-lg">Post</button>
+              <button onClick={()=>setComposing(false)} className="px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg">Post</button>
             </div>
           </div>
         </div>
       )}
       <div className="space-y-3">
         {ANN_DATA.map(a=>(
-          <div key={a.id} className={cn("bg-white rounded-xl border p-5", a.pinned?"border-[#C9A227]/40 bg-[#C9A227]/3":"border-slate-200")}>
+          <div key={a.id} className={cn("bg-white rounded-xl border p-5", a.pinned?"border-[#E8471F]/40 bg-[#E8471F]/3":"border-slate-200")}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                {a.pinned && <span className="flex items-center gap-1 text-xs text-[#C9A227] font-medium"><Flag size={11} className="fill-[#C9A227]"/> Pinned</span>}
+                {a.pinned && <span className="flex items-center gap-1 text-xs text-[#C43A15] font-medium"><Flag size={11} className="fill-[#E8471F]"/> Pinned</span>}
                 <h3 className="font-semibold text-slate-800">{a.title}</h3>
               </div>
               <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{a.audience}</span>
@@ -461,9 +461,9 @@ function ChatView() {
           {CHAT_LIST.map((u,i)=>(
             <button key={i} onClick={()=>setSelected(i)}
               className={cn("flex items-center gap-2.5 w-full px-3 py-3 text-left border-b border-slate-50 hover:bg-slate-50",
-                selected===i && "bg-[#14356B]/5")}>
+                selected===i && "bg-[#0E6BB8]/5")}>
               <div className="relative flex-shrink-0">
-                <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold">
                   {u.name.slice(0,2)}
                 </div>
                 {u.online && <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"/>}
@@ -475,7 +475,7 @@ function ChatView() {
                 </div>
                 <p className="text-xs text-slate-400 truncate">{u.preview}</p>
               </div>
-              {u.unread>0 && <span className="w-4 h-4 rounded-full bg-[#14356B] text-white text-xs flex items-center justify-center font-bold flex-shrink-0">{u.unread}</span>}
+              {u.unread>0 && <span className="w-4 h-4 rounded-full bg-[#0E6BB8] text-white text-xs flex items-center justify-center font-bold flex-shrink-0">{u.unread}</span>}
             </button>
           ))}
         </div>
@@ -483,7 +483,7 @@ function ChatView() {
       {/* Thread */}
       <div className="flex-1 flex flex-col">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold">
             {CHAT_LIST[selected].name.slice(0,2)}
           </div>
           <div>
@@ -497,7 +497,7 @@ function ChatView() {
           {MSGS.map((m,i)=>(
             <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
               <div className={cn("max-w-xs px-3.5 py-2.5 rounded-2xl text-sm",
-                m.mine?"bg-[#14356B] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
+                m.mine?"bg-[#0E6BB8] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
                 {m.text}
                 <p className={cn("text-xs mt-1 text-right",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
               </div>
@@ -508,7 +508,7 @@ function ChatView() {
           <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400"><Paperclip size={15}/></button>
           <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Type a message…"
             className="flex-1 px-3 py-2 text-sm bg-slate-100 rounded-xl focus:outline-none"/>
-          <button className="p-2 bg-[#14356B] rounded-xl text-white hover:bg-[#0f2a56]"><Send size={15}/></button>
+          <button className="p-2 bg-[#0E6BB8] rounded-xl text-white hover:bg-[#0B5794]"><Send size={15}/></button>
         </div>
       </div>
     </div>
@@ -519,8 +519,8 @@ function ChatView() {
 const ACT_DATA = [
   { user:"Abdullah C.", action:"Created booking",         target:"BK-0892 — Hajj Economy",       module:"Bookings", time:"Today 09:14", icon:CheckSquare, color:"#0E7C66" },
   { user:"Rahim K.",    action:"Updated package pricing", target:"Umrah VIP 2024",               module:"Packages", time:"Today 09:02", icon:Edit2,       color:"#2563EB" },
-  { user:"Fatema B.",   action:"Approved visa batch",     target:"Saudi Batch #08 (42 apps)",    module:"Visa",     time:"Today 08:45", icon:Check,       color:"#C9A227" },
-  { user:"Kamal H.",    action:"Generated invoice",       target:"INV-2024-0247",                module:"Finance",  time:"Yesterday",   icon:FileText,    color:"#14356B" },
+  { user:"Fatema B.",   action:"Approved visa batch",     target:"Saudi Batch #08 (42 apps)",    module:"Visa",     time:"Today 08:45", icon:Check,       color:"#E8471F" },
+  { user:"Kamal H.",    action:"Generated invoice",       target:"INV-2024-0247",                module:"Finance",  time:"Yesterday",   icon:FileText,    color:"#0E6BB8" },
   { user:"Nasir A.",    action:"Uploaded passport",       target:"Md. Karim Ullah — KA8823991",  module:"Docs",     time:"Yesterday",   icon:FolderOpen,  color:"#7C3AED" },
   { user:"Salma T.",    action:"Recorded payment",        target:"৳1,85,000 — bKash",           module:"Finance",  time:"Jul 13",      icon:TrendingUp,  color:"#EF4444" },
   { user:"Rahim K.",    action:"Added new agent",         target:"Bismillah Int'l, Comilla",     module:"CRM",      time:"Jul 12",      icon:Users,       color:"#64748B" },
@@ -546,7 +546,7 @@ function ActivityView() {
               </div>
               <Av name={log.user} color="#64748B"/>
               <div className="flex-1">
-                <p className="text-sm text-slate-700"><span className="font-medium">{log.user}</span> {log.action} — <span className="text-[#14356B]">{log.target}</span></p>
+                <p className="text-sm text-slate-700"><span className="font-medium">{log.user}</span> {log.action} — <span className="text-[#0E6BB8]">{log.target}</span></p>
                 <p className="text-xs text-slate-400">{log.module}</p>
               </div>
               <span className="text-xs text-slate-400 whitespace-nowrap">{log.time}</span>
@@ -581,7 +581,7 @@ function AuditView() {
         <div><h2 className="text-xl font-bold text-slate-800">Audit Logs</h2><p className="text-sm text-slate-500">Security-critical event trail</p></div>
         <div className="flex gap-2">
           <select className="text-sm border border-slate-200 rounded-lg px-3 py-2"><option>All Severity</option><option>Critical</option><option>Warning</option></select>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#14356B] text-white rounded-lg"><Download size={13}/> Export CSV</button>
+          <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg"><Download size={13}/> Export CSV</button>
         </div>
       </div>
       <Card>
@@ -595,7 +595,7 @@ function AuditView() {
             <tr key={i} className={cn("border-b border-slate-50 hover:bg-slate-50",log.severity==="critical"&&"bg-red-50/30")}>
               <td className="px-4 py-3 text-xs text-slate-400 font-mono">{log.time}</td>
               <td className="px-4 py-3"><div className="flex items-center gap-1.5">
-                <Av name={log.user} size="sm" color={log.user==="SYSTEM"?"#64748B":log.user==="Unknown"?"#EF4444":"#14356B"}/>
+                <Av name={log.user} size="sm" color={log.user==="SYSTEM"?"#64748B":log.user==="Unknown"?"#EF4444":"#0E6BB8"}/>
                 <span className="text-sm text-slate-700">{log.user}</span>
               </div></td>
               <td className="px-4 py-3 text-xs text-slate-500 font-mono">{log.ip}</td>
@@ -627,8 +627,8 @@ const WF_NODES = [
   { label:"Mark Complete",        type:"end"      },
 ];
 const NODE_CLS: Record<string,string> = {
-  trigger:  "bg-[#14356B] text-white",
-  decision: "bg-[#C9A227] text-white",
+  trigger:  "bg-[#0E6BB8] text-white",
+  decision: "bg-[#E8471F] text-white",
   action:   "bg-white text-slate-700 border-2 border-slate-200",
   end:      "bg-[#0E7C66] text-white",
 };
@@ -639,14 +639,14 @@ function WorkflowView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div><h2 className="text-xl font-bold text-slate-800">Workflow Automation</h2><p className="text-sm text-slate-500">Automated business process flows</p></div>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]"><Plus size={14}/> New Workflow</button>
+        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]"><Plus size={14}/> New Workflow</button>
       </div>
       <div className="grid grid-cols-3 gap-5">
         <div className="space-y-2">
           {WF_LIST.map(wf=>(
             <button key={wf.id} onClick={()=>setSel(wf.id)}
               className={cn("w-full text-left p-4 rounded-xl border transition-all",
-                sel===wf.id?"border-[#14356B] bg-[#14356B]/5":"border-slate-200 bg-white hover:bg-slate-50")}>
+                sel===wf.id?"border-[#0E6BB8] bg-[#0E6BB8]/5":"border-slate-200 bg-white hover:bg-slate-50")}>
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-semibold text-slate-800">{wf.name}</p>
                 <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
@@ -690,7 +690,7 @@ function WorkflowView() {
                 ["Payment status","becomes Confirmed"],
               ].map(([key,val],i)=>(
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-xs px-2.5 py-1.5 rounded-lg bg-[#14356B]/10 text-[#14356B] font-semibold">{key}</span>
+                  <span className="text-xs px-2.5 py-1.5 rounded-lg bg-[#0E6BB8]/10 text-[#0E6BB8] font-semibold">{key}</span>
                   <span className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">{val}</span>
                   {i<2&&<span className="text-xs text-slate-400 font-medium">AND</span>}
                 </div>
@@ -718,7 +718,7 @@ function DocumentsView() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h2 className="text-xl font-bold text-slate-800">Document Manager</h2><p className="text-sm text-slate-500">Internal SOPs and operational documents</p></div>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]"><Plus size={14}/> Upload</button>
+        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]"><Plus size={14}/> Upload</button>
       </div>
       <div className="border-2 border-dashed border-slate-200 rounded-xl p-5 mb-4 text-center hover:border-slate-300 cursor-pointer">
         <FolderOpen size={22} className="text-slate-300 mx-auto mb-1.5"/>
@@ -771,8 +771,8 @@ export function OperationsModule() {
           {NAV.map(item=>(
             <button key={item.id} onClick={()=>setView(item.id)}
               className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                view===item.id?"bg-[#14356B]/8 text-[#14356B] font-medium border-r-2 border-[#14356B]":"text-slate-600 hover:bg-slate-50")}>
-              <item.icon size={15} className={view===item.id?"text-[#14356B]":"text-slate-400"}/>
+                view===item.id?"bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium border-r-2 border-[#0E6BB8]":"text-slate-600 hover:bg-slate-50")}>
+              <item.icon size={15} className={view===item.id?"text-[#0E6BB8]":"text-slate-400"}/>
               <span className="flex-1 text-left">{item.label}</span>
               {item.badge && <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>}
             </button>

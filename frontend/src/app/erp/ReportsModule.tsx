@@ -79,8 +79,8 @@ const MONTHLY_REVENUE = [
 ];
 
 const SERVICE_BREAKDOWN = [
-  { name:"Hajj", value:38, color:"#C9A227", revenue:15960000 },
-  { name:"Umrah", value:27, color:"#14356B", revenue:11340000 },
+  { name:"Hajj", value:38, color:"#E8471F", revenue:15960000 },
+  { name:"Umrah", value:27, color:"#0E6BB8", revenue:11340000 },
   { name:"Visa", value:14, color:"#0E7C66", revenue:5880000 },
   { name:"Air Ticket", value:10, color:"#2563EB", revenue:4200000 },
   { name:"Manpower", value:7, color:"#7C3AED", revenue:2940000 },
@@ -116,11 +116,11 @@ const HAJJ_DATA = [
 ];
 
 const VISA_FUNNEL = [
-  { name:"Inquiries",   value:1240, fill:"#14356B" },
+  { name:"Inquiries",   value:1240, fill:"#0E6BB8" },
   { name:"Applied",     value:890,  fill:"#1d4ed8" },
   { name:"Submitted",   value:720,  fill:"#0E7C66" },
   { name:"Approved",    value:580,  fill:"#059669" },
-  { name:"Collected",   value:540,  fill:"#C9A227" },
+  { name:"Collected",   value:540,  fill:"#E8471F" },
 ];
 
 const PNL_DATA = [
@@ -397,7 +397,7 @@ function OverviewReport({ filters, loadState }: { filters: Filters; loadState: L
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Revenue (YTD)" value={fmtM(totalRevenue)} trend={14.2} icon={TrendingUp} color="bg-[#14356B]" />
+        <KpiCard label="Total Revenue (YTD)" value={fmtM(totalRevenue)} trend={14.2} icon={TrendingUp} color="bg-[#0E6BB8]" />
         <KpiCard label="Total Bookings" value={totalBookings.toLocaleString()} trend={11.8} icon={Calendar} color="bg-emerald-500" />
         <KpiCard label="Total Expenses" value={fmtM(totalExpense)} trend={8.4} icon={TrendingDown} color="bg-red-500" />
         <KpiCard label="Net Profit (YTD)" value={fmtM(netProfit)} trend={21.3} icon={DollarSign} color="bg-amber-500" />
@@ -410,8 +410,8 @@ function OverviewReport({ filters, loadState }: { filters: Filters; loadState: L
             <AreaChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
               <defs>
                 <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14356B" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#14356B" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -419,8 +419,8 @@ function OverviewReport({ filters, loadState }: { filters: Filters; loadState: L
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                 tickFormatter={v => `৳${(v / 1000000).toFixed(0)}M`} />
               <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#14356B" strokeWidth={2.5} fill="url(#revGrad)" />
-              <Line type="monotone" dataKey="target" name="Target" stroke="#C9A227" strokeWidth={2} strokeDasharray="5 4" dot={false} />
+              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#revGrad)" />
+              <Line type="monotone" dataKey="target" name="Target" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </Section>
@@ -469,7 +469,7 @@ function OverviewReport({ filters, loadState }: { filters: Filters; loadState: L
                   <div className="h-full rounded-full transition-all"
                     style={{
                       width: `${(b.revenue / BRANCH_DATA[0].revenue) * 100}%`,
-                      background: i === 0 ? "#14356B" : i === 1 ? "#C9A227" : "#0E7C66",
+                      background: i === 0 ? "#0E6BB8" : i === 1 ? "#E8471F" : "#0E7C66",
                     }} />
                 </div>
               </div>
@@ -485,7 +485,7 @@ function OverviewReport({ filters, loadState }: { filters: Filters; loadState: L
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="bookings" name="Bookings" fill="#14356B" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="bookings" name="Bookings" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Section>
@@ -519,7 +519,7 @@ function BookingReport({ filters, loadState }: { filters: Filters; loadState: Lo
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Bookings" value="592" trend={21.4} icon={Calendar} color="bg-[#14356B]" />
+        <KpiCard label="Total Bookings" value="592" trend={21.4} icon={Calendar} color="bg-[#0E6BB8]" />
         <KpiCard label="Confirmed" value="471" trend={18.2} icon={CheckCircle} color="bg-emerald-500" />
         <KpiCard label="Pending" value="89" icon={Clock} color="bg-amber-500" />
         <KpiCard label="Cancelled" value="32" trend={-5} icon={AlertTriangle} color="bg-red-500" />
@@ -560,7 +560,7 @@ function BookingReport({ filters, loadState }: { filters: Filters; loadState: Lo
         </Section>
       </div>
       <Section title="Booking Transactions" actions={
-        <button className="text-xs text-[#14356B] hover:underline flex items-center gap-1"><Eye size={12} /> View All</button>
+        <button className="text-xs text-[#0E6BB8] hover:underline flex items-center gap-1"><Eye size={12} /> View All</button>
       }>
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
@@ -612,7 +612,7 @@ function SalesReport({ filters, loadState }: { filters: Filters; loadState: Load
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Sales (Jul)" value={fmtC(9400000)} trend={20.5} icon={TrendingUp} color="bg-[#14356B]" />
+        <KpiCard label="Total Sales (Jul)" value={fmtC(9400000)} trend={20.5} icon={TrendingUp} color="bg-[#0E6BB8]" />
         <KpiCard label="vs Target" value="110.6%" trend={10.6} icon={Star} color="bg-emerald-500" />
         <KpiCard label="Avg. Booking Value" value={fmtC(15878)} trend={7.2} icon={DollarSign} color="bg-amber-500" />
         <KpiCard label="Conversion Rate" value="34.2%" trend={3.1} icon={TrendingUp} color="bg-blue-500" />
@@ -622,8 +622,8 @@ function SalesReport({ filters, loadState }: { filters: Filters; loadState: Load
           <AreaChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
             <defs>
               <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#14356B" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#14356B" stopOpacity={0} />
+                <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#EF4444" stopOpacity={0.15} />
@@ -636,9 +636,9 @@ function SalesReport({ filters, loadState }: { filters: Filters; loadState: Load
               tickFormatter={v => `৳${(v / 1000000).toFixed(0)}M`} />
             <Tooltip content={<ChartTooltip />} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#14356B" strokeWidth={2.5} fill="url(#salesGrad)" />
+            <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#salesGrad)" />
             <Area type="monotone" dataKey="expense" name="Expense" stroke="#EF4444" strokeWidth={2} fill="url(#expGrad)" />
-            <Line type="monotone" dataKey="target" name="Target" stroke="#C9A227" strokeWidth={2} strokeDasharray="5 4" dot={false} />
+            <Line type="monotone" dataKey="target" name="Target" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
           </AreaChart>
         </ResponsiveContainer>
       </Section>
@@ -712,7 +712,7 @@ function HajjReport({ filters, loadState }: { filters: Filters; loadState: LoadS
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Applicants" value="677" trend={8.2} icon={Users} color="bg-[#14356B]" />
+        <KpiCard label="Total Applicants" value="677" trend={8.2} icon={Users} color="bg-[#0E6BB8]" />
         <KpiCard label="Approved (Govt.)" value="610" trend={6.1} icon={CheckCircle} color="bg-emerald-500" />
         <KpiCard label="Departed" value="354" icon={Plane} color="bg-amber-500" />
         <KpiCard label="Hajj Revenue (YTD)" value={fmtM(47520000)} trend={14.4} icon={DollarSign} color="bg-purple-500" />
@@ -726,8 +726,8 @@ function HajjReport({ filters, loadState }: { filters: Filters; loadState: LoadS
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="applications" name="Applications" fill="#14356B" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="approved" name="Approved" fill="#C9A227" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="applications" name="Applications" fill="#0E6BB8" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="approved" name="Approved" fill="#E8471F" radius={[2, 2, 0, 0]} />
               <Bar dataKey="departed" name="Departed" fill="#0E7C66" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -736,8 +736,8 @@ function HajjReport({ filters, loadState }: { filters: Filters; loadState: LoadS
           <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie data={[
-                { name:"Economy", value:42, fill:"#14356B" },
-                { name:"Standard", value:35, fill:"#C9A227" },
+                { name:"Economy", value:42, fill:"#0E6BB8" },
+                { name:"Standard", value:35, fill:"#E8471F" },
                 { name:"Premium", value:23, fill:"#0E7C66" },
               ]} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={3}>
                 {[1,2,3].map((_, i) => <Cell key={i} />)}
@@ -747,8 +747,8 @@ function HajjReport({ filters, loadState }: { filters: Filters; loadState: LoadS
           </ResponsiveContainer>
           <div className="space-y-1.5">
             {[
-              { name:"Economy", pct:42, color:"#14356B" },
-              { name:"Standard", pct:35, color:"#C9A227" },
+              { name:"Economy", pct:42, color:"#0E6BB8" },
+              { name:"Standard", pct:35, color:"#E8471F" },
               { name:"Premium", pct:23, color:"#0E7C66" },
             ].map(p => (
               <div key={p.name} className="flex items-center justify-between text-xs">
@@ -818,7 +818,7 @@ function UmrahReport({ filters, loadState }: { filters: Filters; loadState: Load
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Umrah Pilgrims (YTD)" value="618" trend={12.4} icon={Users} color="bg-[#14356B]" />
+        <KpiCard label="Umrah Pilgrims (YTD)" value="618" trend={12.4} icon={Users} color="bg-[#0E6BB8]" />
         <KpiCard label="Groups Operated" value="42" trend={9.8} icon={Globe} color="bg-emerald-500" />
         <KpiCard label="Avg Package Value" value={fmtC(198000)} trend={6.1} icon={DollarSign} color="bg-amber-500" />
         <KpiCard label="Revenue (YTD)" value={fmtM(12300000)} trend={14.1} icon={TrendingUp} color="bg-purple-500" />
@@ -831,7 +831,7 @@ function UmrahReport({ filters, loadState }: { filters: Filters; loadState: Load
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="pilgrims" name="Pilgrims" fill="#14356B" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="pilgrims" name="Pilgrims" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Section>
@@ -853,7 +853,7 @@ function UmrahReport({ filters, loadState }: { filters: Filters; loadState: Load
                   </div>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#14356B] rounded-full" style={{ width: `${p.pct}%` }} />
+                  <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width: `${p.pct}%` }} />
                 </div>
               </div>
             ))}
@@ -871,7 +871,7 @@ function VisaReport({ filters, loadState }: { filters: Filters; loadState: LoadS
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Applications" value="1,240" trend={18.4} icon={FileText} color="bg-[#14356B]" />
+        <KpiCard label="Total Applications" value="1,240" trend={18.4} icon={FileText} color="bg-[#0E6BB8]" />
         <KpiCard label="Approved" value="980" trend={15.2} icon={CheckCircle} color="bg-emerald-500" />
         <KpiCard label="Approval Rate" value="79.0%" trend={2.4} icon={TrendingUp} color="bg-blue-500" />
         <KpiCard label="Visa Revenue (YTD)" value={fmtM(4800000)} trend={8.4} icon={DollarSign} color="bg-amber-500" />
@@ -936,7 +936,7 @@ function ManpowerReport({ filters, loadState }: { filters: Filters; loadState: L
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Workers Placed (YTD)" value="342" trend={22.1} icon={Users} color="bg-[#14356B]" />
+        <KpiCard label="Workers Placed (YTD)" value="342" trend={22.1} icon={Users} color="bg-[#0E6BB8]" />
         <KpiCard label="Active Orders" value="28" icon={Briefcase} color="bg-emerald-500" />
         <KpiCard label="Avg Placement Fee" value={fmtC(85000)} trend={5.2} icon={DollarSign} color="bg-amber-500" />
         <KpiCard label="Revenue (YTD)" value={fmtM(2940000)} trend={22.1} icon={TrendingUp} color="bg-purple-500" />
@@ -956,15 +956,15 @@ function ManpowerReport({ filters, loadState }: { filters: Filters; loadState: L
               <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="country" tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="workers" name="Workers" fill="#14356B" radius={[0, 3, 3, 0]} />
+              <Bar dataKey="workers" name="Workers" fill="#0E6BB8" radius={[0, 3, 3, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Section>
         <Section title="By Category">
           <div className="space-y-3">
             {[
-              { cat:"Domestic Workers", count:124, pct:36, color:"#14356B" },
-              { cat:"Construction", count:98, pct:29, color:"#C9A227" },
+              { cat:"Domestic Workers", count:124, pct:36, color:"#0E6BB8" },
+              { cat:"Construction", count:98, pct:29, color:"#E8471F" },
               { cat:"Hospitality", count:72, pct:21, color:"#0E7C66" },
               { cat:"Healthcare", count:48, pct:14, color:"#7C3AED" },
             ].map(c => (
@@ -991,7 +991,7 @@ function AgentReport({ filters, loadState }: { filters: Filters; loadState: Load
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Active Agents" value="24" trend={4} icon={Users} color="bg-[#14356B]" />
+        <KpiCard label="Active Agents" value="24" trend={4} icon={Users} color="bg-[#0E6BB8]" />
         <KpiCard label="Agent Bookings (YTD)" value="555" trend={18} icon={Calendar} color="bg-emerald-500" />
         <KpiCard label="Total Commission" value={fmtC(1265000)} trend={14.2} icon={DollarSign} color="bg-amber-500" />
         <KpiCard label="Agent Revenue Share" value="24.3%" trend={2.1} icon={TrendingUp} color="bg-blue-500" />
@@ -1005,8 +1005,8 @@ function AgentReport({ filters, loadState }: { filters: Filters; loadState: Load
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                 tickFormatter={v => `৳${(v/1000000).toFixed(1)}M`} />
               <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="revenue" name="Revenue" fill="#14356B" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="commission" name="Commission" fill="#C9A227" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="revenue" name="Revenue" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="commission" name="Commission" fill="#E8471F" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Section>
@@ -1014,7 +1014,7 @@ function AgentReport({ filters, loadState }: { filters: Filters; loadState: Load
           <div className="space-y-3">
             {AGENT_DATA.map((a, i) => (
               <div key={a.name} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -1086,12 +1086,12 @@ const PNL_ROW_STYLE: Record<string, string> = {
   "expense":      "font-semibold text-slate-800",
   "expense-sub":  "text-slate-600 pl-4",
   "total":        "font-bold text-slate-800 bg-blue-50/50",
-  "grand-total":  "font-bold text-[#14356B] bg-[#14356B]/5",
+  "grand-total":  "font-bold text-[#0E6BB8] bg-[#0E6BB8]/5",
 };
 const PNL_AMOUNT_COLOR: Record<string, string> = {
   "revenue": "text-emerald-700", "revenue-sub": "text-emerald-600",
   "expense": "text-red-600", "expense-sub": "text-red-500",
-  "total": "text-slate-800", "grand-total": "text-[#14356B]",
+  "total": "text-slate-800", "grand-total": "text-[#0E6BB8]",
 };
 
 function PnlReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
@@ -1103,7 +1103,7 @@ function PnlReport({ filters, loadState }: { filters: Filters; loadState: LoadSt
       <div className="grid grid-cols-4 gap-4">
         <KpiCard label="Total Revenue (YTD)" value={fmtC(revenue)} trend={14.4} icon={TrendingUp} color="bg-emerald-500" />
         <KpiCard label="Total Expenses (YTD)" value={fmtC(37000000)} trend={8.1} icon={TrendingDown} color="bg-red-500" />
-        <KpiCard label="Net Profit (YTD)" value={fmtC(netProfit)} trend={24.4} icon={DollarSign} color="bg-[#14356B]" />
+        <KpiCard label="Net Profit (YTD)" value={fmtC(netProfit)} trend={24.4} icon={DollarSign} color="bg-[#0E6BB8]" />
         <KpiCard label="Net Margin" value="10.3%" trend={2.1} icon={BarChart3} color="bg-amber-500" />
       </div>
       <div className="grid grid-cols-3 gap-5">
@@ -1125,8 +1125,8 @@ function PnlReport({ filters, loadState }: { filters: Filters; loadState: LoadSt
           <div className="pt-2 space-y-4">
             {[
               { label:"Gross Margin", value:29.2, color:"#0E7C66" },
-              { label:"EBIT Margin", value:12.1, color:"#14356B" },
-              { label:"Net Margin", value:10.3, color:"#C9A227" },
+              { label:"EBIT Margin", value:12.1, color:"#0E6BB8" },
+              { label:"Net Margin", value:10.3, color:"#E8471F" },
             ].map(m => (
               <div key={m.label}>
                 <div className="flex justify-between text-sm mb-1">
@@ -1205,7 +1205,7 @@ function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadStat
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Assets" value={fmtC(totalAssets)} icon={Layers} color="bg-[#14356B]" />
+        <KpiCard label="Total Assets" value={fmtC(totalAssets)} icon={Layers} color="bg-[#0E6BB8]" />
         <KpiCard label="Total Liabilities" value={fmtC(totalLiabilities)} icon={AlertTriangle} color="bg-red-500" />
         <KpiCard label="Total Equity" value={fmtC(totalEquity)} trend={74.2} icon={TrendingUp} color="bg-emerald-500" />
       </div>
@@ -1217,7 +1217,7 @@ function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadStat
               <Pie data={BALANCE_SHEET.assets} dataKey="current" nameKey="name"
                 cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2}>
                 {BALANCE_SHEET.assets.map((_, i) => (
-                  <Cell key={i} fill={["#14356B","#1d4ed8","#0E7C66","#C9A227","#7C3AED","#94A3B8"][i]} />
+                  <Cell key={i} fill={["#0E6BB8","#1d4ed8","#0E7C66","#E8471F","#7C3AED","#94A3B8"][i]} />
                 ))}
               </Pie>
               <Tooltip formatter={(v: number) => [fmtC(v), ""]} />
@@ -1227,7 +1227,7 @@ function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadStat
             {BALANCE_SHEET.assets.map((a, i) => (
               <div key={a.name} className="flex items-center gap-1.5 text-xs">
                 <div className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ background: ["#14356B","#1d4ed8","#0E7C66","#C9A227","#7C3AED","#94A3B8"][i] }} />
+                  style={{ background: ["#0E6BB8","#1d4ed8","#0E7C66","#E8471F","#7C3AED","#94A3B8"][i] }} />
                 <span className="text-slate-500 truncate">{a.name}</span>
               </div>
             ))}
@@ -1237,7 +1237,7 @@ function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadStat
         <Section title="Funding Structure">
           <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex mb-3">
             <div className="h-full bg-red-400 rounded-l-full" style={{ width: `${(totalLiabilities / totalAssets * 100).toFixed(0)}%` }} />
-            <div className="h-full bg-[#14356B] rounded-r-full flex-1" />
+            <div className="h-full bg-[#0E6BB8] rounded-r-full flex-1" />
           </div>
           <div className="flex justify-between text-xs text-slate-500 mb-5">
             <span>Liabilities {(totalLiabilities / totalAssets * 100).toFixed(0)}%</span>
@@ -1281,7 +1281,7 @@ function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadStat
             <tfoot>
               <tr className="border-t border-slate-200">
                 <td className="py-2 text-xs font-bold text-slate-800">Total Assets</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-[#14356B]">{fmtC(totalAssets)}</td>
+                <td className="py-2 text-xs font-bold text-right font-mono text-[#0E6BB8]">{fmtC(totalAssets)}</td>
                 <td className="py-2 text-xs font-bold text-right font-mono text-slate-400">
                   {fmtC(BALANCE_SHEET.assets.reduce((s,a)=>s+a.prior,0))}
                 </td>
@@ -1351,7 +1351,7 @@ function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadStat
           <div className="mt-4 pt-4 border-t-2 border-slate-300">
             <div className="flex justify-between text-sm font-bold">
               <span className="text-slate-800">Liabilities + Equity</span>
-              <span className="font-mono text-[#14356B]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <span className="font-mono text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {fmtC(totalLiabilities + totalEquity)}
               </span>
             </div>
@@ -1375,7 +1375,7 @@ function CashFlowReport({ filters, loadState }: { filters: Filters; loadState: L
         <KpiCard label="Operating Cash Flow" value={fmtC(totalOp)} trend={18.4} icon={TrendingUp} color="bg-emerald-500" />
         <KpiCard label="Investing Cash Flow" value={fmtC(Math.abs(totalInv))} icon={TrendingDown} color="bg-red-500" />
         <KpiCard label="Financing Cash Flow" value={fmtC(Math.abs(totalFin))} icon={DollarSign} color="bg-amber-500" />
-        <KpiCard label="Net Cash Change" value={fmtC(netChange)} trend={12.1} icon={BarChart3} color="bg-[#14356B]" />
+        <KpiCard label="Net Cash Change" value={fmtC(netChange)} trend={12.1} icon={BarChart3} color="bg-[#0E6BB8]" />
       </div>
       <Section title="Cash Flow by Category — Monthly">
         <ResponsiveContainer width="100%" height={240}>
@@ -1388,7 +1388,7 @@ function CashFlowReport({ filters, loadState }: { filters: Filters; loadState: L
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar dataKey="operating" name="Operating" fill="#0E7C66" radius={[3,3,0,0]} />
             <Bar dataKey="investing" name="Investing" fill="#EF4444" radius={[3,3,0,0]} />
-            <Bar dataKey="financing" name="Financing" fill="#C9A227" radius={[3,3,0,0]} />
+            <Bar dataKey="financing" name="Financing" fill="#E8471F" radius={[3,3,0,0]} />
           </BarChart>
         </ResponsiveContainer>
       </Section>
@@ -1439,8 +1439,8 @@ function CashFlowReport({ filters, loadState }: { filters: Filters; loadState: L
               <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-emerald-700">{fmtC(totalOp)}</td>
               <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-red-600">{fmtC(totalInv)}</td>
               <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-amber-600">{fmtC(totalFin)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-[#14356B]">{fmtC(netChange)}</td>
-              <td className="py-3 text-sm font-bold text-right font-mono text-[#14356B]">{fmtC(18250000)}</td>
+              <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-[#0E6BB8]">{fmtC(netChange)}</td>
+              <td className="py-3 text-sm font-bold text-right font-mono text-[#0E6BB8]">{fmtC(18250000)}</td>
             </tr>
           </tfoot>
         </table>
@@ -1471,7 +1471,7 @@ function CustomReports({ filters, loadState }: { filters: Filters; loadState: Lo
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Report Name</label>
               <input defaultValue="Custom Booking Report — Jul 2024"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -1491,7 +1491,7 @@ function CustomReports({ filters, loadState }: { filters: Filters; loadState: Lo
               <label className="block text-xs font-medium text-slate-600 mb-2">Columns to Include</label>
               <div className="flex flex-wrap gap-1.5 p-3 border border-slate-200 rounded-lg min-h-[80px] bg-slate-50">
                 {fields.map(f => (
-                  <span key={f} className="flex items-center gap-1 px-2 py-1 bg-[#14356B] text-white text-xs rounded-md">
+                  <span key={f} className="flex items-center gap-1 px-2 py-1 bg-[#0E6BB8] text-white text-xs rounded-md">
                     {f}
                     <button onClick={() => setFields(prev => prev.filter(x => x !== f))} className="hover:opacity-70">×</button>
                   </span>
@@ -1504,14 +1504,14 @@ function CustomReports({ filters, loadState }: { filters: Filters; loadState: Lo
               <div className="flex flex-wrap gap-1.5">
                 {AVAILABLE.filter(a => !fields.includes(a)).map(a => (
                   <button key={a} onClick={() => setFields(prev => [...prev, a])}
-                    className="px-2 py-1 border border-slate-200 text-xs text-slate-600 rounded-md hover:border-[#14356B] hover:text-[#14356B] transition-colors">
+                    className="px-2 py-1 border border-slate-200 text-xs text-slate-600 rounded-md hover:border-[#0E6BB8] hover:text-[#0E6BB8] transition-colors">
                     + {a}
                   </button>
                 ))}
               </div>
             </div>
             <div className="pt-3 border-t border-slate-100 flex gap-2">
-              <button className="flex-1 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+              <button className="flex-1 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
                 Generate Report
               </button>
               <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
@@ -1538,7 +1538,7 @@ function CustomReports({ filters, loadState }: { filters: Filters; loadState: Lo
                       r.format === "Excel" ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700")}>
                       {r.format}
                     </span>
-                    <button className="text-xs text-[#14356B] hover:underline">Run</button>
+                    <button className="text-xs text-[#0E6BB8] hover:underline">Run</button>
                   </div>
                 </div>
               ))}
@@ -1656,9 +1656,9 @@ export function ReportsModule() {
                 <button key={item.id} onClick={() => handleViewChange(item.id)}
                   className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                     view === item.id
-                      ? "bg-[#14356B]/8 text-[#14356B] font-medium"
+                      ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium"
                       : "text-slate-600 hover:bg-slate-50")}>
-                  <item.icon size={15} className={view === item.id ? "text-[#14356B]" : "text-slate-400"} />
+                  <item.icon size={15} className={view === item.id ? "text-[#0E6BB8]" : "text-slate-400"} />
                   {item.label}
                 </button>
               ))}

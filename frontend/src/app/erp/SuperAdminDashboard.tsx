@@ -33,8 +33,8 @@ const REVENUE_DATA = [
 ];
 
 const SERVICE_DATA = [
-  { name: "Hajj",        value: 342,  color: "#14356B" },
-  { name: "Umrah",       value: 1124, color: "#C9A227" },
+  { name: "Hajj",        value: 342,  color: "#0E6BB8" },
+  { name: "Umrah",       value: 1124, color: "#E8471F" },
   { name: "Visa",        value: 487,  color: "#0E7C66" },
   { name: "Air Ticket",  value: 621,  color: "#2563EB" },
   { name: "Manpower",    value: 198,  color: "#7C3AED" },
@@ -50,19 +50,19 @@ const BRANCH_DATA = [
 ];
 
 const FUNNEL_DATA = [
-  { stage: "New Leads",    count: 847, fill: "#14356B" },
+  { stage: "New Leads",    count: 847, fill: "#0E6BB8" },
   { stage: "Qualified",    count: 512, fill: "#1e4d9b" },
   { stage: "Proposal",     count: 298, fill: "#2563EB" },
-  { stage: "Negotiation",  count: 156, fill: "#C9A227" },
+  { stage: "Negotiation",  count: 156, fill: "#E8471F" },
   { stage: "Won",          count: 89,  fill: "#0E7C66" },
 ];
 
 const ACTIVITY_FEED = [
-  { id: 1, type: "booking",  actor: "Agent Rahel Ahmed",   action: "created booking", target: "#BK-2847 — Umrah Economy", time: "2m ago",  color: "#14356B", bg: "#EEF2FF"  },
+  { id: 1, type: "booking",  actor: "Agent Rahel Ahmed",   action: "created booking", target: "#BK-2847 — Umrah Economy", time: "2m ago",  color: "#0E6BB8", bg: "#EEF2FF"  },
   { id: 2, type: "payment",  actor: "System",              action: "received payment", target: "৳1,20,000 — Invoice INV-0391", time: "15m ago", color: "#0E7C66", bg: "#ECFDF5"  },
-  { id: 3, type: "lead",     actor: "Sales Team (Dhaka)",  action: "added new lead",  target: "MD Electronics Group — Hajj ×24", time: "32m ago", color: "#C9A227", bg: "#FFF9E6"  },
+  { id: 3, type: "lead",     actor: "Sales Team (Dhaka)",  action: "added new lead",  target: "MD Electronics Group — Hajj ×24", time: "32m ago", color: "#E8471F", bg: "#FFF9E6"  },
   { id: 4, type: "visa",     actor: "Visa Exec Tahmina",   action: "submitted docs",  target: "KSA Visa — 3 passports (BK-2841)", time: "1h ago",  color: "#7C3AED", bg: "#F5F3FF"  },
-  { id: 5, type: "booking",  actor: "Customer Portal",     action: "requested quote", target: "Umrah Premium ×6 — Dec 2025", time: "1h ago",  color: "#14356B", bg: "#EEF2FF"  },
+  { id: 5, type: "booking",  actor: "Customer Portal",     action: "requested quote", target: "Umrah Premium ×6 — Dec 2025", time: "1h ago",  color: "#0E6BB8", bg: "#EEF2FF"  },
   { id: 6, type: "system",   actor: "System",              action: "generated report", target: "Monthly Revenue Report — Nov 2025", time: "2h ago",  color: "#6B7280", bg: "#F3F4F6"  },
   { id: 7, type: "payment",  actor: "Agent Karim Bros",    action: "paid outstanding", target: "৳84,500 — Agent Balance", time: "3h ago",  color: "#0E7C66", bg: "#ECFDF5"  },
 ];
@@ -87,8 +87,8 @@ const TASKS = [
 ];
 
 const QUICK_ACTIONS = [
-  { icon: Plus,       label: "New Booking",    color: "#14356B", bg: "#EEF2FF"  },
-  { icon: Users,      label: "Add Lead",        color: "#C9A227", bg: "#FFF9E6"  },
+  { icon: Plus,       label: "New Booking",    color: "#0E6BB8", bg: "#EEF2FF"  },
+  { icon: Users,      label: "Add Lead",        color: "#E8471F", bg: "#FFF9E6"  },
   { icon: Receipt,    label: "Create Invoice",  color: "#0E7C66", bg: "#ECFDF5"  },
   { icon: BarChart3,  label: "Run Report",      color: "#2563EB", bg: "#EFF6FF"  },
   { icon: Send,       label: "Send Bulk SMS",   color: "#7C3AED", bg: "#F5F3FF"  },
@@ -149,7 +149,7 @@ const KPI_CARDS = [
     deltaUp: true,
     sub: "vs last month",
     icon: CalendarDays,
-    color: "#14356B",
+    color: "#0E6BB8",
     bg: "#EEF2FF",
     raw: "2847 confirmed & pending",
   },
@@ -182,7 +182,7 @@ const KPI_CARDS = [
     deltaUp: true,
     sub: "this week",
     icon: TrendingUp,
-    color: "#C9A227",
+    color: "#E8471F",
     bg: "#FFF9E6",
     raw: "89 qualified · 12 won",
   },
@@ -260,7 +260,7 @@ function RevenueChart() {
                 <button key={m} onClick={() => setMode(m)}
                   className={cn(
                     "px-2.5 py-1 rounded-[6px] text-[11px] font-medium capitalize transition-all cursor-pointer",
-                    mode === m ? "bg-white text-[#14356B] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]"
+                    mode === m ? "bg-white text-[#0E6BB8] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]"
                   )}>
                   {m}
                 </button>
@@ -276,12 +276,12 @@ function RevenueChart() {
         <AreaChart data={REVENUE_DATA} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
           <defs>
             <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#14356B" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#14356B" stopOpacity={0} />
+              <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="tgtGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#C9A227" stopOpacity={0.08} />
-              <stop offset="95%" stopColor="#C9A227" stopOpacity={0} />
+              <stop offset="5%" stopColor="#E8471F" stopOpacity={0.08} />
+              <stop offset="95%" stopColor="#E8471F" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
@@ -291,19 +291,19 @@ function RevenueChart() {
             contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
             formatter={(v: number) => [mode === "revenue" ? fmtPrice(v) : v, mode === "revenue" ? "Revenue" : "Bookings"]}
           />
-          <Area type="monotone" dataKey={mode === "revenue" ? "revenue" : "bookings"} stroke="#14356B" strokeWidth={2} fill="url(#revGrad)" dot={false} />
+          <Area type="monotone" dataKey={mode === "revenue" ? "revenue" : "bookings"} stroke="#0E6BB8" strokeWidth={2} fill="url(#revGrad)" dot={false} />
           {mode === "revenue" && (
-            <Area type="monotone" dataKey="target" stroke="#C9A227" strokeWidth={1.5} strokeDasharray="4 3" fill="url(#tgtGrad)" dot={false} />
+            <Area type="monotone" dataKey="target" stroke="#E8471F" strokeWidth={1.5} strokeDasharray="4 3" fill="url(#tgtGrad)" dot={false} />
           )}
         </AreaChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#F3F4F6]">
         <div className="flex items-center gap-1.5 text-[10px] text-[#6B7280]">
-          <div className="w-3 h-0.5 bg-[#14356B] rounded" /> Actual
+          <div className="w-3 h-0.5 bg-[#0E6BB8] rounded" /> Actual
         </div>
         {mode === "revenue" && (
           <div className="flex items-center gap-1.5 text-[10px] text-[#6B7280]">
-            <div className="w-3 h-px bg-[#C9A227] rounded border-dashed border-t border-[#C9A227]" /> Target
+            <div className="w-3 h-px bg-[#E8471F] rounded border-dashed border-t border-[#E8471F]" /> Target
           </div>
         )}
         <div className="ml-auto text-[10px] text-[#9CA3AF]">
@@ -363,7 +363,7 @@ function BranchPerformance() {
       <SectionHeader title="Branch Performance"
         sub="Revenue vs target · Current period"
         action={
-          <button className="flex items-center gap-1 text-[11px] text-[#14356B] font-semibold hover:underline cursor-pointer">
+          <button className="flex items-center gap-1 text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">
             View all <ChevronRight size={12} />
           </button>
         }
@@ -374,7 +374,7 @@ function BranchPerformance() {
           return (
             <div key={b.branch} className="flex items-center gap-3">
               <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 text-[9px] font-black text-white"
-                style={{ backgroundColor: i === 0 ? "#14356B" : i === 1 ? "#2563EB" : i === 2 ? "#0E7C66" : i === 3 ? "#C9A227" : "#7C3AED" }}>
+                style={{ backgroundColor: i === 0 ? "#0E6BB8" : i === 1 ? "#2563EB" : i === 2 ? "#0E7C66" : i === 3 ? "#E8471F" : "#7C3AED" }}>
                 {i + 1}
               </div>
               <div className="w-24 flex-shrink-0">
@@ -387,14 +387,14 @@ function BranchPerformance() {
                     className="h-full rounded-full transition-all"
                     style={{
                       width: `${Math.min(pct, 100)}%`,
-                      backgroundColor: i === 0 ? "#14356B" : i === 1 ? "#2563EB" : i === 2 ? "#0E7C66" : i === 3 ? "#C9A227" : "#7C3AED"
+                      backgroundColor: i === 0 ? "#0E6BB8" : i === 1 ? "#2563EB" : i === 2 ? "#0E7C66" : i === 3 ? "#E8471F" : "#7C3AED"
                     }}
                   />
                 </div>
               </div>
               <div className="w-16 text-right flex-shrink-0">
                 <div className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtM(b.revenue)}</div>
-                <div className={cn("text-[9px] font-bold", pct >= 100 ? "text-[#0E7C66]" : pct >= 80 ? "text-[#C9A227]" : "text-[#DC2626]")}>
+                <div className={cn("text-[9px] font-bold", pct >= 100 ? "text-[#0E7C66]" : pct >= 80 ? "text-[#C43A15]" : "text-[#DC2626]")}>
                   {pct}% target
                 </div>
               </div>
@@ -445,9 +445,9 @@ function ActivityFeed() {
     visa: User, system: RefreshCw,
   };
   const COLOR_MAP: Record<string, { color: string; bg: string }> = {
-    booking: { color: "#14356B", bg: "#EEF2FF" },
+    booking: { color: "#0E6BB8", bg: "#EEF2FF" },
     payment: { color: "#0E7C66", bg: "#ECFDF5" },
-    lead:    { color: "#C9A227", bg: "#FFF9E6" },
+    lead:    { color: "#E8471F", bg: "#FFF9E6" },
     visa:    { color: "#7C3AED", bg: "#F5F3FF" },
     system:  { color: "#6B7280", bg: "#F3F4F6" },
   };
@@ -456,7 +456,7 @@ function ActivityFeed() {
     <Card className="flex flex-col h-full">
       <SectionHeader title="Activity Feed" sub="Real-time system events"
         action={
-          <button className="flex items-center gap-1 text-[11px] text-[#14356B] font-semibold hover:underline cursor-pointer">
+          <button className="flex items-center gap-1 text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">
             View all <ChevronRight size={12} />
           </button>
         }
@@ -493,7 +493,7 @@ function BookingsTable() {
   const [sortField, setSortField] = useState<string | null>(null);
 
   const SERVICE_COLOR: Record<string, string> = {
-    Umrah: "#C9A227", Hajj: "#14356B", Visa: "#7C3AED",
+    Umrah: "#E8471F", Hajj: "#0E6BB8", Visa: "#7C3AED",
     Air: "#2563EB", Tour: "#EA580C",
   };
 
@@ -504,10 +504,10 @@ function BookingsTable() {
         sub={`${RECENT_BOOKINGS.length} most recent · All branches`}
         action={
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 text-[11px] text-[#374151] font-medium px-2.5 py-1.5 border border-[#E5E7EB] rounded-[7px] hover:border-[#14356B]/30 transition-colors cursor-pointer">
+            <button className="flex items-center gap-1.5 text-[11px] text-[#374151] font-medium px-2.5 py-1.5 border border-[#E5E7EB] rounded-[7px] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
               <Filter size={12} /> Filter
             </button>
-            <button className="flex items-center gap-1 text-[11px] text-[#14356B] font-semibold hover:underline cursor-pointer">
+            <button className="flex items-center gap-1 text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">
               View all <ChevronRight size={12} />
             </button>
           </div>
@@ -529,11 +529,11 @@ function BookingsTable() {
             {RECENT_BOOKINGS.map((b, i) => (
               <tr key={b.id} className="border-b border-[#F7F8FA] hover:bg-[#F7F8FA] transition-colors group cursor-pointer">
                 <td className="py-3 pr-4">
-                  <span className="text-[11px] font-bold text-[#14356B]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.id}</span>
+                  <span className="text-[11px] font-bold text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.id}</span>
                 </td>
                 <td className="py-3 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#14356B]/10 flex items-center justify-center text-[9px] font-black text-[#14356B]">
+                    <div className="w-6 h-6 rounded-full bg-[#0E6BB8]/10 flex items-center justify-center text-[9px] font-black text-[#0E6BB8]">
                       {b.pilgrim[0]}
                     </div>
                     <span className="text-[11px] font-medium text-[#111827] whitespace-nowrap">{b.pilgrim}</span>
@@ -581,7 +581,7 @@ function TasksPanel() {
         title="Tasks & Reminders"
         sub={`${pending} pending · ${tasks.length - pending} done`}
         action={
-          <button className="flex items-center gap-1 text-[11px] text-[#14356B] font-semibold hover:underline cursor-pointer">
+          <button className="flex items-center gap-1 text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">
             <Plus size={12} /> Add task
           </button>
         }
@@ -597,7 +597,7 @@ function TasksPanel() {
               <button onClick={() => toggle(t.id)} className="mt-0.5 flex-shrink-0 cursor-pointer">
                 <div className={cn(
                   "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
-                  t.done ? "bg-[#0E7C66] border-[#0E7C66]" : "border-[#D1D5DB] hover:border-[#14356B]"
+                  t.done ? "bg-[#0E7C66] border-[#0E7C66]" : "border-[#D1D5DB] hover:border-[#0E6BB8]"
                 )}>
                   {t.done && <CheckCircle size={11} className="text-white" />}
                 </div>
@@ -611,7 +611,7 @@ function TasksPanel() {
                   </span>
                   <span className="text-[9px] px-1.5 py-0.5 bg-[#F3F4F6] rounded-full text-[#6B7280]">{t.cat}</span>
                   <span className={cn("text-[9px] font-medium ml-auto flex items-center gap-0.5",
-                    t.due === "Overdue" ? "text-[#DC2626]" : t.due === "Today" ? "text-[#C9A227]" : "text-[#9CA3AF]"
+                    t.due === "Overdue" ? "text-[#DC2626]" : t.due === "Today" ? "text-[#C43A15]" : "text-[#9CA3AF]"
                   )}>
                     <Clock size={9} /> {t.due}
                   </span>
@@ -635,12 +635,12 @@ function QuickActions() {
           const Icon = a.icon;
           return (
             <button key={a.label}
-              className="flex flex-col items-center gap-2 p-3 rounded-[10px] border border-[#E5E7EB] hover:border-[#14356B]/30 hover:shadow-sm transition-all cursor-pointer group">
+              className="flex flex-col items-center gap-2 p-3 rounded-[10px] border border-[#E5E7EB] hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all cursor-pointer group">
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center transition-colors"
                 style={{ backgroundColor: a.bg }}>
                 <Icon size={17} style={{ color: a.color }} />
               </div>
-              <span className="text-[10px] font-semibold text-[#374151] group-hover:text-[#14356B] transition-colors text-center leading-tight">{a.label}</span>
+              <span className="text-[10px] font-semibold text-[#374151] group-hover:text-[#0E6BB8] transition-colors text-center leading-tight">{a.label}</span>
             </button>
           );
         })}
@@ -667,10 +667,10 @@ function PageHeader({ branch, dateRange }: { branch: string; dateRange: string }
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#14356B]/30 transition-colors cursor-pointer">
+        <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
           <Download size={13} className="text-[#9CA3AF]" /> Export
         </button>
-        <button className="flex items-center gap-1.5 h-9 px-3 bg-[#14356B] rounded-[8px] text-[12px] font-semibold text-white hover:bg-[#0F2A55] transition-colors cursor-pointer">
+        <button className="flex items-center gap-1.5 h-9 px-3 bg-[#0E6BB8] rounded-[8px] text-[12px] font-semibold text-white hover:bg-[#0B5794] transition-colors cursor-pointer">
           <Plus size={13} /> New Booking
         </button>
       </div>

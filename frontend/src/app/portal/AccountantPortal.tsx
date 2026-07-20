@@ -34,9 +34,9 @@ const INCOME_DATA  = [820000,940000,1050000,1240000,1080000,1540000,1380000];
 const EXPENSE_DATA = [540000,620000,690000,780000,690000,920000,850000];
 
 const INCOME_ROWS = [
-  { category:"Package Sales",        amount:980000,  pct:71, color:"#14356B" },
+  { category:"Package Sales",        amount:980000,  pct:71, color:"#0E6BB8" },
   { category:"Visa Services",        amount:145000,  pct:10, color:"#0E7C66" },
-  { category:"Air Ticket Commission",amount:138000,  pct:10, color:"#C9A227" },
+  { category:"Air Ticket Commission",amount:138000,  pct:10, color:"#E8471F" },
   { category:"Hotel Bookings",       amount:82000,   pct:6,  color:"#7C3AED" },
   { category:"Tour Packages",        amount:35000,   pct:3,  color:"#2563EB" },
 ];
@@ -147,7 +147,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
         {[
           { label:"Total Income",  val:fmtShort(totalIncome),  sub:"Jul 2024",      color:"text-emerald-600", bg:"bg-emerald-500",  Icon:TrendingUp,         delta:"+12%", up:true  },
           { label:"Total Expenses",val:fmtShort(totalExpense), sub:"Jul 2024",      color:"text-red-500",     bg:"bg-red-500",      Icon:TrendingDown,        delta:"+8%",  up:false },
-          { label:"Net Profit",    val:fmtShort(netProfit),    sub:"Jul 2024",      color:"text-[#14356B]",   bg:"bg-[#14356B]",    Icon:CircleDollarSign,   delta:"+21%", up:true  },
+          { label:"Net Profit",    val:fmtShort(netProfit),    sub:"Jul 2024",      color:"text-[#0E6BB8]",   bg:"bg-[#0E6BB8]",    Icon:CircleDollarSign,   delta:"+21%", up:true  },
           { label:"Bank Balance",  val:fmtShort(totalBank),    sub:"All accounts",  color:"text-purple-600",  bg:"bg-purple-500",   Icon:Building2,                                  },
         ].map(k => (
           <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
@@ -174,7 +174,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
         <div className="flex items-center justify-between mb-4">
           <p className="font-bold text-slate-800">Income vs Expense — 2024</p>
           <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#14356B] inline-block"/>Income</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#0E6BB8] inline-block"/>Income</span>
             <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-red-400 inline-block"/>Expense</span>
           </div>
         </div>
@@ -182,7 +182,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
           {MONTHS.map((m,i) => (
             <div key={m} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full flex gap-0.5 items-end" style={{ height:"120px" }}>
-                <div className="flex-1 rounded-t-sm" style={{ height:`${(INCOME_DATA[i]/maxVal)*100}%`, background:"#14356B" }} />
+                <div className="flex-1 rounded-t-sm" style={{ height:`${(INCOME_DATA[i]/maxVal)*100}%`, background:"#0E6BB8" }} />
                 <div className="flex-1 rounded-t-sm" style={{ height:`${(EXPENSE_DATA[i]/maxVal)*100}%`, background:"#FCA5A5" }} />
               </div>
               <p className="text-xs text-slate-400">{m}</p>
@@ -195,13 +195,13 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
       <div className="bg-white rounded-2xl border border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <p className="font-bold text-slate-800">Bank & Cash Balances</p>
-          <button onClick={() => onGo("bank-cash")} className="text-xs text-[#14356B] font-semibold hover:underline">View all</button>
+          <button onClick={() => onGo("bank-cash")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">View all</button>
         </div>
         <div className="divide-y divide-slate-100">
           {BANK_ACCOUNTS.map(a => (
             <div key={a.id} className="flex items-center gap-4 px-5 py-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#14356B]/8 flex items-center justify-center flex-shrink-0">
-                <Building2 size={15} className="text-[#14356B]" />
+              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0">
+                <Building2 size={15} className="text-[#0E6BB8]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 truncate">{a.bank}</p>
@@ -210,9 +210,9 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
               <p className="font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtShort(a.balance)}</p>
             </div>
           ))}
-          <div className="flex items-center justify-between px-5 py-3.5 bg-[#14356B]/3">
+          <div className="flex items-center justify-between px-5 py-3.5 bg-[#0E6BB8]/3">
             <p className="text-sm font-bold text-slate-700">Total Available</p>
-            <p className="font-black text-[#14356B] text-lg" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtShort(totalBank)}</p>
+            <p className="font-black text-[#0E6BB8] text-lg" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtShort(totalBank)}</p>
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
                 <p className="text-xs text-amber-600 font-mono font-bold">{item.val}</p>
               </div>
               <button onClick={() => onGo(item.v)}
-                className="text-xs text-[#14356B] font-bold px-3 py-1.5 bg-[#14356B]/8 rounded-lg hover:bg-[#14356B]/15 flex items-center gap-1">
+                className="text-xs text-[#0E6BB8] font-bold px-3 py-1.5 bg-[#0E6BB8]/8 rounded-lg hover:bg-[#0E6BB8]/15 flex items-center gap-1">
                 {item.cta} <ChevronRight size={11}/>
               </button>
             </div>
@@ -256,7 +256,7 @@ function IncomeExpenseView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Income & Expense</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#14356B] font-semibold border border-[#14356B]/30 px-3 py-1.5 rounded-xl hover:bg-[#14356B]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
           <Download size={14}/> Export
         </button>
       </div>
@@ -323,7 +323,7 @@ function IncomeExpenseView() {
               const net = INCOME_DATA[i]-EXPENSE_DATA[i];
               const margin = Math.round((net/INCOME_DATA[i])*100);
               return (
-                <tr key={m} className={cn("hover:bg-slate-50 transition-colors", i===MONTHS.length-1&&"font-semibold bg-[#14356B]/3")}>
+                <tr key={m} className={cn("hover:bg-slate-50 transition-colors", i===MONTHS.length-1&&"font-semibold bg-[#0E6BB8]/3")}>
                   <td className="px-4 py-3 text-sm text-slate-700">{m} 2024</td>
                   <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtShort(INCOME_DATA[i])}</td>
                   <td className="px-4 py-3 text-sm font-mono text-red-500">{fmtShort(EXPENSE_DATA[i])}</td>
@@ -358,7 +358,7 @@ function BankCashView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Bank & Cash</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#14356B] font-semibold border border-[#14356B]/30 px-3 py-1.5 rounded-xl hover:bg-[#14356B]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
           <Download size={14}/> Statement
         </button>
       </div>
@@ -366,14 +366,14 @@ function BankCashView() {
       {/* Account cards */}
       <div className="grid grid-cols-2 gap-3">
         {BANK_ACCOUNTS.map((a,i) => (
-          <div key={a.id} className={cn("rounded-2xl p-5", i===0?"bg-gradient-to-br from-[#14356B] to-[#0a2a52] text-white":"bg-white border border-slate-200")}>
+          <div key={a.id} className={cn("rounded-2xl p-5", i===0?"bg-gradient-to-br from-[#0E6BB8] to-[#0a2a52] text-white":"bg-white border border-slate-200")}>
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className={cn("text-xs font-medium", i===0?"text-white/70":"text-slate-400")}>{a.type}</p>
                 <p className={cn("font-bold mt-0.5", i===0?"text-white":"text-slate-800")}>{a.bank}</p>
               </div>
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i===0?"bg-white/15":"bg-[#14356B]/8")}>
-                <Building2 size={14} className={i===0?"text-white":"text-[#14356B]"} />
+              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i===0?"bg-white/15":"bg-[#0E6BB8]/8")}>
+                <Building2 size={14} className={i===0?"text-white":"text-[#0E6BB8]"} />
               </div>
             </div>
             <p className={cn("text-2xl font-black", i===0?"text-white":"text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>
@@ -437,7 +437,7 @@ function JournalView() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Journal Entries</h2>
         <button onClick={() => setNewModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14}/> New Entry
         </button>
       </div>
@@ -558,7 +558,7 @@ function JournalView() {
                 Save as Draft
               </button>
               <button onClick={() => setNewModal(false)}
-                className="flex-1 py-3 bg-[#14356B] text-white font-bold text-sm rounded-2xl hover:bg-[#0f2a56]">
+                className="flex-1 py-3 bg-[#0E6BB8] text-white font-bold text-sm rounded-2xl hover:bg-[#0B5794]">
                 Post Entry
               </button>
             </div>
@@ -577,7 +577,7 @@ function InvPayView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Invoices & Payments</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-1.5 px-4 py-2 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14}/> New Invoice
         </button>
       </div>
@@ -598,7 +598,7 @@ function InvPayView() {
           <div className="grid grid-cols-3 border-b border-slate-200">
             {[
               { label:"Total Outstanding", val:fmtShort(INVOICES_DATA.reduce((s,i)=>s+i.balance,0)), cls:"text-red-500"     },
-              { label:"Customer Invoices", val:fmtShort(INVOICES_DATA.filter(i=>i.type==="customer").reduce((s,i)=>s+i.amount,0)), cls:"text-[#14356B]" },
+              { label:"Customer Invoices", val:fmtShort(INVOICES_DATA.filter(i=>i.type==="customer").reduce((s,i)=>s+i.amount,0)), cls:"text-[#0E6BB8]" },
               { label:"Supplier Invoices", val:fmtShort(INVOICES_DATA.filter(i=>i.type==="supplier").reduce((s,i)=>s+i.amount,0)), cls:"text-purple-600" },
             ].map(s => (
               <div key={s.label} className="px-5 py-4 text-center border-r border-slate-200 last:border-0">
@@ -693,7 +693,7 @@ function FinReportsView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Financial Reports</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#14356B] font-semibold border border-[#14356B]/30 px-3.5 py-2 rounded-xl hover:bg-[#14356B]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3.5 py-2 rounded-xl hover:bg-[#0E6BB8]/5">
           <Plus size={14}/> Custom Report
         </button>
       </div>
@@ -703,7 +703,7 @@ function FinReportsView() {
         {[
           { label:"Gross Revenue YTD",  val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)),   color:"text-emerald-600" },
           { label:"Total Expenses YTD", val:fmtShort(EXPENSE_DATA.reduce((s,v)=>s+v,0)),  color:"text-red-500"     },
-          { label:"Net Profit YTD",     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#14356B]" },
+          { label:"Net Profit YTD",     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#0E6BB8]" },
         ].map(s => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
             <p className={cn("text-xl font-black", s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
@@ -727,7 +727,7 @@ function FinReportsView() {
               <tr key={i} className="hover:bg-slate-50 transition-colors">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-9 bg-[#14356B]/10 border border-[#14356B]/20 rounded-lg flex items-center justify-center text-[#14356B] text-xs font-bold">PDF</div>
+                    <div className="w-8 h-9 bg-[#0E6BB8]/10 border border-[#0E6BB8]/20 rounded-lg flex items-center justify-center text-[#0E6BB8] text-xs font-bold">PDF</div>
                     <p className="text-sm font-semibold text-slate-800">{r.name}</p>
                   </div>
                 </td>
@@ -737,7 +737,7 @@ function FinReportsView() {
                 <td className="px-5 py-4 text-xs text-slate-400">{r.date}</td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 text-xs text-[#14356B] font-semibold hover:underline"><Eye size={12}/> View</button>
+                    <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline"><Eye size={12}/> View</button>
                     <button className="flex items-center gap-1 text-xs text-slate-500 font-semibold hover:underline"><Download size={12}/> PDF</button>
                   </div>
                 </td>
@@ -758,7 +758,7 @@ function TaxView() {
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"VAT Collected YTD",  val:"৳10,01,000", color:"bg-[#14356B]"  },
+          { label:"VAT Collected YTD",  val:"৳10,01,000", color:"bg-[#0E6BB8]"  },
           { label:"Income Tax (est.)",  val:"৳1,33,400",  color:"bg-purple-500" },
           { label:"Next Filing",        val:"Oct 31",     color:"bg-amber-500"  },
         ].map(s => (
@@ -797,7 +797,7 @@ function TaxView() {
                 <td className="px-4 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{q.quarter}</td>
                 <td className="px-4 py-4 text-sm font-mono font-bold text-slate-800">{q.income ? fmtShort(q.income) : "—"}</td>
                 <td className="px-4 py-4 text-sm font-mono text-purple-600">{q.vat ? fmtShort(q.vat) : "—"}</td>
-                <td className="px-4 py-4 text-sm font-mono text-[#14356B]">{q.tax ? fmtShort(q.tax) : "—"}</td>
+                <td className="px-4 py-4 text-sm font-mono text-[#0E6BB8]">{q.tax ? fmtShort(q.tax) : "—"}</td>
                 <td className="px-4 py-4">
                   <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border",
                     q.filed
@@ -809,8 +809,8 @@ function TaxView() {
                 <td className="px-4 py-4 text-xs text-slate-500">{q.deadline}</td>
                 <td className="px-4 py-4">
                   {q.filed
-                    ? <button className="flex items-center gap-1 text-xs text-[#14356B] font-semibold hover:underline"><Download size={12}/> Return</button>
-                    : <button className="text-xs bg-[#14356B] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#0f2a56]">Prepare</button>}
+                    ? <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline"><Download size={12}/> Return</button>
+                    : <button className="text-xs bg-[#0E6BB8] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#0B5794]">Prepare</button>}
                 </td>
               </tr>
             ))}
@@ -825,7 +825,7 @@ function TaxView() {
           {["VAT Return Q1 2024","VAT Return Q2 2024","TIN Certificate","Trade License 2024"].map(doc => (
             <div key={doc} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
               <span className="text-sm font-medium text-slate-700">{doc}</span>
-              <button className="flex items-center gap-1 text-xs text-[#14356B] font-semibold hover:underline">
+              <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
                 <Download size={12}/> Download
               </button>
             </div>
@@ -845,7 +845,7 @@ function AuditView() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Audit Logs</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#14356B] font-semibold border border-[#14356B]/30 px-3 py-1.5 rounded-xl hover:bg-[#14356B]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
           <Download size={14}/> Export
         </button>
       </div>
@@ -854,7 +854,7 @@ function AuditView() {
         {["all","info","warning","critical"].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all",
-              filter===f ? "bg-[#14356B] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#14356B]/30")}>
+              filter===f ? "bg-[#0E6BB8] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#0E6BB8]/30")}>
             {f}
           </button>
         ))}
@@ -901,7 +901,7 @@ function AccProfile() {
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
-      <div className="bg-gradient-to-br from-[#14356B] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
+      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black">FA</div>
         <div>
           <p className="text-xl font-bold">Ferdous Ahmed</p>
@@ -924,13 +924,13 @@ function AccProfile() {
             <input defaultValue={v} disabled={!editing || ["Employee ID","Role"].includes(l)}
               className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
                 editing && !["Employee ID","Role"].includes(l)
-                  ? "border-[#14356B]/40 bg-white focus:outline-none"
+                  ? "border-[#0E6BB8]/40 bg-white focus:outline-none"
                   : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
           </div>
         ))}
         {editing && (
           <button onClick={() => setEditing(false)}
-            className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56] flex items-center justify-center gap-2">
+            className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
             <Check size={15}/> Save Changes
           </button>
         )}
@@ -954,7 +954,7 @@ function AccProfile() {
 // ─── Sidebar inner ────────────────────────────────────────────────────────────
 function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => void; onClose?: () => void }) {
   return (
-    <aside className="w-56 bg-[#14356B] flex flex-col h-full">
+    <aside className="w-56 bg-[#17456B] flex flex-col h-full">
       <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-black">BDH</div>
@@ -1046,7 +1046,7 @@ export function AccountantPortal() {
                 FY: <span className="font-semibold text-slate-700">2024</span>
               </div>
               <button onClick={() => go("profile")}
-                className="w-7 h-7 rounded-full bg-[#14356B]/15 flex items-center justify-center text-[#14356B] text-xs font-bold">
+                className="w-7 h-7 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
                 FA
               </button>
             </div>
@@ -1071,7 +1071,7 @@ export function AccountantPortal() {
               style={{ minWidth: 44, minHeight: 44 }}
               className="flex items-center justify-center"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[160px]">{currentLabel}</p>
@@ -1081,7 +1081,7 @@ export function AccountantPortal() {
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-400 font-mono">FY 2024</span>
             <button onClick={() => go("profile")}
-              className="w-8 h-8 rounded-full bg-[#14356B]/15 flex items-center justify-center text-[#14356B] text-xs font-bold ml-1">
+              className="w-8 h-8 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold ml-1">
               FA
             </button>
           </div>

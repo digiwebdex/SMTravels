@@ -164,13 +164,13 @@ function InvoiceListView({ onView, onPrint }: { onView: (id: string) => void; on
           <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={14} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
             <Plus size={14} /> New Invoice
           </button>
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Invoiced (Jul)" value={fmtC(2138000)} trend={18} icon={FileText} color="bg-[#14356B]" />
+        <KpiCard label="Total Invoiced (Jul)" value={fmtC(2138000)} trend={18} icon={FileText} color="bg-[#0E6BB8]" />
         <KpiCard label="Collected" value={fmtC(743500)} trend={12} icon={CheckCircle} color="bg-emerald-500" />
         <KpiCard label="Outstanding" value={fmtC(totalOutstanding)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Overdue" value={fmtC(450000)} trend={-5} icon={AlertTriangle} color="bg-red-500" />
@@ -180,7 +180,7 @@ function InvoiceListView({ onView, onPrint }: { onView: (id: string) => void; on
           <div className="relative flex-1 max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input placeholder="Search invoices…" value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" />
+              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
           </div>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as InvoiceStatus | "all")}
             className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
@@ -371,7 +371,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
             <h4 className="font-semibold text-slate-800 mb-3">Actions</h4>
             <div className="space-y-2">
               {[
-                { label: "Record Payment", icon: CreditCard, cls: "bg-[#14356B] text-white hover:bg-[#0f2a56]" },
+                { label: "Record Payment", icon: CreditCard, cls: "bg-[#0E6BB8] text-white hover:bg-[#0B5794]" },
                 { label: "Send Reminder", icon: Send, cls: "border border-slate-200 text-slate-600 hover:bg-slate-50" },
                 { label: "Download PDF", icon: Download, cls: "border border-slate-200 text-slate-600 hover:bg-slate-50" },
                 { label: "Cancel Invoice", icon: XCircle, cls: "border border-red-200 text-red-500 hover:bg-red-50" },
@@ -401,24 +401,24 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
           <ArrowLeft size={16} /> Back
         </button>
-        <button className="ml-auto flex items-center gap-2 px-4 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+        <button className="ml-auto flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
           <Printer size={14} /> Print
         </button>
       </div>
       {/* A4 invoice preview */}
       <div className="bg-white rounded-xl border border-slate-200 max-w-3xl mx-auto" style={{ minHeight: "297mm" }}>
         {/* Header stripe */}
-        <div className="h-2 rounded-t-xl" style={{ background: "linear-gradient(90deg, #14356B 0%, #C9A227 100%)" }} />
+        <div className="h-2 rounded-t-xl" style={{ background: "linear-gradient(90deg, #0E6BB8 0%, #E8471F 100%)" }} />
         <div className="p-10">
           {/* Company header */}
           <div className="flex items-start justify-between mb-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-[#14356B] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-[#0E6BB8] flex items-center justify-center">
                   <span className="text-white text-xs font-bold">BDH</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-[#14356B]">BDH Travels & Tourism</h1>
+                  <h1 className="text-2xl font-bold text-[#0E6BB8]">BDH Travels & Tourism</h1>
                   <p className="text-xs text-slate-500">Govt. Registered Hajj & Umrah Operator · License No. HA-2024-0421</p>
                 </div>
               </div>
@@ -433,7 +433,7 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
               <div className="space-y-1 text-sm">
                 <div className="flex items-center justify-end gap-2">
                   <span className="text-slate-500">Invoice #</span>
-                  <span className="font-bold text-[#14356B] font-mono">{inv.id}</span>
+                  <span className="font-bold text-[#0E6BB8] font-mono">{inv.id}</span>
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   <span className="text-slate-500">Date</span>
@@ -456,7 +456,7 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
               <p className="text-sm text-slate-600">{inv.email}</p>
               <p className="text-sm text-slate-600">{inv.phone}</p>
             </div>
-            <div className="p-4 bg-[#14356B]/5 rounded-xl">
+            <div className="p-4 bg-[#0E6BB8]/5 rounded-xl">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Service Details</p>
               <p className="font-bold text-slate-800">{inv.service}</p>
               <p className="text-sm text-slate-600">Currency: {inv.currency}</p>
@@ -467,7 +467,7 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
           {/* Items table */}
           <table className="w-full mb-6">
             <thead>
-              <tr style={{ background: "#14356B" }}>
+              <tr style={{ background: "#0E6BB8" }}>
                 <th className="text-left text-xs font-semibold text-white px-4 py-3 rounded-tl-lg">Description</th>
                 <th className="text-right text-xs font-semibold text-white px-4 py-3 w-16">Qty</th>
                 <th className="text-right text-xs font-semibold text-white px-4 py-3 w-32">Unit Price</th>
@@ -500,7 +500,7 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
               ))}
               <div className="flex justify-between font-bold border-t border-slate-300 pt-2">
                 <span className="text-slate-800">Total</span>
-                <span className="text-[#14356B] font-mono text-lg" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="text-[#0E6BB8] font-mono text-lg" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                   {fmtC(subtotal + tax, inv.currency)}
                 </span>
               </div>
@@ -552,7 +552,7 @@ function ReceiptsView() {
           <h2 className="text-xl font-bold text-slate-800">Receipts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Issued payment receipts</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
           <Plus size={14} /> Issue Receipt
         </button>
       </div>
@@ -575,7 +575,7 @@ function ReceiptsView() {
                 <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
                 <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
                 <td className="px-4 py-3">
-                  <button className="flex items-center gap-1 text-xs text-[#14356B] hover:underline">
+                  <button className="flex items-center gap-1 text-xs text-[#0E6BB8] hover:underline">
                     <Printer size={12} /> Print
                   </button>
                 </td>
@@ -614,7 +614,7 @@ function PaymentCollectionView() {
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Amount</label>
                 <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
@@ -633,7 +633,7 @@ function PaymentCollectionView() {
                 ].map(({ id, label, icon: Icon }) => (
                   <button key={id} onClick={() => setMethod(id)}
                     className={cn("flex flex-col items-center gap-1 p-3 border rounded-lg text-xs transition-all",
-                      method === id ? "border-[#14356B] bg-[#14356B]/5 text-[#14356B]" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+                      method === id ? "border-[#0E6BB8] bg-[#0E6BB8]/5 text-[#0E6BB8]" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
                     <Icon size={16} />
                     {label}
                   </button>
@@ -719,20 +719,20 @@ function InstallmentBuilderView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Total Amount (BDT)</label>
               <input type="number" value={totalAmount} onChange={e => setTotalAmount(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-5">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Down Payment: {downPct}%</label>
               <input type="range" min={0} max={60} step={5} value={downPct} onChange={e => setDownPct(+e.target.value)}
-                className="w-full accent-[#14356B]" />
+                className="w-full accent-[#0E6BB8]" />
               <p className="text-xs text-slate-500 mt-1">Down: <span className="font-mono font-medium">{fmtC(down)}</span></p>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Installments: {installments}</label>
               <input type="range" min={1} max={12} value={installments} onChange={e => setInstallments(+e.target.value)}
-                className="w-full accent-[#14356B]" />
+                className="w-full accent-[#0E6BB8]" />
               <p className="text-xs text-slate-500 mt-1">Each: <span className="font-mono font-medium">{fmtC(each)}</span></p>
             </div>
           </div>
@@ -741,7 +741,7 @@ function InstallmentBuilderView() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Payment Schedule Preview</p>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#C9A227] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">0</div>
+                <div className="w-6 h-6 rounded-full bg-[#E8471F] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">0</div>
                 <div className="flex-1 flex justify-between text-sm">
                   <span className="text-slate-600">Down Payment (Today)</span>
                   <span className="font-mono font-semibold text-slate-800">{fmtC(down)}</span>
@@ -749,7 +749,7 @@ function InstallmentBuilderView() {
               </div>
               {Array.from({ length: installments }, (_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{i + 1}</div>
+                  <div className="w-6 h-6 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{i + 1}</div>
                   <div className="flex-1 flex justify-between text-sm">
                     <span className="text-slate-600">Installment {i + 1} – {["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"][i]} 1</span>
                     <span className="font-mono font-semibold text-slate-800">{fmtC(each)}</span>
@@ -758,13 +758,13 @@ function InstallmentBuilderView() {
               ))}
               <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-bold">
                 <span className="text-slate-800">Total</span>
-                <span className="font-mono text-[#14356B]">{fmtC(down + each * installments)}</span>
+                <span className="font-mono text-[#0E6BB8]">{fmtC(down + each * installments)}</span>
               </div>
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
             <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save Draft</button>
-            <button className="px-5 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">Create Plan</button>
+            <button className="px-5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">Create Plan</button>
           </div>
         </div>
         {/* Active plans tracker */}
@@ -785,7 +785,7 @@ function InstallmentBuilderView() {
                   <p className="text-sm font-medium text-slate-700">{plan.customer}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", plan.status === "overdue" ? "bg-red-400" : "bg-[#14356B]")}
+                      <div className={cn("h-full rounded-full", plan.status === "overdue" ? "bg-red-400" : "bg-[#0E6BB8]")}
                         style={{ width: `${pct}%` }} />
                     </div>
                     <span className="text-xs text-slate-500 font-mono">{pct}%</span>
@@ -821,7 +821,7 @@ function DueManagementView() {
       <div className="grid grid-cols-4 gap-4">
         <KpiCard label="Total Outstanding" value={fmtC(totalDue)} icon={Wallet} color="bg-amber-500" />
         <KpiCard label="Overdue (30+ days)" value={fmtC(473000)} trend={-5} icon={AlertTriangle} color="bg-red-500" />
-        <KpiCard label="Invoices Due" value="8" icon={FileText} color="bg-[#14356B]" />
+        <KpiCard label="Invoices Due" value="8" icon={FileText} color="bg-[#0E6BB8]" />
         <KpiCard label="Avg. Days Outstanding" value="18 days" icon={Clock} color="bg-slate-500" />
       </div>
       <div className="grid grid-cols-3 gap-5">
@@ -889,7 +889,7 @@ function DueManagementView() {
                 <td className="px-4 py-3"><InvStatusChip status={inv.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
-                    <button className="text-xs text-[#14356B] hover:underline">Remind</button>
+                    <button className="text-xs text-[#0E6BB8] hover:underline">Remind</button>
                     <span className="text-slate-300">·</span>
                     <button className="text-xs text-emerald-600 hover:underline">Collect</button>
                   </div>
@@ -1033,7 +1033,7 @@ function RefundsView() {
           <h2 className="text-xl font-bold text-slate-800">Refunds</h2>
           <p className="text-sm text-slate-500 mt-0.5">Process and track customer refunds</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
           <Plus size={14} /> New Refund
         </button>
       </div>
@@ -1095,7 +1095,7 @@ function VouchersView() {
           <h2 className="text-xl font-bold text-slate-800">Vouchers & Promo Codes</h2>
           <p className="text-sm text-slate-500 mt-0.5">Create and manage discount vouchers</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
           <Plus size={14} /> Create Voucher
         </button>
       </div>
@@ -1110,8 +1110,8 @@ function VouchersView() {
               <div className="absolute top-0 right-0 bg-slate-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">EXPIRED</div>
             )}
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C9A227]/10 flex items-center justify-center">
-                <Tag size={18} className="text-[#C9A227]" />
+              <div className="w-10 h-10 rounded-xl bg-[#E8471F]/10 flex items-center justify-center">
+                <Tag size={18} className="text-[#C43A15]" />
               </div>
               <div>
                 <p className="font-bold text-slate-800 font-mono text-lg">{v.code}</p>
@@ -1121,7 +1121,7 @@ function VouchersView() {
             <div className="grid grid-cols-2 gap-3 text-sm mb-3">
               <div>
                 <p className="text-xs text-slate-400">Discount</p>
-                <p className="font-bold text-[#14356B]">
+                <p className="font-bold text-[#0E6BB8]">
                   {v.type === "flat" ? `${CURRENCY_SYMBOL[v.currency]}${v.value} off` : `${v.value}% off`}
                 </p>
               </div>
@@ -1136,11 +1136,11 @@ function VouchersView() {
                 <span>{Math.round((v.used / v.limit) * 100)}%</span>
               </div>
               <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#C9A227] rounded-full" style={{ width: `${(v.used / v.limit) * 100}%` }} />
+                <div className="h-full bg-[#E8471F] rounded-full" style={{ width: `${(v.used / v.limit) * 100}%` }} />
               </div>
             </div>
             <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-              <button className="text-xs text-[#14356B] hover:underline">Edit</button>
+              <button className="text-xs text-[#0E6BB8] hover:underline">Edit</button>
               <span className="text-slate-300">·</span>
               <button className="text-xs text-slate-400 hover:underline">View Usage</button>
               {v.status === "active" && <><span className="text-slate-300">·</span><button className="text-xs text-red-500 hover:underline">Disable</button></>}
@@ -1198,9 +1198,9 @@ export function InvoicesModule() {
                 <button key={item.id} onClick={() => setView(item.id)}
                   className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                     view === item.id || (view === "detail" && item.id === "list") || (view === "print" && item.id === "list")
-                      ? "bg-[#14356B]/8 text-[#14356B] font-medium"
+                      ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium"
                       : "text-slate-600 hover:bg-slate-50")}>
-                  <item.icon size={15} className={view === item.id ? "text-[#14356B]" : "text-slate-400"} />
+                  <item.icon size={15} className={view === item.id ? "text-[#0E6BB8]" : "text-slate-400"} />
                   {item.label}
                 </button>
               ))}

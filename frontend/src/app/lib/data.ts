@@ -28,7 +28,7 @@ export const SERVICES: ServiceData[] = [
     description: "SMTravel International is one of Bangladesh's most trusted Hajj management agencies, holding full government approval from the Ministry of Religious Affairs. We offer comprehensive Hajj packages designed to make your pilgrimage spiritually fulfilling and logistically seamless — from application through your safe return home.",
     heroImage: "photo-1770786106021-52580470e31e",
     iconName: "star",
-    color: "#C9A227",
+    color: "#E8471F",
     features: [
       { icon: "shield", title: "Govt. Approved", desc: "ATAB-licensed & Ministry of Hajj certified agency with 25+ years track record." },
       { icon: "hotel", title: "Premium Accommodation", desc: "5-star hotels within walking distance of Masjid al-Haram and Masjid an-Nabawi." },
@@ -111,7 +111,7 @@ export const SERVICES: ServiceData[] = [
     description: "Perform the blessed Umrah at any time of the year with SMTravel International's carefully curated packages. From Ramadan specials to off-season economy options, we offer flexible, affordable, and spiritually enriching Umrah journeys tailored to every pilgrim's needs and budget.",
     heroImage: "photo-1720549973451-018d3623b55a",
     iconName: "map-pin",
-    color: "#14356B",
+    color: "#0E6BB8",
     features: [
       { icon: "calendar", title: "Flexible Dates", desc: "Choose from weekly departures throughout the year. Special Ramadan packages available." },
       { icon: "hotel", title: "Top Hotels", desc: "Hand-picked hotels in Makkah and Madinah ranging from 3-star to 5-star luxury." },

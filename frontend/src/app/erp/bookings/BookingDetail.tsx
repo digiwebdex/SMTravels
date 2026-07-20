@@ -86,14 +86,14 @@ function StatusTimeline({ booking }: { booking: Booking }) {
             <div className="flex flex-col items-center gap-1.5">
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all",
-                done ? "bg-[#0E7C66] border-[#0E7C66]" : active ? "bg-[#14356B] border-[#14356B]" : "bg-white border-[#E5E7EB]"
+                done ? "bg-[#0E7C66] border-[#0E7C66]" : active ? "bg-[#0E6BB8] border-[#0E6BB8]" : "bg-white border-[#E5E7EB]"
               )}>
                 {done && !active ? <CheckCircle2 size={14} className="text-white" /> : (
                   <span className="text-[10px] font-black" style={{ color: done || active ? "white" : "#9CA3AF" }}>{i + 1}</span>
                 )}
               </div>
               <div className={cn("text-[10px] font-bold text-center whitespace-nowrap",
-                active ? "text-[#14356B]" : done ? "text-[#0E7C66]" : "text-[#9CA3AF]"
+                active ? "text-[#0E6BB8]" : done ? "text-[#0E7C66]" : "text-[#9CA3AF]"
               )}>{status}</div>
             </div>
             {!isLast && (
@@ -127,7 +127,7 @@ function VisaTracker({ details }: { details: Record<string, string | number | bo
             <div key={s.label} className="flex items-start gap-3">
               <div className="relative flex flex-col items-center">
                 <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                  s.done ? "bg-[#0E7C66] border-[#0E7C66]" : i === currentStep + 1 ? "bg-[#14356B] border-[#14356B] animate-pulse" : "bg-white border-[#E5E7EB]"
+                  s.done ? "bg-[#0E7C66] border-[#0E7C66]" : i === currentStep + 1 ? "bg-[#0E6BB8] border-[#0E6BB8] animate-pulse" : "bg-white border-[#E5E7EB]"
                 )}>
                   {s.done ? <CheckCircle2 size={12} className="text-white" /> : (
                     <span className="text-[8px] font-black" style={{ color: i === currentStep + 1 ? "white" : "#9CA3AF" }}>{i + 1}</span>
@@ -138,7 +138,7 @@ function VisaTracker({ details }: { details: Record<string, string | number | bo
                 )}
               </div>
               <div className="pb-3">
-                <span className={cn("text-[12px] font-semibold", s.done ? "text-[#065F46]" : i === currentStep + 1 ? "text-[#14356B]" : "text-[#9CA3AF]")}>
+                <span className={cn("text-[12px] font-semibold", s.done ? "text-[#065F46]" : i === currentStep + 1 ? "text-[#0E6BB8]" : "text-[#9CA3AF]")}>
                   {s.label}
                 </span>
                 {i === currentStep + 1 && <span className="ml-2 text-[9px] bg-[#DBEAFE] text-[#1D4ED8] font-bold px-1.5 py-0.5 rounded-full">In Progress</span>}
@@ -237,7 +237,7 @@ function OverviewTab({ booking }: { booking: Booking }) {
           <Card>
             <SectionHeader title="Customer / Primary Contact" />
             <div className="p-5 flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#14356B] flex items-center justify-center text-white font-black text-[16px] flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white font-black text-[16px] flex-shrink-0">
                 {booking.customer.name[0]}
               </div>
               <div className="grid grid-cols-2 gap-4 flex-1">
@@ -275,10 +275,10 @@ function OverviewTab({ booking }: { booking: Booking }) {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] text-[#9CA3AF] font-medium">Payment progress</span>
-                  <span className="text-[12px] font-black text-[#14356B]">{paidPct}%</span>
+                  <span className="text-[12px] font-black text-[#0E6BB8]">{paidPct}%</span>
                 </div>
                 <div className="h-2 bg-[#F3F4F6] rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${paidPct}%`, backgroundColor: paidPct === 100 ? "#0E7C66" : "#14356B" }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${paidPct}%`, backgroundColor: paidPct === 100 ? "#0E7C66" : "#0E6BB8" }} />
                 </div>
               </div>
               <div className="flex flex-col gap-3">
@@ -312,10 +312,10 @@ function OverviewTab({ booking }: { booking: Booking }) {
               {[
                 { icon: Printer,      label: "Print Voucher",    color: "#374151" },
                 { icon: Download,     label: "Download PDF",     color: "#374151" },
-                { icon: Receipt,      label: "Generate Invoice", color: "#14356B" },
+                { icon: Receipt,      label: "Generate Invoice", color: "#0E6BB8" },
                 { icon: MessageSquare,label: "Send SMS",         color: "#0E7C66" },
                 { icon: Share2,       label: "Share Booking",    color: "#7C3AED" },
-                { icon: Edit3,        label: "Edit Booking",     color: "#C9A227" },
+                { icon: Edit3,        label: "Edit Booking",     color: "#E8471F" },
               ].map(a => {
                 const Icon = a.icon;
                 return (
@@ -343,7 +343,7 @@ function TravelersTab({ booking }: { booking: Booking }) {
       <Card className="py-16 text-center">
         <User size={32} className="text-[#E5E7EB] mx-auto mb-2" />
         <p className="text-[13px] text-[#9CA3AF]">No traveler details entered yet.</p>
-        <button className="mt-3 text-[12px] text-[#14356B] font-semibold hover:underline cursor-pointer">+ Add Travelers</button>
+        <button className="mt-3 text-[12px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">+ Add Travelers</button>
       </Card>
     );
   }
@@ -355,13 +355,13 @@ function TravelersTab({ booking }: { booking: Booking }) {
           <button
             onClick={() => setExpanded(expanded === t.id ? null : t.id)}
             className="w-full flex items-center gap-4 px-5 py-4 hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left">
-            <div className="w-10 h-10 rounded-full bg-[#14356B] flex items-center justify-center text-white font-black text-[13px] flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white font-black text-[13px] flex-shrink-0">
               {t.name[0]}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="text-[13px] font-bold text-[#111827]">{t.name}</span>
-                {t.isPrimary && <span className="text-[9px] font-black text-white bg-[#C9A227] px-1.5 py-0.5 rounded-full">PRIMARY</span>}
+                {t.isPrimary && <span className="text-[9px] font-black text-white bg-[#E8471F] px-1.5 py-0.5 rounded-full">PRIMARY</span>}
                 {t.gender === "Female" && t.mahram && (
                   <span className="text-[9px] font-bold text-[#7C3AED] bg-[#F5F3FF] border border-[#DDD6FE] px-1.5 py-0.5 rounded-full flex items-center gap-1">
                     <Shield size={8} /> Mahram: {t.mahram}
@@ -387,10 +387,10 @@ function TravelersTab({ booking }: { booking: Booking }) {
               {t.email && <KV label="Email" value={t.email} />}
               {t.mahram && <KV label="Mahram Relationship" value={t.mahram} />}
               <div className="col-span-3 flex gap-2 mt-2">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#14356B]/30 cursor-pointer">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#0E6BB8]/30 cursor-pointer">
                   <Edit3 size={11} /> Edit
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#14356B]/30 cursor-pointer">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#0E6BB8]/30 cursor-pointer">
                   <FileText size={11} /> View Docs
                 </button>
               </div>
@@ -399,7 +399,7 @@ function TravelersTab({ booking }: { booking: Booking }) {
         </Card>
       ))}
 
-      <button className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#E5E7EB] rounded-[12px] text-[12px] font-medium text-[#9CA3AF] hover:border-[#14356B]/40 hover:text-[#14356B] transition-colors cursor-pointer w-full justify-center">
+      <button className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#E5E7EB] rounded-[12px] text-[12px] font-medium text-[#9CA3AF] hover:border-[#0E6BB8]/40 hover:text-[#0E6BB8] transition-colors cursor-pointer w-full justify-center">
         + Add another traveler
       </button>
     </div>
@@ -489,7 +489,7 @@ function DocumentsTab({ booking }: { booking: Booking }) {
             }
           </div>
         </div>
-        <button className="ml-auto flex items-center gap-1.5 px-3 py-2 border border-[#E5E7EB] rounded-[8px] text-[11px] font-medium text-[#374151] hover:border-[#14356B]/30 cursor-pointer">
+        <button className="ml-auto flex items-center gap-1.5 px-3 py-2 border border-[#E5E7EB] rounded-[8px] text-[11px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer">
           <Upload size={12} /> Upload All
         </button>
       </Card>
@@ -520,8 +520,8 @@ function DocumentsTab({ booking }: { booking: Booking }) {
                   </>
                 ) : (
                   <label className="flex flex-col items-center gap-1 cursor-pointer group">
-                    <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#14356B] transition-colors" />
-                    <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#14356B] transition-colors">Upload</span>
+                    <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#0E6BB8] transition-colors" />
+                    <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#0E6BB8] transition-colors">Upload</span>
                     <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png"
                       onChange={() => setStatuses(s => ({ ...s, [d.name]: "Uploaded" }))} />
                   </label>
@@ -540,8 +540,8 @@ function DocumentsTab({ booking }: { booking: Booking }) {
                 </div>
                 {(isVerified || isUploaded) && (
                   <div className="flex gap-1">
-                    <button className="p-1 text-[#9CA3AF] hover:text-[#14356B] cursor-pointer"><Eye size={12} /></button>
-                    <button className="p-1 text-[#9CA3AF] hover:text-[#14356B] cursor-pointer"><Download size={12} /></button>
+                    <button className="p-1 text-[#9CA3AF] hover:text-[#0E6BB8] cursor-pointer"><Eye size={12} /></button>
+                    <button className="p-1 text-[#9CA3AF] hover:text-[#0E6BB8] cursor-pointer"><Download size={12} /></button>
                   </div>
                 )}
               </div>
@@ -584,11 +584,11 @@ function PaymentsTab({ booking }: { booking: Booking }) {
           </div>
         </div>
         <div className="h-2.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: pct === 100 ? "#0E7C66" : "#14356B" }} />
+          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: pct === 100 ? "#0E7C66" : "#0E6BB8" }} />
         </div>
         <div className="flex items-center justify-between mt-1.5">
           <span className="text-[10px] text-[#9CA3AF]">{pct}% paid</span>
-          <button className="text-[11px] text-[#14356B] font-bold hover:underline cursor-pointer flex items-center gap-1">
+          <button className="text-[11px] text-[#0E6BB8] font-bold hover:underline cursor-pointer flex items-center gap-1">
             <Receipt size={11} /> Generate Invoice
           </button>
         </div>
@@ -599,7 +599,7 @@ function PaymentsTab({ booking }: { booking: Booking }) {
         <Card className="overflow-hidden">
           <SectionHeader title="Payment Schedule"
             action={
-              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#14356B] text-white rounded-[7px] text-[11px] font-bold cursor-pointer hover:bg-[#0F2A55] transition-colors">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0E6BB8] text-white rounded-[7px] text-[11px] font-bold cursor-pointer hover:bg-[#0B5794] transition-colors">
                 <CreditCard size={11} /> Record Payment
               </button>
             }
@@ -623,7 +623,7 @@ function PaymentsTab({ booking }: { booking: Booking }) {
                     {inst.status}
                   </span>
                   {inst.status !== "Paid" && (
-                    <button className="text-[11px] text-[#14356B] font-semibold hover:underline cursor-pointer whitespace-nowrap">
+                    <button className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer whitespace-nowrap">
                       Record
                     </button>
                   )}
@@ -647,7 +647,7 @@ function ActivityTab({ booking }: { booking: Booking }) {
   return (
     <Card>
       <SectionHeader title="Activity Log" action={
-        <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] cursor-pointer hover:border-[#14356B]/30">
+        <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] cursor-pointer hover:border-[#0E6BB8]/30">
           <MessageSquare size={11} /> Add Note
         </button>
       } />
@@ -658,7 +658,7 @@ function ActivityTab({ booking }: { booking: Booking }) {
             {booking.activityLog.map((entry, i) => (
               <div key={i} className="flex gap-4 pb-5 last:pb-0 relative">
                 <div className="w-8 h-8 rounded-full bg-[#EEF2FF] border-2 border-white z-10 flex items-center justify-center flex-shrink-0">
-                  <Activity size={13} className="text-[#14356B]" />
+                  <Activity size={13} className="text-[#0E6BB8]" />
                 </div>
                 <div className="flex-1 pt-1">
                   <div className="flex items-start justify-between gap-4">
@@ -683,10 +683,10 @@ function ActivityTab({ booking }: { booking: Booking }) {
         {/* Add note inline */}
         <div className="mt-5 pt-5 border-t border-[#F3F4F6]">
           <textarea
-            className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none resize-none focus:border-[#14356B] focus:ring-2 focus:ring-[#14356B]/10 placeholder:text-[#D1D5DB]"
+            className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none resize-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]"
             rows={2} placeholder="Add a note or update (e.g. 'Customer called to confirm departure time...')" />
           <div className="flex justify-end mt-2">
-            <button className="px-4 py-1.5 bg-[#14356B] text-white text-[11px] font-bold rounded-[7px] hover:bg-[#0F2A55] cursor-pointer transition-colors">
+            <button className="px-4 py-1.5 bg-[#0E6BB8] text-white text-[11px] font-bold rounded-[7px] hover:bg-[#0B5794] cursor-pointer transition-colors">
               Save Note
             </button>
           </div>
@@ -738,17 +738,17 @@ export function BookingDetail({ booking, onBack, onEdit }: DetailProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#14356B]/30 cursor-pointer transition-colors">
+            <button className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer transition-colors">
               <Printer size={12} /> Print
             </button>
-            <button className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#14356B]/30 cursor-pointer transition-colors">
+            <button className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer transition-colors">
               <Download size={12} /> PDF
             </button>
             <button onClick={onEdit}
-              className="flex items-center gap-1.5 h-8 px-3 bg-[#14356B] text-white rounded-[7px] text-[11px] font-bold hover:bg-[#0F2A55] cursor-pointer transition-colors">
+              className="flex items-center gap-1.5 h-8 px-3 bg-[#0E6BB8] text-white rounded-[7px] text-[11px] font-bold hover:bg-[#0B5794] cursor-pointer transition-colors">
               <Edit3 size={12} /> Edit
             </button>
-            <button className="h-8 w-8 flex items-center justify-center border border-[#E5E7EB] rounded-[7px] text-[#9CA3AF] hover:text-[#374151] cursor-pointer hover:border-[#14356B]/30 transition-colors">
+            <button className="h-8 w-8 flex items-center justify-center border border-[#E5E7EB] rounded-[7px] text-[#9CA3AF] hover:text-[#374151] cursor-pointer hover:border-[#0E6BB8]/30 transition-colors">
               <MoreHorizontal size={14} />
             </button>
           </div>
@@ -760,12 +760,12 @@ export function BookingDetail({ booking, onBack, onEdit }: DetailProps) {
             <button key={t.key} onClick={() => setTab(t.key)}
               className={cn(
                 "flex items-center gap-1.5 px-4 py-3 text-[12px] font-medium border-b-2 transition-all cursor-pointer",
-                tab === t.key ? "border-[#14356B] text-[#14356B]" : "border-transparent text-[#6B7280] hover:text-[#374151] hover:border-[#E5E7EB]"
+                tab === t.key ? "border-[#0E6BB8] text-[#0E6BB8]" : "border-transparent text-[#6B7280] hover:text-[#374151] hover:border-[#E5E7EB]"
               )}>
               {t.label}
               {t.count !== undefined && t.count > 0 && (
                 <span className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-full",
-                  tab === t.key ? "bg-[#14356B] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]")}>
+                  tab === t.key ? "bg-[#0E6BB8] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]")}>
                   {t.count}
                 </span>
               )}

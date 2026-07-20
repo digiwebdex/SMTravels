@@ -58,8 +58,8 @@ export interface Booking {
 }
 
 export const SERVICE_CFG: Record<ServiceType, { icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>; color: string; bg: string; light: string; }> = {
-  "Hajj":       { icon: Star,      color: "#14356B", bg: "#14356B", light: "#EEF2FF" },
-  "Umrah":      { icon: MapPin,    color: "#C9A227", bg: "#C9A227", light: "#FFF9E6" },
+  "Hajj":       { icon: Star,      color: "#0E6BB8", bg: "#0E6BB8", light: "#EEF2FF" },
+  "Umrah":      { icon: MapPin,    color: "#E8471F", bg: "#E8471F", light: "#FFF9E6" },
   "Visa":       { icon: Globe,     color: "#7C3AED", bg: "#7C3AED", light: "#F5F3FF" },
   "Air Ticket": { icon: Plane,     color: "#2563EB", bg: "#2563EB", light: "#EFF6FF" },
   "Hotel":      { icon: Hotel,     color: "#EA580C", bg: "#EA580C", light: "#FFF7ED" },
@@ -73,7 +73,7 @@ export const STATUS_CFG: Record<BookingStatus, { color: string; bg: string; icon
   "Processing": { color: "#1D4ED8", bg: "#DBEAFE", icon: RefreshCw      },
   "Cancelled":  { color: "#991B1B", bg: "#FEE2E2", icon: XCircle        },
   "On Hold":    { color: "#374151", bg: "#F3F4F6", icon: PauseCircle    },
-  "Completed":  { color: "#14356B", bg: "#EEF2FF", icon: CheckCircle2   },
+  "Completed":  { color: "#0E6BB8", bg: "#EEF2FF", icon: CheckCircle2   },
 };
 
 // ─── Mock data ─────────────────────────────────────────────────────────────────
@@ -302,10 +302,10 @@ function StatsStrip({ bookings }: { bookings: Booking[] }) {
   return (
     <div className="grid grid-cols-4 gap-3 mb-5">
       {[
-        { label: "Total Bookings", value: total.toString(), icon: CalendarDays, color: "#14356B", bg: "#EEF2FF" },
+        { label: "Total Bookings", value: total.toString(), icon: CalendarDays, color: "#0E6BB8", bg: "#EEF2FF" },
         { label: "Confirmed",      value: confirmed.toString(), icon: CheckCircle2, color: "#0E7C66", bg: "#ECFDF5" },
         { label: "In Progress",    value: pending.toString(),   icon: RefreshCw,    color: "#2563EB", bg: "#EFF6FF" },
-        { label: "Revenue Collected", value: `৳${(revenue / 100000).toFixed(1)}L`, icon: Wallet, color: "#C9A227", bg: "#FFF9E6" },
+        { label: "Revenue Collected", value: `৳${(revenue / 100000).toFixed(1)}L`, icon: Wallet, color: "#E8471F", bg: "#FFF9E6" },
       ].map(s => {
         const Icon = s.icon;
         return (
@@ -375,11 +375,11 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
           <p className="text-[11px] text-[#9CA3AF] mt-0.5">{MOCK_BOOKINGS.length} total · Showing all branches</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#14356B]/30 transition-colors cursor-pointer">
+          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
             <Download size={13} className="text-[#9CA3AF]" /> Export
           </button>
           <button onClick={onNew}
-            className="flex items-center gap-1.5 h-9 px-4 bg-[#14356B] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#0F2A55] transition-colors cursor-pointer shadow-lg shadow-[#14356B]/20">
+            className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#0B5794] transition-colors cursor-pointer shadow-lg shadow-[#0E6BB8]/20">
             <Plus size={14} /> New Booking
           </button>
         </div>
@@ -395,20 +395,20 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
             <input
               placeholder="Search by ID, customer, package..."
               value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#14356B] focus:ring-2 focus:ring-[#14356B]/10 placeholder:text-[#D1D5DB]"
+              className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]"
             />
           </div>
           <select value={branchFilter} onChange={e => { setBranchFilter(e.target.value); setPage(1); }}
-            className="h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#374151] outline-none focus:border-[#14356B] cursor-pointer">
+            className="h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#374151] outline-none focus:border-[#0E6BB8] cursor-pointer">
             <option value="All">All Branches</option>
             {BRANCHES.map(b => <option key={b}>{b}</option>)}
           </select>
           <button onClick={() => setShowAdvanced(v => !v)}
             className={cn("flex items-center gap-1.5 h-9 px-3 border rounded-[8px] text-[12px] font-medium transition-colors cursor-pointer",
-              showAdvanced ? "border-[#14356B] bg-[#14356B]/5 text-[#14356B]" : "border-[#E5E7EB] bg-[#F7F8FA] text-[#374151] hover:border-[#14356B]/30"
+              showAdvanced ? "border-[#0E6BB8] bg-[#0E6BB8]/5 text-[#0E6BB8]" : "border-[#E5E7EB] bg-[#F7F8FA] text-[#374151] hover:border-[#0E6BB8]/30"
             )}>
             <SlidersHorizontal size={13} /> Filters
-            {(serviceFilter !== "All") && <span className="w-4 h-4 bg-[#14356B] text-white text-[9px] font-black rounded-full flex items-center justify-center">1</span>}
+            {(serviceFilter !== "All") && <span className="w-4 h-4 bg-[#0E6BB8] text-white text-[9px] font-black rounded-full flex items-center justify-center">1</span>}
           </button>
         </div>
 
@@ -421,8 +421,8 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer border",
                   statusFilter === s
-                    ? "border-[#14356B] bg-[#14356B] text-white"
-                    : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#14356B]/30 hover:text-[#374151]"
+                    ? "border-[#0E6BB8] bg-[#0E6BB8] text-white"
+                    : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#0E6BB8]/30 hover:text-[#374151]"
                 )}>
                 {s}
                 <span className={cn("text-[9px] font-black px-1 py-0.5 rounded-full",
@@ -443,9 +443,9 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                   "px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer border",
                   serviceFilter === s
                     ? "text-white border-transparent"
-                    : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#14356B]/30"
+                    : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#0E6BB8]/30"
                 )}
-                style={serviceFilter === s && s !== "All" ? { backgroundColor: SERVICE_CFG[s as ServiceType].bg } : serviceFilter === s ? { backgroundColor: "#14356B" } : {}}>
+                style={serviceFilter === s && s !== "All" ? { backgroundColor: SERVICE_CFG[s as ServiceType].bg } : serviceFilter === s ? { backgroundColor: "#0E6BB8" } : {}}>
                 {s}
               </button>
             ))}
@@ -476,7 +476,7 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                     {col.sortable ? (
                       <button onClick={() => toggleSort(col.key)} className="flex items-center gap-1 hover:text-[#374151] cursor-pointer transition-colors">
                         {col.label}
-                        <ArrowUpDown size={10} className={sortField === col.key ? "text-[#14356B]" : ""} />
+                        <ArrowUpDown size={10} className={sortField === col.key ? "text-[#0E6BB8]" : ""} />
                       </button>
                     ) : col.label}
                   </th>
@@ -490,7 +490,7 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                   <tr key={b.id} className="hover:bg-[#F7F8FA] transition-colors group cursor-pointer"
                     onClick={() => onDetail(b.id)}>
                     <td className="px-4 py-3">
-                      <span className="text-[12px] font-black text-[#14356B]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.id}</span>
+                      <span className="text-[12px] font-black text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.id}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div>
@@ -527,7 +527,7 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => onDetail(b.id)}
-                          className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#14356B] hover:bg-[#14356B]/8 transition-colors cursor-pointer" title="View">
+                          className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#0E6BB8] hover:bg-[#0E6BB8]/8 transition-colors cursor-pointer" title="View">
                           <Eye size={13} />
                         </button>
                         <button className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer" title="Edit">
@@ -553,19 +553,19 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
             </span>
             <div className="flex items-center gap-1">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#14356B]/30 transition-colors cursor-pointer">
+                className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
                 <ChevronLeft size={13} />
               </button>
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button key={i} onClick={() => setPage(i + 1)}
                   className={cn("w-8 h-8 flex items-center justify-center rounded-[6px] text-[12px] font-medium border transition-colors cursor-pointer",
-                    page === i + 1 ? "bg-[#14356B] text-white border-[#14356B]" : "border-[#E5E7EB] text-[#374151] hover:border-[#14356B]/30"
+                    page === i + 1 ? "bg-[#0E6BB8] text-white border-[#0E6BB8]" : "border-[#E5E7EB] text-[#374151] hover:border-[#0E6BB8]/30"
                   )}>
                   {i + 1}
                 </button>
               ))}
               <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#14356B]/30 transition-colors cursor-pointer">
+                className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
                 <ChevronRight size={13} />
               </button>
             </div>
@@ -577,7 +577,7 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
             <Search size={32} className="text-[#E5E7EB] mx-auto mb-3" />
             <p className="text-[13px] text-[#6B7280] font-medium">No bookings match your filters</p>
             <button onClick={() => { setSearch(""); setStatusFilter("All"); setServiceFilter("All"); setBranchFilter("All"); }}
-              className="mt-2 text-[12px] text-[#14356B] font-semibold hover:underline cursor-pointer">
+              className="mt-2 text-[12px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">
               Clear all filters
             </button>
           </div>

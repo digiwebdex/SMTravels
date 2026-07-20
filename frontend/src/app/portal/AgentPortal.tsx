@@ -107,7 +107,7 @@ const LEAD_STATUS: Record<string,{ label:string; cls:string }> = {
 };
 
 const BOOKING_STATUS: Record<string,{ label:string; cls:string }> = {
-  confirmed: { label:"Confirmed", cls:"bg-[#14356B]/10 text-[#14356B] border-[#14356B]/20" },
+  confirmed: { label:"Confirmed", cls:"bg-[#0E6BB8]/10 text-[#0E6BB8] border-[#0E6BB8]/20" },
   completed: { label:"Completed", cls:"bg-emerald-50 text-emerald-700 border-emerald-200"  },
   pending:   { label:"Pending",   cls:"bg-amber-50 text-amber-600 border-amber-200"        },
   cancelled: { label:"Cancelled", cls:"bg-red-50 text-red-500 border-red-200"              },
@@ -160,7 +160,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
     <div className="space-y-5">
       {/* Hero banner */}
       <div className="relative rounded-2xl overflow-hidden"
-        style={{ background:"linear-gradient(135deg,#14356B 0%,#1a4a8a 50%,#C9A227 100%)" }}>
+        style={{ background:"linear-gradient(135deg,#0E6BB8 0%,#1a4a8a 50%,#E8471F 100%)" }}>
         <div className="px-6 py-6 text-white relative z-10">
           <div className="flex items-start justify-between">
             <div>
@@ -168,7 +168,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
               <h2 className="text-2xl font-bold">Salam, Rashidul!</h2>
               <p className="text-white/70 text-sm mt-1">Agent ID: <span className="font-mono text-white">AG-0047</span> · Gold Tier</p>
             </div>
-            <div className="flex items-center gap-1.5 bg-[#C9A227] text-white px-3 py-1.5 rounded-xl text-xs font-bold">
+            <div className="flex items-center gap-1.5 bg-[#E8471F] text-white px-3 py-1.5 rounded-xl text-xs font-bold">
               <Star size={12} className="fill-white"/> Gold Agent
             </div>
           </div>
@@ -178,7 +178,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
               { label:"This Month",     val:"৳ 55,000"          },
               { label:"Total Earned",   val:"৳ 2.03L"           },
             ].map(s=>(
-              <div key={s.label} className={cn("rounded-xl p-3", s.hi?"bg-[#C9A227]/20 border border-[#C9A227]/40":"bg-white/10")}>
+              <div key={s.label} className={cn("rounded-xl p-3", s.hi?"bg-[#E8471F]/20 border border-[#E8471F]/40":"bg-white/10")}>
                 <p className="text-xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
                 <p className="text-xs text-white/70 mt-0.5">{s.label}</p>
               </div>
@@ -194,7 +194,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
         {[
           { icon:UserPlus,         label:"Add Lead",   color:"bg-blue-500",    v:"leads"       as AgentView },
           { icon:ArrowUpRight,     label:"Withdraw",   color:"bg-emerald-500", v:"wallet"      as AgentView },
-          { icon:Briefcase,        label:"Bookings",   color:"bg-[#14356B]",   v:"bookings"    as AgentView },
+          { icon:Briefcase,        label:"Bookings",   color:"bg-[#0E6BB8]",   v:"bookings"    as AgentView },
           { icon:BarChart3,        label:"Reports",    color:"bg-purple-500",  v:"analytics"   as AgentView },
         ].map(q=>(
           <button key={q.label} onClick={()=>onGo(q.v)}
@@ -211,7 +211,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="New Leads"       value="7"     sub="This week"           icon={UserPlus}         iconBg="bg-blue-500"     delta="+3" deltaUp />
         <StatCard label="Conversions"     value="4"     sub="This month"          icon={Target}           iconBg="bg-purple-500"   delta="+1" deltaUp />
-        <StatCard label="Active Bookings" value="12"    sub="In progress"         icon={Briefcase}        iconBg="bg-[#14356B]"    delta="+2" deltaUp />
+        <StatCard label="Active Bookings" value="12"    sub="In progress"         icon={Briefcase}        iconBg="bg-[#0E6BB8]"    delta="+2" deltaUp />
         <StatCard label="Team Members"    value="3"     sub="Sub-agents"          icon={Building2}        iconBg="bg-amber-500"             />
       </div>
 
@@ -244,12 +244,12 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-3">
           <p className="font-bold text-slate-800">Recent Leads</p>
-          <button onClick={()=>onGo("leads")} className="text-xs text-[#14356B] hover:underline font-medium">View all</button>
+          <button onClick={()=>onGo("leads")} className="text-xs text-[#0E6BB8] hover:underline font-medium">View all</button>
         </div>
         <div className="space-y-2.5">
           {LEADS.slice(0,4).map(l=>(
             <div key={l.id} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#14356B]/10 flex items-center justify-center text-[#14356B] text-xs font-bold flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold flex-shrink-0">
                 {l.name.split(" ").map(n=>n[0]).join("")}
               </div>
               <div className="flex-1 min-w-0">
@@ -269,9 +269,9 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
           {/* Simple progress bars */}
           <div className="flex-1 space-y-3">
             {[
-              { label:"Bookings",  val:12, target:15, color:"#14356B" },
+              { label:"Bookings",  val:12, target:15, color:"#0E6BB8" },
               { label:"Revenue",   val:73, target:100, color:"#0E7C66" },
-              { label:"Leads",     val:7,  target:10,  color:"#C9A227" },
+              { label:"Leads",     val:7,  target:10,  color:"#E8471F" },
             ].map(m=>(
               <div key={m.label}>
                 <div className="flex justify-between text-xs mb-1">
@@ -286,10 +286,10 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
             ))}
           </div>
           <div className="w-20 text-center">
-            <div className="w-20 h-20 rounded-full border-4 border-[#14356B]/20 flex items-center justify-center relative mx-auto">
-              <div className="absolute inset-0 rounded-full border-4 border-[#14356B]"
+            <div className="w-20 h-20 rounded-full border-4 border-[#0E6BB8]/20 flex items-center justify-center relative mx-auto">
+              <div className="absolute inset-0 rounded-full border-4 border-[#0E6BB8]"
                 style={{ clipPath:"polygon(50% 0%, 50% 0%, 50% 50%)", transform:"rotate(-90deg)" }}/>
-              <span className="text-lg font-black text-[#14356B]">73%</span>
+              <span className="text-lg font-black text-[#0E6BB8]">73%</span>
             </div>
             <p className="text-xs text-slate-400 mt-1">Overall</p>
           </div>
@@ -317,7 +317,7 @@ function LeadsView() {
           <p className="text-sm text-slate-400 mt-0.5">Track and convert your prospects</p>
         </div>
         <button onClick={()=>setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14}/> Add Lead
         </button>
       </div>
@@ -327,7 +327,7 @@ function LeadsView() {
         {Object.entries(LEAD_STATUS).map(([k,v])=>(
           <button key={k} onClick={()=>setFilter(k===filter?"all":k)}
             className={cn("p-2.5 rounded-xl border text-center transition-all",
-              filter===k?"border-[#14356B] bg-[#14356B]/5":"border-slate-200 bg-white hover:border-[#14356B]/30")}>
+              filter===k?"border-[#0E6BB8] bg-[#0E6BB8]/5":"border-slate-200 bg-white hover:border-[#0E6BB8]/30")}>
             <p className="text-lg font-black text-slate-800">{LEADS.filter(l=>l.status===k).length}</p>
             <p className="text-xs text-slate-400 mt-0.5 leading-tight">{v.label}</p>
           </button>
@@ -339,7 +339,7 @@ function LeadsView() {
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"/>
         <input value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="Search leads…"
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20"/>
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
       </div>
 
       {/* Leads list */}
@@ -347,7 +347,7 @@ function LeadsView() {
         {filtered.map(l=>(
           <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#14356B]/10 flex items-center justify-center text-[#14356B] text-sm font-bold flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-sm font-bold flex-shrink-0">
                 {l.name.split(" ").map(n=>n[0]).join("")}
               </div>
               <div className="flex-1 min-w-0">
@@ -370,7 +370,7 @@ function LeadsView() {
               <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
                 <Mail size={12}/> Email
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
                 <Edit2 size={12}/> Update
               </button>
             </div>
@@ -389,7 +389,7 @@ function LeadsView() {
             {[["Full Name","text"],["Phone Number","tel"],["Email","email"]].map(([l,t])=>(
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
-                <input type={t} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20"/>
+                <input type={t} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
               </div>
             ))}
             <div>
@@ -405,7 +405,7 @@ function LeadsView() {
               <textarea rows={2} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none"/>
             </div>
             <button onClick={()=>setAddModal(false)}
-              className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56]">
+              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794]">
               Save Lead
             </button>
           </div>
@@ -431,15 +431,15 @@ function CustomersView() {
           <div key={c.id} className="bg-white rounded-2xl border border-slate-200 p-5">
             <div className="flex items-start gap-3 mb-3">
               <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0",
-                c.status==="vip"?"bg-[#C9A227]/20 text-[#C9A227]":"bg-[#14356B]/10 text-[#14356B]")}>
+                c.status==="vip"?"bg-[#E8471F]/20 text-[#C43A15]":"bg-[#0E6BB8]/10 text-[#0E6BB8]")}>
                 {c.name.split(" ").map(n=>n[0]).join("")}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-slate-800">{c.name}</p>
                   {c.status==="vip" && (
-                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-[#C9A227]/15 text-[#C9A227] rounded-full font-bold">
-                      <Star size={10} className="fill-[#C9A227]"/> VIP
+                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-[#E8471F]/15 text-[#C43A15] rounded-full font-bold">
+                      <Star size={10} className="fill-[#E8471F]"/> VIP
                     </span>
                   )}
                 </div>
@@ -458,7 +458,7 @@ function CustomersView() {
               <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
                 <Eye size={12}/> View History
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
                 <Briefcase size={12}/> New Booking
               </button>
             </div>
@@ -477,7 +477,7 @@ function AgentBookings() {
       {/* Commission summary bar */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Total Bookings",    val:"4",       color:"text-[#14356B]" },
+          { label:"Total Bookings",    val:"4",       color:"text-[#0E6BB8]" },
           { label:"Commission Earned", val:"৳46,850", color:"text-emerald-600" },
           { label:"Commission Pending",val:"৳26,000", color:"text-amber-600"  },
         ].map(s=>(
@@ -543,9 +543,9 @@ function CommissionsView() {
       </div>
 
       {/* Rate tier info */}
-      <div className="bg-gradient-to-r from-[#14356B]/5 to-[#C9A227]/5 border border-[#14356B]/15 rounded-2xl p-4">
+      <div className="bg-gradient-to-r from-[#0E6BB8]/5 to-[#E8471F]/5 border border-[#0E6BB8]/15 rounded-2xl p-4">
         <div className="flex items-center gap-2.5 mb-3">
-          <Award size={18} className="text-[#C9A227]"/>
+          <Award size={18} className="text-[#C43A15]"/>
           <p className="font-bold text-slate-800">Your Commission Tier — Gold</p>
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -555,7 +555,7 @@ function CommissionsView() {
             { tier:"Platinum",rate:"7%",  range:"20+ bookings/mo",   active:false },
           ].map(t=>(
             <div key={t.tier} className={cn("rounded-xl p-2.5 text-center border",
-              t.active?"bg-[#C9A227] border-[#C9A227] text-white":"bg-white border-slate-200 text-slate-600")}>
+              t.active?"bg-[#E8471F] border-[#E8471F] text-white":"bg-white border-slate-200 text-slate-600")}>
               <p className="text-lg font-black">{t.rate}</p>
               <p className="text-xs font-bold mt-0.5">{t.tier}</p>
               <p className={cn("text-xs mt-0.5",t.active?"text-white/80":"text-slate-400")}>{t.range}</p>
@@ -594,7 +594,7 @@ function CommissionsView() {
                   <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                     <CheckCircle size={12}/> {fmtFull(r.paid)} paid
                   </span>
-                  <button className="flex items-center gap-1.5 text-xs text-[#14356B] font-semibold hover:underline">
+                  <button className="flex items-center gap-1.5 text-xs text-[#0E6BB8] font-semibold hover:underline">
                     <Download size={12}/> Export
                   </button>
                 </div>
@@ -709,7 +709,7 @@ function WalletView() {
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-2">Withdrawal Method</label>
                   <div className="space-y-2">
-                    {[["bKash","#E2136E","Mobile banking"],["Nagad","#F7941D","Mobile banking"],["Bank Transfer","#14356B","1–3 business days"]].map(([name,color,sub])=>(
+                    {[["bKash","#E2136E","Mobile banking"],["Nagad","#F7941D","Mobile banking"],["Bank Transfer","#0E6BB8","1–3 business days"]].map(([name,color,sub])=>(
                       <label key={name} className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-[#0E7C66] transition-colors">
                         <input type="radio" name="method" className="accent-[#0E7C66]"/>
                         <div className="w-6 h-6 rounded-md flex-shrink-0" style={{ background:color }}/>
@@ -757,13 +757,13 @@ function TeamView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">My Team</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14}/> Invite Sub-agent
         </button>
       </div>
 
       {/* Team summary */}
-      <div className="bg-gradient-to-r from-[#14356B] to-[#1a4a8a] rounded-2xl p-5 text-white">
+      <div className="bg-gradient-to-r from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white">
         <p className="text-white/70 text-xs mb-3">Team Performance — July 2024</p>
         <div className="grid grid-cols-3 gap-3">
           {[["Sub-agents","3"],["Team Bookings","13"],["Team Commission",fmtBDT(teamTotalComm)]].map(([l,v])=>(
@@ -782,11 +782,11 @@ function TeamView() {
             <div className="flex items-center gap-3 mb-3">
               <div className="relative flex-shrink-0">
                 <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold",
-                  i===0?"bg-[#C9A227]/20 text-[#C9A227]":"bg-[#14356B]/10 text-[#14356B]")}>
+                  i===0?"bg-[#E8471F]/20 text-[#C43A15]":"bg-[#0E6BB8]/10 text-[#0E6BB8]")}>
                   {m.name.split(" ").map(n=>n[0]).join("")}
                 </div>
                 {i===0 && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#C9A227] rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#E8471F] rounded-full flex items-center justify-center">
                     <Star size={8} className="text-white fill-white"/>
                   </div>
                 )}
@@ -845,7 +845,7 @@ function AnalyticsView() {
       {/* Summary tiles */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Conversion Rate" value="58%"  sub="Leads to bookings" icon={Target}     iconBg="bg-purple-500" delta="+8%" deltaUp/>
-        <StatCard label="Avg. Ticket"     value="৳2.4L" sub="Per booking"       icon={Briefcase}  iconBg="bg-[#14356B]"  delta="+12%" deltaUp/>
+        <StatCard label="Avg. Ticket"     value="৳2.4L" sub="Per booking"       icon={Briefcase}  iconBg="bg-[#0E6BB8]"  delta="+12%" deltaUp/>
         <StatCard label="Return Clients"  value="62%"  sub="Repeat bookings"   icon={RefreshCw}  iconBg="bg-[#0E7C66]"  delta="+5%" deltaUp/>
         <StatCard label="Response Time"   value="1.4h" sub="Avg. lead response" icon={Zap}        iconBg="bg-amber-500"  delta="-18%" deltaUp/>
       </div>
@@ -860,7 +860,7 @@ function AnalyticsView() {
           {booking.map((v,i)=>(
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full rounded-t-lg transition-all"
-                style={{ height:`${(v/maxB)*100}%`, background: i===months.length-1?"#14356B":"#14356B33" }}/>
+                style={{ height:`${(v/maxB)*100}%`, background: i===months.length-1?"#0E6BB8":"#0E6BB833" }}/>
               <p className="text-xs text-slate-400">{months[i]}</p>
             </div>
           ))}
@@ -889,9 +889,9 @@ function AnalyticsView() {
         <p className="font-bold text-slate-800 mb-4">Bookings by Service</p>
         <div className="space-y-3">
           {[
-            { label:"Hajj Packages",  pct:42, color:"#14356B" },
+            { label:"Hajj Packages",  pct:42, color:"#0E6BB8" },
             { label:"Umrah",          pct:28, color:"#0E7C66" },
-            { label:"Tour Packages",  pct:18, color:"#C9A227" },
+            { label:"Tour Packages",  pct:18, color:"#E8471F" },
             { label:"Visa Services",  pct:12, color:"#7C3AED" },
           ].map(s=>(
             <div key={s.label}>
@@ -933,8 +933,8 @@ function AgentSupport() {
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
         {MSGS.map((m,i)=>(
           <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
-            <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#14356B] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
+            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
+            <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#0E6BB8] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
             </div>
@@ -945,7 +945,7 @@ function AgentSupport() {
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16}/></button>
         <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Type your message…"
           className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none"/>
-        <button className="p-2.5 bg-[#14356B] text-white rounded-xl"><Send size={16}/></button>
+        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl"><Send size={16}/></button>
       </div>
     </div>
   );
@@ -954,15 +954,15 @@ function AgentSupport() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 bg-[#14356B] text-white text-sm font-semibold rounded-xl">
+        <button className="flex items-center gap-1.5 px-3.5 py-2 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl">
           <Plus size={14}/> New Ticket
         </button>
       </div>
-      <div className="bg-[#14356B]/5 border border-[#14356B]/15 rounded-2xl p-4 flex items-center gap-3">
-        <Phone size={16} className="text-[#14356B]"/>
+      <div className="bg-[#0E6BB8]/5 border border-[#0E6BB8]/15 rounded-2xl p-4 flex items-center gap-3">
+        <Phone size={16} className="text-[#0E6BB8]"/>
         <div>
           <p className="text-sm font-semibold text-slate-800">Agent Hotline</p>
-          <p className="text-xs text-slate-500">Priority support: <span className="text-[#14356B] font-bold">+880 31 123 4568</span></p>
+          <p className="text-xs text-slate-500">Priority support: <span className="text-[#0E6BB8] font-bold">+880 31 123 4568</span></p>
         </div>
       </div>
       {SUPPORT_TICKETS.map(t=>(
@@ -996,16 +996,16 @@ function AgentProfile() {
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
 
       {/* Profile card */}
-      <div className="bg-gradient-to-br from-[#14356B] to-[#0E4D7A] rounded-2xl p-5 text-white">
+      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0E4D7A] rounded-2xl p-5 text-white">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/15 border-2 border-[#C9A227] flex items-center justify-center text-2xl font-black">
+          <div className="w-16 h-16 rounded-2xl bg-white/15 border-2 border-[#E8471F] flex items-center justify-center text-2xl font-black">
             RI
           </div>
           <div>
             <p className="text-xl font-bold">Rashidul Islam</p>
             <p className="text-white/70 text-sm mt-0.5">Agent ID: AG-0047</p>
             <div className="flex items-center gap-1.5 mt-1.5">
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-[#C9A227] rounded-full">
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-[#E8471F] rounded-full">
                 <Star size={10} className="fill-white text-white"/>
                 <span className="text-xs font-bold text-white">Gold Tier</span>
               </div>
@@ -1043,12 +1043,12 @@ function AgentProfile() {
             <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
             <input defaultValue={f.val} disabled={!editing}
               className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                editing?"border-[#14356B]/40 bg-white focus:outline-none":"border-transparent bg-slate-50 text-slate-700")}/>
+                editing?"border-[#0E6BB8]/40 bg-white focus:outline-none":"border-transparent bg-slate-50 text-slate-700")}/>
           </div>
         ))}
         {editing && (
           <button onClick={()=>setEditing(false)}
-            className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56] flex items-center justify-center gap-2">
+            className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
             <Check size={15}/> Save Changes
           </button>
         )}
@@ -1068,11 +1068,11 @@ function AgentProfile() {
             <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
             <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 rounded-xl">
               <span className="text-sm text-slate-700 flex-1">{f.val}</span>
-              <button className="text-slate-400 hover:text-[#14356B]"><Copy size={13}/></button>
+              <button className="text-slate-400 hover:text-[#0E6BB8]"><Copy size={13}/></button>
             </div>
           </div>
         ))}
-        <button className="w-full py-2.5 border border-[#14356B] text-[#14356B] text-sm font-semibold rounded-xl hover:bg-[#14356B]/5">
+        <button className="w-full py-2.5 border border-[#0E6BB8] text-[#0E6BB8] text-sm font-semibold rounded-xl hover:bg-[#0E6BB8]/5">
           Update Payment Details
         </button>
       </div>
@@ -1126,22 +1126,22 @@ export function AgentPortal() {
           {/* Brand */}
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
               <div>
                 <p className="text-sm font-bold text-slate-800">BDH Travels</p>
-                <p className="text-xs text-[#C9A227] font-semibold">Agent Portal</p>
+                <p className="text-xs text-[#C43A15] font-semibold">Agent Portal</p>
               </div>
             </div>
           </div>
           {/* Agent card */}
           <div className="px-4 py-3 border-b border-slate-100">
-            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#14356B]/5 to-[#C9A227]/5 rounded-2xl border border-[#14356B]/10">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#14356B] to-[#C9A227] flex items-center justify-center text-white text-xs font-black">RI</div>
+            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#0E6BB8]/5 to-[#E8471F]/5 rounded-2xl border border-[#0E6BB8]/10">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0E6BB8] to-[#E8471F] flex items-center justify-center text-white text-xs font-black">RI</div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate">Rashidul Islam</p>
                 <div className="flex items-center gap-1">
-                  <Star size={10} className="text-[#C9A227] fill-[#C9A227]"/>
-                  <p className="text-xs text-[#C9A227] font-semibold">Gold Agent</p>
+                  <Star size={10} className="text-[#C43A15] fill-[#E8471F]"/>
+                  <p className="text-xs text-[#C43A15] font-semibold">Gold Agent</p>
                 </div>
               </div>
             </div>
@@ -1160,7 +1160,7 @@ export function AgentPortal() {
               <button key={item.id} onClick={()=>go(item.id)}
                 className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all",
                   view===item.id
-                    ? "bg-[#14356B] text-white shadow-sm shadow-[#14356B]/25"
+                    ? "bg-[#0E6BB8] text-white shadow-sm shadow-[#0E6BB8]/25"
                     : "text-slate-600 hover:bg-slate-100")}>
                 <item.icon size={17} className={view===item.id?"text-white":"text-slate-400"}/>
                 <span className="font-medium flex-1 text-left">{item.label}</span>
@@ -1191,7 +1191,7 @@ export function AgentPortal() {
         {/* Mobile header */}
         <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+            <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
             <div>
               <span className="font-bold text-slate-800 text-sm">Agent Portal</span>
             </div>
@@ -1221,9 +1221,9 @@ export function AgentPortal() {
               return (
                 <button key={item.id} onClick={()=>go(item.id)}
                   className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active?"text-[#14356B]":"text-slate-400"}/>
-                  <span className={cn("text-xs font-medium",active?"text-[#14356B]":"text-slate-400")}>{item.label}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#14356B]"/>}
+                  <item.icon size={22} className={active?"text-[#0E6BB8]":"text-slate-400"}/>
+                  <span className={cn("text-xs font-medium",active?"text-[#0E6BB8]":"text-slate-400")}>{item.label}</span>
+                  {active && <div className="w-1 h-1 rounded-full bg-[#0E6BB8]"/>}
                 </button>
               );
             })}

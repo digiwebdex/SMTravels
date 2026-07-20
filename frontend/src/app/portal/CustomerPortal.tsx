@@ -103,8 +103,8 @@ const TICKETS = [
 
 const NOTIFS = [
   { id:1, title:"Visa Approved! 🎉",            body:"Your Saudi Arabia visa has been approved. Download from Documents.", time:"Jul 1",   read:false, color:"#0E7C66" },
-  { id:2, title:"Installment Reminder",          body:"Your 4th installment of ৳1,30,000 is due on Jul 31, 2024.",         time:"Jul 12",  read:false, color:"#C9A227" },
-  { id:3, title:"Pre-departure brief added",     body:"Your group briefing is scheduled for Aug 1 at 3:00 PM.",             time:"Jul 8",   read:true,  color:"#14356B" },
+  { id:2, title:"Installment Reminder",          body:"Your 4th installment of ৳1,30,000 is due on Jul 31, 2024.",         time:"Jul 12",  read:false, color:"#E8471F" },
+  { id:3, title:"Pre-departure brief added",     body:"Your group briefing is scheduled for Aug 1 at 3:00 PM.",             time:"Jul 8",   read:true,  color:"#0E6BB8" },
   { id:4, title:"Payment confirmed",             body:"৳1,30,000 received for BK-0892. Thank you!",                        time:"Jun 29",  read:true,  color:"#0E7C66" },
 ];
 
@@ -112,7 +112,7 @@ const NOTIFS = [
 const fmtBDT = (n: number) => "৳ " + n.toLocaleString("en-BD");
 
 const STATUS_CFG: Record<string,{ label:string; chip:string; dot:string }> = {
-  confirmed: { label:"Confirmed",  chip:"bg-[#14356B]/10 text-[#14356B] border-[#14356B]/20",   dot:"bg-[#14356B]"  },
+  confirmed: { label:"Confirmed",  chip:"bg-[#0E6BB8]/10 text-[#0E6BB8] border-[#0E6BB8]/20",   dot:"bg-[#0E6BB8]"  },
   completed: { label:"Completed",  chip:"bg-emerald-50 text-emerald-700 border-emerald-200",      dot:"bg-emerald-500"},
   pending:   { label:"Pending",    chip:"bg-amber-50 text-amber-700 border-amber-200",            dot:"bg-amber-400"  },
   cancelled: { label:"Cancelled",  chip:"bg-red-50 text-red-600 border-red-200",                  dot:"bg-red-500"    },
@@ -141,11 +141,11 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
     <div className="space-y-5">
       {/* Welcome banner */}
       <div className="relative rounded-2xl overflow-hidden"
-        style={{ background:"linear-gradient(135deg, #14356B 0%, #0E4D7A 60%, #0E7C66 100%)" }}>
+        style={{ background:"linear-gradient(135deg, #0E6BB8 0%, #0E4D7A 60%, #0E7C66 100%)" }}>
         <div className="px-6 py-7 text-white relative z-10">
           <p className="text-sm text-white/70 mb-1">Welcome back,</p>
           <h2 className="text-2xl font-bold mb-1">Md. Karim Ullah</h2>
-          <p className="text-white/60 text-sm">Your Hajj journey is <span className="text-[#C9A227] font-semibold">18 days away</span> ✈️</p>
+          <p className="text-white/60 text-sm">Your Hajj journey is <span className="text-[#C43A15] font-semibold">18 days away</span> ✈️</p>
           <div className="flex items-center gap-3 mt-5">
             <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
               <p className="text-xl font-bold" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{paidPct}%</p>
@@ -176,7 +176,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
               <MapPin size={13}/>{next.destination}
             </div>
           </div>
-          <div className="bg-[#C9A227] text-white px-3 py-1.5 rounded-xl text-xs font-bold">Aug 5</div>
+          <div className="bg-[#E8471F] text-white px-3 py-1.5 rounded-xl text-xs font-bold">Aug 5</div>
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1"><Plane size={11}/>{next.flight.split("·")[0]}</span>
@@ -196,7 +196,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
             <p className="text-xs text-slate-400 mt-0.5">of {fmtBDT(next.amount)} total · Due Jul 31</p>
           </div>
           <button onClick={()=>onGo("installments")}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56] transition-colors">
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794] transition-colors">
             Pay Now <ArrowRight size={14}/>
           </button>
         </div>
@@ -206,7 +206,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
             <span>{fmtBDT(next.paid)} paid</span><span>{paidPct}%</span>
           </div>
           <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-[#14356B] to-[#0E7C66] transition-all"
+            <div className="h-full rounded-full bg-gradient-to-r from-[#0E6BB8] to-[#0E7C66] transition-all"
               style={{ width:`${paidPct}%` }}/>
           </div>
         </div>
@@ -221,12 +221,12 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
           { icon:Layers,       label:"Installments",   color:"bg-amber-50 text-amber-600",  v:"installments" as PortalView },
         ].map(q=>(
           <button key={q.label} onClick={()=>onGo(q.v)}
-            className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#14356B]/30 hover:shadow-sm transition-all group text-left">
+            className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all group text-left">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", q.color)}>
               <q.icon size={18}/>
             </div>
             <span className="text-sm font-semibold text-slate-700">{q.label}</span>
-            <ChevronRight size={14} className="ml-auto text-slate-300 group-hover:text-[#14356B] transition-colors"/>
+            <ChevronRight size={14} className="ml-auto text-slate-300 group-hover:text-[#0E6BB8] transition-colors"/>
           </button>
         ))}
       </div>
@@ -235,11 +235,11 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-3">
           <p className="font-semibold text-slate-800">Recent Updates</p>
-          <button onClick={()=>onGo("notifications")} className="text-xs text-[#14356B] hover:underline">See all</button>
+          <button onClick={()=>onGo("notifications")} className="text-xs text-[#0E6BB8] hover:underline">See all</button>
         </div>
         <div className="space-y-2.5">
           {NOTIFS.slice(0,3).map(n=>(
-            <div key={n.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", n.read?"bg-slate-50":"bg-[#14356B]/4")}>
+            <div key={n.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", n.read?"bg-slate-50":"bg-[#0E6BB8]/4")}>
               <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: n.color }}/>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800">{n.title}</p>
@@ -302,7 +302,7 @@ function BookingsView({ onDetail }: { onDetail: () => void }) {
           </div>
           <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
             <span className="text-xs text-slate-400 flex items-center gap-1"><Plane size={11}/>{b.flight}</span>
-            <span className="flex items-center gap-1 text-xs text-[#14356B] font-semibold">View Details <ChevronRight size={12}/></span>
+            <span className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold">View Details <ChevronRight size={12}/></span>
           </div>
         </div>
       ))}
@@ -340,8 +340,8 @@ function BookingDetail({ onBack }: { onBack: () => void }) {
             { icon:Globe,   label:"Visa No.",     val:b.visa            },
           ].map(r=>(
             <div key={r.label} className="flex items-start gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#14356B]/8 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <r.icon size={14} className="text-[#14356B]"/>
+              <div className="w-8 h-8 rounded-lg bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <r.icon size={14} className="text-[#0E6BB8]"/>
               </div>
               <div>
                 <p className="text-xs text-slate-400">{r.label}</p>
@@ -363,7 +363,7 @@ function BookingDetail({ onBack }: { onBack: () => void }) {
               <div key={i} className="flex items-center gap-4 relative">
                 <div className={cn("w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 z-10",
                   step.done
-                    ? "bg-[#14356B] border-[#14356B]"
+                    ? "bg-[#0E6BB8] border-[#0E6BB8]"
                     : i === b.timeline.findIndex(s=>!s.done)
                       ? "bg-amber-400 border-amber-400"
                       : "bg-white border-slate-200")}>
@@ -376,7 +376,7 @@ function BookingDetail({ onBack }: { onBack: () => void }) {
                 <div className="flex-1">
                   <p className={cn("text-sm font-semibold", step.done?"text-slate-800":"text-slate-400")}>{step.label}</p>
                 </div>
-                <span className={cn("text-xs font-medium", step.done?"text-[#14356B]":"text-slate-400")}>{step.date}</span>
+                <span className={cn("text-xs font-medium", step.done?"text-[#0E6BB8]":"text-slate-400")}>{step.date}</span>
               </div>
             ))}
           </div>
@@ -396,7 +396,7 @@ function BookingDetail({ onBack }: { onBack: () => void }) {
           ))}
         </div>
         {b.balance > 0 && (
-          <button className="w-full mt-4 py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56] transition-colors flex items-center justify-center gap-2">
+          <button className="w-full mt-4 py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] transition-colors flex items-center justify-center gap-2">
             <Wallet size={16}/> Pay ৳{(b.balance/1000).toFixed(0)}K Now
           </button>
         )}
@@ -456,7 +456,7 @@ function InstallmentsView() {
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Installments</h2>
       {/* Progress ring (simple bar) */}
-      <div className="bg-gradient-to-br from-[#14356B] to-[#0E4D7A] rounded-2xl p-5 text-white">
+      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0E4D7A] rounded-2xl p-5 text-white">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-white/70 text-xs mb-1">BK-0892 — Hajj Economy 2024</p>
@@ -467,7 +467,7 @@ function InstallmentsView() {
           </div>
         </div>
         <div className="h-2.5 bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-[#C9A227] rounded-full transition-all" style={{ width:`${(paid/total)*100}%` }}/>
+          <div className="h-full bg-[#E8471F] rounded-full transition-all" style={{ width:`${(paid/total)*100}%` }}/>
         </div>
       </div>
 
@@ -477,10 +477,10 @@ function InstallmentsView() {
           const isNext = !inst.paid && INSTALLMENTS.filter(x=>!x.paid)[0]?.id === inst.id;
           return (
             <div key={inst.id} className={cn("bg-white rounded-2xl border p-5 transition-all",
-              isNext?"border-[#14356B]/40 shadow-md shadow-[#14356B]/8":"border-slate-200")}>
+              isNext?"border-[#0E6BB8]/40 shadow-md shadow-[#0E6BB8]/8":"border-slate-200")}>
               <div className="flex items-center gap-3">
                 <div className={cn("w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                  inst.paid?"border-emerald-500 bg-emerald-50":isNext?"border-[#C9A227] bg-amber-50":"border-slate-200 bg-slate-50")}>
+                  inst.paid?"border-emerald-500 bg-emerald-50":isNext?"border-[#E8471F] bg-amber-50":"border-slate-200 bg-slate-50")}>
                   {inst.paid
                     ? <Check size={16} className="text-emerald-600"/>
                     : <span className="text-xs font-bold text-slate-500">{i+1}</span>}
@@ -499,7 +499,7 @@ function InstallmentsView() {
                     style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT(inst.amount)}</p>
                   {!inst.paid && isNext && (
                     <button onClick={()=>setPaying(true)}
-                      className="mt-1 px-3 py-1.5 bg-[#14356B] text-white text-xs font-semibold rounded-lg hover:bg-[#0f2a56] transition-colors">
+                      className="mt-1 px-3 py-1.5 bg-[#0E6BB8] text-white text-xs font-semibold rounded-lg hover:bg-[#0B5794] transition-colors">
                       Pay Now
                     </button>
                   )}
@@ -528,7 +528,7 @@ function InstallmentsView() {
               <div className="grid grid-cols-2 gap-2">
                 {[["bKash","#E2136E"],["Nagad","#F7941D"],["DBBL Card","#1A1F71"],["Bank Transfer","#64748B"]].map(([name,color])=>(
                   <button key={name}
-                    className="flex items-center gap-2 p-3 border-2 border-slate-200 rounded-xl hover:border-[#14356B] transition-colors text-sm font-medium text-slate-700 hover:text-[#14356B]">
+                    className="flex items-center gap-2 p-3 border-2 border-slate-200 rounded-xl hover:border-[#0E6BB8] transition-colors text-sm font-medium text-slate-700 hover:text-[#0E6BB8]">
                     <div className="w-5 h-5 rounded-md" style={{ background: color }}/>
                     {name}
                   </button>
@@ -536,7 +536,7 @@ function InstallmentsView() {
               </div>
             </div>
             <button onClick={()=>setPaying(false)}
-              className="w-full py-3.5 bg-[#14356B] text-white font-bold rounded-2xl hover:bg-[#0f2a56] transition-colors flex items-center justify-center gap-2">
+              className="w-full py-3.5 bg-[#0E6BB8] text-white font-bold rounded-2xl hover:bg-[#0B5794] transition-colors flex items-center justify-center gap-2">
               <Wallet size={18}/> Confirm & Pay
             </button>
           </div>
@@ -573,7 +573,7 @@ function InvoicesView() {
             <div className="flex gap-2">
               <button onClick={()=>setPreview(true)}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50"><Eye size={13}/> View</button>
-              <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#14356B] text-white rounded-xl hover:bg-[#0f2a56]"><Download size={13}/> PDF</button>
+              <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]"><Download size={13}/> PDF</button>
             </div>
           </div>
         </div>
@@ -591,12 +591,12 @@ function InvoicesView() {
               {/* Invoice header */}
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="w-12 h-10 bg-[#14356B] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">BDH</div>
+                  <div className="w-12 h-10 bg-[#0E6BB8] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">BDH</div>
                   <p className="font-bold text-slate-800">BDH Travels & Tourism</p>
                   <p className="text-xs text-slate-400">Agrabad, Chattogram</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-xl text-[#14356B]">INVOICE</p>
+                  <p className="font-black text-xl text-[#0E6BB8]">INVOICE</p>
                   <p className="text-xs text-slate-400 font-mono">INV-2024-0247</p>
                   <p className="text-xs text-slate-400">Jun 12, 2024</p>
                 </div>
@@ -669,7 +669,7 @@ function DocumentsView() {
                   ) : null}
                   {doc.status==="missing" ? (
                     <button onClick={()=>setUploading(doc.id)}
-                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-[#14356B] text-white rounded-xl hover:bg-[#0f2a56]">
+                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]">
                       <Upload size={12}/> Upload
                     </button>
                   ) : (
@@ -679,12 +679,12 @@ function DocumentsView() {
               </div>
               {/* Upload zone */}
               {uploading===doc.id && (
-                <div className="mt-3 border-2 border-dashed border-[#14356B]/30 rounded-xl p-4 bg-[#14356B]/3 text-center">
-                  <Upload size={22} className="text-[#14356B]/50 mx-auto mb-2"/>
+                <div className="mt-3 border-2 border-dashed border-[#0E6BB8]/30 rounded-xl p-4 bg-[#0E6BB8]/3 text-center">
+                  <Upload size={22} className="text-[#0E6BB8]/50 mx-auto mb-2"/>
                   <p className="text-sm text-slate-500">Tap to select file or drag here</p>
                   <p className="text-xs text-slate-400">JPG, PNG, PDF · max 10 MB</p>
                   <div className="flex gap-2 mt-3 justify-center">
-                    <button className="px-4 py-2 bg-[#14356B] text-white text-xs font-semibold rounded-lg">Choose File</button>
+                    <button className="px-4 py-2 bg-[#0E6BB8] text-white text-xs font-semibold rounded-lg">Choose File</button>
                     <button onClick={()=>setUploading(null)} className="px-4 py-2 border border-slate-200 text-xs rounded-lg text-slate-500">Cancel</button>
                   </div>
                 </div>
@@ -706,10 +706,10 @@ function VoucherView() {
         <p className="text-sm text-slate-500 mt-0.5">Your official travel vouchers and confirmation letters</p>
       </div>
       {[
-        { id:"BK-0892", title:"Hajj Economy 2024", type:"Booking Voucher",   ready:true,  bg:"#14356B" },
+        { id:"BK-0892", title:"Hajj Economy 2024", type:"Booking Voucher",   ready:true,  bg:"#0E6BB8" },
         { id:"BK-0892", title:"Hajj Economy 2024", type:"Hotel Confirmation", ready:true,  bg:"#0E7C66" },
         { id:"BK-0892", title:"Hajj Economy 2024", type:"Flight Itinerary",  ready:true,  bg:"#2563EB" },
-        { id:"BK-0892", title:"Hajj Economy 2024", type:"Visa Copy",         ready:true,  bg:"#C9A227" },
+        { id:"BK-0892", title:"Hajj Economy 2024", type:"Visa Copy",         ready:true,  bg:"#E8471F" },
         { id:"BK-0892", title:"Hajj Economy 2024", type:"Group Letter",      ready:false, bg:"#7C3AED" },
       ].map((v,i)=>(
         <div key={i} className={cn("rounded-2xl p-5 flex items-center gap-4",
@@ -724,7 +724,7 @@ function VoucherView() {
             <p className="text-xs text-slate-400">{v.title}</p>
           </div>
           {v.ready ? (
-            <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56] transition-colors flex-shrink-0">
+            <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794] transition-colors flex-shrink-0">
               <Download size={14}/> Download
             </button>
           ) : (
@@ -769,10 +769,10 @@ function SupportView() {
         {MOCK_MSGS.map((m,i)=>(
           <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
             {!m.mine && (
-              <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 self-end">BD</div>
+              <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 self-end">BD</div>
             )}
             <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",
-              m.mine?"bg-[#14356B] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
+              m.mine?"bg-[#0E6BB8] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
             </div>
@@ -783,7 +783,7 @@ function SupportView() {
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16}/></button>
         <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Type your message…"
           className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none"/>
-        <button className="p-2.5 bg-[#14356B] text-white rounded-xl hover:bg-[#0f2a56]"><Send size={16}/></button>
+        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]"><Send size={16}/></button>
       </div>
     </div>
   );
@@ -792,15 +792,15 @@ function SupportView() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#14356B] text-white rounded-xl hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]">
           <Plus size={14}/> New Ticket
         </button>
       </div>
-      <div className="bg-gradient-to-r from-[#14356B]/5 to-[#0E7C66]/5 border border-[#14356B]/15 rounded-2xl p-4 flex items-center gap-3">
-        <Phone size={18} className="text-[#14356B]"/>
+      <div className="bg-gradient-to-r from-[#0E6BB8]/5 to-[#0E7C66]/5 border border-[#0E6BB8]/15 rounded-2xl p-4 flex items-center gap-3">
+        <Phone size={18} className="text-[#0E6BB8]"/>
         <div>
           <p className="text-sm font-semibold text-slate-800">Need urgent help?</p>
-          <p className="text-xs text-slate-500">Call us: <a href="tel:+8801800000000" className="text-[#14356B] font-semibold">+880 31 123 4567</a></p>
+          <p className="text-xs text-slate-500">Call us: <a href="tel:+8801800000000" className="text-[#0E6BB8] font-semibold">+880 31 123 4567</a></p>
         </div>
       </div>
       {TICKETS.map(t=>(
@@ -835,13 +835,13 @@ function NotificationsView() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Notifications</h2>
         <button onClick={()=>setNotifs(n=>n.map(x=>({...x,read:true})))}
-          className="text-sm text-[#14356B] hover:underline font-medium">Mark all read</button>
+          className="text-sm text-[#0E6BB8] hover:underline font-medium">Mark all read</button>
       </div>
       <div className="space-y-3">
         {notifs.map(n=>(
           <div key={n.id} onClick={()=>setNotifs(ns=>ns.map(x=>x.id===n.id?{...x,read:true}:x))}
             className={cn("flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all",
-              n.read?"bg-white border-slate-200":"bg-[#14356B]/4 border-[#14356B]/15")}>
+              n.read?"bg-white border-slate-200":"bg-[#0E6BB8]/4 border-[#0E6BB8]/15")}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: n.color+"20" }}>
               <div className="w-3 h-3 rounded-full" style={{ background: n.color }}/>
@@ -849,7 +849,7 @@ function NotificationsView() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-bold text-slate-800">{n.title}</p>
-                {!n.read && <div className="w-2 h-2 rounded-full bg-[#14356B] flex-shrink-0"/>}
+                {!n.read && <div className="w-2 h-2 rounded-full bg-[#0E6BB8] flex-shrink-0"/>}
               </div>
               <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
             </div>
@@ -874,10 +874,10 @@ function ProfileView() {
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-18 h-18 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#14356B] to-[#0E7C66] flex items-center justify-center text-white text-2xl font-black">
+            <div className="w-18 h-18 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white text-2xl font-black">
               MK
             </div>
-            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#14356B] rounded-full flex items-center justify-center text-white shadow-lg">
+            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0E6BB8] rounded-full flex items-center justify-center text-white shadow-lg">
               <Camera size={11}/>
             </button>
           </div>
@@ -911,12 +911,12 @@ function ProfileView() {
             <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
             <input type={f.type} defaultValue={f.val} disabled={!editing}
               className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                editing?"border-[#14356B]/40 bg-white focus:outline-none focus:ring-2 focus:ring-[#14356B]/20":"border-transparent bg-slate-50 text-slate-700 cursor-default")}/>
+                editing?"border-[#0E6BB8]/40 bg-white focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20":"border-transparent bg-slate-50 text-slate-700 cursor-default")}/>
           </div>
         ))}
         {editing && (
           <div className="flex gap-3 pt-2">
-            <button onClick={save} className="flex-1 py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56] flex items-center justify-center gap-2">
+            <button onClick={save} className="flex-1 py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
               <Check size={15}/> Save Changes
             </button>
             <button onClick={()=>setEditing(false)} className="px-5 py-3 border border-slate-200 text-slate-600 text-sm rounded-xl hover:bg-slate-50">Cancel</button>
@@ -932,7 +932,7 @@ function ProfileView() {
             <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
             <input defaultValue={v} disabled={!editing}
               className={cn("w-full px-3 py-2.5 text-sm rounded-xl border",
-                editing?"border-[#14356B]/40 bg-white focus:outline-none":"border-transparent bg-slate-50 text-slate-700")}/>
+                editing?"border-[#0E6BB8]/40 bg-white focus:outline-none":"border-transparent bg-slate-50 text-slate-700")}/>
           </div>
         ))}
       </div>
@@ -993,7 +993,7 @@ export function CustomerPortal() {
           {/* Brand */}
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
               <div>
                 <p className="text-sm font-bold text-slate-800">BDH Travels</p>
                 <p className="text-xs text-[#0E7C66] font-medium">My Portal</p>
@@ -1003,7 +1003,7 @@ export function CustomerPortal() {
           {/* User */}
           <div className="px-4 py-4 border-b border-slate-100">
             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#14356B] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">MK</div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">MK</div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate">Md. Karim Ullah</p>
                 <p className="text-xs text-slate-400 truncate">BK-0892 · Hajj 2024</p>
@@ -1016,7 +1016,7 @@ export function CustomerPortal() {
               <button key={item.id} onClick={()=>go(item.id)}
                 className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all mb-0.5",
                   view===item.id||view==="booking-detail"&&item.id==="bookings"
-                    ? "bg-[#14356B] text-white shadow-sm shadow-[#14356B]/25"
+                    ? "bg-[#0E6BB8] text-white shadow-sm shadow-[#0E6BB8]/25"
                     : "text-slate-600 hover:bg-slate-100")}>
                 <item.icon size={17} className={view===item.id?"text-white":"text-slate-400"}/>
                 <span className="font-medium">{item.label}</span>
@@ -1047,7 +1047,7 @@ export function CustomerPortal() {
         {/* Mobile header */}
         <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+            <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
             <span className="font-bold text-slate-800 text-sm">My Portal</span>
           </div>
           <div className="flex items-center gap-1">
@@ -1058,7 +1058,7 @@ export function CustomerPortal() {
               )}
             </button>
             <button onClick={()=>go("profile")} className="p-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#14356B] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">MK</div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">MK</div>
             </button>
           </div>
         </div>
@@ -1076,9 +1076,9 @@ export function CustomerPortal() {
               return (
                 <button key={item.id} onClick={()=>go(item.id)}
                   className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active?"text-[#14356B]":"text-slate-400"}/>
-                  <span className={cn("text-xs font-medium",active?"text-[#14356B]":"text-slate-400")}>{item.label}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#14356B]"/>}
+                  <item.icon size={22} className={active?"text-[#0E6BB8]":"text-slate-400"}/>
+                  <span className={cn("text-xs font-medium",active?"text-[#0E6BB8]":"text-slate-400")}>{item.label}</span>
+                  {active && <div className="w-1 h-1 rounded-full bg-[#0E6BB8]"/>}
                 </button>
               );
             })}

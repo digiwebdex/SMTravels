@@ -231,7 +231,7 @@ function RealtimeView() {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Active Sessions"  value={String(liveSessions)}     delta="+12 vs yesterday" up icon={Activity}       color="bg-[#14356B]" pulse />
+        <KpiCard label="Active Sessions"  value={String(liveSessions)}     delta="+12 vs yesterday" up icon={Activity}       color="bg-[#0E6BB8]" pulse />
         <KpiCard label="Bookings Today"   value={String(liveBookings)}     delta="+8 vs avg"        up icon={Calendar}       color="bg-emerald-500" />
         <KpiCard label="Revenue Today"    value={fmtC(liveRevenue)}        delta="+22%"             up icon={DollarSign}     color="bg-amber-500" />
         <KpiCard label="Pending Actions"  value="7"                        delta="3 urgent"         up={false} icon={AlertTriangle} color="bg-red-500" />
@@ -243,16 +243,16 @@ function RealtimeView() {
             <AreaChart data={HOURLY.filter((_,i) => i >= 7 && i <= 20)} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
               <defs>
                 <linearGradient id="sessGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14356B" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#14356B" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
               <XAxis dataKey="hour" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
               <Tooltip content={<ChartTip />} />
-              <Area type="monotone" dataKey="sessions" name="Sessions" stroke="#14356B" strokeWidth={2} fill="url(#sessGrad)" />
-              <Line type="monotone" dataKey="bookings" name="Bookings" stroke="#C9A227" strokeWidth={2} dot={false} />
+              <Area type="monotone" dataKey="sessions" name="Sessions" stroke="#0E6BB8" strokeWidth={2} fill="url(#sessGrad)" />
+              <Line type="monotone" dataKey="bookings" name="Bookings" stroke="#E8471F" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </Section>
@@ -263,7 +263,7 @@ function RealtimeView() {
               { action:"New booking",   desc:"Hajj Economy – Karim U.", time:"just now",  color:"bg-emerald-500" },
               { action:"Payment rcvd",  desc:"৳92,500 – bKash #0892",   time:"2 min ago", color:"bg-blue-500"    },
               { action:"Doc uploaded",  desc:"Passport – Rabeya K.",     time:"4 min ago", color:"bg-purple-500"  },
-              { action:"Visa approved", desc:"Saudi – Ahmed F. batch",   time:"8 min ago", color:"bg-[#C9A227]"   },
+              { action:"Visa approved", desc:"Saudi – Ahmed F. batch",   time:"8 min ago", color:"bg-[#E8471F]"   },
               { action:"Chat message",  desc:"NMT Travels – quota query",time:"12 min ago",color:"bg-slate-400"   },
               { action:"New booking",   desc:"Malaysia Tour × 3",        time:"15 min ago",color:"bg-emerald-500" },
             ].map((e, i) => (
@@ -289,7 +289,7 @@ function RealtimeView() {
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                 tickFormatter={v => `৳${(v/1000000).toFixed(0)}M`} />
               <Tooltip content={<ChartTip />} />
-              <Bar dataKey="revenue" name="Revenue" fill="#14356B" radius={[4,4,0,0]} />
+              <Bar dataKey="revenue" name="Revenue" fill="#0E6BB8" radius={[4,4,0,0]} />
               <Bar dataKey="expense" name="Expense" fill="#EF4444" radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -328,7 +328,7 @@ function VisaReport() {
       <FilterBar title="Visa Reports" subtitle="Visa applications, approvals, and processing metrics" />
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:"Total Applications", value:"1,061", delta:"+18%", up:true,  icon:FileText,      color:"bg-[#14356B]" },
+          { label:"Total Applications", value:"1,061", delta:"+18%", up:true,  icon:FileText,      color:"bg-[#0E6BB8]" },
           { label:"Approved",           value:"961",   delta:"+15%", up:true,  icon:CheckCircle,   color:"bg-emerald-500" },
           { label:"Approval Rate",      value:"90.6%", delta:"+2%",  up:true,  icon:TrendingUp,    color:"bg-blue-500" },
           { label:"Avg Processing",     value:"4.2 d", delta:"-0.8", up:true,  icon:Clock,         color:"bg-amber-500" },
@@ -373,7 +373,7 @@ function VisaReport() {
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                 tickFormatter={v => `${Math.round(v / 30)}`} />
               <Tooltip content={<ChartTip />} />
-              <Line type="monotone" dataKey="bookings" name="Visas" stroke="#14356B" strokeWidth={2.5} dot={{ r: 3, fill: "#14356B" }} />
+              <Line type="monotone" dataKey="bookings" name="Visas" stroke="#0E6BB8" strokeWidth={2.5} dot={{ r: 3, fill: "#0E6BB8" }} />
             </LineChart>
           </ResponsiveContainer>
         </Section>
@@ -389,7 +389,7 @@ function TicketReport() {
       <FilterBar title="Air Ticket Reports" subtitle="Flight bookings, revenue, and load factor analysis" />
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:"Tickets Issued",  value:"582",          delta:"+9%",  up:true, icon:Plane,     color:"bg-[#14356B]"  },
+          { label:"Tickets Issued",  value:"582",          delta:"+9%",  up:true, icon:Plane,     color:"bg-[#0E6BB8]"  },
           { label:"Ticket Revenue",  value:fmtM(39700000), delta:"+11%", up:true, icon:DollarSign,color:"bg-emerald-500"},
           { label:"Avg Load Factor", value:"86.4%",        delta:"+4%",  up:true, icon:Target,    color:"bg-blue-500"   },
           { label:"Avg Fare",        value:fmtC(68213),    delta:"+2%",  up:true, icon:TrendingUp, color:"bg-amber-500" },
@@ -451,7 +451,7 @@ function HotelReport() {
       <FilterBar title="Hotel Reports" subtitle="Accommodation bookings, occupancy, and revenue" />
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:"Total Room Nights",    value:"6,376",        delta:"+14%", up:true, icon:Hotel,     color:"bg-[#14356B]"  },
+          { label:"Total Room Nights",    value:"6,376",        delta:"+14%", up:true, icon:Hotel,     color:"bg-[#0E6BB8]"  },
           { label:"Hotel Revenue",        value:fmtM(31540000), delta:"+18%", up:true, icon:DollarSign,color:"bg-emerald-500"},
           { label:"Avg Occupancy",        value:"82.8%",        delta:"+4%",  up:true, icon:Target,    color:"bg-blue-500"   },
           { label:"Avg Rating",           value:"4.52 ★",       delta:"+0.1", up:true, icon:Star,      color:"bg-amber-500"  },
@@ -479,7 +479,7 @@ function HotelReport() {
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-[#14356B]" style={{ width: `${r.occ}%` }} />
+                        <div className="h-full rounded-full bg-[#0E6BB8]" style={{ width: `${r.occ}%` }} />
                       </div>
                       <span className="text-xs font-semibold text-slate-700">{r.occ}%</span>
                     </div>
@@ -496,7 +496,7 @@ function HotelReport() {
               <Pie data={HOTEL_DATA} dataKey="revenue" nameKey="city"
                 cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
                 {HOTEL_DATA.map((_, i) => (
-                  <Cell key={i} fill={["#14356B","#C9A227","#0E7C66","#2563EB","#7C3AED"][i]} />
+                  <Cell key={i} fill={["#0E6BB8","#E8471F","#0E7C66","#2563EB","#7C3AED"][i]} />
                 ))}
               </Pie>
               <Tooltip formatter={(v: number) => [fmtC(v), ""]} />
@@ -506,7 +506,7 @@ function HotelReport() {
             {HOTEL_DATA.map((h, i) => (
               <div key={h.city} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: ["#14356B","#C9A227","#0E7C66","#2563EB","#7C3AED"][i] }} />
+                  <div className="w-2 h-2 rounded-full" style={{ background: ["#0E6BB8","#E8471F","#0E7C66","#2563EB","#7C3AED"][i] }} />
                   <span className="text-slate-600">{h.city}</span>
                 </div>
                 <span className="font-medium text-slate-700 font-mono">{fmtC(h.revenue)}</span>
@@ -526,7 +526,7 @@ function SalesReport() {
       <FilterBar title="Sales Reports" subtitle="Revenue performance vs targets by service and branch" />
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:"Total Revenue (YTD)", value:fmtM(42100000), delta:"+14.4%", up:true, icon:TrendingUp,  color:"bg-[#14356B]"  },
+          { label:"Total Revenue (YTD)", value:fmtM(42100000), delta:"+14.4%", up:true, icon:TrendingUp,  color:"bg-[#0E6BB8]"  },
           { label:"Target Achievement",  value:"110.3%",        delta:"+10.3%", up:true, icon:Target,      color:"bg-emerald-500"},
           { label:"Total Bookings",      value:"2,288",         delta:"+11.8%", up:true, icon:Calendar,    color:"bg-amber-500"  },
           { label:"Avg Booking Value",   value:fmtC(18406),     delta:"+7.2%",  up:true, icon:DollarSign,  color:"bg-blue-500"   },
@@ -537,8 +537,8 @@ function SalesReport() {
           <AreaChart data={MONTHLY} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
             <defs>
               <linearGradient id="revGrad2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#14356B" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#14356B" stopOpacity={0} />
+                <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -547,8 +547,8 @@ function SalesReport() {
               tickFormatter={v => `৳${(v/1000000).toFixed(0)}M`} />
             <Tooltip content={<ChartTip />} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#14356B" strokeWidth={2.5} fill="url(#revGrad2)" />
-            <Line type="monotone" dataKey="target" name="Target" stroke="#C9A227" strokeWidth={2} strokeDasharray="5 4" dot={false} />
+            <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#revGrad2)" />
+            <Line type="monotone" dataKey="target" name="Target" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
           </AreaChart>
         </ResponsiveContainer>
       </Section>
@@ -565,7 +565,7 @@ function FinancialReport() {
         {[
           { label:"Net Revenue (YTD)",  value:fmtM(42100000), delta:"+14%", up:true, icon:TrendingUp, color:"bg-emerald-500" },
           { label:"Total Expenses",     value:fmtM(37000000), delta:"+8%",  up:false,icon:TrendingDown,color:"bg-red-500"    },
-          { label:"Net Profit",         value:fmtM(5100000),  delta:"+24%", up:true, icon:DollarSign, color:"bg-[#14356B]"  },
+          { label:"Net Profit",         value:fmtM(5100000),  delta:"+24%", up:true, icon:DollarSign, color:"bg-[#0E6BB8]"  },
           { label:"Net Margin",         value:"12.1%",         delta:"+2%",  up:true, icon:Target,     color:"bg-amber-500"  },
         ].map(p => <KpiCard key={p.label} {...p} />)}
       </div>
@@ -594,7 +594,7 @@ function AgentReport() {
       <FilterBar title="Agent Performance" subtitle="Bookings, revenue, commission, and CSAT by agent" />
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:"Active Agents",       value:"24",            delta:"+4",   up:true, icon:Users,     color:"bg-[#14356B]"  },
+          { label:"Active Agents",       value:"24",            delta:"+4",   up:true, icon:Users,     color:"bg-[#0E6BB8]"  },
           { label:"Agent Revenue Share", value:"24.3%",         delta:"+2%",  up:true, icon:TrendingUp,color:"bg-emerald-500"},
           { label:"Total Commission",    value:fmtC(1265000),   delta:"+14%", up:true, icon:DollarSign,color:"bg-amber-500"  },
           { label:"Avg CSAT",            value:"91%",           delta:"+3%",  up:true, icon:Star,      color:"bg-blue-500"   },
@@ -681,7 +681,7 @@ function StaffKpi() {
       </div>
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label:"Avg KPI Score",   value:"90%",   delta:"+4%", up:true, icon:Award,      color:"bg-[#14356B]"  },
+          { label:"Avg KPI Score",   value:"90%",   delta:"+4%", up:true, icon:Award,      color:"bg-[#0E6BB8]"  },
           { label:"Tasks Completed", value:"260/273",delta:"+8%", up:true, icon:CheckCircle,color:"bg-emerald-500"},
           { label:"Avg CSAT",        value:"91.8%",  delta:"+3%", up:true, icon:Star,       color:"bg-amber-500"  },
           { label:"Avg Hours",       value:"170h",   delta:"",    up:true, icon:Clock,      color:"bg-blue-500"   },
@@ -698,8 +698,8 @@ function StaffKpi() {
             {STAFF.map((s, i) => (
               <button key={i} onClick={() => setSelected(i)}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-50 transition-colors",
-                  selected === i ? "bg-[#14356B]/5 border-l-2 border-[#14356B]" : "")}>
-                <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  selected === i ? "bg-[#0E6BB8]/5 border-l-2 border-[#0E6BB8]" : "")}>
+                <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                   {s.name.slice(0,2)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -730,7 +730,7 @@ function StaffKpi() {
             </div>
             <div className="grid grid-cols-2 gap-3 mb-4">
               {[
-                { label:"Tasks Done", value:`${emp.done}/${emp.tasks}`, color:"text-[#14356B]" },
+                { label:"Tasks Done", value:`${emp.done}/${emp.tasks}`, color:"text-[#0E6BB8]" },
                 { label:"CSAT Score", value:emp.csat > 0 ? `${emp.csat}%` : "N/A", color:"text-emerald-600" },
                 { label:"Hours Worked", value:`${emp.hours}h`, color:"text-slate-700" },
                 { label:"Sales Revenue", value:emp.sales > 0 ? fmtC(emp.sales) : "N/A", color:"text-amber-600" },
@@ -749,8 +749,8 @@ function StaffKpi() {
                 <PolarGrid stroke="#F1F5F9" />
                 <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: "#94A3B8" }} />
                 <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9, fill: "#CBD5E1" }} tickCount={4} />
-                <Radar name="This Period" dataKey="A" stroke="#14356B" fill="#14356B" fillOpacity={0.25} strokeWidth={2} />
-                <Radar name="Department Avg" dataKey="B" stroke="#C9A227" fill="#C9A227" fillOpacity={0.1} strokeWidth={1.5} strokeDasharray="4 2" />
+                <Radar name="This Period" dataKey="A" stroke="#0E6BB8" fill="#0E6BB8" fillOpacity={0.25} strokeWidth={2} />
+                <Radar name="Department Avg" dataKey="B" stroke="#E8471F" fill="#E8471F" fillOpacity={0.1} strokeWidth={1.5} strokeDasharray="4 2" />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
               </RadarChart>
             </ResponsiveContainer>
@@ -813,7 +813,7 @@ function CustomBuilder() {
         <div className="flex gap-2">
           <button onClick={() => setPreview(v => !v)}
             className={cn("flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all",
-              preview ? "bg-[#14356B] text-white border-[#14356B]" : "border-slate-200 text-slate-600 hover:bg-slate-50")}>
+              preview ? "bg-[#0E6BB8] text-white border-[#0E6BB8]" : "border-slate-200 text-slate-600 hover:bg-slate-50")}>
             <Eye size={14} /> {preview ? "Hide Preview" : "Preview"}
           </button>
           <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
@@ -841,8 +841,8 @@ function CustomBuilder() {
                     <button key={f.id} onClick={() => toggle(f.id)}
                       className={cn("flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-all",
                         selected.includes(f.id)
-                          ? "bg-[#14356B] text-white border-[#14356B]"
-                          : "border-slate-200 text-slate-600 hover:border-[#14356B] hover:text-[#14356B]")}>
+                          ? "bg-[#0E6BB8] text-white border-[#0E6BB8]"
+                          : "border-slate-200 text-slate-600 hover:border-[#0E6BB8] hover:text-[#0E6BB8]")}>
                       {selected.includes(f.id) && <Check size={11} />}
                       {f.label}
                     </button>
@@ -860,8 +860,8 @@ function CustomBuilder() {
                 {selected.map(id => {
                   const f = ALL_FIELDS.find(x => x.id === id)!;
                   return (
-                    <div key={id} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#14356B]/10 border border-[#14356B]/20 rounded-lg text-xs text-[#14356B]">
-                      <GripVertical size={11} className="text-[#14356B]/40 cursor-grab" />
+                    <div key={id} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0E6BB8]/10 border border-[#0E6BB8]/20 rounded-lg text-xs text-[#0E6BB8]">
+                      <GripVertical size={11} className="text-[#0E6BB8]/40 cursor-grab" />
                       {f.label}
                       <button onClick={() => toggle(id)} className="hover:text-red-500"><X size={10} /></button>
                     </div>
@@ -880,7 +880,7 @@ function CustomBuilder() {
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Report Name</label>
                 <input value={name} onChange={e => setName(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date Range</label>
@@ -920,7 +920,7 @@ function CustomBuilder() {
                 ))}
               </div>
               <div className="flex gap-2 pt-2">
-                <button className="flex-1 py-2 text-sm bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">Run Report</button>
+                <button className="flex-1 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">Run Report</button>
                 <button className="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save</button>
               </div>
             </div>
@@ -929,7 +929,7 @@ function CustomBuilder() {
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <p className="text-xs font-semibold text-slate-500 mb-2">Saved Templates</p>
             {["Monthly Agent Summary","Hajj Season Overview","Overdue Payments"].map(t => (
-              <button key={t} className="w-full text-left text-xs text-[#14356B] hover:underline py-1 flex items-center gap-1.5">
+              <button key={t} className="w-full text-left text-xs text-[#0E6BB8] hover:underline py-1 flex items-center gap-1.5">
                 <ChevronRight size={10} /> {t}
               </button>
             ))}
@@ -939,9 +939,9 @@ function CustomBuilder() {
 
       {/* Preview table */}
       {preview && (
-        <div className="bg-white rounded-xl border border-[#14356B]/20 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 bg-[#14356B]/5 border-b border-[#14356B]/10">
-            <p className="text-sm font-semibold text-[#14356B]">Report Preview — {name}</p>
+        <div className="bg-white rounded-xl border border-[#0E6BB8]/20 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 bg-[#0E6BB8]/5 border-b border-[#0E6BB8]/10">
+            <p className="text-sm font-semibold text-[#0E6BB8]">Report Preview — {name}</p>
             <span className="text-xs text-slate-400">Showing 3 of ~{Math.floor(Math.random()*200+100)} rows</span>
           </div>
           <div className="overflow-x-auto">
@@ -1014,8 +1014,8 @@ export function ReportsBIModule() {
           {NAV.map(item => (
             <button key={item.id} onClick={() => setView(item.id)}
               className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                view === item.id ? "bg-[#14356B]/8 text-[#14356B] font-medium" : "text-slate-600 hover:bg-slate-50")}>
-              <item.icon size={15} className={view === item.id ? "text-[#14356B]" : "text-slate-400"} />
+                view === item.id ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium" : "text-slate-600 hover:bg-slate-50")}>
+              <item.icon size={15} className={view === item.id ? "text-[#0E6BB8]" : "text-slate-400"} />
               {item.label}
               {item.id === "realtime" && (
                 <span className="ml-auto w-2 h-2 bg-red-500 rounded-full animate-pulse" />

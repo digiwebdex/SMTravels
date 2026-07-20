@@ -243,7 +243,7 @@ function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
               </div>
               <div className="flex gap-2">
                 <button onClick={() => onGo("requests")}
-                  className="px-3 py-1.5 bg-[#14356B] text-white text-xs font-semibold rounded-lg hover:bg-[#0f2a56]">
+                  className="px-3 py-1.5 bg-[#0E6BB8] text-white text-xs font-semibold rounded-lg hover:bg-[#0B5794]">
                   Review
                 </button>
               </div>
@@ -259,7 +259,7 @@ function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
           <span className="text-xs text-slate-400">2024</span>
         </div>
         {[
-          { label: "Total Invoiced",  val: totalRevenue, color: "bg-[#14356B]", pct: 100 },
+          { label: "Total Invoiced",  val: totalRevenue, color: "bg-[#0E6BB8]", pct: 100 },
           { label: "Received",        val: totalRevenue - pending, color: "bg-emerald-500", pct: Math.round(((totalRevenue-pending)/totalRevenue)*100) },
           { label: "Outstanding",     val: pending,      color: "bg-amber-400",  pct: Math.round((pending/totalRevenue)*100) },
         ].map(r => (
@@ -278,18 +278,18 @@ function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
       {/* Quick links */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { icon: FileText,      label: "Raise Invoice",  color: "bg-[#14356B]/10 text-[#14356B]", v: "invoices"   as SupView },
+          { icon: FileText,      label: "Raise Invoice",  color: "bg-[#0E6BB8]/10 text-[#0E6BB8]", v: "invoices"   as SupView },
           { icon: Download,      label: "Statement",      color: "bg-emerald-50 text-emerald-600",  v: "statements" as SupView },
           { icon: MessageSquare, label: "Messages",       color: "bg-blue-50 text-blue-600",        v: "messages"   as SupView },
           { icon: BarChart3,     label: "Reports",        color: "bg-purple-50 text-purple-600",    v: "reports"    as SupView },
         ].map(q => (
           <button key={q.label} onClick={() => onGo(q.v)}
-            className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#14356B]/30 hover:shadow-sm transition-all group text-left">
+            className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all group text-left">
             <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", q.color)}>
               <q.icon size={16} />
             </div>
             <span className="text-sm font-semibold text-slate-700">{q.label}</span>
-            <ChevronRight size={13} className="ml-auto text-slate-300 group-hover:text-[#14356B]" />
+            <ChevronRight size={13} className="ml-auto text-slate-300 group-hover:text-[#0E6BB8]" />
           </button>
         ))}
       </div>
@@ -369,7 +369,7 @@ function RequestsView() {
             <X size={16} /> Decline
           </button>
           <button onClick={() => setConfirmModal({ id: detailReq.id, action: "accept" })}
-            className="flex-1 py-3.5 bg-[#14356B] text-white font-bold text-sm rounded-2xl hover:bg-[#0f2a56] flex items-center justify-center gap-2">
+            className="flex-1 py-3.5 bg-[#0E6BB8] text-white font-bold text-sm rounded-2xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
             <Check size={16} /> Accept & Confirm
           </button>
         </div>
@@ -405,7 +405,7 @@ function RequestsView() {
               </button>
               <button onClick={() => { setConfirmModal(null); setDetail(null); }}
                 className={cn("flex-1 py-3 rounded-2xl text-white font-bold text-sm",
-                  confirmModal.action === "accept" ? "bg-[#14356B] hover:bg-[#0f2a56]" : "bg-red-500 hover:bg-red-600")}>
+                  confirmModal.action === "accept" ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-red-500 hover:bg-red-600")}>
                 {confirmModal.action === "accept" ? "Confirm" : "Decline"}
               </button>
             </div>
@@ -424,7 +424,7 @@ function RequestsView() {
         {[["all", "All"], ["pending", "Pending"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"]].map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)}
             className={cn("flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0",
-              filter === k ? "bg-[#14356B] text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:border-[#14356B]/30")}>
+              filter === k ? "bg-[#0E6BB8] text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:border-[#0E6BB8]/30")}>
             {l}
             {k !== "all" && counts[k] ? (
               <span className={cn("w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold",
@@ -480,7 +480,7 @@ function RequestsView() {
                       Decline
                     </button>
                     <button onClick={() => setConfirmModal({ id: r.id, action: "accept" })}
-                      className="py-2 px-3 text-xs font-semibold bg-[#14356B] text-white rounded-lg hover:bg-[#0f2a56]">
+                      className="py-2 px-3 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
                       Accept
                     </button>
                   </>
@@ -506,7 +506,7 @@ function ServicesView() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">My Services</h2>
         <button onClick={() => setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14} /> Add Service
         </button>
       </div>
@@ -515,8 +515,8 @@ function ServicesView() {
         {SERVICES_LIST.map(svc => (
           <div key={svc.id} className="bg-white rounded-2xl border border-slate-200 p-5">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#14356B]/8 flex items-center justify-center flex-shrink-0">
-                <Package size={18} className="text-[#14356B]" />
+              <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0">
+                <Package size={18} className="text-[#0E6BB8]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
@@ -565,7 +565,7 @@ function ServicesView() {
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
                 <input type={t}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#14356B]/20" />
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
               </div>
             ))}
             <div>
@@ -573,7 +573,7 @@ function ServicesView() {
               <textarea rows={3} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none" />
             </div>
             <button onClick={() => setAddModal(false)}
-              className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56]">
+              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794]">
               Submit for Review
             </button>
           </div>
@@ -593,7 +593,7 @@ function InvoicesView() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Invoices</h2>
         <button onClick={() => setRaiseModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14} /> Raise Invoice
         </button>
       </div>
@@ -680,7 +680,7 @@ function InvoicesView() {
               <p className="text-xs text-slate-400">Attach supporting document (PDF)</p>
             </div>
             <button onClick={() => setRaiseModal(false)}
-              className="w-full py-3.5 bg-[#14356B] text-white font-bold text-sm rounded-xl hover:bg-[#0f2a56]">
+              className="w-full py-3.5 bg-[#0E6BB8] text-white font-bold text-sm rounded-xl hover:bg-[#0B5794]">
               Submit Invoice
             </button>
           </div>
@@ -700,13 +700,13 @@ function InvoicesView() {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <div className="w-10 h-9 bg-[#14356B] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">AL</div>
+                    <div className="w-10 h-9 bg-[#0E6BB8] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">AL</div>
                     <p className="font-bold text-slate-800">Al-Amin Hotels & Tourism</p>
                     <p className="text-xs text-slate-400">Agrabad, Chattogram</p>
                     <p className="text-xs text-slate-400">SUP-0014</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-black text-xl text-[#14356B]">TAX INVOICE</p>
+                    <p className="font-black text-xl text-[#0E6BB8]">TAX INVOICE</p>
                     <p className="text-xs text-slate-400 font-mono">{inv.id}</p>
                     <p className="text-xs text-slate-400">Issued: {inv.issued}</p>
                     <p className="text-xs text-red-400 font-semibold">Due: {inv.due}</p>
@@ -725,9 +725,9 @@ function InvoicesView() {
                 </div>
                 <div className="flex justify-between font-bold pt-2 border-t border-slate-200">
                   <span>Total Due</span>
-                  <span className="font-mono text-[#14356B]">{fmtBDT(inv.amount)}</span>
+                  <span className="font-mono text-[#0E6BB8]">{fmtBDT(inv.amount)}</span>
                 </div>
-                <button className="w-full mt-5 py-3 bg-[#14356B] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2">
+                <button className="w-full mt-5 py-3 bg-[#0E6BB8] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2">
                   <Download size={15} /> Download PDF
                 </button>
               </div>
@@ -746,7 +746,7 @@ function PaymentsView() {
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-slate-800">Payments Received</h2>
 
-      <div className="bg-gradient-to-br from-[#14356B] to-[#0a2a52] rounded-2xl p-5 text-white">
+      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0a2a52] rounded-2xl p-5 text-white">
         <p className="text-white/70 text-xs mb-1">Total Received (2024)</p>
         <p className="text-3xl font-black" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT(total)}</p>
         <div className="flex items-center gap-3 mt-3 text-sm text-white/70">
@@ -779,7 +779,7 @@ function PaymentsView() {
             </div>
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
               <p className="text-xs text-slate-400 font-mono">{p.id} · {p.inv}</p>
-              <button className="flex items-center gap-1 text-xs text-[#14356B] font-semibold hover:underline">
+              <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
                 <Download size={11} /> Receipt
               </button>
             </div>
@@ -804,7 +804,7 @@ function StatementsView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Statements</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#14356B] font-semibold border border-[#14356B]/30 px-3.5 py-2 rounded-xl hover:bg-[#14356B]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3.5 py-2 rounded-xl hover:bg-[#0E6BB8]/5">
           <Download size={14} /> Export All
         </button>
       </div>
@@ -830,8 +830,8 @@ function StatementsView() {
           <div key={m.label} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <button className="w-full flex items-center justify-between p-4" onClick={() => setOpenMonth(openMonth === i ? null : i)}>
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#14356B]/8 flex items-center justify-center">
-                  <BookOpen size={15} className="text-[#14356B]" />
+                <div className="w-9 h-9 rounded-lg bg-[#0E6BB8]/8 flex items-center justify-center">
+                  <BookOpen size={15} className="text-[#0E6BB8]" />
                 </div>
                 <div className="text-left">
                   <p className="font-bold text-slate-800">{m.label}</p>
@@ -880,7 +880,7 @@ function ReportsView() {
       <h2 className="text-xl font-bold text-slate-800">Reports</h2>
 
       <div className="grid grid-cols-2 gap-3">
-        <KpiCard label="Total Requests" value="5"  sub="YTD"         icon={Inbox}    accent="bg-[#14356B]"  delta="+40%" up />
+        <KpiCard label="Total Requests" value="5"  sub="YTD"         icon={Inbox}    accent="bg-[#0E6BB8]"  delta="+40%" up />
         <KpiCard label="Acceptance Rate"value="80%" sub="Confirmed"  icon={Check}    accent="bg-emerald-600"             />
         <KpiCard label="Avg. Turnaround"value="3.2d"sub="Days to confirm" icon={Clock} accent="bg-amber-500"            />
         <KpiCard label="Client Rating"  value="4.8★"sub="Overall"   icon={Star}     accent="bg-purple-500"              />
@@ -890,13 +890,13 @@ function ReportsView() {
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <p className="font-bold text-slate-800">Revenue by Month</p>
-          <button className="text-xs text-[#14356B] flex items-center gap-1 font-semibold hover:underline"><Download size={12}/> CSV</button>
+          <button className="text-xs text-[#0E6BB8] flex items-center gap-1 font-semibold hover:underline"><Download size={12}/> CSV</button>
         </div>
         <div className="flex items-end gap-2 h-32">
           {values.map((v, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full rounded-t-lg transition-all"
-                style={{ height: v > 0 ? `${Math.max((v / maxV) * 100, 4)}%` : "4%", background: i === months.length - 1 ? "#14356B" : "#14356B33" }} />
+                style={{ height: v > 0 ? `${Math.max((v / maxV) * 100, 4)}%` : "4%", background: i === months.length - 1 ? "#0E6BB8" : "#0E6BB833" }} />
               <p className="text-xs text-slate-400">{months[i]}</p>
             </div>
           ))}
@@ -908,9 +908,9 @@ function ReportsView() {
         <p className="font-bold text-slate-800 mb-4">Revenue by Service</p>
         <div className="space-y-3">
           {[
-            { label: "Hotel — Makkah",  pct: 83, val: 2940000, color: "#14356B" },
+            { label: "Hotel — Makkah",  pct: 83, val: 2940000, color: "#0E6BB8" },
             { label: "Hotel — Madinah", pct: 12, val: 420000,  color: "#0E7C66" },
-            { label: "Hotel — Malaysia",pct: 2,  val: 64000,   color: "#C9A227" },
+            { label: "Hotel — Malaysia",pct: 2,  val: 64000,   color: "#E8471F" },
             { label: "Visa Processing", pct: 0,  val: 6500,    color: "#7C3AED" },
           ].map(s => (
             <div key={s.label}>
@@ -933,7 +933,7 @@ function ReportsView() {
           {["Annual Summary 2024", "Q2 Report (Apr–Jun)", "Service Performance Report", "Payment Reconciliation"].map(r => (
             <div key={r} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
               <span className="text-sm text-slate-700 font-medium">{r}</span>
-              <button className="flex items-center gap-1.5 text-xs text-[#14356B] font-semibold hover:underline">
+              <button className="flex items-center gap-1.5 text-xs text-[#0E6BB8] font-semibold hover:underline">
                 <Download size={12} /> PDF
               </button>
             </div>
@@ -967,10 +967,10 @@ function MessagesView() {
         {thread.thread.map((m, i) => (
           <div key={i} className={cn("flex", m.mine ? "justify-end" : "justify-start")}>
             {!m.mine && (
-              <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>
+              <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>
             )}
             <div className={cn("max-w-xs lg:max-w-sm px-4 py-2.5 rounded-2xl text-sm",
-              m.mine ? "bg-[#14356B] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
+              m.mine ? "bg-[#0E6BB8] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1", m.mine ? "text-white/60" : "text-slate-400")}>{m.time}</p>
             </div>
@@ -981,7 +981,7 @@ function MessagesView() {
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16} /></button>
         <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a reply…"
           className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#14356B] text-white rounded-xl hover:bg-[#0f2a56]"><Send size={16} /></button>
+        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]"><Send size={16} /></button>
       </div>
     </div>
   );
@@ -993,9 +993,9 @@ function MessagesView() {
         {msgs.map(m => (
           <div key={m.id} onClick={() => { setActive(m.id); setMsgs(ms => ms.map(x => x.id === m.id ? { ...x, unread: false } : x)); }}
             className={cn("bg-white rounded-2xl border p-4 cursor-pointer hover:shadow-sm transition-all",
-              m.unread ? "border-[#14356B]/25 bg-[#14356B]/3" : "border-slate-200")}>
+              m.unread ? "border-[#0E6BB8]/25 bg-[#0E6BB8]/3" : "border-slate-200")}>
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 BD
               </div>
               <div className="flex-1 min-w-0">
@@ -1003,7 +1003,7 @@ function MessagesView() {
                   <p className="text-sm font-bold text-slate-800">{m.from}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-400">{m.time}</span>
-                    {m.unread && <div className="w-2 h-2 rounded-full bg-[#14356B]" />}
+                    {m.unread && <div className="w-2 h-2 rounded-full bg-[#0E6BB8]" />}
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-slate-600 mt-0.5">{m.subject}</p>
@@ -1040,9 +1040,9 @@ function SupportView() {
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
         {TMSG.map((m, i) => (
           <div key={i} className={cn("flex", m.mine ? "justify-end" : "justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#14356B] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
+            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
             <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",
-              m.mine ? "bg-[#14356B] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
+              m.mine ? "bg-[#0E6BB8] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1", m.mine ? "text-white/60" : "text-slate-400")}>{m.time}</p>
             </div>
@@ -1052,7 +1052,7 @@ function SupportView() {
       <div className="flex items-center gap-2">
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16} /></button>
         <input placeholder="Type your message…" className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#14356B] text-white rounded-xl"><Send size={16} /></button>
+        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl"><Send size={16} /></button>
       </div>
     </div>
   );
@@ -1061,13 +1061,13 @@ function SupportView() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#14356B] text-white text-sm font-semibold rounded-xl hover:bg-[#0f2a56]">
+        <button className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
           <Plus size={14} /> New Ticket
         </button>
       </div>
-      <div className="bg-[#14356B]/5 border border-[#14356B]/15 rounded-2xl p-4">
+      <div className="bg-[#0E6BB8]/5 border border-[#0E6BB8]/15 rounded-2xl p-4">
         <p className="text-sm font-semibold text-slate-800">Supplier Support Line</p>
-        <p className="text-xs text-slate-500 mt-0.5">Priority: <span className="text-[#14356B] font-bold">+880 31 123 4569</span> · Mon–Sat 9am–6pm</p>
+        <p className="text-xs text-slate-500 mt-0.5">Priority: <span className="text-[#0E6BB8] font-bold">+880 31 123 4569</span> · Mon–Sat 9am–6pm</p>
       </div>
       {SUP_TICKETS.map(t => (
         <div key={t.id} onClick={() => setActive(t.id)}
@@ -1111,7 +1111,7 @@ function ProfileView() {
       {/* Company card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#14356B]/10 flex items-center justify-center text-[#14356B] text-xl font-black flex-shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xl font-black flex-shrink-0">
             AL
           </div>
           <div className="flex-1">
@@ -1125,7 +1125,7 @@ function ProfileView() {
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="flex items-center gap-1 text-xs text-amber-500 font-bold"><Star size={11} className="fill-amber-400" />4.8 Rating</span>
               <span className="text-xs text-slate-400">122 total bookings</span>
-              <span className="text-xs px-2 py-0.5 bg-[#14356B]/10 text-[#14356B] rounded-full font-semibold">Hotel & Visa</span>
+              <span className="text-xs px-2 py-0.5 bg-[#0E6BB8]/10 text-[#0E6BB8] rounded-full font-semibold">Hotel & Visa</span>
             </div>
           </div>
           <button onClick={() => setEditing(v => !v)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400">
@@ -1162,12 +1162,12 @@ function ProfileView() {
               <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
               <input defaultValue={f.val} disabled={!editing}
                 className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                  editing ? "border-[#14356B]/40 bg-white focus:outline-none" : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
+                  editing ? "border-[#0E6BB8]/40 bg-white focus:outline-none" : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
             </div>
           ))}
           {editing && (
             <button onClick={() => setEditing(false)}
-              className="w-full py-3 bg-[#14356B] text-white font-semibold text-sm rounded-xl hover:bg-[#0f2a56] flex items-center justify-center gap-2">
+              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
               <Check size={15} /> Save Changes
             </button>
           )}
@@ -1192,11 +1192,11 @@ function ProfileView() {
               <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
               <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 rounded-xl border border-transparent">
                 <span className="text-sm text-slate-700 flex-1">{f.val}</span>
-                <button className="text-slate-400 hover:text-[#14356B]"><Copy size={13} /></button>
+                <button className="text-slate-400 hover:text-[#0E6BB8]"><Copy size={13} /></button>
               </div>
             </div>
           ))}
-          <button className="w-full py-2.5 border border-[#14356B] text-[#14356B] text-sm font-semibold rounded-xl hover:bg-[#14356B]/5">
+          <button className="w-full py-2.5 border border-[#0E6BB8] text-[#0E6BB8] text-sm font-semibold rounded-xl hover:bg-[#0E6BB8]/5">
             Request Bank Detail Update
           </button>
         </div>
@@ -1228,7 +1228,7 @@ function ProfileView() {
                     <sc.Icon size={10} />{sc.label}
                   </span>
                   {d.status === "missing" && (
-                    <button className="text-xs text-[#14356B] font-semibold flex items-center gap-1 hover:underline">
+                    <button className="text-xs text-[#0E6BB8] font-semibold flex items-center gap-1 hover:underline">
                       <Upload size={11} /> Upload
                     </button>
                   )}
@@ -1289,7 +1289,7 @@ export function SupplierPortal() {
           {/* Brand */}
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
               <div>
                 <p className="text-sm font-bold text-slate-800">BDH Travels</p>
                 <p className="text-xs text-slate-400 font-medium">Supplier Portal</p>
@@ -1300,7 +1300,7 @@ export function SupplierPortal() {
           <div className="px-4 py-3.5 border-b border-slate-100">
             <div className="bg-slate-50 rounded-2xl p-3">
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-[#14356B]/12 flex items-center justify-center text-[#14356B] text-xs font-black">AL</div>
+                <div className="w-8 h-8 rounded-xl bg-[#0E6BB8]/12 flex items-center justify-center text-[#0E6BB8] text-xs font-black">AL</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate">Al-Amin Hotels</p>
                   <p className="text-xs text-slate-400 font-mono">SUP-0014</p>
@@ -1324,7 +1324,7 @@ export function SupplierPortal() {
               <button key={item.id} onClick={() => go(item.id)}
                 className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all",
                   view === item.id
-                    ? "bg-[#14356B] text-white shadow-sm shadow-[#14356B]/25"
+                    ? "bg-[#0E6BB8] text-white shadow-sm shadow-[#0E6BB8]/25"
                     : "text-slate-600 hover:bg-slate-100")}>
                 <item.icon size={16} className={view === item.id ? "text-white" : "text-slate-400"} />
                 <span className="font-medium flex-1 text-left">{item.label}</span>
@@ -1358,7 +1358,7 @@ export function SupplierPortal() {
                 <Bell size={17} className="text-slate-500" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full" />
               </button>
-              <div className="w-7 h-7 rounded-full bg-[#14356B]/15 flex items-center justify-center text-[#14356B] text-xs font-bold ml-1">AI</div>
+              <div className="w-7 h-7 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold ml-1">AI</div>
             </div>
           </div>
           <div className="max-w-2xl mx-auto px-8 py-7">
@@ -1372,7 +1372,7 @@ export function SupplierPortal() {
         {/* Header */}
         <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#14356B] flex items-center justify-center text-white text-xs font-black">BDH</div>
+            <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
             <div>
               <p className="text-sm font-bold text-slate-800">Supplier Portal</p>
             </div>
@@ -1405,9 +1405,9 @@ export function SupplierPortal() {
               return (
                 <button key={item.id} onClick={() => go(item.id)}
                   className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active ? "text-[#14356B]" : "text-slate-400"} />
-                  <span className={cn("text-xs font-medium", active ? "text-[#14356B]" : "text-slate-400")}>{item.label}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#14356B]" />}
+                  <item.icon size={22} className={active ? "text-[#0E6BB8]" : "text-slate-400"} />
+                  <span className={cn("text-xs font-medium", active ? "text-[#0E6BB8]" : "text-slate-400")}>{item.label}</span>
+                  {active && <div className="w-1 h-1 rounded-full bg-[#0E6BB8]" />}
                 </button>
               );
             })}

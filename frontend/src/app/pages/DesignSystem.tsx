@@ -141,7 +141,7 @@ export function DesignSystemPage() {
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
         <div className="max-w-[1300px] mx-auto px-6 py-3.5 flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#14356B] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center">
               <Palette size={17} className="text-white" />
             </div>
             <div>
@@ -154,7 +154,7 @@ export function DesignSystemPage() {
           <nav className="hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar">
             {NAV_SECTIONS.map(s => (
               <a key={s.id} href={`#${s.id}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-[#14356B] hover:bg-[#14356B]/5 transition-all whitespace-nowrap">
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-[#0E6BB8] hover:bg-[#0E6BB8]/5 transition-all whitespace-nowrap">
                 <s.icon size={12} />
                 {s.label}
               </a>
@@ -166,15 +166,15 @@ export function DesignSystemPage() {
               {(["en", "bn"] as const).map(l => (
                 <button key={l} onClick={() => setLang(l)}
                   className={cn("px-3 py-1.5 text-xs font-bold rounded-[10px] transition-all",
-                    lang === l ? "bg-white text-[#14356B] shadow-sm" : "text-slate-500")}>
+                    lang === l ? "bg-white text-[#0E6BB8] shadow-sm" : "text-slate-500")}>
                   {l === "en" ? "English" : "বাংলা"}
                 </button>
               ))}
             </div>
-            <Link to="/sitemap" className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#14356B] px-3 py-2 border border-slate-200 rounded-xl hover:bg-slate-50">
+            <Link to="/sitemap" className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0E6BB8] px-3 py-2 border border-slate-200 rounded-xl hover:bg-slate-50">
               Sitemap <ExternalLink size={11} />
             </Link>
-            <Link to="/" className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#14356B] px-3 py-2 rounded-xl hover:bg-[#0f2a56]">
+            <Link to="/" className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#0E6BB8] px-3 py-2 rounded-xl hover:bg-[#0B5794]">
               <Home size={12} /> Home
             </Link>
           </div>
@@ -184,13 +184,13 @@ export function DesignSystemPage() {
       <div className="max-w-[1300px] mx-auto px-6 py-10 space-y-16">
 
         {/* Hero */}
-        <div className="bg-[#14356B] rounded-3xl p-10 text-white relative overflow-hidden">
+        <div className="bg-[#0E6BB8] rounded-3xl p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-5"
-            style={{ backgroundImage: "radial-gradient(circle at 70% 50%, #C9A227 0%, transparent 60%)" }} />
+            style={{ backgroundImage: "radial-gradient(circle at 70% 50%, #E8471F 0%, transparent 60%)" }} />
           <div className="relative z-10 max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
               <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-semibold border border-white/20">Version 1.0</span>
-              <span className="px-3 py-1 bg-[#C9A227]/20 rounded-full text-xs font-semibold border border-[#C9A227]/30 text-[#C9A227]">Handoff Ready</span>
+              <span className="px-3 py-1 bg-[#E8471F]/20 rounded-full text-xs font-semibold border border-[#E8471F]/30 text-[#C43A15]">Handoff Ready</span>
             </div>
             <h1 className="text-3xl font-black mb-3">BDH Travels Design System</h1>
             <p className="text-white/70 text-sm leading-relaxed mb-6">
@@ -212,9 +212,9 @@ export function DesignSystemPage() {
           <div className="space-y-10">
             <SubSection title="Brand Colors">
               <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-3">
-                <ColorSwatch name="Navy"       hex="#14356B" token="--brand-navy" />
-                <ColorSwatch name="Navy Dark"  hex="#0f2a56" token="hover state" />
-                <ColorSwatch name="Gold"       hex="#C9A227" token="--brand-gold" />
+                <ColorSwatch name="Navy"       hex="#0E6BB8" token="--brand-navy" />
+                <ColorSwatch name="Navy Dark"  hex="#0B5794" token="hover state" />
+                <ColorSwatch name="Gold"       hex="#E8471F" token="--brand-gold" />
                 <ColorSwatch name="Emerald"    hex="#0E7C66" token="--brand-emerald" />
                 <ColorSwatch name="ERP BG"     hex="#F0F2F5" token="--erp-bg" />
                 <ColorSwatch name="Slate 800"  hex="#1e293b" token="text-slate-800" textDark />
@@ -227,7 +227,7 @@ export function DesignSystemPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { name: "Success",  hex: "#0E7C66", bg: "#ECFDF5", label: "Paid, Active, Verified" },
-                  { name: "Warning",  hex: "#C9A227", bg: "#FFF9E6", label: "Pending, Follow-up" },
+                  { name: "Warning",  hex: "#E8471F", bg: "#FFF9E6", label: "Pending, Follow-up" },
                   { name: "Danger",   hex: "#DC2626", bg: "#FEF2F2", label: "Overdue, Error, Lost" },
                   { name: "Info",     hex: "#2563EB", bg: "#EFF6FF", label: "New, Processing, Sent" },
                 ].map(s => (
@@ -266,7 +266,7 @@ export function DesignSystemPage() {
               <div className="flex flex-wrap gap-4 items-end">
                 {[2, 4, 6, 8, 10, 12, 16, 20, 24].map(n => (
                   <div key={n} className="flex flex-col items-center gap-1">
-                    <div className="bg-[#14356B]" style={{ width: n * 4, height: n * 4, borderRadius: 2 }} />
+                    <div className="bg-[#0E6BB8]" style={{ width: n * 4, height: n * 4, borderRadius: 2 }} />
                     <p className="text-[9px] text-slate-400 font-mono">{n * 4}px</p>
                   </div>
                 ))}
@@ -274,7 +274,7 @@ export function DesignSystemPage() {
               <div className="mt-4 flex flex-wrap gap-4 items-center">
                 {[4, 8, 12, 16, 20, 9999].map(r => (
                   <div key={r} className="flex flex-col items-center gap-1">
-                    <div className="w-12 h-8 bg-[#14356B]/20 border-2 border-[#14356B]"
+                    <div className="w-12 h-8 bg-[#0E6BB8]/20 border-2 border-[#0E6BB8]"
                       style={{ borderRadius: r === 9999 ? 9999 : r }} />
                     <p className="text-[9px] text-slate-400 font-mono">{r === 9999 ? "full" : `${r}px`}</p>
                   </div>
@@ -368,7 +368,7 @@ export function DesignSystemPage() {
                       <p className="text-[9px] text-slate-400">{sz}</p>
                     </div>
                   ))}
-                  <Avatar name="Shah Jalal" color="#C9A227" size="lg" />
+                  <Avatar name="Shah Jalal" color="#E8471F" size="lg" />
                   <Avatar name="Rahim Uddin" color="#0E7C66" size="lg" />
                 </div>
               </Demo>
@@ -383,8 +383,8 @@ export function DesignSystemPage() {
               <Demo label="Tags & Tooltip">
                 <div className="flex flex-wrap gap-2">
                   <Tag label="Hajj 2026" />
-                  <Tag label="VIP" color="#C9A227" />
-                  <Tag label="Dhaka HQ" color="#14356B" onRemove={() => {}} />
+                  <Tag label="VIP" color="#E8471F" />
+                  <Tag label="Dhaka HQ" color="#0E6BB8" onRemove={() => {}} />
                   <Tooltip content="Opens in agent portal">
                     <Tag label="B2B Agent" color="#374151" />
                   </Tooltip>
@@ -600,7 +600,7 @@ export function DesignSystemPage() {
 
             <SubSection title="Sidebar Nav Item">
               <Demo label="Active / Hover / Default states">
-                <div className="bg-[#14356B] rounded-xl w-52 p-2 space-y-0.5">
+                <div className="bg-[#0E6BB8] rounded-xl w-52 p-2 space-y-0.5">
                   {[
                     { icon: BarChart3,   label: "Dashboard",        active: true },
                     { icon: Users,       label: "CRM & Leads",      active: false },
@@ -641,15 +641,15 @@ export function DesignSystemPage() {
                       return (
                         <div key={i} className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl min-w-[52px] relative cursor-pointer"
                           style={{ minHeight: 44 }}>
-                          <Icon size={22} className={item.active ? "text-[#14356B]" : "text-slate-400"} />
+                          <Icon size={22} className={item.active ? "text-[#0E6BB8]" : "text-slate-400"} />
                           <span className={cn("text-[10px] font-semibold leading-none",
-                            item.active ? "text-[#14356B]" : "text-slate-400")}>{item.label}</span>
+                            item.active ? "text-[#0E6BB8]" : "text-slate-400")}>{item.label}</span>
                           {item.badge && (
                             <span className="absolute top-1 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full font-black">
                               {item.badge}
                             </span>
                           )}
-                          {item.active && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[#14356B] rounded-full" />}
+                          {item.active && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[#0E6BB8] rounded-full" />}
                         </div>
                       );
                     })}
@@ -703,7 +703,7 @@ export function DesignSystemPage() {
                   { rule: "lg:left-60",        desc: "Sidebar-offset topbar on desktop only" },
                 ].map(u => (
                   <div key={u.rule} className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 rounded-xl">
-                    <code className="text-xs font-mono text-[#14356B] bg-[#14356B]/5 px-2 py-1 rounded font-bold">{u.rule}</code>
+                    <code className="text-xs font-mono text-[#0E6BB8] bg-[#0E6BB8]/5 px-2 py-1 rounded font-bold">{u.rule}</code>
                     <p className="text-xs text-slate-500">{u.desc}</p>
                   </div>
                 ))}
@@ -757,7 +757,7 @@ export function DesignSystemPage() {
                     <div key={item.label} className="bg-white rounded-xl border border-slate-200 p-4">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{item.label}</p>
                       <p className="text-sm text-slate-500 mb-1">{item.en}</p>
-                      <p className="text-sm font-bold text-[#14356B]">{item.bn}</p>
+                      <p className="text-sm font-bold text-[#0E6BB8]">{item.bn}</p>
                     </div>
                   ))}
                 </div>
@@ -771,7 +771,7 @@ export function DesignSystemPage() {
                     <div key={style} className="bg-white rounded-xl border border-slate-200 p-4">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{style}</p>
                       <p className="text-sm font-semibold text-slate-700">{formatDate("2026-01-15", style, "en")}</p>
-                      <p className="text-sm font-semibold text-[#14356B]">{formatDate("2026-01-15", style, "bn")}</p>
+                      <p className="text-sm font-semibold text-[#0E6BB8]">{formatDate("2026-01-15", style, "bn")}</p>
                     </div>
                   ))}
                 </div>
@@ -797,7 +797,7 @@ export function DesignSystemPage() {
                   ].map(([en, bn]) => (
                     <div key={en} className="flex items-center justify-between bg-white rounded-xl border border-slate-200 px-3 py-2.5">
                       <span className="text-xs text-slate-600">{en}</span>
-                      <span className="text-sm font-semibold text-[#14356B]">{bn}</span>
+                      <span className="text-sm font-semibold text-[#0E6BB8]">{bn}</span>
                     </div>
                   ))}
                 </div>
@@ -878,15 +878,15 @@ export function DesignSystemPage() {
       <footer className="border-t border-slate-200 bg-white mt-16">
         <div className="max-w-[1300px] mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-[#14356B] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-[#0E6BB8] flex items-center justify-center">
               <Palette size={13} className="text-white" />
             </div>
             <p className="text-xs text-slate-500">BDH Travels ERP Design System · v1.0 · UI/UX only — functionality unchanged</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/sitemap" className="text-xs text-slate-400 hover:text-[#14356B] transition-colors">Sitemap</Link>
-            <Link to="/erp" className="text-xs text-slate-400 hover:text-[#14356B] transition-colors">ERP</Link>
-            <Link to="/login" className="text-xs text-slate-400 hover:text-[#14356B] transition-colors">Login</Link>
+            <Link to="/sitemap" className="text-xs text-slate-400 hover:text-[#0E6BB8] transition-colors">Sitemap</Link>
+            <Link to="/erp" className="text-xs text-slate-400 hover:text-[#0E6BB8] transition-colors">ERP</Link>
+            <Link to="/login" className="text-xs text-slate-400 hover:text-[#0E6BB8] transition-colors">Login</Link>
           </div>
         </div>
       </footer>
