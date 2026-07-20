@@ -107,6 +107,10 @@ server path — verified locally). But:
 - `backend/prisma/migrations/20260720181400_journal_balance_trigger/migration.sql`
   - **Deferred constraint trigger**: every POSTED journal entry must balance
     (Σdebits = Σcredits) and have ≥1 line — enforced at COMMIT, on every write path.
+- `backend/prisma/migrations/20260721120000_crm_lead_unique/migration.sql`
+  - **Partial unique index** `lead_branch_phone_active_uq` on `Lead(branchId, phone)`
+    `WHERE deleted_at IS NULL` — a prospect can't be entered twice in one branch; the
+    CRM lead-create path maps the violation to a friendly 409 (`src/lib/prismaErrors.ts`).
 
 **PII columns** (`Traveler/Customer/Agent/User/Document` passport/NID) store AES-256-GCM
 **ciphertext** (`src/lib/pii.ts`). The app **fails to start** without `PII_KEK_CURRENT_ID`,

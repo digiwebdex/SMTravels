@@ -3,6 +3,7 @@ import { UserRole, AuditSeverity } from "@prisma/client";
 import { verifyAccessToken } from "../lib/jwt";
 import { prisma } from "../lib/prisma";
 import { audit, clientIp } from "../lib/audit";
+import { HttpError } from "./errorHandler";
 
 export interface AuthCtx {
   userId: string;
@@ -119,4 +120,16 @@ export function branchWhere(auth: AuthCtx): { branchId?: string } {
 /** Guard for a record already in hand — true if the caller may see this branch. */
 export function canAccessBranch(auth: AuthCtx, branchId: string | null): boolean {
   return isGlobalRole(auth.role) || auth.branchId === branchId;
+}
+
+/** Resolve the branch a write targets: global roles may pass one (else their own);
+ *  everyone else is forced onto their own branch regardless of what they send. */
+export function resolveBranchId(auth: AuthCtx, requested?: string | null): string {
+  if (isGlobalRole(auth.role)) {
+    const b = requested || auth.branchId;
+    if (!b) throw new HttpError(400, "BranchRequired", { detail: "Specify branchId (no home branch on this account)" });
+    return b;
+  }
+  if (!auth.branchId) throw new HttpError(403, "NoBranch");
+  return auth.branchId;
 }

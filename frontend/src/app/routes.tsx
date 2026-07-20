@@ -28,6 +28,7 @@ function lazyNamed<M, N extends keyof M>(factory: () => Promise<M>, name: N) {
 // ERP shell + modules
 const ErpLayout            = lazyNamed(() => import("./erp/ErpLayout"), "ErpLayout");
 const SuperAdminDashboard  = lazyNamed(() => import("./erp/SuperAdminDashboard"), "SuperAdminDashboard");
+const CrmModule            = lazyNamed(() => import("./erp/CrmModule"), "CrmModule");
 const BookingsModule       = lazyNamed(() => import("./erp/bookings/BookingsModule"), "BookingsModule");
 const PackageManagementPage = lazyNamed(() => import("./erp/PackageManagement"), "PackageManagementPage");
 const ServicesConfigPage   = lazyNamed(() => import("./erp/ServicesConfig"), "ServicesConfigPage");
@@ -78,6 +79,7 @@ export const router = createBrowserRouter([
     element: guard(ERP_ROLES, <ErpLayout />),
     children: [
       { index: true, element: withSuspense(<SuperAdminDashboard />) },
+      { path: "crm", element: withSuspense(<CrmModule />) },
       { path: "bookings", element: withSuspense(<BookingsModule />) },
       { path: "packages", element: withSuspense(<PackageManagementPage />) },
       { path: "services", element: withSuspense(<ServicesConfigPage />) },
