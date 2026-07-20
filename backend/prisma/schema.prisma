@@ -1,0 +1,11 @@
+// SM Travels International — Prisma schema
+// No models yet; they will be added as features land.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

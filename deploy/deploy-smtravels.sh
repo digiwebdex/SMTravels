@@ -161,6 +161,8 @@ if [ "$DEPLOY_BACKEND" = 1 ]; then
        else
          echo '   (${SERVICE_NAME} not installed yet — skipping restart)'
        fi"
+  say "health check: GET http://127.0.0.1:4030/api/health"
+  rsh "sleep 2; code=\$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:4030/api/health || echo 000); echo \"   /api/health -> \$code\"; [ \"\$code\" = 200 ] && echo '   backend healthy' || echo \"   WARNING: backend not healthy — check: journalctl -u ${SERVICE_NAME} -n 50 --no-pager\""
 else
   say "frontend-only deploy — skipped backend install + service restart."
 fi

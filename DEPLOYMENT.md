@@ -60,3 +60,30 @@ echo 'deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart smtravels-api.servi
 /var/www/SMTravels/.env.production chmod 600
 /var/www/SMTravels/deploy/         systemd unit template
 ```
+
+## Node version policy
+- **Backend REQUIRES Node 22** — the server runs `/usr/bin/node` = v22.x, and the systemd unit + `npm ci` must match. `.nvmrc`/`.node-version` at the repo root pin `22`. Locally: `fnm use 22` (or `fnm exec --using 22 -- <cmd>`) so `node -v` shows 22 **before** `npm install` in `backend/`.
+- **Frontend builds on either** Node 22 or 24 — static Vite output is version-agnostic (`engines: >=22`).
+
+## Backend (`backend/`) — Express + Prisma + TypeScript
+- Entrypoint `src/main.ts` → `tsc` → **`dist/main.js`** (matches the systemd unit's `ExecStart`). Binds **127.0.0.1:4030 only** (never 0.0.0.0).
+- `prisma` **and** `@prisma/client` are in **dependencies** so `npm ci --omit=dev` + `prisma migrate deploy` work on the server.
+- Middleware: helmet · cors (`CORS_ORIGIN`) · compression · express-rate-limit · pino (pino-http + `x-request-id`) · zod validation · centralized error handler. Graceful shutdown on SIGTERM.
+- `GET /api/health` → 200 `{status, version, uptime, ...}` — the deploy script health-checks this after a backend deploy.
+- Scripts: `dev` (tsx watch) · `build` (tsc) · `start` · `typecheck` · `prisma:migrate` · `prisma:seed`.
+
+### Local backend dev (Windows)
+```
+fnm install 22 && fnm use 22           # node -v must show v22 BEFORE installing
+cd backend && npm install && npx prisma generate && npm run dev
+```
+Local PostgreSQL (do NOT use the production DB). Simplest options:
+- **Native (no Docker):** `winget install PostgreSQL.PostgreSQL`, then in `psql -U postgres`:
+  `CREATE USER smtravels_user WITH PASSWORD 'devpassword'; CREATE DATABASE smtravels_db OWNER smtravels_user;`
+- **Docker Desktop (if installed):**
+  `docker run --name smtravels-pg -e POSTGRES_USER=smtravels_user -e POSTGRES_PASSWORD=devpassword -e POSTGRES_DB=smtravels_db -p 5432:5432 -d postgres:16`
+
+Local `DATABASE_URL` (already set in `backend/.env`):
+`postgresql://smtravels_user:devpassword@localhost:5432/smtravels_db?schema=public`
+
+The **server's** `DATABASE_URL` lives in `/var/www/SMTravels/.env.production` (native PG :5440, db `smtravels_db`) — never connect to it from your machine.
