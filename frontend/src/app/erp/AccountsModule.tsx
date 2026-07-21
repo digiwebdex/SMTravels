@@ -436,7 +436,7 @@ function JournalEntryView() {
     { account: "", debit: "", credit: "", narration: "" },
     { account: "", debit: "", credit: "", narration: "" },
   ]);
-  const [date, setDate] = useState("2024-07-14");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [ref, setRef] = useState("JE-" + String(Math.floor(Math.random() * 900) + 100));
 
   const totalDebit = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);

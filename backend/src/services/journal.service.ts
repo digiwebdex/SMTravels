@@ -64,7 +64,10 @@ export async function listJournal(auth: AuthCtx, q: JournalListQuery): Promise<J
     if (q.dateTo) (where.date as Prisma.DateTimeFilter).lte = toDate(q.dateTo);
   }
   if (q.q) where.OR = [{ ref: { contains: q.q, mode: "insensitive" } }, { description: { contains: q.q, mode: "insensitive" } }];
-  const orderBy: Prisma.JournalEntryOrderByWithRelationInput = q.sort === "ref" ? { ref: q.dir } : { date: q.dir };
+  // Stable ordering: a secondary createdAt tiebreaker so same-date entries have a
+  // deterministic order and the most-recently-created entry surfaces first.
+  const orderBy: Prisma.JournalEntryOrderByWithRelationInput[] =
+    q.sort === "ref" ? [{ ref: q.dir }] : [{ date: q.dir }, { createdAt: q.dir }];
 
   const [rows, total, grouped] = await Promise.all([
     prisma.journalEntry.findMany({ where, include: { lines: true }, orderBy, skip: (q.page - 1) * q.pageSize, take: q.pageSize }),

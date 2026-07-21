@@ -68,7 +68,9 @@ async function toError(res: Response): Promise<ApiError> {
   try {
     const body = await res.json();
     code = body.error ?? code;
-    message = body.message ?? body.error ?? message;
+    // Prefer the human-readable detail the backend sends (HttpError `details.detail`)
+    // over the bare error code, so friendly messages surface in toasts.
+    message = body.message ?? body.details?.detail ?? body.error ?? message;
   } catch {
     /* non-JSON error body */
   }
