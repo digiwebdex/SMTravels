@@ -9,6 +9,12 @@ import {
   Layers, FileText, Settings2, Zap, RefreshCw, Download,
 } from "lucide-react";
 import { cn, fmtPrice, img } from "../lib/utils";
+import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import {
+  usePackages, usePackage, useCreatePackage, useUpdatePackage, useDeletePackage,
+  mapListItem, mapDetail, toPackagePayload, pkgTypeToEnum, pkgStatusToEnum,
+  type PackageListParams,
+} from "../hooks/catalog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PkgView = "list" | "form" | "detail";
@@ -32,7 +38,7 @@ interface HotelEntry { id: string; city: string; name: string; stars: number; ro
 interface FlightEntry { id: string; carrier: string; flightNo: string; from: string; to: string; cabin: string; dep: string; arr: string; }
 
 interface Package {
-  id: string; name: string; slug: string; type: PkgType; season: string;
+  id: string; code: string; name: string; slug: string; type: PkgType; season: string;
   departure: string; duration: string; status: PkgStatus;
   basePrice: number; originalPrice?: number; totalSeats: number; availableSeats: number;
   rating: number; bookings: number; revenue: number; image: string;
@@ -41,6 +47,7 @@ interface Package {
   hotels: HotelEntry[]; flights: FlightEntry[];
   includes: string[]; excludes: string[];
   images: string[]; departureDates: string[];
+  availability?: { departureDate: string; totalSeats: number; soldSeats: number; availableSeats: number }[];
 }
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -86,16 +93,6 @@ const SAMPLE_FLIGHTS: FlightEntry[] = [
   { id: "f2", carrier: "Biman Bangladesh Airlines", flightNo: "BG-044", from: "MED", to: "DAC", cabin: "Economy", dep: "16:00", arr: "01:45+1" },
 ];
 
-const PACKAGES: Package[] = [
-  { id: "PKG-001", name: "Hajj Economy Package 2026", slug: "hajj-economy-2026", type: "Hajj", season: "Hajj 2026", departure: "May 2026", duration: "21 Days", status: "Active", basePrice: 580000, originalPrice: 650000, totalSeats: 50, availableSeats: 23, rating: 4.8, bookings: 27, revenue: 15660000, image: "photo-1591604466107-ec97de577aff", shortDesc: "Full Hajj pilgrimage with economy class flights, 4-star Makkah & Madinah hotels.", featured: true, tiers: SAMPLE_TIERS, itinerary: SAMPLE_DAYS, hotels: SAMPLE_HOTELS, flights: SAMPLE_FLIGHTS, includes: ["Return economy airfare", "4-star hotel in Makkah (7 nts)", "4-star hotel in Madinah (4 nts)", "All ground transport", "Ihram material", "Hajj ID badge", "24/7 group guide", "Zamzam water (5L)", "Sacrifice (Qurbani)"], excludes: ["Saudi Arabia visa fee", "Travel insurance", "Personal expenses", "Porter service", "Laundry", "Any Ziyarat tours not listed"], images: ["photo-1591604466107-ec97de577aff", "photo-1576158113928-4c240eaaf360", "photo-1597424216809-3ba9864aeb72"], departureDates: ["2026-05-12", "2026-05-14", "2026-05-18"] },
-  { id: "PKG-002", name: "Umrah Ramadan Premium 2026", slug: "umrah-ramadan-premium-2026", type: "Umrah", season: "Ramadan 2026", departure: "Mar 2026", duration: "14 Days", status: "Active", basePrice: 185000, originalPrice: 210000, totalSeats: 120, availableSeats: 84, rating: 4.9, bookings: 36, revenue: 6660000, image: "photo-1576158113928-4c240eaaf360", shortDesc: "Premium Ramadan Umrah with 5-star hotels, guaranteed Laylatul Qadr stay.", featured: true, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: ["2026-03-10", "2026-03-17"] },
-  { id: "PKG-003", name: "Umrah Economy (Year-Round)", slug: "umrah-economy-yr", type: "Umrah", season: "Year-round", departure: "Monthly", duration: "7 Days", status: "Active", basePrice: 85000, originalPrice: 95000, totalSeats: 200, availableSeats: 142, rating: 4.6, bookings: 58, revenue: 4930000, image: "photo-1597424216809-3ba9864aeb72", shortDesc: "Affordable Umrah package with comfortable 3-star hotels.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
-  { id: "PKG-004", name: "Malaysia Golden Tour — 7D/6N", slug: "malaysia-golden-7d", type: "Tour", season: "Year-round", departure: "Nov 2025", duration: "7 Days", status: "Draft", basePrice: 95000, totalSeats: 40, availableSeats: 40, rating: 0, bookings: 0, revenue: 0, image: "photo-1596422846543-75c6fc197f07", shortDesc: "Kuala Lumpur, Langkawi & Genting Highlands. Halal food throughout.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
-  { id: "PKG-005", name: "KSA Business Visa Processing", slug: "ksa-biz-visa", type: "Visa", season: "Year-round", departure: "—", duration: "7-14 Days", status: "Active", basePrice: 12500, totalSeats: 999, availableSeats: 999, rating: 4.7, bookings: 487, revenue: 6087500, image: "photo-1588421357574-87938a86fa28", shortDesc: "Saudi Arabia business visa with document checklist, submission & tracking.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
-  { id: "PKG-006", name: "UAE Manpower Placement", slug: "uae-manpower", type: "Manpower", season: "Year-round", departure: "Rolling", duration: "Contract", status: "Active", basePrice: 45000, totalSeats: 500, availableSeats: 287, rating: 4.5, bookings: 213, revenue: 9585000, image: "photo-1512453979798-5ea266f8880c", shortDesc: "UAE worker placement — skilled trades, hospitality & construction.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
-  { id: "PKG-007", name: "Cox's Bazar Resort Package 3D/2N", slug: "coxs-bazar-3d", type: "Hotel", season: "Oct–Mar", departure: "Nov 2025", duration: "3 Days", status: "Draft", basePrice: 12000, totalSeats: 30, availableSeats: 30, rating: 0, bookings: 0, revenue: 0, image: "photo-1585409677983-0f6c41ca9c3b", shortDesc: "Sea-beach resort stay with breakfast, sunset cruise & beach bonfire.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
-  { id: "PKG-008", name: "Hajj VIP & Luxury Package 2026", slug: "hajj-vip-2026", type: "Hajj", season: "Hajj 2026", departure: "May 2026", duration: "28 Days", status: "Suspended", basePrice: 1200000, totalSeats: 10, availableSeats: 10, rating: 5.0, bookings: 0, revenue: 0, image: "photo-1591604466107-ec97de577aff", shortDesc: "5-star luxury Hajj with VIP transport, private guide, and Zamzam allocation.", featured: false, tiers: [], itinerary: [], hotels: [], flights: [], includes: [], excludes: [], images: [], departureDates: [] },
-];
 
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -162,18 +159,29 @@ function PackageListView({
   onNew, onEdit, onView,
 }: { onNew: () => void; onEdit: (id: string) => void; onView: (id: string) => void }) {
   const [search, setSearch] = useState("");
+  const [q, setQ] = useState("");
   const [typeFilter, setTypeFilter] = useState<PkgType | "All">("All");
   const [statusFilter, setStatusFilter] = useState<PkgStatus | "All">("All");
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const PER_PAGE = 10;
 
   const types: Array<PkgType | "All"> = ["All", "Hajj", "Umrah", "Tour", "Visa", "Manpower", "Hotel"];
 
-  const filtered = PACKAGES.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.id.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === "All" || p.type === typeFilter;
-    const matchStatus = statusFilter === "All" || p.status === statusFilter;
-    return matchSearch && matchType && matchStatus;
-  });
+  React.useEffect(() => { const t = setTimeout(() => { setQ(search); setPage(1); }, 300); return () => clearTimeout(t); }, [search]);
+
+  const params: PackageListParams = {
+    page, pageSize: PER_PAGE, sort: "date", dir: "desc",
+    q: q || undefined,
+    type: typeFilter !== "All" ? pkgTypeToEnum(typeFilter) : undefined,
+    status: statusFilter !== "All" ? pkgStatusToEnum(statusFilter) : undefined,
+  };
+  const { data, isLoading, isError, error, refetch } = usePackages(params);
+  const del = useDeletePackage();
+  const filtered = (data?.data ?? []).map(mapListItem);
+  const total = data?.total ?? 0;
+  const stats = data?.stats ?? { total: 0, active: 0, draft: 0, totalRevenue: 0 };
+  const totalPages = data?.totalPages ?? 1;
 
   const toggleSelect = (id: string) => {
     setSelected(s => { const next = new Set(s); next.has(id) ? next.delete(id) : next.add(id); return next; });
@@ -188,7 +196,7 @@ function PackageListView({
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-[20px] font-black text-[#111827]">Package Management</h1>
-          <p className="text-[12px] text-[#9CA3AF] mt-0.5">{PACKAGES.length} total packages · {PACKAGES.filter(p => p.status === "Active").length} active</p>
+          <p className="text-[12px] text-[#9CA3AF] mt-0.5">{stats.total} total packages · {stats.active} active</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
@@ -247,6 +255,12 @@ function PackageListView({
 
       {/* Table */}
       <Card className="overflow-hidden">
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load packages."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={8} cols={8} /></div>
+        ) : (
+        <>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px]">
             <thead className="bg-[#F7F8FA] border-b border-[#E5E7EB]">
@@ -283,7 +297,7 @@ function PackageListView({
                             {pkg.featured && <Star size={11} fill="#E8471F" className="text-[#C43A15] flex-shrink-0" />}
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-[#9CA3AF]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.id}</span>
+                            <span className="text-[10px] text-[#9CA3AF]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.code}</span>
                             <span className="text-[10px] text-[#9CA3AF]">·</span>
                             <span className="text-[10px] text-[#9CA3AF]">{pkg.duration}</span>
                           </div>
@@ -339,23 +353,29 @@ function PackageListView({
           </div>
         )}
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-[#F3F4F6]">
-          <span className="text-[11px] text-[#9CA3AF]">Showing {filtered.length} of {PACKAGES.length} packages</span>
-          <div className="flex items-center gap-1">
-            <button className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors flex items-center gap-1">
-              <ChevronLeft size={12} /> Prev
-            </button>
-            {[1,2].map(n => (
-              <button key={n} className={cn("h-7 w-7 rounded-[6px] text-[11px] font-medium cursor-pointer transition-colors",
-                n === 1 ? "bg-[#0E6BB8] text-white" : "text-[#374151] hover:bg-[#F7F8FA] border border-[#E5E7EB]")}>
-                {n}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[#F3F4F6]">
+            <span className="text-[11px] text-[#9CA3AF]">Showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} of {total} packages</span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors flex items-center gap-1 disabled:opacity-40">
+                <ChevronLeft size={12} /> Prev
               </button>
-            ))}
-            <button className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors flex items-center gap-1">
-              Next <ChevronRight size={12} />
-            </button>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button key={i} onClick={() => setPage(i + 1)} className={cn("h-7 w-7 rounded-[6px] text-[11px] font-medium cursor-pointer transition-colors",
+                  page === i + 1 ? "bg-[#0E6BB8] text-white" : "text-[#374151] hover:bg-[#F7F8FA] border border-[#E5E7EB]")}>
+                  {i + 1}
+                </button>
+              ))}
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F7F8FA] cursor-pointer transition-colors flex items-center gap-1 disabled:opacity-40">
+                Next <ChevronRight size={12} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+        </>
+        )}
       </Card>
     </div>
   );
@@ -801,9 +821,25 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
   const [excludes, setExcludes] = useState<string[]>(pkg?.excludes?.length ? pkg.excludes : ["Visa fee", "Travel insurance", "Personal expenses"]);
   const [departureDates, setDepartureDates] = useState<string[]>(pkg?.departureDates || ["2026-05-12", "2026-05-14"]);
 
-  const handleSave = () => {
+  const create = useCreatePackage();
+  const update = useUpdatePackage(pkg?.id ?? "");
+
+  const handleSave = async () => {
     setSaving(true);
-    setTimeout(() => { setSaving(false); onSave(); }, 1200);
+    // Unsplash image IDs are kept as-is (no upload pipeline yet — Documents/media module later).
+    const payload = toPackagePayload({
+      name, type, season, duration, departure, status, shortDesc, longDesc, featured,
+      tiers, days, hotels, flights, includes, excludes, departureDates, image: pkg?.image,
+    });
+    try {
+      if (isEdit && pkg?.id) await update.mutateAsync(payload);
+      else await create.mutateAsync(payload);
+      onSave();
+    } catch {
+      /* toast handled by hook */
+    } finally {
+      setSaving(false);
+    }
   };
 
   const addHotel = () => setHotels(h => [...h, { id: `h${Date.now()}`, city: "", name: "", stars: 4, roomType: "", nights: 3 }]);
@@ -1217,12 +1253,13 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
             <Card className="p-5">
               <h3 className="text-[13px] font-bold text-[#111827] mb-3">Hotels</h3>
               <div className="space-y-2">
-                {SAMPLE_HOTELS.map(h => (
-                  <div key={h.id} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
+                {pkg.hotels.length === 0 && <p className="text-[11px] text-[#9CA3AF]">No hotels configured.</p>}
+                {pkg.hotels.map((h, i) => (
+                  <div key={h.id || i} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
                     <Hotel size={14} className="text-[#0E7C66] flex-shrink-0" />
                     <div className="flex-1">
                       <div className="text-[12px] font-semibold text-[#111827]">{h.name}</div>
-                      <div className="text-[10px] text-[#9CA3AF]">{h.city} · {h.nights} nights · {"★".repeat(h.stars)}</div>
+                      <div className="text-[10px] text-[#9CA3AF]">{h.city} · {h.nights} nights · {"★".repeat(Number(h.stars) || 0)}</div>
                     </div>
                   </div>
                 ))}
@@ -1231,8 +1268,9 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
             <Card className="p-5">
               <h3 className="text-[13px] font-bold text-[#111827] mb-3">Flights</h3>
               <div className="space-y-2">
-                {SAMPLE_FLIGHTS.map(f => (
-                  <div key={f.id} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
+                {pkg.flights.length === 0 && <p className="text-[11px] text-[#9CA3AF]">No flights configured.</p>}
+                {pkg.flights.map((f, i) => (
+                  <div key={f.id || i} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
                     <Plane size={14} className="text-[#2563EB] flex-shrink-0" />
                     <div className="flex-1">
                       <div className="text-[12px] font-semibold text-[#111827]">{f.carrier}</div>
@@ -1258,10 +1296,11 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
             <Card className="p-5">
               <h3 className="text-[13px] font-bold text-[#111827] mb-3">Departure Dates</h3>
               <div className="space-y-1.5">
-                {(pkg.departureDates.length ? pkg.departureDates : ["2026-05-12", "2026-05-14", "2026-05-18"]).map(d => (
-                  <div key={d} className="flex items-center justify-between p-2.5 bg-[#F7F8FA] rounded-[7px]">
-                    <span className="text-[11px] font-bold text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d}</span>
-                    <span className="text-[10px] text-[#9CA3AF]">27/50 seats</span>
+                {(pkg.availability ?? []).length === 0 && <p className="text-[11px] text-[#9CA3AF]">No departures scheduled.</p>}
+                {(pkg.availability ?? []).map(a => (
+                  <div key={a.departureDate} className="flex items-center justify-between p-2.5 bg-[#F7F8FA] rounded-[7px]">
+                    <span className="text-[11px] font-bold text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{a.departureDate}</span>
+                    <span className="text-[10px] text-[#9CA3AF]">{a.availableSeats}/{a.totalSeats} seats</span>
                   </div>
                 ))}
               </div>
@@ -1272,18 +1311,19 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
 
       {tab === "pricing" && (
         <Card className="p-5">
-          <PricingTierEditor tiers={tiers} onChange={setTiers => {}} />
+          <PricingTierEditor tiers={pkg.tiers} onChange={() => {}} />
         </Card>
       )}
 
       {tab === "itinerary" && (
         <Card className="p-5">
           <div className="relative">
-            {SAMPLE_DAYS.map((day, i) => (
+            {pkg.itinerary.length === 0 && <p className="text-[12px] text-[#9CA3AF] py-6 text-center">No itinerary added yet.</p>}
+            {pkg.itinerary.map((day, i) => (
               <div key={day.id} className="flex gap-4 mb-5">
                 <div className="flex flex-col items-center">
                   <div className="w-10 h-10 rounded-full bg-[#0E6BB8] text-white flex items-center justify-center font-black text-[13px] flex-shrink-0 z-10">{day.day}</div>
-                  {i < SAMPLE_DAYS.length - 1 && <div className="w-px flex-1 bg-[#E5E7EB] mt-2" />}
+                  {i < pkg.itinerary.length - 1 && <div className="w-px flex-1 bg-[#E5E7EB] mt-2" />}
                 </div>
                 <div className="flex-1 pb-2">
                   <h4 className="text-[13px] font-bold text-[#111827] mb-1">{day.title}</h4>
@@ -1318,14 +1358,26 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
   );
 }
 
+// ─── Loaders: fetch a package by id for edit/detail ───────────────────────────
+function PackageFormLoader({ id, onBack, onSave }: { id: string; onBack: () => void; onSave: () => void }) {
+  const { data, isLoading, isError, error, refetch } = usePackage(id);
+  if (isLoading) return <div className="p-6"><SkeletonTable rows={6} cols={4} /></div>;
+  if (isError || !data) return <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Package not found."} onRetry={() => refetch()} /></div>;
+  return <PackageFormView pkg={mapDetail(data)} isEdit onBack={onBack} onSave={onSave} />;
+}
+
+function PackageDetailLoader({ id, onBack, onEdit }: { id: string; onBack: () => void; onEdit: () => void }) {
+  const { data, isLoading, isError, error, refetch } = usePackage(id);
+  if (isLoading) return <div className="p-6"><SkeletonTable rows={6} cols={4} /></div>;
+  if (isError || !data) return <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Package not found."} onRetry={() => refetch()} /></div>;
+  return <PackageDetailView pkg={mapDetail(data)} onBack={onBack} onEdit={onEdit} />;
+}
+
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export function PackageManagementPage() {
   const [view, setView] = useState<PkgView>("list");
   const [isEdit, setIsEdit] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tiers, setTiers] = useState<PricingTier[]>(SAMPLE_TIERS);
-
-  const selectedPkg = PACKAGES.find(p => p.id === selectedId);
 
   const goList = () => { setView("list"); setSelectedId(null); };
   const goCreate = () => { setIsEdit(false); setSelectedId(null); setView("form"); };
@@ -1335,9 +1387,13 @@ export function PackageManagementPage() {
   return (
     <div>
       {view === "list" && <PackageListView onNew={goCreate} onEdit={goEdit} onView={goDetail} />}
-      {view === "form" && <PackageFormView pkg={selectedPkg} isEdit={isEdit} onBack={goList} onSave={goList} />}
-      {view === "detail" && selectedPkg && (
-        <PackageDetailView pkg={selectedPkg} onBack={goList} onEdit={() => goEdit(selectedPkg.id)} />
+      {view === "form" && (
+        isEdit && selectedId
+          ? <PackageFormLoader id={selectedId} onBack={goList} onSave={goList} />
+          : <PackageFormView pkg={undefined} isEdit={false} onBack={goList} onSave={goList} />
+      )}
+      {view === "detail" && selectedId && (
+        <PackageDetailLoader id={selectedId} onBack={goList} onEdit={() => goEdit(selectedId)} />
       )}
     </div>
   );

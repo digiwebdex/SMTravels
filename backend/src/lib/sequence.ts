@@ -10,7 +10,7 @@ import type { Prisma } from "@prisma/client";
  * lives in the caller's transaction, a rollback (e.g. a failed confirm) reverts
  * the counter — the number is NOT consumed.
  */
-export type SequenceScope = "BOOKING" | "INVOICE" | "RECEIPT" | "JOURNAL";
+export type SequenceScope = "BOOKING" | "INVOICE" | "RECEIPT" | "JOURNAL" | "PACKAGE";
 
 export async function allocateSequence(
   tx: Prisma.TransactionClient,

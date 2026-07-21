@@ -8,6 +8,31 @@ import {
   HelpCircle, Zap, Upload, Download, Eye, ChevronDown, Building2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import { useServices, useUpdateService, type ServiceDto } from "../hooks/catalog";
+
+// Presentational config (icon/color/bg + display stats) keyed by service type.
+// The service's real state (name/desc/category/active/featured) comes from the
+// API; these are display-only (the schema has no per-service booking stats).
+const PRESENTATION: Record<string, { icon: ServiceDef["icon"]; color: string; bg: string; stats: ServiceDef["stats"] }> = {
+  HAJJ:       { icon: Star,     color: "#E8471F", bg: "#FFF9E6", stats: { bookings: 342, pending: 27, revenue: "৳14.2 Cr", avgTime: "180 days" } },
+  UMRAH:      { icon: MapPin,   color: "#0E6BB8", bg: "#EEF2FF", stats: { bookings: 1124, pending: 84, revenue: "৳9.8 Cr", avgTime: "30 days" } },
+  VISA:       { icon: FileText, color: "#7C3AED", bg: "#F5F3FF", stats: { bookings: 487, pending: 63, revenue: "৳61L", avgTime: "7 days" } },
+  AIR_TICKET: { icon: Plane,    color: "#2563EB", bg: "#EFF6FF", stats: { bookings: 621, pending: 12, revenue: "৳2.8 Cr", avgTime: "1 day" } },
+  MANPOWER:   { icon: Users,    color: "#EA580C", bg: "#FFF7ED", stats: { bookings: 198, pending: 31, revenue: "৳89L", avgTime: "60 days" } },
+  TOUR:       { icon: MapPin,   color: "#0891B2", bg: "#F0F9FF", stats: { bookings: 143, pending: 8, revenue: "৳18L", avgTime: "5 days" } },
+  HOTEL:      { icon: Hotel,    color: "#0E7C66", bg: "#ECFDF5", stats: { bookings: 143, pending: 8, revenue: "৳18L", avgTime: "2 days" } },
+};
+
+function mapServiceToDef(s: ServiceDto): ServiceDef & { realId: string } {
+  const pres = PRESENTATION[s.type] ?? PRESENTATION.TOUR;
+  return {
+    id: s.id, realId: s.id, name: s.name, category: s.category || "Services", description: s.description || "",
+    icon: pres.icon, color: pres.color, bg: pres.bg,
+    stats: { ...pres.stats, bookings: pres.stats.bookings, pending: pres.stats.pending },
+    active: s.active, featured: s.featured,
+  };
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ServiceView = "grid" | "config";
@@ -189,10 +214,8 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 }
 
 // ─── SERVICE GRID ─────────────────────────────────────────────────────────────
-function ServiceGrid({ services, onConfigure }: { services: ServiceDef[]; onConfigure: (id: string) => void }) {
-  const [svcs, setSvcs] = useState(services);
-  const toggleActive = (id: string) => setSvcs(s => s.map(svc => svc.id === id ? { ...svc, active: !svc.active } : svc));
-
+function ServiceGrid({ services, onConfigure, onToggle }: { services: ServiceDef[]; onConfigure: (id: string) => void; onToggle: (id: string, active: boolean) => void }) {
+  const svcs = services;
   const activeCount = svcs.filter(s => s.active).length;
   const catGroups = svcs.reduce<Record<string, ServiceDef[]>>((acc, svc) => {
     if (!acc[svc.category]) acc[svc.category] = [];
@@ -262,7 +285,7 @@ function ServiceGrid({ services, onConfigure }: { services: ServiceDef[]; onConf
                         </div>
                       </div>
                     </div>
-                    <Toggle checked={svc.active} onChange={() => toggleActive(svc.id)} />
+                    <Toggle checked={svc.active} onChange={() => onToggle(svc.id, !svc.active)} />
                   </div>
 
                   <p className="text-[11px] text-[#6B7280] leading-relaxed mb-4 line-clamp-2">{svc.description}</p>
@@ -848,16 +871,20 @@ export function ServicesConfigPage() {
   const [view, setView] = useState<ServiceView>("grid");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const selectedSvc = SERVICES.find(s => s.id === selectedId);
+  const { data, isLoading, isError, error, refetch } = useServices();
+  const update = useUpdateService();
+  const services = (data ?? []).map(mapServiceToDef);
+  const selectedSvc = services.find(s => s.id === selectedId);
 
-  const handleConfigure = (id: string) => {
-    setSelectedId(id);
-    setView("config");
-  };
+  const handleConfigure = (id: string) => { setSelectedId(id); setView("config"); };
+  const handleToggle = (id: string, active: boolean) => update.mutate({ id, patch: { active } });
+
+  if (isLoading) return <div className="p-6"><SkeletonTable rows={6} cols={4} /></div>;
+  if (isError) return <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load services."} onRetry={() => refetch()} /></div>;
 
   return (
     <div>
-      {view === "grid" && <ServiceGrid services={SERVICES} onConfigure={handleConfigure} />}
+      {view === "grid" && <ServiceGrid services={services} onConfigure={handleConfigure} onToggle={handleToggle} />}
       {view === "config" && selectedSvc && (
         <ServiceConfigPanel svc={selectedSvc} onBack={() => setView("grid")} />
       )}
