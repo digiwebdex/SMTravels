@@ -10,6 +10,16 @@ import {
   TrendingUp, TrendingDown, RotateCcw, Tag, Banknote,
 } from "lucide-react";
 import { cn, img, fmtPrice } from "../lib/utils";
+import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
+import {
+  useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
+} from "../hooks/finance";
+import { useCustomers } from "../hooks/crm";
+import { Loader2 } from "lucide-react";
+import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem } from "@contracts/finance.contract";
+
+const st2vm = (s: string): InvoiceStatus => s.toLowerCase() as InvoiceStatus;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type InvoicesView =
@@ -141,39 +151,38 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
 }
 
 // ─── Invoice List ─────────────────────────────────────────────────────────────
-function InvoiceListView({ onView, onPrint }: { onView: (id: string) => void; onPrint: (id: string) => void }) {
+function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNew: () => void }) {
   const [search, setSearch] = useState("");
+  const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
+  const [page, setPage] = useState(1);
+  React.useEffect(() => { const t = setTimeout(() => { setQ(search); setPage(1); }, 300); return () => clearTimeout(t); }, [search]);
 
-  const filtered = INVOICES.filter(inv =>
-    (statusFilter === "all" || inv.status === statusFilter) &&
-    (inv.customer.toLowerCase().includes(search.toLowerCase()) || inv.id.includes(search))
-  );
-
-  const totalOutstanding = INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled")
-    .reduce((s, i) => s + (i.amount - i.paid), 0);
+  const { data, isLoading, isError, error, refetch } = useInvoices({ page, pageSize: 10, q: q || undefined, status: statusFilter !== "all" ? statusFilter.toUpperCase() : undefined });
+  const rows: InvoiceListItem[] = data?.data ?? [];
+  const stats = data?.stats ?? { total: 0, totalBilled: 0, totalPaid: 0, totalDue: 0, overdue: 0 };
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Invoices</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Manage all customer invoices</p>
+          <p className="text-sm text-slate-500 mt-0.5">{data?.total ?? 0} invoices · manage all customer invoices</p>
         </div>
         <div className="flex gap-2">
           <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={14} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+          <button onClick={onNew} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
             <Plus size={14} /> New Invoice
           </button>
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Invoiced (Jul)" value={fmtC(2138000)} trend={18} icon={FileText} color="bg-[#0E6BB8]" />
-        <KpiCard label="Collected" value={fmtC(743500)} trend={12} icon={CheckCircle} color="bg-emerald-500" />
-        <KpiCard label="Outstanding" value={fmtC(totalOutstanding)} icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Overdue" value={fmtC(450000)} trend={-5} icon={AlertTriangle} color="bg-red-500" />
+        <KpiCard label="Total Billed" value={fmtC(stats.totalBilled)} icon={FileText} color="bg-[#0E6BB8]" />
+        <KpiCard label="Collected" value={fmtC(stats.totalPaid)} icon={CheckCircle} color="bg-emerald-500" />
+        <KpiCard label="Outstanding" value={fmtC(stats.totalDue)} icon={Clock} color="bg-amber-500" />
+        <KpiCard label="Overdue" value={String(stats.overdue)} icon={AlertTriangle} color="bg-red-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
@@ -182,7 +191,7 @@ function InvoiceListView({ onView, onPrint }: { onView: (id: string) => void; on
             <input placeholder="Search invoices…" value={search} onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
           </div>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as InvoiceStatus | "all")}
+          <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value as InvoiceStatus | "all"); setPage(1); }}
             className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
             <option value="all">All Statuses</option>
             {(Object.keys(INV_STATUS_CFG) as InvoiceStatus[]).map(s => (
@@ -190,57 +199,88 @@ function InvoiceListView({ onView, onPrint }: { onView: (id: string) => void; on
             ))}
           </select>
         </div>
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load invoices."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={8} cols={9} /></div>
+        ) : (
         <div className="overflow-x-auto">
         <table className="w-full min-w-[900px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Invoice #", "Date", "Due Date", "Customer", "Service", "Amount", "Paid", "Balance", "Status", ""].map(h => (
+              {["Invoice #", "Issued", "Due Date", "Customer", "Amount", "Paid", "Balance", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.map(inv => (
-              <tr key={inv.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{inv.id}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{inv.date}</td>
-                <td className={cn("px-4 py-3 text-sm", inv.status === "overdue" ? "text-red-600 font-medium" : "text-slate-500")}>{inv.dueDate}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-800">{inv.customer}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{inv.service}</td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-800" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(inv.amount, inv.currency)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtC(inv.paid, inv.currency)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-red-500">{inv.amount - inv.paid > 0 ? fmtC(inv.amount - inv.paid, inv.currency) : "—"}</td>
-                <td className="px-4 py-3"><InvStatusChip status={inv.status} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => onView(inv.id)} className="p-1.5 hover:bg-slate-100 rounded" title="View">
-                      <Eye size={13} className="text-slate-400" />
-                    </button>
-                    <button onClick={() => onPrint(inv.id)} className="p-1.5 hover:bg-slate-100 rounded" title="Print">
-                      <Printer size={13} className="text-slate-400" />
-                    </button>
-                    <button className="p-1.5 hover:bg-slate-100 rounded" title="Send">
-                      <Send size={13} className="text-slate-400" />
-                    </button>
-                  </div>
+            {rows.map(inv => (
+              <tr key={inv.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => onView(inv.id)}>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{inv.invoiceNo || <span className="text-amber-600">DRAFT</span>}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{inv.issueDate || "—"}</td>
+                <td className={cn("px-4 py-3 text-sm", inv.status === "OVERDUE" ? "text-red-600 font-medium" : "text-slate-500")}>{inv.dueDate || "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-800">{inv.customerName || "—"}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(inv.total, inv.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtC(inv.paidAmount, inv.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm font-mono text-red-500">{inv.dueAmount > 0 ? fmtC(inv.dueAmount, inv.currency as Currency) : "—"}</td>
+                <td className="px-4 py-3"><InvStatusChip status={st2vm(inv.status)} /></td>
+                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => onView(inv.id)} className="p-1.5 hover:bg-slate-100 rounded" title="View"><Eye size={13} className="text-slate-400" /></button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {rows.length === 0 && <div className="py-16 text-center text-slate-400"><FileText size={32} className="mx-auto mb-3 text-slate-200" /><p className="text-sm">No invoices yet</p></div>}
         </div>
+        )}
       </div>
     </div>
   );
 }
 
 // ─── Invoice Detail ───────────────────────────────────────────────────────────
+function RecordPaymentDrawer({ invoice, onClose }: { invoice: InvoiceDetailDto; onClose: () => void }) {
+  const record = useRecordPayment();
+  const [amount, setAmount] = useState(String(invoice.dueAmount));
+  const [method, setMethod] = useState("BANK_TRANSFER");
+  const [reference, setReference] = useState("");
+  const submit = async () => {
+    try { await record.mutateAsync({ invoiceId: invoice.id, amount: Number(amount), method: method as never, reference: reference || undefined }); onClose(); } catch { /* toast */ }
+  };
+  return (
+    <Drawer open onClose={onClose} title="Record Payment" subtitle={`${invoice.invoiceNo} · due ${fmtC(invoice.dueAmount, invoice.currency as Currency)}`}
+      footer={<><button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={record.isPending || !(Number(amount) > 0)}>{record.isPending && <Loader2 size={13} className="animate-spin" />} Record Payment</PrimaryBtn></>}>
+      <div className="flex flex-col gap-4">
+        <Field label="Amount" required><input type="number" className={inputCls} value={amount} onChange={e => setAmount(e.target.value)} /></Field>
+        <Field label="Method" required>
+          <select className={selectCls} value={method} onChange={e => setMethod(e.target.value)}>
+            {["CASH", "BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "CHEQUE", "CARD", "SSLCOMMERZ"].map(m => <option key={m} value={m}>{m.replace(/_/g, " ")}</option>)}
+          </select>
+        </Field>
+        <Field label="Reference"><input className={inputCls} placeholder="Txn / cheque no." value={reference} onChange={e => setReference(e.target.value)} /></Field>
+        <p className="text-[11px] text-slate-400">A receipt is generated automatically. Gateways (bKash/Nagad/SSLCommerz) are recorded manually for now.</p>
+      </div>
+    </Drawer>
+  );
+}
+
 function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; onBack: () => void; onPrint: () => void }) {
-  const inv = INVOICES.find(i => i.id === invoiceId)!;
-  if (!inv) return null;
-  const subtotal = inv.items.reduce((s, i) => s + i.total, 0);
-  const tax = Math.round(subtotal * 0.05);
-  const total = subtotal + tax;
+  const { data, isLoading, isError, error, refetch } = useInvoice(invoiceId);
+  const issue = useIssueInvoice();
+  const cancel = useCancelInvoice();
+  const [payOpen, setPayOpen] = useState(false);
+  if (isLoading) return <div className="p-6"><SkeletonTable rows={6} cols={4} /></div>;
+  if (isError || !data) return <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Invoice not found."} onRetry={() => refetch()} /><button onClick={onBack} className="mt-3 text-sm text-[#0E6BB8]">← Back</button></div>;
+  const inv = {
+    id: data.invoiceNo || "DRAFT", cuid: data.id, date: data.issueDate || "—", dueDate: data.dueDate || "—",
+    customer: data.customerName || "—", email: data.customerEmail || "", phone: data.customerPhone || "",
+    service: data.items[0]?.description || "—", currency: data.currency as Currency, amount: data.total, paid: data.paidAmount,
+    status: st2vm(data.status), notes: data.notes,
+    items: data.items.map(it => ({ desc: it.description, qty: it.qty, rate: it.unitPrice, total: it.amount })),
+  };
+  const subtotal = data.subtotal, tax = data.taxAmount, total = data.total;
+  const canPay = data.status !== "DRAFT" && data.status !== "PAID" && data.status !== "CANCELLED";
 
   return (
     <div className="space-y-5">
@@ -257,13 +297,20 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
           <button onClick={onPrint} className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> Print / PDF
           </button>
-          {inv.status !== "paid" && (
-            <button className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-              <CreditCard size={14} /> Collect Payment
+          {data.status === "DRAFT" && (
+            <button onClick={() => issue.mutate(data.id)} disabled={issue.isPending}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794] disabled:opacity-60">
+              {issue.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Issue Invoice
+            </button>
+          )}
+          {canPay && (
+            <button onClick={() => setPayOpen(true)} className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+              <CreditCard size={14} /> Record Payment
             </button>
           )}
         </div>
       </div>
+      {payOpen && <RecordPaymentDrawer invoice={data} onClose={() => setPayOpen(false)} />}
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
@@ -363,23 +410,34 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                   <div className="h-full bg-emerald-500 rounded-full"
                     style={{ width: `${Math.round((inv.paid / inv.amount) * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 mt-1">{Math.round((inv.paid / inv.amount) * 100)}% of {fmtC(inv.amount, inv.currency)}</p>
+                <p className="text-xs text-slate-400 mt-1">{Math.round((inv.paid / (inv.amount || 1)) * 100)}% of {fmtC(inv.amount, inv.currency)}</p>
               </div>
+            </div>
+          </div>
+          {/* Payment history for this invoice */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <h4 className="font-semibold text-slate-800 mb-3">Payments</h4>
+            <div className="space-y-2">
+              {data.payments.length === 0 && <p className="text-xs text-slate-400">No payments yet.</p>}
+              {data.payments.map(p => (
+                <div key={p.id} className={cn("flex items-center justify-between p-2.5 rounded-lg border", p.isReversed ? "border-red-100 bg-red-50/40" : "border-slate-100")}>
+                  <div>
+                    <div className="text-xs font-mono text-slate-600">{p.receiptNo || p.paymentNo}</div>
+                    <div className="text-[10px] text-slate-400">{p.method.replace(/_/g, " ")} · {p.paidAt.slice(0, 10)}{p.isReversed ? " · reversed" : ""}</div>
+                  </div>
+                  <span className={cn("text-sm font-mono", p.isReversed ? "text-slate-400 line-through" : "text-emerald-600")}>{fmtC(p.amount, inv.currency)}</span>
+                </div>
+              ))}
             </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Actions</h4>
             <div className="space-y-2">
-              {[
-                { label: "Record Payment", icon: CreditCard, cls: "bg-[#0E6BB8] text-white hover:bg-[#0B5794]" },
-                { label: "Send Reminder", icon: Send, cls: "border border-slate-200 text-slate-600 hover:bg-slate-50" },
-                { label: "Download PDF", icon: Download, cls: "border border-slate-200 text-slate-600 hover:bg-slate-50" },
-                { label: "Cancel Invoice", icon: XCircle, cls: "border border-red-200 text-red-500 hover:bg-red-50" },
-              ].map(({ label, icon: Icon, cls }) => (
-                <button key={label} className={cn("w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg transition-colors", cls)}>
-                  <Icon size={14} /> {label}
-                </button>
-              ))}
+              {canPay && <button onClick={() => setPayOpen(true)} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg bg-[#0E6BB8] text-white hover:bg-[#0B5794]"><CreditCard size={14} /> Record Payment</button>}
+              <button onClick={onPrint} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><Download size={14} /> Print / PDF</button>
+              {data.status !== "CANCELLED" && data.paidAmount === 0 && (
+                <button onClick={() => cancel.mutate(data.id)} disabled={cancel.isPending} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-60"><XCircle size={14} /> Cancel Invoice</button>
+              )}
             </div>
           </div>
         </div>
@@ -1153,9 +1211,51 @@ function VouchersView() {
 }
 
 // ─── Main Module ──────────────────────────────────────────────────────────────
+function CreateInvoiceDrawer({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const create = useCreateInvoice();
+  const { data: customers } = useCustomers({ pageSize: 200 });
+  const [customerId, setCustomerId] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [items, setItems] = useState([{ description: "", qty: 1, unitPrice: 0 }]);
+  const setItem = (i: number, patch: Partial<{ description: string; qty: number; unitPrice: number }>) => setItems(items.map((it, idx) => idx === i ? { ...it, ...patch } : it));
+  const total = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.unitPrice) || 0), 0);
+  const submit = async () => {
+    try {
+      const inv = await create.mutateAsync({ customerId, dueDate: dueDate || undefined, items: items.filter(it => it.description.trim()).map(it => ({ description: it.description, qty: Number(it.qty) || 1, unitPrice: Number(it.unitPrice) || 0 })) });
+      onCreated(inv.id);
+    } catch { /* toast */ }
+  };
+  return (
+    <Drawer open onClose={onClose} title="New Invoice" subtitle="Draft — a number is allocated on issue" width="max-w-[620px]"
+      footer={<><button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={create.isPending || !customerId || total <= 0}>{create.isPending && <Loader2 size={13} className="animate-spin" />} Create Draft</PrimaryBtn></>}>
+      <div className="flex flex-col gap-4">
+        <Field label="Customer" required>
+          <select className={selectCls} value={customerId} onChange={e => setCustomerId(e.target.value)}>
+            <option value="">Select customer…</option>
+            {(customers?.data ?? []).map(c => <option key={c.id} value={c.id}>{c.name} · {c.phone}</option>)}
+          </select>
+        </Field>
+        <Field label="Due Date"><input type="date" className={inputCls} value={dueDate} onChange={e => setDueDate(e.target.value)} /></Field>
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Line Items</div>
+        {items.map((it, i) => (
+          <div key={i} className="flex items-end gap-2">
+            <Field label="Description"><input className={inputCls} value={it.description} onChange={e => setItem(i, { description: e.target.value })} /></Field>
+            <div className="w-16"><Field label="Qty"><input type="number" className={inputCls} value={it.qty} onChange={e => setItem(i, { qty: Number(e.target.value) })} /></Field></div>
+            <div className="w-28"><Field label="Unit Price"><input type="number" className={inputCls} value={it.unitPrice || ""} onChange={e => setItem(i, { unitPrice: Number(e.target.value) })} /></Field></div>
+            {items.length > 1 && <button onClick={() => setItems(items.filter((_, idx) => idx !== i))} className="h-[42px] px-2 text-red-400">✕</button>}
+          </div>
+        ))}
+        <button onClick={() => setItems([...items, { description: "", qty: 1, unitPrice: 0 }])} className="text-[12px] text-[#0E6BB8] font-semibold text-left">+ Add line</button>
+        <div className="flex justify-between text-sm font-bold border-t border-slate-100 pt-3"><span>Total</span><span className="font-mono">{fmtC(total)}</span></div>
+      </div>
+    </Drawer>
+  );
+}
+
 export function InvoicesModule() {
   const [view, setView] = useState<InvoicesView>("list");
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("INV-2401");
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   const handleViewInvoice = (id: string) => {
     setSelectedInvoiceId(id);
@@ -1168,7 +1268,7 @@ export function InvoicesModule() {
 
   const renderView = () => {
     switch (view) {
-      case "list": return <InvoiceListView onView={handleViewInvoice} onPrint={handlePrintInvoice} />;
+      case "list": return <InvoiceListView onView={handleViewInvoice} onNew={() => setCreateOpen(true)} />;
       case "detail": return <InvoiceDetailView invoiceId={selectedInvoiceId} onBack={() => setView("list")} onPrint={() => handlePrintInvoice()} />;
       case "print": return <PrintableInvoiceView invoiceId={selectedInvoiceId} onBack={() => setView("detail")} />;
       case "receipts": return <ReceiptsView />;
@@ -1214,6 +1314,7 @@ export function InvoicesModule() {
           {renderView()}
         </div>
       </div>
+      {createOpen && <CreateInvoiceDrawer onClose={() => setCreateOpen(false)} onCreated={(id) => { setCreateOpen(false); handleViewInvoice(id); }} />}
     </div>
   );
 }

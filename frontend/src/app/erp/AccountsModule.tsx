@@ -5,13 +5,19 @@ import {
 } from "recharts";
 import {
   Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
-  Plus, Search, Filter, Download, Upload, RefreshCw, ChevronRight,
+  Plus, Search, Filter, Download, RefreshCw, ChevronRight,
   ChevronDown, Building2, CreditCard, Banknote, ArrowLeftRight,
   Calendar, CheckCircle, Clock, AlertTriangle, MoreHorizontal,
   FileText, Edit2, Trash2, X, Check, Globe, Layers, BarChart3,
   Eye, Send, Receipt,
 } from "lucide-react";
 import { cn, fmtPrice } from "../lib/utils";
+import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import {
+  useAccounts, buildCoaTree, useBankAccounts, useIncome, useExpenses,
+  useJournal, useCreateJournal, useReverseJournal,
+} from "../hooks/finance";
+import { Loader2 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AccountsView =
@@ -150,15 +156,6 @@ const BANK_ACCOUNTS = [
   { id: "cash", name: "Cash in Hand", number: "—", type: "Cash", balance: 850000, currency: "BDT" as Currency, branch: "HQ Office", lastTx: "Today" },
 ];
 
-const BANK_TX = [
-  { date: "Jul 14", desc: "Hajj Group BDH-2024-07 – Installment 3", type: "credit", amount: 1200000, balance: 12400000, ref: "TXN-41203" },
-  { date: "Jul 13", desc: "Payroll – July 2024", type: "debit", amount: 480000, balance: 11200000, ref: "TXN-41199" },
-  { date: "Jul 12", desc: "Biman Bangladesh – Air tickets", type: "debit", amount: 620000, balance: 11680000, ref: "TXN-41196" },
-  { date: "Jul 11", desc: "Umrah Ramadan 12 pax – advance", type: "credit", amount: 480000, balance: 12300000, ref: "TXN-41190" },
-  { date: "Jul 10", desc: "Dar Al-Tawhid Hotel payment", type: "debit", amount: 840000, balance: 11820000, ref: "TXN-41185" },
-  { date: "Jul 09", desc: "Malaysia tour – SSLCommerz", type: "credit", amount: 215000, balance: 12660000, ref: "TXN-41180" },
-];
-
 const INSTALLMENT_PLANS = [
   { id: "IP-2401", customer: "Md. Karim Ullah", service: "Hajj 2024 – Economy", total: 520000, paid: 312000, remaining: 208000, installments: 5, paid_n: 3, next_date: "Aug 1", status: "active" },
   { id: "IP-2402", customer: "Mrs. Fatema Begum", service: "Umrah Ramadan – VIP", total: 185000, paid: 185000, remaining: 0, installments: 3, paid_n: 3, next_date: "—", status: "completed" },
@@ -201,6 +198,9 @@ const STATUS_COLOR: Record<string, string> = {
   partial: "bg-amber-50 text-amber-700",
   pending: "bg-slate-100 text-slate-600",
   overdue: "bg-red-50 text-red-700",
+  posted: "bg-emerald-50 text-emerald-700",
+  draft: "bg-slate-100 text-slate-600",
+  reversed: "bg-red-50 text-red-700",
 };
 function StatusChip({ status }: { status: string }) {
   return (
@@ -305,6 +305,8 @@ function CoaRow({ node, depth = 0, expanded, onToggle }: {
 }
 
 function ChartOfAccountsView() {
+  const { data: accounts, isLoading, isError, error, refetch } = useAccounts();
+  const tree = buildCoaTree(accounts ?? []);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["1000", "2000", "3000", "4000", "5000"]));
   const toggle = (code: string) => {
     setExpanded(prev => {
@@ -329,6 +331,11 @@ function ChartOfAccountsView() {
           </button>
         </div>
       </div>
+      {isError ? (
+        <div className="p-2"><ErrorBanner message={(error as Error)?.message || "Failed to load accounts."} onRetry={() => refetch()} /></div>
+      ) : isLoading ? (
+        <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={4} /></div>
+      ) : (
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
@@ -341,12 +348,14 @@ function ChartOfAccountsView() {
             </tr>
           </thead>
           <tbody>
-            {COA_TREE.map(node => (
+            {tree.map(node => (
               <CoaRow key={node.code} node={node} expanded={expanded} onToggle={toggle} />
             ))}
           </tbody>
         </table>
+        {tree.length === 0 && <div className="py-16 text-center text-slate-400"><Layers size={32} className="mx-auto mb-3 text-slate-200" /><p className="text-sm">No accounts yet</p></div>}
       </div>
+      )}
     </div>
   );
 }
@@ -434,15 +443,22 @@ function JournalEntryView() {
   const totalCredit = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
   const balanced = Math.abs(totalDebit - totalCredit) < 0.01;
 
+  const { data: accounts } = useAccounts();
+  const detailAccounts = (accounts ?? []).filter(a => a.role === "DETAIL");
+  const create = useCreateJournal();
+  const reverse = useReverseJournal();
+  const { data: recent } = useJournal({ pageSize: 6 });
+
+  const submit = async (status: "DRAFT" | "POSTED") => {
+    const payload = {
+      date, status,
+      lines: lines.filter(l => l.account).map(l => ({ accountId: l.account, debit: l.debit ? Number(l.debit) : undefined, credit: l.credit ? Number(l.credit) : undefined, narration: l.narration || undefined })),
+    };
+    try { await create.mutateAsync(payload); setLines([{ account: "", debit: "", credit: "", narration: "" }, { account: "", debit: "", credit: "", narration: "" }]); } catch { /* toast */ }
+  };
+
   const updateLine = (i: number, field: keyof JournalLine, val: string) =>
     setLines(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
-
-  const RECENT_JE = [
-    { ref: "JE-021", date: "Jul 13", desc: "July payroll posting", debit: 480000, status: "posted" },
-    { ref: "JE-020", date: "Jul 11", desc: "Hajj advance receipt", debit: 1200000, status: "posted" },
-    { ref: "JE-019", date: "Jul 10", desc: "Hotel payment – Makkah", debit: 840000, status: "posted" },
-    { ref: "JE-018", date: "Jul 08", desc: "Biman ticket prepayment", debit: 620000, status: "posted" },
-  ];
 
   return (
     <div className="space-y-5">
@@ -492,12 +508,9 @@ function JournalEntryView() {
                       <select value={line.account} onChange={e => updateLine(i, "account", e.target.value)}
                         className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
                         <option value="">Select account…</option>
-                        <option value="1120">1120 – Dutch-Bangla Bank</option>
-                        <option value="1210">1210 – Customer Receivables</option>
-                        <option value="4100">4100 – Hajj Package Revenue</option>
-                        <option value="4200">4200 – Umrah Revenue</option>
-                        <option value="5110">5110 – Hajj Permit & Maktab</option>
-                        <option value="5210">5210 – Salaries & Wages</option>
+                        {detailAccounts.map(a => (
+                          <option key={a.id} value={a.id}>{a.code} – {a.name}</option>
+                        ))}
                       </select>
                     </td>
                     <td className="py-2 pr-3">
@@ -548,9 +561,11 @@ function JournalEntryView() {
               <Plus size={13} /> Add line
             </button>
             <div className="flex justify-end gap-3 mt-5 pt-5 border-t border-slate-100">
-              <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save Draft</button>
-              <button disabled={!balanced} className={cn("px-5 py-2 text-sm rounded-lg text-white", balanced ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-slate-300 cursor-not-allowed")}>
-                Post Entry
+              <button onClick={() => submit("DRAFT")} disabled={create.isPending}
+                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">Save Draft</button>
+              <button onClick={() => submit("POSTED")} disabled={!balanced || create.isPending}
+                className={cn("px-5 py-2 text-sm rounded-lg text-white flex items-center gap-2", balanced && !create.isPending ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-slate-300 cursor-not-allowed")}>
+                {create.isPending && <Loader2 size={14} className="animate-spin" />} Post Entry
               </button>
             </div>
           </div>
@@ -558,18 +573,30 @@ function JournalEntryView() {
         <div>
           <Section title="Recent Journal Entries">
             <div className="space-y-3">
-              {RECENT_JE.map(je => (
-                <div key={je.ref} className="flex items-start justify-between pb-3 border-b border-slate-50 last:border-0 last:pb-0">
-                  <div>
-                    <p className="text-xs font-mono text-slate-400">{je.ref} · {je.date}</p>
-                    <p className="text-sm text-slate-700 mt-0.5">{je.desc}</p>
-                    <p className="text-xs font-medium text-slate-500 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                      {fmtCurrency(je.debit)}
-                    </p>
+              {(recent?.data ?? []).length === 0 && (
+                <p className="text-sm text-slate-400 py-4 text-center">No journal entries yet.</p>
+              )}
+              {(recent?.data ?? []).map(je => {
+                const canReverse = je.status === "POSTED" && !je.isReversed && !je.reversalOfId;
+                return (
+                  <div key={je.id} className="flex items-start justify-between pb-3 border-b border-slate-50 last:border-0 last:pb-0">
+                    <div className="min-w-0">
+                      <p className="text-xs font-mono text-slate-400">{je.ref} · {je.date}</p>
+                      <p className="text-sm text-slate-700 mt-0.5 truncate">{je.description || "—"}</p>
+                      <p className="text-xs font-medium text-slate-500 mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                        {fmtCurrency(je.totalDebit)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0 pl-2">
+                      <StatusChip status={je.isReversed ? "reversed" : je.status.toLowerCase()} />
+                      {canReverse && (
+                        <button onClick={() => reverse.mutate(je.id)} disabled={reverse.isPending}
+                          className="text-[10px] text-red-500 hover:underline disabled:opacity-50">Reverse</button>
+                      )}
+                    </div>
                   </div>
-                  <StatusChip status={je.status} />
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Section>
         </div>
@@ -580,8 +607,11 @@ function JournalEntryView() {
 
 // ─── Bank & Cash ──────────────────────────────────────────────────────────────
 function BankCashView() {
-  const [selectedAccount, setSelectedAccount] = useState("dbbl");
-  const account = BANK_ACCOUNTS.find(a => a.id === selectedAccount)!;
+  const { data: banks, isLoading, error } = useBankAccounts();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const accounts = banks ?? [];
+  const account = accounts.find(a => a.id === selectedId) ?? accounts[0];
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -593,97 +623,73 @@ function BankCashView() {
           <Plus size={15} /> Add Account
         </button>
       </div>
-      <div className="grid grid-cols-5 gap-3">
-        {BANK_ACCOUNTS.map(acc => (
-          <button key={acc.id} onClick={() => setSelectedAccount(acc.id)}
-            className={cn("text-left p-4 rounded-xl border transition-all",
-              selectedAccount === acc.id
-                ? "border-[#0E6BB8] bg-[#0E6BB8]/5 ring-1 ring-[#0E6BB8]/20"
-                : "border-slate-200 bg-white hover:border-slate-300")}>
-            <div className="flex items-center gap-2 mb-2">
-              {acc.type === "Cash" ? <Banknote size={16} className="text-emerald-600" /> : <Building2 size={16} className="text-[#0E6BB8]" />}
-              <span className="text-xs font-medium text-slate-500">{acc.type}</span>
-            </div>
-            <p className="text-xs text-slate-600 font-medium leading-tight">{acc.name}</p>
-            <p className="text-sm font-bold text-slate-800 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmtCurrency(acc.balance, acc.currency)}
-            </p>
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2">
-          <Section title={`${account.name} – Transactions`} actions={
-            <div className="flex gap-2">
-              <button className="flex items-center gap-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-                <Download size={12} /> Statement
-              </button>
-            </div>
-          }>
-            <table className="w-full min-w-[680px] md:min-w-0">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  {["Date", "Description", "Type", "Amount", "Balance", "Ref"].map(h => (
-                    <th key={h} className="text-left text-xs font-medium text-slate-500 pb-2 pr-4">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {BANK_TX.map(tx => (
-                  <tr key={tx.ref} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="py-3 pr-4 text-sm text-slate-500">{tx.date}</td>
-                    <td className="py-3 pr-4 text-sm text-slate-700">{tx.desc}</td>
-                    <td className="py-3 pr-4">
-                      <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                        tx.type === "credit" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600")}>
-                        {tx.type === "credit" ? "CR" : "DR"}
-                      </span>
-                    </td>
-                    <td className={cn("py-3 pr-4 text-sm font-semibold", tx.type === "credit" ? "text-emerald-600" : "text-red-500")}
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                      {tx.type === "credit" ? "+" : "−"}{fmtCurrency(tx.amount)}
-                    </td>
-                    <td className="py-3 pr-4 text-sm text-slate-700 font-mono">{fmtCurrency(tx.balance)}</td>
-                    <td className="py-3 text-xs font-mono text-slate-400">{tx.ref}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Section>
-        </div>
-        <div className="space-y-4">
-          <Section title="Account Details">
-            <div className="space-y-3">
-              {[
-                ["Account Number", account.number],
-                ["Branch", account.branch],
-                ["Account Type", account.type],
-                ["Currency", account.currency],
-                ["Last Transaction", account.lastTx],
-              ].map(([label, val]) => (
-                <div key={label} className="flex justify-between text-sm">
-                  <span className="text-slate-500">{label}</span>
-                  <span className="text-slate-700 font-medium font-mono text-xs">{val}</span>
-                </div>
-              ))}
-              <div className="pt-3 border-t border-slate-100">
-                <p className="text-xs text-slate-500 mb-1">Current Balance</p>
-                <p className="text-2xl font-bold text-slate-800" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtCurrency(account.balance, account.currency)}
-                </p>
-              </div>
-            </div>
-          </Section>
-          <div className="flex gap-2">
-            <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
-              <Upload size={14} /> Deposit
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-              <Download size={14} /> Withdraw
-            </button>
+
+      {isLoading && <SkeletonTable rows={3} />}
+      {error && <ErrorBanner message={(error as Error).message} />}
+      {!isLoading && !error && accounts.length === 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-400">No bank or cash accounts yet.</div>
+      )}
+
+      {account && (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {accounts.map(acc => {
+              const isCash = acc.type.toUpperCase() === "CASH";
+              return (
+                <button key={acc.id} onClick={() => setSelectedId(acc.id)}
+                  className={cn("text-left p-4 rounded-xl border transition-all",
+                    account.id === acc.id
+                      ? "border-[#0E6BB8] bg-[#0E6BB8]/5 ring-1 ring-[#0E6BB8]/20"
+                      : "border-slate-200 bg-white hover:border-slate-300")}>
+                  <div className="flex items-center gap-2 mb-2">
+                    {isCash ? <Banknote size={16} className="text-emerald-600" /> : <Building2 size={16} className="text-[#0E6BB8]" />}
+                    <span className="text-xs font-medium text-slate-500 capitalize">{acc.type.toLowerCase()}</span>
+                  </div>
+                  <p className="text-xs text-slate-600 font-medium leading-tight">{acc.name}</p>
+                  <p className="text-sm font-bold text-slate-800 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {fmtCurrency(acc.balance, acc.currency)}
+                  </p>
+                </button>
+              );
+            })}
           </div>
-        </div>
-      </div>
+          <div className="grid grid-cols-3 gap-5">
+            <div className="col-span-2">
+              <Section title={`${account.name} – Transactions`}>
+                <div className="py-12 text-center">
+                  <p className="text-sm text-slate-400">Account transaction feed is derived from posted journal lines.</p>
+                  <p className="text-xs text-slate-400 mt-1">Post entries against this account to see movements here.</p>
+                </div>
+              </Section>
+            </div>
+            <div className="space-y-4">
+              <Section title="Account Details">
+                <div className="space-y-3">
+                  {([
+                    ["Account Number", account.accountNumber ?? "—"],
+                    ["Bank", account.bankName ?? "—"],
+                    ["Branch", account.branchName ?? "—"],
+                    ["Account Type", account.type],
+                    ["Currency", String(account.currency)],
+                    ["Status", account.active ? "Active" : "Inactive"],
+                  ] as [string, string][]).map(([label, val]) => (
+                    <div key={label} className="flex justify-between text-sm">
+                      <span className="text-slate-500">{label}</span>
+                      <span className="text-slate-700 font-medium font-mono text-xs">{val}</span>
+                    </div>
+                  ))}
+                  <div className="pt-3 border-t border-slate-100">
+                    <p className="text-xs text-slate-500 mb-1">Current Balance</p>
+                    <p className="text-2xl font-bold text-slate-800" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      {fmtCurrency(account.balance, account.currency)}
+                    </p>
+                  </div>
+                </div>
+              </Section>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1107,6 +1113,22 @@ function AccountsOverview() {
 }
 
 // ─── Main AccountsModule ──────────────────────────────────────────────────────
+// Real income/expense ledgers → the existing LedgerTableView.
+function IncomeLedgerView() {
+  const { data, isLoading, isError, error, refetch } = useIncome({ pageSize: 100 });
+  if (isError) return <ErrorBanner message={(error as Error)?.message || "Failed to load income."} onRetry={() => refetch()} />;
+  if (isLoading) return <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={6} /></div>;
+  const rows = (data?.data ?? []).map(r => ({ date: (r.date || "").slice(0, 10), ref: r.ref ?? "—", category: r.category, description: r.description ?? r.party ?? "", amount: r.amount, method: r.method ?? "—", status: (r.status || "").toLowerCase() }));
+  return <LedgerTableView title="Income Ledger" rows={rows} type="income" />;
+}
+function ExpenseLedgerView() {
+  const { data, isLoading, isError, error, refetch } = useExpenses({ pageSize: 100 });
+  if (isError) return <ErrorBanner message={(error as Error)?.message || "Failed to load expenses."} onRetry={() => refetch()} />;
+  if (isLoading) return <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={6} /></div>;
+  const rows = (data?.data ?? []).map(r => ({ date: (r.date || "").slice(0, 10), ref: r.ref ?? "—", category: r.category, description: r.description ?? "", vendor: r.party ?? "", amount: r.amount, method: r.method ?? "—", status: (r.status || "").toLowerCase() }));
+  return <LedgerTableView title="Expense Ledger" rows={rows} type="expense" />;
+}
+
 export function AccountsModule() {
   const [view, setView] = useState<AccountsView>("chart-of-accounts");
   const groups = [...new Set(NAV_ITEMS.map(n => n.group))];
@@ -1114,8 +1136,8 @@ export function AccountsModule() {
   const renderView = () => {
     switch (view) {
       case "chart-of-accounts": return <ChartOfAccountsView />;
-      case "income": return <LedgerTableView title="Income Ledger" rows={INCOME_DATA} type="income" />;
-      case "expense": return <LedgerTableView title="Expense Ledger" rows={EXPENSE_DATA.map(e => ({ ...e, description: e.vendor }))} type="expense" />;
+      case "income": return <IncomeLedgerView />;
+      case "expense": return <ExpenseLedgerView />;
       case "journal": return <JournalEntryView />;
       case "bank-cash": return <BankCashView />;
       case "transfer": return <TransferView />;

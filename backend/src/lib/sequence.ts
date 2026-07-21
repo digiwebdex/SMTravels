@@ -10,7 +10,14 @@ import type { Prisma } from "@prisma/client";
  * lives in the caller's transaction, a rollback (e.g. a failed confirm) reverts
  * the counter — the number is NOT consumed.
  */
-export type SequenceScope = "BOOKING" | "INVOICE" | "RECEIPT" | "JOURNAL" | "PACKAGE";
+export type SequenceScope =
+  | "BOOKING" | "INVOICE" | "RECEIPT" | "JOURNAL" | "PACKAGE"
+  | "PAYMENT" | "REFUND" | "EXPENSE" | "INCOME";
+
+/** Format a document number, e.g. "INV-DHK-2026-0001". */
+export function formatDocNo(prefix: string, branchCode: string, year: number, seq: number): string {
+  return `${prefix}-${branchCode}-${year}-${String(seq).padStart(4, "0")}`;
+}
 
 export async function allocateSequence(
   tx: Prisma.TransactionClient,

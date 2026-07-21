@@ -8,6 +8,8 @@ import { leadRouter } from "./lead.route";
 import { corporateRouter } from "./corporate.route";
 import { userRouter } from "./user.route";
 import { catalogRouter } from "./catalog.route";
+import { accountsRouter } from "./accounts.route";
+import { invoicesRouter } from "./invoices.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
@@ -21,3 +23,5 @@ apiRouter.use(leadRouter);
 apiRouter.use(corporateRouter);
 apiRouter.use(userRouter);
 apiRouter.use(catalogRouter);
+apiRouter.use(accountsRouter);
+apiRouter.use(invoicesRouter);

@@ -7,6 +7,22 @@ import { HttpError } from "../middleware/errorHandler";
  * `meta.target` to the index name (e.g. "customer_phone_active_uq"), so we match
  * on the column word. Re-throws anything that isn't a unique violation.
  */
+/**
+ * Translate the DB balance-trigger failure (SQLSTATE 23514 / check_violation,
+ * raised by the deferred `journal_*_balance` constraint triggers at COMMIT) into
+ * a clean 400 instead of a 500. The service pre-check should catch this first;
+ * this is the backstop so the DB trigger firing never leaks a stack trace.
+ */
+export function mapJournalError(err: unknown): never {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/is unbalanced|has no lines|check_violation|23514/i.test(msg)) {
+    throw new HttpError(400, "UnbalancedJournalEntry", {
+      detail: "A posted journal entry must balance (Σdebit = Σcredit) and have at least one line.",
+    });
+  }
+  throw err;
+}
+
 export function mapUniqueError(err: unknown): never {
   if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
     const target = String((err.meta?.target as string | string[] | undefined) ?? "");

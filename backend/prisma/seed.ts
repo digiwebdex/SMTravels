@@ -234,6 +234,47 @@ async function main() {
     update: { name: "Primary Navigation" },
   });
 
+  // 11) Chart of Accounts (company-wide) — headers + detail accounts by code.
+  const COA: { code: string; name: string; parent?: string; cls: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"; role: "HEADER" | "DETAIL" }[] = [
+    { code: "1000", name: "Assets", cls: "ASSET", role: "HEADER" },
+    { code: "1100", name: "Current Assets", parent: "1000", cls: "ASSET", role: "HEADER" },
+    { code: "1110", name: "Cash in Hand", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1120", name: "Dutch-Bangla Bank – Current", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1200", name: "Accounts Receivable", parent: "1000", cls: "ASSET", role: "DETAIL" },
+    { code: "2000", name: "Liabilities", cls: "LIABILITY", role: "HEADER" },
+    { code: "2100", name: "Accounts Payable", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
+    { code: "2200", name: "Advance from Customers", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
+    { code: "3000", name: "Equity", cls: "EQUITY", role: "HEADER" },
+    { code: "3100", name: "Owner Capital", parent: "3000", cls: "EQUITY", role: "DETAIL" },
+    { code: "4000", name: "Revenue", cls: "REVENUE", role: "HEADER" },
+    { code: "4100", name: "Hajj Package Revenue", parent: "4000", cls: "REVENUE", role: "DETAIL" },
+    { code: "4200", name: "Umrah Package Revenue", parent: "4000", cls: "REVENUE", role: "DETAIL" },
+    { code: "5000", name: "Expenses", cls: "EXPENSE", role: "HEADER" },
+    { code: "5100", name: "Airline Costs", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
+    { code: "5200", name: "Salaries & Wages", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
+  ];
+  const normalBalanceFor = (cls: string) => (cls === "ASSET" || cls === "EXPENSE" ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT";
+  const acctIdByCode: Record<string, string> = {};
+  for (const a of COA) {
+    const row = await prisma.account.upsert({
+      where: { code: a.code },
+      create: { code: a.code, name: a.name, accountClass: a.cls, role: a.role, normalBalance: normalBalanceFor(a.cls), parentId: a.parent ? acctIdByCode[a.parent] : null },
+      update: { name: a.name, parentId: a.parent ? acctIdByCode[a.parent] : null },
+    });
+    acctIdByCode[a.code] = row.id;
+  }
+  // 12) A couple of bank accounts linked to COA cash/bank accounts.
+  await prisma.bankAccount.upsert({
+    where: { id: "bank_dbbl" },
+    create: { id: "bank_dbbl", name: "Dutch-Bangla Bank Ltd.", bankName: "DBBL", type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Agrabad", currency: "BDT", coaAccountId: acctIdByCode["1120"], balance: 12400000 },
+    update: { name: "Dutch-Bangla Bank Ltd." },
+  });
+  await prisma.bankAccount.upsert({
+    where: { id: "bank_cash" },
+    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000 },
+    update: { name: "Cash in Hand" },
+  });
+
   // eslint-disable-next-line no-console
   console.log("[seed] done.");
 }
