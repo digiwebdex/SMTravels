@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
+import { SampleBadge } from "./SampleBadge";
 import {
   usePortalMe, usePortalDashboard, usePortalBookings, usePortalBooking,
   usePortalInvoices, usePortalPayments, usePortalInstallments, usePortalDocuments,
@@ -550,6 +551,7 @@ function DocumentsView() {
 function VoucherView() {
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div>
         <h2 className="text-xl font-bold text-slate-800">Download Voucher</h2>
         <p className="text-sm text-slate-500 mt-0.5">Your official travel vouchers and confirmation letters</p>

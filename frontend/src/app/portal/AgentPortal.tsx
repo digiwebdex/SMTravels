@@ -13,8 +13,9 @@ import {
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import {
-  useAgentMe, useAgentDashboard, useAgentWallet, useAgentTeam, useAgentLeads,
+  useAgentMe, useAgentDashboard, useAgentWallet, useAgentTeam, useAgentLeads, useAgentCommissions,
 } from "../hooks/portals";
+import { SampleBadge } from "./SampleBadge";
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
@@ -253,6 +254,7 @@ function LeadsView() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Lead Management</h2>
@@ -361,6 +363,7 @@ function LeadsView() {
 function CustomersView() {
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Customers</h2>
         <div className="relative">
@@ -415,6 +418,7 @@ function CustomersView() {
 function AgentBookings() {
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">My Bookings</h2>
       {/* Commission summary bar */}
       <div className="grid grid-cols-3 gap-3">
@@ -462,89 +466,43 @@ function AgentBookings() {
 
 // ─── COMMISSION REPORTS ───────────────────────────────────────────────────────
 function CommissionsView() {
-  const [open, setOpen] = useState<number|null>(0);
-  const totalEarned = COMMISSION_ROWS.reduce((s,r)=>s+r.earned,0);
-  const totalPending = COMMISSION_ROWS.reduce((s,r)=>s+r.pending,0);
-
+  const q = useAgentCommissions();
+  const rows = q.data ?? [];
+  const totalEarned = rows.filter(r=>r.status==="PAID").reduce((s,r)=>s+r.amount,0);
+  const totalPending = rows.filter(r=>r.status!=="PAID").reduce((s,r)=>s+r.amount,0);
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-portal="commissions">
       <h2 className="text-xl font-bold text-slate-800">Commission Reports</h2>
-
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label:"Total Earned",    val:totalEarned,  color:"bg-emerald-500", sub:"All time"          },
-          { label:"Pending Payout",  val:totalPending, color:"bg-amber-500",   sub:"Awaiting transfer" },
-        ].map(s=>(
-          <div key={s.label} className={cn("rounded-2xl p-5 text-white",s.color)}>
-            <p className="text-2xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT(s.val)}</p>
-            <p className="text-sm font-semibold mt-0.5 text-white/90">{s.label}</p>
-            <p className="text-xs text-white/70">{s.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Rate tier info */}
-      <div className="bg-gradient-to-r from-[#0E6BB8]/5 to-[#E8471F]/5 border border-[#0E6BB8]/15 rounded-2xl p-4">
-        <div className="flex items-center gap-2.5 mb-3">
-          <Award size={18} className="text-[#C43A15]"/>
-          <p className="font-bold text-slate-800">Your Commission Tier — Gold</p>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
+      <PLoad q={q}>
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { tier:"Silver", rate:"3%",   range:"< 10 bookings/mo", active:false },
-            { tier:"Gold",   rate:"5%",   range:"10–19/mo",          active:true  },
-            { tier:"Platinum",rate:"7%",  range:"20+ bookings/mo",   active:false },
-          ].map(t=>(
-            <div key={t.tier} className={cn("rounded-xl p-2.5 text-center border",
-              t.active?"bg-[#E8471F] border-[#E8471F] text-white":"bg-white border-slate-200 text-slate-600")}>
-              <p className="text-lg font-black">{t.rate}</p>
-              <p className="text-xs font-bold mt-0.5">{t.tier}</p>
-              <p className={cn("text-xs mt-0.5",t.active?"text-white/80":"text-slate-400")}>{t.range}</p>
+            { label:"Total Earned", val:totalEarned, color:"bg-emerald-500", sub:"Paid" },
+            { label:"Pending Payout", val:totalPending, color:"bg-amber-500", sub:"Awaiting transfer" },
+          ].map(s=>(
+            <div key={s.label} className={cn("rounded-2xl p-5 text-white",s.color)}>
+              <p className="text-2xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(s.val)}</p>
+              <p className="text-sm font-semibold mt-0.5 text-white/90">{s.label}</p>
+              <p className="text-xs text-white/70">{s.sub}</p>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Monthly breakdown */}
-      <div className="space-y-3">
-        <p className="font-semibold text-slate-700 text-sm">Monthly Breakdown</p>
-        {COMMISSION_ROWS.map((r,i)=>(
-          <div key={r.month} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            <button className="w-full flex items-center gap-3 p-4" onClick={()=>setOpen(open===i?null:i)}>
-              <div className="flex-1 text-left">
-                <p className="font-bold text-slate-800">{r.month}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{r.bookings} bookings · rate {r.rate}</p>
+        <div className="space-y-3">
+          <p className="font-semibold text-slate-700 text-sm">Commission by Period</p>
+          {rows.length === 0 && <p className="text-sm text-slate-400 py-2">No commissions yet.</p>}
+          {rows.map(r=>(
+            <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+              <div className="flex-1">
+                <p className="font-bold text-slate-800">{r.period || "—"}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Gross {fmtBDT2(r.grossAmount)} · rate {r.rate}%</p>
               </div>
-              <div className="text-right mr-3">
-                <p className="font-black text-emerald-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtFull(r.earned)}</p>
-                <p className="text-xs text-slate-400">earned</p>
+              <div className="text-right">
+                <p className="font-black text-emerald-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(r.amount)}</p>
+                <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize", r.status==="PAID"?"bg-emerald-50 text-emerald-600":"bg-amber-50 text-amber-600")}>{r.status.toLowerCase()}</span>
               </div>
-              {open===i?<ChevronUp size={16} className="text-slate-400"/>:<ChevronDown size={16} className="text-slate-400"/>}
-            </button>
-            {open===i && (
-              <div className="px-4 pb-4 border-t border-slate-100">
-                <div className="grid grid-cols-3 gap-3 mt-3">
-                  {[["Gross Revenue",fmtFull(r.gross)],["Commission Earned",fmtFull(r.earned)],["Pending",fmtFull(r.pending)]].map(([k,v])=>(
-                    <div key={k} className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-sm font-bold text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{k}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between mt-3">
-                  <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                    <CheckCircle size={12}/> {fmtFull(r.paid)} paid
-                  </span>
-                  <button className="flex items-center gap-1.5 text-xs text-[#0E6BB8] font-semibold hover:underline">
-                    <Download size={12}/> Export
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      </PLoad>
     </div>
   );
 }
@@ -647,6 +605,7 @@ function AnalyticsView() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Analytics</h2>
 
       {/* Summary tiles */}
@@ -759,6 +718,7 @@ function AgentSupport() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
         <button className="flex items-center gap-1.5 px-3.5 py-2 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl">

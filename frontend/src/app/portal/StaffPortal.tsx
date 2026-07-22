@@ -12,6 +12,7 @@ import {
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable } from "../lib/responsive";
 import { Loader2 } from "lucide-react";
+import { SampleBadge } from "./SampleBadge";
 import { useStaffMe, useStaffDashboard } from "../hooks/portals";
 
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
@@ -185,6 +186,7 @@ function TasksView() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Daily Tasks</h2>
@@ -291,6 +293,7 @@ function StaffBookings() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Booking Management</h2>
         <div className="relative">
@@ -356,6 +359,7 @@ function StaffBookings() {
 function StaffCustomers() {
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Customers</h2>
         <div className="relative">
@@ -415,6 +419,7 @@ function StaffReports() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">My Reports</h2>
 
       <div className="grid grid-cols-3 gap-3">
@@ -483,6 +488,7 @@ function StaffDocuments() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Documents</h2>
         <div className="relative">
@@ -543,6 +549,7 @@ function StaffAnnouncements() {
   const [expanded, setExpanded] = useState<number|null>(1);
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Announcements</h2>
       <div className="space-y-3">
         {ANNOUNCEMENTS.map(a => (
@@ -610,6 +617,7 @@ function StaffSupport() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support Tickets</h2>
         <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
@@ -644,6 +652,7 @@ function StaffNotifications() {
   const [list, setList] = useState(NOTIFS_DATA);
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Notifications</h2>
         <button onClick={() => setList(n => n.map(x => ({ ...x, read:true })))}

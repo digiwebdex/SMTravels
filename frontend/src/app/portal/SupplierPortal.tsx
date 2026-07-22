@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
-import { useSupplierMe, useSupplierDashboard, useSupplierRequests, useSupplierInvoices } from "../hooks/portals";
+import { useSupplierMe, useSupplierDashboard, useSupplierInvoices, useSupplierPayables, useSupplierPayments } from "../hooks/portals";
+import { SampleBadge } from "./SampleBadge";
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -275,6 +276,7 @@ function RequestsView() {
 
   if (detailReq) return (
     <div className="space-y-5">
+      <SampleBadge />
       <button onClick={() => setDetail(null)} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
         <ChevronRight size={14} className="rotate-180" /> Back to requests
       </button>
@@ -467,6 +469,7 @@ function ServicesView() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">My Services</h2>
         <button onClick={() => setAddModal(true)}
@@ -549,286 +552,90 @@ function ServicesView() {
 
 // ─── INVOICES ─────────────────────────────────────────────────────────────────
 function InvoicesView() {
-  const [raiseModal, setRaiseModal] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-
+  const q = useSupplierInvoices();
+  const rows = q.data ?? [];
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Invoices</h2>
-        <button onClick={() => setRaiseModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
-          <Plus size={14} /> Raise Invoice
-        </button>
-      </div>
-
-      {/* Summary bar */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: "Total Invoiced",  val: fmtShort(INVOICES.reduce((s,i)=>s+i.amount,0)), cls: "text-slate-800"   },
-          { label: "Paid",            val: fmtShort(INVOICES.filter(i=>i.status==="paid").reduce((s,i)=>s+i.amount,0)), cls: "text-emerald-600" },
-          { label: "Outstanding",     val: fmtShort(INVOICES.filter(i=>i.status==="pending").reduce((s,i)=>s+i.amount,0)), cls: "text-red-500" },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-2xl p-3 text-center">
-            <p className={cn("text-base font-black", s.cls)} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-3">
-        {INVOICES.map(inv => (
-          <div key={inv.id} className={cn("bg-white rounded-2xl border overflow-hidden",
-            inv.status === "pending" ? "border-amber-300" : "border-slate-200")}>
-            <div className="px-5 py-4 border-b border-slate-100">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-slate-400 font-mono mb-0.5">{inv.id}</p>
-                  <p className="font-bold text-slate-800">{inv.desc}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Ref: {inv.req}</p>
-                </div>
-                <SChip status={inv.status} map={INV_STATUS} />
-              </div>
-            </div>
-            <div className="px-5 py-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-400">Amount</p>
-                <p className="text-xl font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT(inv.amount)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-slate-400">Issued / Due</p>
-                <p className="text-sm font-semibold text-slate-600">{inv.issued} → {inv.due}</p>
-              </div>
-            </div>
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-              <button onClick={() => setPreview(inv.id)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 bg-white hover:bg-slate-50">
-                <Eye size={12} /> View
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 bg-white hover:bg-slate-50">
-                <Download size={12} /> PDF
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Raise invoice modal */}
-      {raiseModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-lg">Raise Invoice</h3>
-              <button onClick={() => setRaiseModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18} /></button>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Booking Request Reference</label>
-              <select className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
-                {REQUESTS.filter(r=>r.status==="confirmed").map(r=>(
-                  <option key={r.id}>{r.id} — {r.client}</option>
-                ))}
-              </select>
-            </div>
-            {[["Service Description","text"],["Amount (BDT)","number"],["Invoice Date","date"],["Due Date","date"]].map(([l,t])=>(
-              <div key={l}>
-                <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
-                <input type={t} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none" />
-              </div>
-            ))}
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Notes</label>
-              <textarea rows={2} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none" />
-            </div>
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center">
-              <Upload size={20} className="text-slate-300 mx-auto mb-1.5" />
-              <p className="text-xs text-slate-400">Attach supporting document (PDF)</p>
-            </div>
-            <button onClick={() => setRaiseModal(false)}
-              className="w-full py-3.5 bg-[#0E6BB8] text-white font-bold text-sm rounded-xl hover:bg-[#0B5794]">
-              Submit Invoice
-            </button>
-          </div>
+    <div className="space-y-4" data-portal="invoices">
+      <h2 className="text-xl font-bold text-slate-800">Invoices</h2>
+      <PLoad q={q}>
+        <div className="grid grid-cols-3 gap-3">
+          {[["Total Invoiced", fmtBDT2(rows.reduce((s,i)=>s+i.amount,0)), "text-slate-800"],["Paid", fmtBDT2(rows.filter(i=>i.status==="paid").reduce((s,i)=>s+i.amount,0)), "text-emerald-600"],["Outstanding", fmtBDT2(rows.filter(i=>i.status!=="paid").reduce((s,i)=>s+i.amount,0)), "text-red-500"]].map(([l,v,c])=>(
+            <div key={l} className="bg-white border border-slate-200 rounded-2xl p-3 text-center"><p className={cn("text-base font-black", c)} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{v}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+          ))}
         </div>
-      )}
-
-      {/* Invoice preview modal */}
-      {preview && (() => {
-        const inv = INVOICES.find(i => i.id === preview)!;
-        return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-3xl">
-                <h3 className="font-bold text-slate-800">{inv.id}</h3>
-                <button onClick={() => setPreview(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18} /></button>
+        <div className="space-y-3">
+          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">No invoices.</p>}
+          {rows.map(inv=>(
+            <div key={inv.id} className={cn("bg-white rounded-2xl border overflow-hidden", inv.status!=="paid" ? "border-amber-300" : "border-slate-200")}>
+              <div className="px-5 py-4 border-b border-slate-100 flex items-start justify-between">
+                <div><p className="text-xs text-slate-400 font-mono mb-0.5">{inv.invoiceNo}</p><p className="font-bold text-slate-800">{inv.description || "Invoice"}</p></div>
+                <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border capitalize", inv.status==="paid"?"bg-emerald-50 text-emerald-700 border-emerald-200":"bg-amber-50 text-amber-700 border-amber-200")}>{inv.status}</span>
               </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <div className="w-10 h-9 bg-[#0E6BB8] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">AL</div>
-                    <p className="font-bold text-slate-800">Al-Amin Hotels & Tourism</p>
-                    <p className="text-xs text-slate-400">Agrabad, Chattogram</p>
-                    <p className="text-xs text-slate-400">SUP-0014</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-black text-xl text-[#0E6BB8]">TAX INVOICE</p>
-                    <p className="text-xs text-slate-400 font-mono">{inv.id}</p>
-                    <p className="text-xs text-slate-400">Issued: {inv.issued}</p>
-                    <p className="text-xs text-red-400 font-semibold">Due: {inv.due}</p>
-                  </div>
-                </div>
-                <div className="border-t border-b border-slate-100 py-3 mb-4">
-                  <p className="text-xs text-slate-400 mb-1">Billed To</p>
-                  <p className="font-semibold text-slate-800">BDH Travels & Tourism</p>
-                  <p className="text-xs text-slate-400">accounts@bdhtravels.com · {inv.req}</p>
-                </div>
-                <div className="mb-4">
-                  <div className="flex justify-between py-2 border-b border-slate-50">
-                    <span className="text-sm text-slate-600">{inv.desc}</span>
-                    <span className="text-sm font-mono font-bold text-slate-800">{fmtBDT(inv.amount)}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between font-bold pt-2 border-t border-slate-200">
-                  <span>Total Due</span>
-                  <span className="font-mono text-[#0E6BB8]">{fmtBDT(inv.amount)}</span>
-                </div>
-                <button className="w-full mt-5 py-3 bg-[#0E6BB8] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2">
-                  <Download size={15} /> Download PDF
-                </button>
+              <div className="px-5 py-4 flex items-center justify-between">
+                <div><p className="text-xs text-slate-400">Amount</p><p className="text-xl font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(inv.amount)}</p></div>
+                <div className="text-right"><p className="text-xs text-slate-400">Issued / Due</p><p className="text-sm font-semibold text-slate-600">{inv.issueDate ? iso2date(inv.issueDate) : "—"} → {inv.dueDate ? iso2date(inv.dueDate) : "—"}</p></div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          ))}
+        </div>
+      </PLoad>
     </div>
   );
 }
 
 // ─── PAYMENTS ─────────────────────────────────────────────────────────────────
 function PaymentsView() {
-  const total = PAYMENTS.reduce((s, p) => s + p.amount, 0);
+  const q = useSupplierPayments();
+  const rows = q.data ?? [];
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-portal="payments">
       <h2 className="text-xl font-bold text-slate-800">Payments Received</h2>
-
-      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0a2a52] rounded-2xl p-5 text-white">
-        <p className="text-white/70 text-xs mb-1">Total Received (2024)</p>
-        <p className="text-3xl font-black" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT(total)}</p>
-        <div className="flex items-center gap-3 mt-3 text-sm text-white/70">
-          <span>{PAYMENTS.length} transactions</span>
-          <span>·</span>
-          <span>Last: Jun 27</span>
+      <PLoad q={q}>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
+          <p className="text-xs text-slate-400 mb-1">Total Received</p>
+          <p className="text-2xl font-black text-emerald-600" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(rows.reduce((s,p)=>s+p.amount,0))}</p>
         </div>
-      </div>
-
-      <div className="space-y-3">
-        {PAYMENTS.map(p => (
-          <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <ArrowDownLeft size={18} className="text-emerald-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate">{p.desc}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{p.method} · {p.date}</p>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">Ref: {p.ref}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="font-black text-emerald-600 text-lg" style={{ fontFamily: "'JetBrains Mono',monospace" }}>
-                  +{fmtBDT(p.amount)}
-                </p>
-                <span className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full font-medium border border-emerald-200">
-                  Received
-                </span>
-              </div>
+        <div className="space-y-2.5">
+          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">No payments received.</p>}
+          {rows.map(p=>(
+            <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+              <div><p className="text-sm font-semibold text-slate-800 font-mono">{p.receiptNo || "—"}</p><p className="text-xs text-slate-400 mt-0.5">{p.method.replace(/_/g," ")} · {iso2date(p.paidAt)}</p></div>
+              <p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(p.amount)}</p>
             </div>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-              <p className="text-xs text-slate-400 font-mono">{p.id} · {p.inv}</p>
-              <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
-                <Download size={11} /> Receipt
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </PLoad>
     </div>
   );
 }
 
 // ─── STATEMENTS ───────────────────────────────────────────────────────────────
 function StatementsView() {
-  const [openMonth, setOpenMonth] = useState<number | null>(0);
-  const months = [
-    { label: "July 2024",  invoiced: 2940000, received: 0,       outstanding: 2940000 },
-    { label: "June 2024",  invoiced: 420000,  received: 420000,  outstanding: 0       },
-    { label: "May 2024",   invoiced: 64000,   received: 64000,   outstanding: 0       },
-    { label: "March 2024", invoiced: 6500,    received: 6500,    outstanding: 0       },
-  ];
-
+  const iq = useSupplierInvoices();
+  const pq = useSupplierPayables();
+  const invoiced = (iq.data ?? []).reduce((s,i)=>s+i.amount,0);
+  const paidInv = (iq.data ?? []).filter(i=>i.status==="paid").reduce((s,i)=>s+i.amount,0);
+  const owedToUs = (pq.data ?? []).reduce((s,p)=>s+p.dueAmount,0);
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Statements</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3.5 py-2 rounded-xl hover:bg-[#0E6BB8]/5">
-          <Download size={14} /> Export All
-        </button>
-      </div>
-
-      {/* Account summary */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: "Total Invoiced",  val: fmtBDT(months.reduce((s,m)=>s+m.invoiced,0)),    cls:"text-slate-800"   },
-          { label: "Total Received",  val: fmtBDT(months.reduce((s,m)=>s+m.received,0)),   cls:"text-emerald-600" },
-          { label: "Outstanding",     val: fmtBDT(months.reduce((s,m)=>s+m.outstanding,0)),cls:"text-red-500"     },
-          { label: "Credit Balance",  val: "৳ 0",                                           cls:"text-slate-600"   },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-2xl p-4">
-            <p className={cn("text-lg font-black", s.cls)} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Monthly statement accordion */}
-      <div className="space-y-2.5">
-        {months.map((m, i) => (
-          <div key={m.label} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            <button className="w-full flex items-center justify-between p-4" onClick={() => setOpenMonth(openMonth === i ? null : i)}>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#0E6BB8]/8 flex items-center justify-center">
-                  <BookOpen size={15} className="text-[#0E6BB8]" />
-                </div>
-                <div className="text-left">
-                  <p className="font-bold text-slate-800">{m.label}</p>
-                  <p className="text-xs text-slate-400">{fmtBDT(m.invoiced)} invoiced</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {m.outstanding > 0 && (
-                  <span className="text-xs px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-semibold">
-                    Outstanding
-                  </span>
-                )}
-                {openMonth === i ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-              </div>
-            </button>
-            {openMonth === i && (
-              <div className="px-4 pb-4 border-t border-slate-100">
-                <div className="grid grid-cols-3 gap-3 mt-3 mb-3">
-                  {[["Invoiced",fmtBDT(m.invoiced)],["Received",fmtBDT(m.received)],["Outstanding",fmtBDT(m.outstanding)]].map(([k,v])=>(
-                    <div key={k} className="bg-slate-50 rounded-xl p-3 text-center">
-                      <p className="text-sm font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{k}</p>
-                    </div>
-                  ))}
-                </div>
-                <button className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">
-                  <Download size={14} /> Download Statement PDF
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+    <div className="space-y-4" data-portal="statements">
+      <h2 className="text-xl font-bold text-slate-800">Statements</h2>
+      <PLoad q={{ isLoading: iq.isLoading||pq.isLoading, isError: iq.isError||pq.isError, error: iq.error||pq.error }}>
+        <div className="grid grid-cols-3 gap-3">
+          {[["Total Invoiced", fmtBDT2(invoiced), "text-slate-800"],["Paid to You", fmtBDT2(paidInv), "text-emerald-600"],["Outstanding Payables", fmtBDT2(owedToUs), "text-red-500"]].map(([l,v,c])=>(
+            <div key={l} className="bg-white border border-slate-200 rounded-2xl p-4 text-center"><p className={cn("text-base font-black", c)} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{v}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+          ))}
+        </div>
+        <p className="font-semibold text-slate-700 text-sm">Outstanding Payables</p>
+        <div className="space-y-2.5">
+          {(pq.data ?? []).length===0 && <p className="text-sm text-slate-400">No payables.</p>}
+          {(pq.data ?? []).map(p=>(
+            <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+              <div><p className="text-sm font-semibold text-slate-800">Due {fmtBDT2(p.dueAmount)}</p><p className="text-xs text-slate-400 mt-0.5">of {fmtBDT2(p.amount)} · {p.dueDate ? iso2date(p.dueDate) : "—"}</p></div>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-amber-50 text-amber-600">{p.status.toLowerCase()}</span>
+            </div>
+          ))}
+        </div>
+      </PLoad>
     </div>
   );
 }
@@ -841,6 +648,7 @@ function ReportsView() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Reports</h2>
 
       <div className="grid grid-cols-2 gap-3">
@@ -952,6 +760,7 @@ function MessagesView() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Messages</h2>
       <div className="space-y-2.5">
         {msgs.map(m => (
@@ -1023,6 +832,7 @@ function SupportView() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
         <button className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">

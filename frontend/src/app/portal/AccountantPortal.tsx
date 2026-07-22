@@ -13,6 +13,9 @@ import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
 import { Loader2 } from "lucide-react";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
+import { useIncome, useExpenses, useInvoices, usePayments, useJournal } from "../hooks/finance";
+import { SampleBadge } from "./SampleBadge";
+const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
 function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
@@ -180,97 +183,36 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
 
 // ─── INCOME & EXPENSE ─────────────────────────────────────────────────────────
 function IncomeExpenseView() {
-  const [tab, setTab] = useState<"income"|"expense">("income");
-  const rows = tab === "income" ? INCOME_ROWS : EXPENSE_ROWS;
-  const total = rows.reduce((s,r)=>s+r.amount,0);
-
+  const [tab, setTab] = useState("income");
+  const incQ = useIncome({ range: "ytd", pageSize: 100 });
+  const expQ = useExpenses({ range: "ytd", pageSize: 100 });
+  const q = tab==="income" ? incQ : expQ;
+  const rows = q.data?.data ?? [];
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Income & Expense</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
-          <Download size={14}/> Export
-        </button>
+    <div className="space-y-5" data-portal="income-expense">
+      <h2 className="text-xl font-bold text-slate-800">Income & Expense</h2>
+      <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl w-fit">
+        {["income","expense"].map(t=>(
+          <button key={t} onClick={()=>setTab(t)} className={cn("px-4 py-2 text-sm font-semibold rounded-xl capitalize", tab===t?"bg-white text-slate-800 shadow-sm":"text-slate-500")}>{t}</button>
+        ))}
       </div>
-
-      {/* Tab */}
-      <div className="flex gap-2 bg-slate-100 p-1 rounded-2xl w-fit">
-        <button onClick={() => setTab("income")}
-          className={cn("px-5 py-2 rounded-xl text-sm font-semibold transition-all",
-            tab==="income" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700")}>
-          Income
-        </button>
-        <button onClick={() => setTab("expense")}
-          className={cn("px-5 py-2 rounded-xl text-sm font-semibold transition-all",
-            tab==="expense" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700")}>
-          Expense
-        </button>
-      </div>
-
-      {/* Total card */}
-      <div className={cn("rounded-2xl p-5 text-white", tab==="income"?"bg-gradient-to-br from-[#0E7C66] to-[#0a5c4c]":"bg-gradient-to-br from-red-500 to-red-700")}>
-        <p className="text-white/70 text-xs mb-1">Total {tab==="income"?"Income":"Expense"} — Jul 2024</p>
-        <p className="text-3xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT(total)}</p>
-        <div className="flex items-center gap-2 mt-2 text-white/70 text-xs">
-          <TrendingUp size={12}/>
-          <span>+{tab==="income"?"12":"8"}% vs last month</span>
+      <PLoad q={q}>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
+          <p className="text-xs text-slate-400 mb-1 capitalize">Total {tab} (baseAmount, BDT)</p>
+          {/* Sum baseAmount from the rows — the ledger endpoint's stats.totalAmount sums raw
+              `amount` across currencies (a mixed-currency bug); baseAmount is the correct aggregate. */}
+          <p className={cn("text-2xl font-black", tab==="income"?"text-emerald-600":"text-red-500")} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(rows.reduce((s,r)=>s+r.baseAmount,0))}</p>
         </div>
-      </div>
-
-      {/* Category breakdown */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-4">Breakdown by Category</p>
-        <div className="space-y-3">
-          {rows.map(r => (
-            <div key={r.category}>
-              <div className="flex justify-between text-sm mb-1.5">
-                <span className="font-medium text-slate-700">{r.category}</span>
-                <span className="font-bold text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT(r.amount)}</span>
-              </div>
-              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width:`${r.pct}%`, background:r.color }} />
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5 text-right">{r.pct}%</p>
+        <div className="space-y-2.5">
+          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">No {tab} records.</p>}
+          {rows.map(r=>(
+            <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+              <div><p className="text-sm font-semibold text-slate-800">{r.category}</p><p className="text-xs text-slate-400 mt-0.5">{r.party || r.description || "—"} · {r.date}</p></div>
+              <div className="text-right"><p className={cn("font-black", tab==="income"?"text-emerald-600":"text-red-500")} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(r.baseAmount)}</p><span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-slate-100 text-slate-600">{r.status.toLowerCase()}</span></div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Monthly trend table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="font-bold text-slate-800">Monthly Trend</p>
-          <span className="text-xs text-slate-400">2024</span>
-        </div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["Month","Income","Expense","Net Profit","Margin"].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {MONTHS.map((m,i) => {
-              const net = INCOME_DATA[i]-EXPENSE_DATA[i];
-              const margin = Math.round((net/INCOME_DATA[i])*100);
-              return (
-                <tr key={m} className={cn("hover:bg-slate-50 transition-colors", i===MONTHS.length-1&&"font-semibold bg-[#0E6BB8]/3")}>
-                  <td className="px-4 py-3 text-sm text-slate-700">{m} 2024</td>
-                  <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtShort(INCOME_DATA[i])}</td>
-                  <td className="px-4 py-3 text-sm font-mono text-red-500">{fmtShort(EXPENSE_DATA[i])}</td>
-                  <td className="px-4 py-3 text-sm font-mono font-bold text-slate-800">{fmtShort(net)}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("text-xs font-bold px-2 py-1 rounded-lg", margin>=35?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-700")}>
-                      {margin}%
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      </PLoad>
     </div>
   );
 }
@@ -288,6 +230,7 @@ function BankCashView() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Bank & Cash</h2>
         <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
@@ -362,249 +305,75 @@ function BankCashView() {
 
 // ─── JOURNAL ENTRIES ──────────────────────────────────────────────────────────
 function JournalView() {
-  const [newModal, setNewModal] = useState(false);
-
+  const q = useJournal({ range: "ytd", pageSize: 100 });
+  const rows = q.data?.data ?? [];
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Journal Entries</h2>
-        <button onClick={() => setNewModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
-          <Plus size={14}/> New Entry
-        </button>
-      </div>
-
-      {/* Mobile: journal cards */}
-      <div className="space-y-3 md:hidden">
-        {JOURNAL_ENTRIES.map(j => (
-          <div key={j.id} className="bg-white rounded-2xl border border-slate-200 p-4">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0 pr-3">
-                <p className="text-xs font-mono text-slate-400">{j.id} · {j.date}</p>
-                <p className="text-sm font-semibold text-slate-800 mt-0.5 leading-tight">{j.desc}</p>
-              </div>
-              <span className={cn("text-xs px-2 py-0.5 rounded-full font-semibold border flex-shrink-0",
-                j.status==="posted"?"bg-emerald-50 text-emerald-700 border-emerald-200":"bg-amber-50 text-amber-700 border-amber-200")}>
-                {j.status}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <div className="bg-slate-50 rounded-xl p-2.5">
-                <p className="text-xs text-slate-400 mb-0.5">Dr</p>
-                <p className="text-xs font-semibold text-slate-700 truncate">{j.debit}</p>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-2.5">
-                <p className="text-xs text-slate-400 mb-0.5">Cr</p>
-                <p className="text-xs font-semibold text-slate-700 truncate">{j.credit}</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
-              <p className="text-sm font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtShort(j.amount)}</p>
-              <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14}/></button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Desktop: full table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden hidden md:block">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input placeholder="Search entries…" className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none" />
-          </div>
-          <select className="text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none text-slate-600">
-            <option>All Entries</option><option>Posted</option><option>Draft</option>
-          </select>
+    <div className="space-y-5" data-portal="journal">
+      <h2 className="text-xl font-bold text-slate-800">Journal Entries</h2>
+      <PLoad q={q}>
+        <div className="grid grid-cols-3 gap-3">
+          {[["Entries", q.data?.stats.total ?? 0],["Posted", q.data?.stats.posted ?? 0],["Drafts", q.data?.stats.drafts ?? 0]].map(([l,v])=>(
+            <div key={l} className="bg-white border border-slate-200 rounded-2xl p-3 text-center"><p className="text-lg font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{v}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+          ))}
         </div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["Entry","Date","Description","Debit A/C","Credit A/C","Amount","Status",""].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {JOURNAL_ENTRIES.map(j => (
-              <tr key={j.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3.5 text-xs font-mono text-slate-500 whitespace-nowrap">{j.id}</td>
-                <td className="px-4 py-3.5 text-xs text-slate-500 whitespace-nowrap">{j.date}</td>
-                <td className="px-4 py-3.5 text-sm text-slate-700 max-w-[200px] truncate">{j.desc}</td>
-                <td className="px-4 py-3.5 text-xs text-slate-600 max-w-[140px] truncate">{j.debit}</td>
-                <td className="px-4 py-3.5 text-xs text-slate-600 max-w-[140px] truncate">{j.credit}</td>
-                <td className="px-4 py-3.5 text-sm font-black font-mono text-slate-800 whitespace-nowrap">{fmtShort(j.amount)}</td>
-                <td className="px-4 py-3.5">
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-semibold border",
-                    j.status==="posted"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200")}>
-                    {j.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3.5 flex items-center gap-1.5">
-                  <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={13}/></button>
-                  {j.status==="draft" && <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Edit2 size={13}/></button>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {newModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-xl p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-lg">New Journal Entry</h3>
-              <button onClick={() => setNewModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18}/></button>
+        <div className="space-y-2.5">
+          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">No journal entries.</p>}
+          {rows.map(j=>(
+            <div key={j.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+              <div><p className="text-sm font-semibold text-slate-800 font-mono">{j.ref}</p><p className="text-xs text-slate-400 mt-0.5">{j.description || "—"} · {j.date}</p></div>
+              <div className="text-right"><p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(j.totalDebit)}</p><span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize", j.isReversed?"bg-red-50 text-red-500":j.status==="POSTED"?"bg-emerald-50 text-emerald-600":"bg-slate-100 text-slate-500")}>{j.isReversed?"reversed":j.status.toLowerCase()}</span></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Date</label>
-                <input type="date" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none"/>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Reference</label>
-                <input className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none" placeholder="e.g., BK-0892"/>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
-              <input className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none"/>
-            </div>
-            <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ledger Lines</p>
-              <div className="grid grid-cols-3 gap-2">
-                <div><label className="text-xs text-slate-400 mb-1 block">Account</label>
-                  <input className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none" placeholder="Debit A/C"/></div>
-                <div><label className="text-xs text-slate-400 mb-1 block">Account</label>
-                  <input className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none" placeholder="Credit A/C"/></div>
-                <div><label className="text-xs text-slate-400 mb-1 block">Amount (৳)</label>
-                  <input type="number" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none font-mono"/></div>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setNewModal(false)}
-                className="flex-1 py-3 border border-slate-200 rounded-2xl text-slate-600 text-sm font-medium hover:bg-slate-50">
-                Save as Draft
-              </button>
-              <button onClick={() => setNewModal(false)}
-                className="flex-1 py-3 bg-[#0E6BB8] text-white font-bold text-sm rounded-2xl hover:bg-[#0B5794]">
-                Post Entry
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </PLoad>
     </div>
   );
 }
 
 // ─── INVOICES & PAYMENTS ──────────────────────────────────────────────────────
 function InvPayView() {
-  const [tab, setTab] = useState<"invoices"|"payments">("invoices");
-
+  const [tab, setTab] = useState("invoices");
+  const invQ = useInvoices({ range: "ytd", pageSize: 100 });
+  const payQ = usePayments({ range: "ytd", pageSize: 100 });
+  const invoices = invQ.data?.data ?? [];
+  const payments = payQ.data?.data ?? [];
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Invoices & Payments</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
-          <Plus size={14}/> New Invoice
-        </button>
-      </div>
-
-      <div className="flex gap-2 bg-slate-100 p-1 rounded-2xl w-fit">
-        {(["invoices","payments"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={cn("px-5 py-2 rounded-xl text-sm font-semibold transition-all capitalize",
-              tab===t ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700")}>
-            {t}
-          </button>
+    <div className="space-y-5" data-portal="invpay">
+      <h2 className="text-xl font-bold text-slate-800">Invoices & Payments</h2>
+      <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl w-fit">
+        {["invoices","payments"].map(t=>(
+          <button key={t} onClick={()=>setTab(t)} className={cn("px-4 py-2 text-sm font-semibold rounded-xl capitalize", tab===t?"bg-white text-slate-800 shadow-sm":"text-slate-500")}>{t}</button>
         ))}
       </div>
-
-      {tab === "invoices" && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          {/* Summary */}
-          <div className="grid grid-cols-3 border-b border-slate-200">
-            {[
-              { label:"Total Outstanding", val:fmtShort(INVOICES_DATA.reduce((s,i)=>s+i.balance,0)), cls:"text-red-500"     },
-              { label:"Customer Invoices", val:fmtShort(INVOICES_DATA.filter(i=>i.type==="customer").reduce((s,i)=>s+i.amount,0)), cls:"text-[#0E6BB8]" },
-              { label:"Supplier Invoices", val:fmtShort(INVOICES_DATA.filter(i=>i.type==="supplier").reduce((s,i)=>s+i.amount,0)), cls:"text-purple-600" },
-            ].map(s => (
-              <div key={s.label} className="px-5 py-4 text-center border-r border-slate-200 last:border-0">
-                <p className={cn("text-xl font-black", s.cls)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+      {tab==="invoices" ? (
+        <PLoad q={invQ}>
+          <div className="grid grid-cols-3 gap-3">
+            {[["Billed", invQ.data?.stats.totalBilled ?? 0],["Collected", invQ.data?.stats.totalPaid ?? 0],["Outstanding", invQ.data?.stats.totalDue ?? 0]].map(([l,v])=>(
+              <div key={l} className="bg-white border border-slate-200 rounded-2xl p-3 text-center"><p className="text-base font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(v)}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+            ))}
+          </div>
+          <div className="space-y-2.5">
+            {invoices.length===0 && <p className="text-sm text-slate-400 text-center py-4">No invoices.</p>}
+            {invoices.map(i=>(
+              <div key={i.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+                <div><p className="text-sm font-semibold text-slate-800 font-mono">{i.invoiceNo || "DRAFT"}</p><p className="text-xs text-slate-400 mt-0.5">{i.customerName || "—"} · {i.issueDate || "—"}</p></div>
+                <div className="text-right"><p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(i.total)}</p><span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-slate-100 text-slate-600">{i.status.toLowerCase()}</span></div>
               </div>
             ))}
           </div>
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                {["Invoice","Party","Type","Total","Paid","Balance","Due","Status",""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {INVOICES_DATA.map(inv => (
-                <tr key={inv.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-xs font-mono text-slate-500 whitespace-nowrap">{inv.id}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-800">{inv.customer}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
-                      inv.type==="customer"?"bg-blue-50 text-blue-600":"bg-purple-50 text-purple-600")}>
-                      {inv.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm font-mono font-bold text-slate-800">{fmtShort(inv.amount)}</td>
-                  <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtShort(inv.paid)}</td>
-                  <td className={cn("px-4 py-3 text-sm font-mono font-bold",inv.balance>0?"text-red-500":"text-emerald-600")}>{fmtShort(inv.balance)}</td>
-                  <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{inv.due}</td>
-                  <td className="px-4 py-3"><Chip label={inv.status} cls={INV_STATUS_CFG[inv.status]} /></td>
-                  <td className="px-4 py-3"><button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={13}/></button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {tab === "payments" && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                {["Payment ID","Party","Type","Amount","Method","Date","Ref",""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {PAYMENTS_DATA.map(p => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.id}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-800">{p.type==="received"?(p as any).from:(p as any).to}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("flex items-center gap-1 text-xs font-semibold",
-                      p.type==="received"?"text-emerald-600":"text-red-500")}>
-                      {p.type==="received"?<ArrowDownLeft size={12}/>:<ArrowUpRight size={12}/>}
-                      {p.type}
-                    </span>
-                  </td>
-                  <td className={cn("px-4 py-3 text-sm font-black font-mono",p.type==="received"?"text-emerald-600":"text-red-500")}>
-                    {p.type==="received"?"+":"-"}{fmtShort(p.amount)}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">{p.method}</td>
-                  <td className="px-4 py-3 text-xs text-slate-500">{p.date}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400 max-w-[100px] truncate">{p.ref}</td>
-                  <td className="px-4 py-3"><button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Download size={13}/></button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        </PLoad>
+      ) : (
+        <PLoad q={payQ}>
+          <div className="space-y-2.5">
+            {payments.length===0 && <p className="text-sm text-slate-400 text-center py-4">No payments.</p>}
+            {payments.map(p=>(
+              <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+                <div><p className="text-sm font-semibold text-slate-800 font-mono">{p.receiptNo || p.paymentNo}</p><p className="text-xs text-slate-400 mt-0.5">{p.customerName || p.invoiceNo || "—"} · {p.method.replace(/_/g," ")}</p></div>
+                <p className={cn("font-black", p.isReversed?"text-slate-400 line-through":p.direction==="IN"?"text-emerald-600":"text-red-500")} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(p.amount)}</p>
+              </div>
+            ))}
+          </div>
+        </PLoad>
       )}
     </div>
   );
@@ -623,6 +392,7 @@ function FinReportsView() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Financial Reports</h2>
         <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3.5 py-2 rounded-xl hover:bg-[#0E6BB8]/5">
@@ -686,6 +456,7 @@ function FinReportsView() {
 function TaxView() {
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Tax Reports</h2>
 
       <div className="grid grid-cols-3 gap-3">
@@ -775,6 +546,7 @@ function AuditView() {
 
   return (
     <div className="space-y-4">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Audit Logs</h2>
         <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
