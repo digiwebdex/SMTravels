@@ -11,6 +11,7 @@ import { catalogRouter } from "./catalog.route";
 import { accountsRouter } from "./accounts.route";
 import { invoicesRouter } from "./invoices.route";
 import { reportsRouter } from "./reports.route";
+import { portalRouter } from "./portal.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
@@ -27,3 +28,4 @@ apiRouter.use(catalogRouter);
 apiRouter.use(accountsRouter);
 apiRouter.use(invoicesRouter);
 apiRouter.use(reportsRouter);
+apiRouter.use(portalRouter);

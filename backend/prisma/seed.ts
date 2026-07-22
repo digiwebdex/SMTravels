@@ -417,6 +417,106 @@ async function main() {
   // one CTG revenue entry so P&L branch-scoping differs (CTG sees only this)
   await upsertJournal({ id: "je_seed_6", ref: "JV-SEED-CTG-01", branchId: "brn_ctg", date: "2026-06-20", desc: "CTG Hajj revenue", lines: [{ id: "jl_s6a", code: "1200", debit: 100000 }, { id: "jl_s6b", code: "4100", credit: 100000 }] });
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // PORTAL DATA — link customer USERS to customer RECORDS (ownership scoping) and
+  // give each portal user their own bookings/invoices/docs/tickets so ownership
+  // isolation can be proven (customer A must NOT reach customer B's data).
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // 19a) Link the demo customer user → cus_demo (Md. Karim Ullah, Dhaka).
+  await prisma.customer.update({ where: { id: "cus_demo" }, data: { userId: "usr_customer" } });
+
+  // 19b) A SECOND customer user → cus_ctg (Fatima Begum, CTG) so cross-owner
+  //      isolation is testable with two real portal accounts.
+  const cust2Email = "customer2@smtravel.com.bd";
+  await prisma.user.upsert({
+    where: { id: "usr_customer2" },
+    create: { id: "usr_customer2", email: cust2Email, name: "Demo Customer Two", role: UserRole.CUSTOMER, passwordHash: hashPw(DEMO_PW, cust2Email), branchId: "brn_ctg", status: "active" },
+    update: { name: "Demo Customer Two", role: UserRole.CUSTOMER, branchId: "brn_ctg" },
+  });
+  await linkRole("usr_customer2", UserRole.CUSTOMER);
+  await prisma.customer.update({ where: { id: "cus_ctg" }, data: { userId: "usr_customer2" } });
+
+  // 19c) Documents owned by each customer (cross-owner fetch must 404).
+  const DOCS = [
+    { id: "doc_demo_passport", customerId: "cus_demo", type: "PASSPORT", name: "Passport", status: "VERIFIED", required: true },
+    { id: "doc_demo_visa", customerId: "cus_demo", type: "VISA", name: "Saudi Visa", status: "VERIFIED", required: true },
+    { id: "doc_demo_medical", customerId: "cus_demo", type: "MEDICAL", name: "Medical Certificate", status: "PENDING", required: true },
+    { id: "doc_ctg_passport", customerId: "cus_ctg", type: "PASSPORT", name: "Passport", status: "VERIFIED", required: true },
+  ];
+  for (const d of DOCS) {
+    await prisma.document.upsert({
+      where: { id: d.id },
+      create: { id: d.id, ownerType: "CUSTOMER", customerId: d.customerId, type: d.type as never, name: d.name, status: d.status as never, required: d.required, filePath: `/uploads/${d.id}.pdf`, tags: [] },
+      update: { name: d.name, status: d.status as never },
+    });
+  }
+
+  // 19d) Payments on cus_demo's issued invoices (Payment History screen).
+  const PAYMENTS = [
+    { id: "pay_demo_1", invoiceId: "inv_s2", amount: 150000, method: "BANK_TRANSFER", date: "2026-06-16", no: "RCP-SEED-01" },
+    { id: "pay_demo_2", invoiceId: "inv_s3", amount: 24000, method: "BKASH", date: "2026-07-03", no: "RCP-SEED-02" },
+  ];
+  for (const p of PAYMENTS) {
+    await prisma.payment.upsert({
+      where: { id: p.id },
+      create: { id: p.id, paymentNo: p.no, direction: "IN", branchId: "brn_dhaka", invoiceId: p.invoiceId, customerId: "cus_demo", amount: p.amount, baseAmount: p.amount, method: p.method as never, status: "CONFIRMED", paidAt: dt(p.date) },
+      update: { amount: p.amount, baseAmount: p.amount },
+    });
+  }
+
+  // 19e) An installment plan for cus_demo (Installments screen).
+  await prisma.installmentPlan.upsert({
+    where: { id: "pln_demo" },
+    create: { id: "pln_demo", branchId: "brn_dhaka", bookingId: "bkg_s1", customerId: "cus_demo", total: 200000, baseAmount: 200000, downAmount: 50000, status: "active" },
+    update: { total: 200000, baseAmount: 200000 },
+  });
+  const INSTALLMENTS = [
+    { n: 1, label: "1st Installment", amt: 50000, due: "2026-05-01", paidDate: "2026-04-28", status: "PAID" },
+    { n: 2, label: "2nd Installment", amt: 50000, due: "2026-06-01", paidDate: "2026-05-30", status: "PAID" },
+    { n: 3, label: "3rd Installment", amt: 50000, due: "2026-07-01", paidDate: null, status: "DUE" },
+    { n: 4, label: "4th Installment", amt: 50000, due: "2026-08-01", paidDate: null, status: "UPCOMING" },
+  ];
+  for (const it of INSTALLMENTS) {
+    await prisma.installment.upsert({
+      where: { planId_number: { planId: "pln_demo", number: it.n } },
+      create: { planId: "pln_demo", number: it.n, label: it.label, amountDue: it.amt, baseAmount: it.amt, dueDate: dt(it.due), paidDate: it.paidDate ? dt(it.paidDate) : null, paidAmount: it.status === "PAID" ? it.amt : 0, status: it.status as never },
+      update: { status: it.status as never, paidAmount: it.status === "PAID" ? it.amt : 0 },
+    });
+  }
+
+  // 19f) Support tickets (requesterType="customer", requesterId=customerId).
+  const TICKETS = [
+    { id: "tkt_demo", no: "SUP-SEED-01", customerId: "cus_demo", subject: "Visa delay update request", status: "OPEN", msg: "Our visa team is processing your application. ETA 3–5 business days." },
+    { id: "tkt_ctg", no: "SUP-SEED-02", customerId: "cus_ctg", subject: "Hotel change request", status: "RESOLVED", msg: "Your hotel has been updated. Confirmation sent to email." },
+  ];
+  for (const t of TICKETS) {
+    await prisma.supportTicket.upsert({
+      where: { id: t.id },
+      create: { id: t.id, ticketNo: t.no, subject: t.subject, requesterType: "customer", requesterId: t.customerId, status: t.status as never, branchId: t.customerId === "cus_ctg" ? "brn_ctg" : "brn_dhaka" },
+      update: { subject: t.subject, status: t.status as never },
+    });
+    await prisma.ticketMessage.upsert({
+      where: { id: `${t.id}_m1` },
+      create: { id: `${t.id}_m1`, ticketId: t.id, fromLabel: "Support", body: t.msg },
+      update: { body: t.msg },
+    });
+  }
+
+  // 19g) Notifications for the demo customer user.
+  const NOTIFS = [
+    { id: "ntf_demo_1", title: "Visa Approved", body: "Your Saudi Arabia visa has been approved.", color: "#0E7C66", read: false },
+    { id: "ntf_demo_2", title: "Installment Reminder", body: "Your 3rd installment of ৳50,000 is due.", color: "#E8471F", read: false },
+    { id: "ntf_demo_3", title: "Payment confirmed", body: "৳150,000 received. Thank you!", color: "#0E7C66", read: true },
+  ];
+  for (const n of NOTIFS) {
+    await prisma.notification.upsert({
+      where: { id: n.id },
+      create: { id: n.id, userId: "usr_customer", title: n.title, body: n.body, color: n.color, read: n.read },
+      update: { title: n.title, body: n.body, read: n.read },
+    });
+  }
+
   // eslint-disable-next-line no-console
   console.log("[seed] done.");
 }

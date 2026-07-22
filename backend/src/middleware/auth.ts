@@ -133,3 +133,50 @@ export function resolveBranchId(auth: AuthCtx, requested?: string | null): strin
   if (!auth.branchId) throw new HttpError(403, "NoBranch");
   return auth.branchId;
 }
+
+// ─── Ownership scoping (portal users see ONLY their own records) ─────────────
+// A tighter scope than branchWhere(): portal roles (CUSTOMER/AGENT/SUPPLIER) are
+// pinned to the Customer/Agent/Supplier record their User is linked to. The owner
+// id is resolved SERVER-SIDE from the session — never from a client-supplied id —
+// and lives in the WHERE clause, so a portal user cannot read another owner's row
+// even by guessing its id: the query returns nothing (→ 404). Same guarantee as
+// branch scoping, one level tighter.
+
+export interface OwnerScope {
+  role: UserRole;
+  customerId: string | null;
+  agentId: string | null;
+  supplierId: string | null;
+}
+
+/** Resolve the portal owner behind the session (one DB lookup). Throws 403 if the
+ *  role is not a portal role, or the account has no linked owner profile. */
+export async function resolveOwner(auth: AuthCtx): Promise<OwnerScope> {
+  const base: OwnerScope = { role: auth.role, customerId: null, agentId: null, supplierId: null };
+  switch (auth.role) {
+    case UserRole.CUSTOMER: {
+      const c = await prisma.customer.findFirst({ where: { userId: auth.userId, deletedAt: null }, select: { id: true } });
+      if (!c) throw new HttpError(403, "NoCustomerProfile", { detail: "This account is not linked to a customer profile." });
+      return { ...base, customerId: c.id };
+    }
+    case UserRole.AGENT: {
+      const a = await prisma.agent.findFirst({ where: { userId: auth.userId, deletedAt: null }, select: { id: true } });
+      if (!a) throw new HttpError(403, "NoAgentProfile", { detail: "This account is not linked to an agent profile." });
+      return { ...base, agentId: a.id };
+    }
+    case UserRole.SUPPLIER: {
+      const s = await prisma.supplier.findFirst({ where: { userId: auth.userId, deletedAt: null }, select: { id: true } });
+      if (!s) throw new HttpError(403, "NoSupplierProfile", { detail: "This account is not linked to a supplier profile." });
+      return { ...base, supplierId: s.id };
+    }
+    default:
+      throw new HttpError(403, "NotAPortalUser", { detail: "This endpoint is for portal (customer/agent/supplier) accounts." });
+  }
+}
+
+/** Convenience: the caller's own customer id, or 403 if not a linked customer. */
+export async function requireCustomerId(auth: AuthCtx): Promise<string> {
+  const owner = await resolveOwner(auth);
+  if (!owner.customerId) throw new HttpError(403, "NotACustomer", { detail: "This endpoint is for customer portal accounts." });
+  return owner.customerId;
+}
