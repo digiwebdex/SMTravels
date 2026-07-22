@@ -517,6 +517,176 @@ async function main() {
     });
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // PORTAL DATA (Agent / Supplier / Staff / Accountant) — link each portal user
+  // to its owner record + give two of each so cross-account isolation is
+  // testable. Idempotent (stable ids). PII (nid) set so profile decryption is
+  // provable per role.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // 20a) AGENTS — link agt_rahim→usr_agent, add a 2nd agent user for agt_nmt,
+  //      give each a sub-agent (downline tree), a wallet + ledger, PII.
+  await prisma.user.upsert({
+    where: { id: "usr_agent2" },
+    create: { id: "usr_agent2", email: "agent2@smtravel.com.bd", name: "Demo Agent Two", role: UserRole.AGENT, passwordHash: hashPw(DEMO_PW, "agent2@smtravel.com.bd"), branchId: "brn_dhaka", status: "active" },
+    update: { name: "Demo Agent Two", role: UserRole.AGENT },
+  });
+  await linkRole("usr_agent2", UserRole.AGENT);
+  await prisma.agent.update({ where: { id: "agt_rahim" }, data: { userId: "usr_agent", nid: "1985111122223", tradeLicense: "TL-RAHIM-2024" } });
+  await prisma.agent.update({ where: { id: "agt_nmt" }, data: { userId: "usr_agent2", nid: "1986222233334" } });
+  // sub-agents (downline) — agt_rahim_s1 under rahim, agt_nmt_s1 under nmt
+  const SUBAGENTS = [
+    { id: "agt_rahim_s1", code: "AGT-RAHIM-S1", name: "Rahim Sub-Agent", parent: "agt_rahim" },
+    { id: "agt_nmt_s1", code: "AGT-NMT-S1", name: "NMT Sub-Agent", parent: "agt_nmt" },
+  ];
+  for (const s of SUBAGENTS) {
+    await prisma.agent.upsert({
+      where: { id: s.id },
+      create: { id: s.id, agentCode: s.code, name: s.name, parentAgentId: s.parent, tier: "SILVER", commissionRate: 3, branchId: "brn_dhaka", status: "active" },
+      update: { name: s.name, parentAgentId: s.parent },
+    });
+  }
+  // wallets + immutable ledger txns
+  const WALLETS = [
+    { id: "wallet_rahim", agentId: "agt_rahim", balance: 46850 },
+    { id: "wallet_nmt", agentId: "agt_nmt", balance: 12000 },
+  ];
+  for (const w of WALLETS) {
+    await prisma.agentWallet.upsert({ where: { id: w.id }, create: { id: w.id, agentId: w.agentId, balance: w.balance }, update: { balance: w.balance } });
+  }
+  const WALLET_TXNS = [
+    { id: "wtx_rahim_1", wallet: "wallet_rahim", type: "CREDIT", desc: "Commission — June", amount: 21850, date: "2026-06-30" },
+    { id: "wtx_rahim_2", wallet: "wallet_rahim", type: "CREDIT", desc: "Commission — July", amount: 30000, date: "2026-07-15" },
+    { id: "wtx_rahim_3", wallet: "wallet_rahim", type: "DEBIT", desc: "Withdrawal to bKash", amount: 5000, date: "2026-07-18" },
+    { id: "wtx_nmt_1", wallet: "wallet_nmt", type: "CREDIT", desc: "Commission — June", amount: 12000, date: "2026-06-30" },
+  ];
+  for (const t of WALLET_TXNS) {
+    await prisma.walletTransaction.upsert({
+      where: { id: t.id },
+      create: { id: t.id, walletId: t.wallet, type: t.type as never, description: t.desc, amount: t.amount, baseAmount: t.amount, postedAt: dt(t.date) },
+      update: { description: t.desc, amount: t.amount, baseAmount: t.amount },
+    });
+  }
+  // a commission for the sub-agent so the downline rollup has data
+  await prisma.agentCommission.upsert({
+    where: { id: "cmm_rahim_s1_07" },
+    create: { id: "cmm_rahim_s1_07", agentId: "agt_rahim_s1", period: "2026-07", grossAmount: 50000, rate: 3, amount: 1500, baseAmount: 1500, status: "PENDING" },
+    update: { amount: 1500, baseAmount: 1500 },
+  });
+  // agent leads (scoped by agentId)
+  const AGENT_LEADS = [
+    { id: "lead_ag_1", agentId: "agt_rahim", name: "Prospective Hajji", phone: "+8801733000001", stage: "NEW", interest: "HIGH", svc: "HAJJ" },
+    { id: "lead_ag_2", agentId: "agt_rahim", name: "Umrah Family Group", phone: "+8801733000002", stage: "QUALIFIED", interest: "MEDIUM", svc: "UMRAH" },
+    { id: "lead_ag_3", agentId: "agt_nmt", name: "NMT Corporate Lead", phone: "+8801733000003", stage: "PROPOSAL", interest: "HIGH", svc: "VISA" },
+  ];
+  for (const l of AGENT_LEADS) {
+    await prisma.lead.upsert({
+      where: { id: l.id },
+      create: { id: l.id, branchId: "brn_dhaka", agentId: l.agentId, name: l.name, phone: l.phone, stage: l.stage as never, interest: l.interest as never, serviceInterest: l.svc as never },
+      update: { name: l.name, stage: l.stage as never, agentId: l.agentId },
+    });
+  }
+
+  // 20b) SUPPLIERS — sup_alamin→usr_supplier, add a 2nd supplier user for sup_dar.
+  await prisma.user.upsert({
+    where: { id: "usr_supplier2" },
+    create: { id: "usr_supplier2", email: "supplier2@smtravel.com.bd", name: "Demo Supplier Two", role: UserRole.SUPPLIER, passwordHash: hashPw(DEMO_PW, "supplier2@smtravel.com.bd"), branchId: "brn_dhaka", status: "active" },
+    update: { name: "Demo Supplier Two", role: UserRole.SUPPLIER },
+  });
+  await linkRole("usr_supplier2", UserRole.SUPPLIER);
+  const SUPPLIERS = [
+    { id: "sup_alamin", code: "SUP-0014", user: "usr_supplier", name: "Al-Amin Hotels & Tourism", category: "Hotel", status: "VERIFIED" },
+    { id: "sup_dar", code: "SUP-0015", user: "usr_supplier2", name: "Dar Al-Tawhid Makkah", category: "Hotel", status: "VERIFIED" },
+  ];
+  for (const s of SUPPLIERS) {
+    await prisma.supplier.upsert({
+      where: { id: s.id },
+      create: { id: s.id, supplierCode: s.code, userId: s.user, name: s.name, category: s.category, contactPerson: "Manager", phone: "+8802000000", email: `${s.id}@example.com`, status: s.status as never, rating: 4.8 },
+      update: { name: s.name, userId: s.user, status: s.status as never },
+    });
+  }
+  const SUP_SERVICES = [
+    { id: "svc_alamin_1", sup: "sup_alamin", name: "Makkah Hotel — Deluxe Room", cat: "Hotel", price: 3500 },
+    { id: "svc_alamin_2", sup: "sup_alamin", name: "Madinah Hotel — Standard", cat: "Hotel", price: 2800 },
+    { id: "svc_dar_1", sup: "sup_dar", name: "Dar Al-Tawhid — Haram View", cat: "Hotel", price: 9500 },
+  ];
+  for (const s of SUP_SERVICES) {
+    await prisma.supplierService.upsert({ where: { id: s.id }, create: { id: s.id, supplierId: s.sup, name: s.name, category: s.cat, price: s.price, bookingsCount: 12, rating: 4.7 }, update: { name: s.name, price: s.price } });
+  }
+  const SUP_REQUESTS = [
+    { id: "sreq_alamin_1", no: "REQ-AL-01", sup: "sup_alamin", service: "Makkah Deluxe × 20 rooms", client: "Hajj Group 07", amount: 700000, status: "PENDING" },
+    { id: "sreq_alamin_2", no: "REQ-AL-02", sup: "sup_alamin", service: "Madinah Standard × 15", client: "Umrah Ramadan", amount: 420000, status: "CONFIRMED" },
+    { id: "sreq_dar_1", no: "REQ-DR-01", sup: "sup_dar", service: "Haram View × 5", client: "VIP Group", amount: 475000, status: "PENDING" },
+  ];
+  for (const r of SUP_REQUESTS) {
+    await prisma.bookingRequest.upsert({
+      where: { id: r.id },
+      create: { id: r.id, requestNo: r.no, supplierId: r.sup, branchId: "brn_dhaka", serviceLabel: r.service, clientLabel: r.client, amount: r.amount, baseAmount: r.amount, status: r.status as never },
+      update: { serviceLabel: r.service, amount: r.amount, baseAmount: r.amount, status: r.status as never },
+    });
+  }
+  const SUP_INVOICES = [
+    { id: "sinv_alamin_1", no: "AL-INV-01", sup: "sup_alamin", desc: "Makkah rooms — June", amount: 240000, status: "pending", date: "2026-06-20" },
+    { id: "sinv_alamin_2", no: "AL-INV-02", sup: "sup_alamin", desc: "Madinah rooms — May", amount: 180000, status: "paid", date: "2026-05-18" },
+    { id: "sinv_dar_1", no: "DR-INV-01", sup: "sup_dar", desc: "Haram view — July", amount: 475000, status: "pending", date: "2026-07-05" },
+  ];
+  for (const v of SUP_INVOICES) {
+    await prisma.supplierInvoice.upsert({
+      where: { id: v.id },
+      create: { id: v.id, supplierId: v.sup, invoiceNo: v.no, description: v.desc, amount: v.amount, baseAmount: v.amount, status: v.status, issueDate: dt(v.date), dueDate: dt(v.date) },
+      update: { description: v.desc, amount: v.amount, baseAmount: v.amount, status: v.status },
+    });
+  }
+  await prisma.supplierPayable.upsert({
+    where: { id: "spay_alamin_1" },
+    create: { id: "spay_alamin_1", branchId: "brn_dhaka", supplierId: "sup_alamin", supplierInvoiceId: "sinv_alamin_1", amount: 240000, baseAmount: 240000, paidAmount: 60000, status: "PARTIAL", dueDate: dt("2026-07-30") },
+    update: { paidAmount: 60000, status: "PARTIAL" },
+  });
+  await prisma.payment.upsert({
+    where: { id: "pay_sup_1" },
+    create: { id: "pay_sup_1", paymentNo: "PMT-SUP-01", direction: "OUT", branchId: "brn_dhaka", supplierId: "sup_alamin", amount: 180000, baseAmount: 180000, method: "BANK_TRANSFER", status: "CONFIRMED", paidAt: dt("2026-05-20") },
+    update: { amount: 180000, baseAmount: 180000 },
+  });
+
+  // 20c) STAFF — set PII on usr_staff, add a 2nd staff in CTG (branch isolation),
+  //      tasks assigned-to-me, assigned bookings, announcements.
+  await prisma.user.update({ where: { id: "usr_staff" }, data: { nid: "1990333344445", employeeId: "EMP-0047", department: "Bookings" } });
+  await prisma.user.upsert({
+    where: { id: "usr_staff2" },
+    create: { id: "usr_staff2", email: "staff2@smtravel.com.bd", name: "Demo Staff Two", role: UserRole.STAFF, passwordHash: hashPw(DEMO_PW, "staff2@smtravel.com.bd"), branchId: "brn_ctg", status: "active", employeeId: "EMP-0088" },
+    update: { name: "Demo Staff Two", role: UserRole.STAFF, branchId: "brn_ctg" },
+  });
+  await linkRole("usr_staff2", UserRole.STAFF);
+  const TASKS = [
+    { id: "task_staff_1", assignee: "usr_staff", title: "Verify passports for Hajj Group 07", priority: "HIGH", status: "TODO", cat: "Documents" },
+    { id: "task_staff_2", assignee: "usr_staff", title: "Call Umrah Ramadan customers", priority: "MEDIUM", status: "DONE", cat: "Follow-up" },
+    { id: "task_staff_3", assignee: "usr_staff", title: "Prepare visa file — Saudi", priority: "HIGH", status: "IN_PROGRESS", cat: "Visa" },
+    { id: "task_staff2_1", assignee: "usr_staff2", title: "CTG branch daily reconciliation", priority: "MEDIUM", status: "TODO", cat: "Ops" },
+  ];
+  for (const t of TASKS) {
+    await prisma.task.upsert({
+      where: { id: t.id },
+      create: { id: t.id, assigneeId: t.assignee, title: t.title, priority: t.priority as never, status: t.status as never, category: t.cat, dueAt: dt("2026-07-25") },
+      update: { title: t.title, status: t.status as never, assigneeId: t.assignee },
+    });
+  }
+  // assign some Dhaka bookings to usr_staff
+  await prisma.booking.updateMany({ where: { id: { in: ["bkg_s1", "bkg_s2"] } }, data: { assignedStaffId: "usr_staff" } });
+  const ANNOUNCEMENTS = [
+    { id: "ann_1", title: "Hajj 2026 briefing schedule", body: "Pre-departure briefings begin next week for all confirmed pilgrims.", branchId: "brn_dhaka", pinned: true },
+    { id: "ann_global", title: "System maintenance Saturday", body: "The ERP will be briefly unavailable 2–4 AM Saturday.", branchId: null, pinned: false },
+  ];
+  for (const a of ANNOUNCEMENTS) {
+    await prisma.announcement.upsert({
+      where: { id: a.id },
+      create: { id: a.id, title: a.title, body: a.body, branchId: a.branchId, pinned: a.pinned, audience: "staff" },
+      update: { title: a.title, body: a.body, pinned: a.pinned },
+    });
+  }
+
+  // 20d) ACCOUNTANT — PII on usr_accountant (reuses finance/reports endpoints).
+  await prisma.user.update({ where: { id: "usr_accountant" }, data: { nid: "1988555566667", employeeId: "EMP-0012", department: "Finance" } });
+
   // eslint-disable-next-line no-console
   console.log("[seed] done.");
 }

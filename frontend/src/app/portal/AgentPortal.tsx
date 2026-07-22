@@ -11,6 +11,18 @@ import {
   RefreshCw, Info, Package, Building2, CircleDollarSign,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { Loader2 } from "lucide-react";
+import {
+  useAgentMe, useAgentDashboard, useAgentWallet, useAgentTeam, useAgentLeads,
+} from "../hooks/portals";
+
+const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
+const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
+function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
+  if (q.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
+  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || "Failed to load."}</div>;
+  return <>{children}</>;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AgentView =
@@ -156,146 +168,76 @@ function StatCard({
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
+  const q = useAgentDashboard();
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      {/* Hero banner */}
-      <div className="relative rounded-2xl overflow-hidden"
-        style={{ background:"linear-gradient(135deg,#0E6BB8 0%,#1a4a8a 50%,#E8471F 100%)" }}>
-        <div className="px-6 py-6 text-white relative z-10">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-white/70 text-xs mb-1">Agent Portal</p>
-              <h2 className="text-2xl font-bold">Salam, Rashidul!</h2>
-              <p className="text-white/70 text-sm mt-1">Agent ID: <span className="font-mono text-white">AG-0047</span> · Gold Tier</p>
+    <PLoad q={q}>
+      {d && (
+      <div className="space-y-5" data-portal="dashboard">
+        <div className="relative rounded-2xl overflow-hidden" style={{ background:"linear-gradient(135deg,#0E6BB8 0%,#1a4a8a 50%,#E8471F 100%)" }}>
+          <div className="px-6 py-6 text-white relative z-10">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-white/70 text-xs mb-1">Agent Portal</p>
+                <h2 className="text-2xl font-bold" data-portal-name>Salam, {d.agentName.split(" ")[0]}!</h2>
+                <p className="text-white/70 text-sm mt-1 capitalize">{d.tier.toLowerCase()} Tier</p>
+              </div>
+              <div className="flex items-center gap-1.5 bg-[#E8471F] text-white px-3 py-1.5 rounded-xl text-xs font-bold capitalize">
+                <Star size={12} className="fill-white"/> {d.tier.toLowerCase()}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 bg-[#E8471F] text-white px-3 py-1.5 rounded-xl text-xs font-bold">
-              <Star size={12} className="fill-white"/> Gold Agent
+            <div className="grid grid-cols-3 gap-3 mt-5">
+              {[
+                { label:"Wallet Balance", val:fmtBDT2(d.walletBalance), hi:true },
+                { label:"Earned", val:fmtBDT2(d.commissionEarned) },
+                { label:"Pending", val:fmtBDT2(d.commissionPending) },
+              ].map(s=>(
+                <div key={s.label} className={cn("rounded-xl p-3", s.hi?"bg-[#E8471F]/20 border border-[#E8471F]/40":"bg-white/10")}>
+                  <p className="text-lg font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
+                  <p className="text-xs text-white/70 mt-0.5">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 mt-5">
-            {[
-              { label:"Wallet Balance", val:"৳ 46,850", hi:true },
-              { label:"This Month",     val:"৳ 55,000"          },
-              { label:"Total Earned",   val:"৳ 2.03L"           },
-            ].map(s=>(
-              <div key={s.label} className={cn("rounded-xl p-3", s.hi?"bg-[#E8471F]/20 border border-[#E8471F]/40":"bg-white/10")}>
-                <p className="text-xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-                <p className="text-xs text-white/70 mt-0.5">{s.label}</p>
+          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5"/>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Leads" value={String(d.counts.leads)} sub="Assigned to me" icon={UserPlus} iconBg="bg-blue-500" />
+          <StatCard label="Bookings" value={String(d.counts.bookings)} sub="Mine" icon={Briefcase} iconBg="bg-[#0E6BB8]" />
+          <StatCard label="Customers" value={String(d.counts.customers)} sub="Mine" icon={Users} iconBg="bg-purple-500" />
+          <StatCard label="Team" value={String(d.counts.teamSize)} sub="Sub-agents" icon={Building2} iconBg="bg-amber-500" />
+        </div>
+
+        <div className="bg-gradient-to-br from-[#0E7C66] to-[#0a5c4c] rounded-2xl p-5 text-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2"><Wallet size={18} className="text-white/80"/><p className="font-bold">Commission Wallet</p></div>
+            <button onClick={()=>onGo("wallet")} className="text-xs text-white/70 hover:text-white flex items-center gap-1">Details <ChevronRight size={12}/></button>
+          </div>
+          <p className="text-3xl font-black mb-1" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(d.walletBalance)}</p>
+          <p className="text-white/60 text-xs mb-4">Available balance (read-only ledger)</p>
+          <button onClick={()=>onGo("commissions")} className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/15 text-white text-sm font-semibold rounded-xl hover:bg-white/25 transition-colors"><FileText size={15}/> Commission Report</button>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-bold text-slate-800">Recent Leads</p>
+            <button onClick={()=>onGo("leads")} className="text-xs text-[#0E6BB8] hover:underline font-medium">View all</button>
+          </div>
+          <div className="space-y-2.5">
+            {d.recentLeads.length === 0 && <p className="text-sm text-slate-400 py-2">No leads yet.</p>}
+            {d.recentLeads.map(l=>(
+              <div key={l.id} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold flex-shrink-0">{l.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-800 truncate">{l.name}</p><p className="text-xs text-slate-400 truncate">{l.serviceInterest || "—"}</p></div>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 capitalize">{l.stage.toLowerCase()}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5"/>
-        <div className="absolute -bottom-6 -right-4 w-28 h-28 rounded-full bg-white/5"/>
       </div>
-
-      {/* Quick action strip */}
-      <div className="grid grid-cols-4 gap-2.5">
-        {[
-          { icon:UserPlus,         label:"Add Lead",   color:"bg-blue-500",    v:"leads"       as AgentView },
-          { icon:ArrowUpRight,     label:"Withdraw",   color:"bg-emerald-500", v:"wallet"      as AgentView },
-          { icon:Briefcase,        label:"Bookings",   color:"bg-[#0E6BB8]",   v:"bookings"    as AgentView },
-          { icon:BarChart3,        label:"Reports",    color:"bg-purple-500",  v:"analytics"   as AgentView },
-        ].map(q=>(
-          <button key={q.label} onClick={()=>onGo(q.v)}
-            className="flex flex-col items-center gap-1.5 p-3 bg-white border border-slate-200 rounded-2xl hover:shadow-md transition-all">
-            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center text-white", q.color)}>
-              <q.icon size={16}/>
-            </div>
-            <span className="text-xs font-semibold text-slate-600">{q.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* KPI row */}
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard label="New Leads"       value="7"     sub="This week"           icon={UserPlus}         iconBg="bg-blue-500"     delta="+3" deltaUp />
-        <StatCard label="Conversions"     value="4"     sub="This month"          icon={Target}           iconBg="bg-purple-500"   delta="+1" deltaUp />
-        <StatCard label="Active Bookings" value="12"    sub="In progress"         icon={Briefcase}        iconBg="bg-[#0E6BB8]"    delta="+2" deltaUp />
-        <StatCard label="Team Members"    value="3"     sub="Sub-agents"          icon={Building2}        iconBg="bg-amber-500"             />
-      </div>
-
-      {/* Commission & wallet highlight */}
-      <div className="bg-gradient-to-br from-[#0E7C66] to-[#0a5c4c] rounded-2xl p-5 text-white">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Wallet size={18} className="text-white/80"/>
-            <p className="font-bold">Commission Wallet</p>
-          </div>
-          <button onClick={()=>onGo("wallet")} className="text-xs text-white/70 hover:text-white flex items-center gap-1">
-            Details <ChevronRight size={12}/>
-          </button>
-        </div>
-        <p className="text-3xl font-black mb-1" style={{ fontFamily:"'JetBrains Mono',monospace" }}>৳ 46,850</p>
-        <p className="text-white/60 text-xs mb-4">Available balance · Last credited Jul 12</p>
-        <div className="flex gap-3">
-          <button onClick={()=>onGo("wallet")}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white text-[#0E7C66] text-sm font-bold rounded-xl hover:bg-white/90 transition-colors">
-            <ArrowUpRight size={15}/> Withdraw
-          </button>
-          <button onClick={()=>onGo("commissions")}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/15 text-white text-sm font-semibold rounded-xl hover:bg-white/25 transition-colors">
-            <FileText size={15}/> Report
-          </button>
-        </div>
-      </div>
-
-      {/* Recent leads */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-slate-800">Recent Leads</p>
-          <button onClick={()=>onGo("leads")} className="text-xs text-[#0E6BB8] hover:underline font-medium">View all</button>
-        </div>
-        <div className="space-y-2.5">
-          {LEADS.slice(0,4).map(l=>(
-            <div key={l.id} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold flex-shrink-0">
-                {l.name.split(" ").map(n=>n[0]).join("")}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{l.name}</p>
-                <p className="text-xs text-slate-400 truncate">{l.service}</p>
-              </div>
-              <Chip label={LEAD_STATUS[l.status].label} cls={LEAD_STATUS[l.status].cls}/>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Performance ring */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-4">Monthly Target</p>
-        <div className="flex items-center gap-5">
-          {/* Simple progress bars */}
-          <div className="flex-1 space-y-3">
-            {[
-              { label:"Bookings",  val:12, target:15, color:"#0E6BB8" },
-              { label:"Revenue",   val:73, target:100, color:"#0E7C66" },
-              { label:"Leads",     val:7,  target:10,  color:"#E8471F" },
-            ].map(m=>(
-              <div key={m.label}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-500">{m.label}</span>
-                  <span className="font-semibold text-slate-700">{m.val}/{m.target}</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all"
-                    style={{ width:`${(m.val/m.target)*100}%`, background:m.color }}/>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="w-20 text-center">
-            <div className="w-20 h-20 rounded-full border-4 border-[#0E6BB8]/20 flex items-center justify-center relative mx-auto">
-              <div className="absolute inset-0 rounded-full border-4 border-[#0E6BB8]"
-                style={{ clipPath:"polygon(50% 0%, 50% 0%, 50% 50%)", transform:"rotate(-90deg)" }}/>
-              <span className="text-lg font-black text-[#0E6BB8]">73%</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">Overall</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </PLoad>
   );
 }
 
@@ -609,223 +551,88 @@ function CommissionsView() {
 
 // ─── WALLET & PAYMENTS ────────────────────────────────────────────────────────
 function WalletView() {
-  const [withdrawModal, setWithdrawModal] = useState(false);
-  const [step, setStep] = useState(0);
-  const balance = 46850;
-
+  const q = useAgentWallet();
+  const d = q.data;
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-portal="wallet">
       <h2 className="text-xl font-bold text-slate-800">Wallet & Payments</h2>
-
-      {/* Wallet card */}
-      <div className="relative rounded-2xl overflow-hidden"
-        style={{ background:"linear-gradient(135deg,#0E7C66 0%,#0a5c4c 100%)" }}>
-        <div className="p-6 text-white relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Wallet size={18} className="text-white/80"/>
-            <p className="text-sm text-white/80 font-medium">Agent Wallet Balance</p>
-          </div>
-          <p className="text-4xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>
-            {fmtFull(balance)}
-          </p>
-          <p className="text-white/60 text-xs mt-1">Agent ID: AG-0047 · Last updated: Jul 18, 2024</p>
-          <div className="flex gap-3 mt-5">
-            <button onClick={()=>setWithdrawModal(true)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-white text-[#0E7C66] font-bold text-sm rounded-xl hover:bg-white/90">
-              <ArrowUpRight size={16}/> Withdraw
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/15 text-white font-semibold text-sm rounded-xl hover:bg-white/25">
-              <Download size={16}/> Statement
-            </button>
-          </div>
-        </div>
-        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5"/>
-        <div className="absolute -bottom-6 right-10 w-28 h-28 rounded-full bg-white/5"/>
-      </div>
-
-      {/* Mini stats */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:"Credited (Jul)",  val:"৳55,000", icon:ArrowDownLeft, cls:"text-emerald-500 bg-emerald-50"   },
-          { label:"Withdrawn",       val:"৳80,000", icon:ArrowUpRight,  cls:"text-red-500 bg-red-50"           },
-          { label:"Pending",         val:"৳26,000", icon:Clock,         cls:"text-amber-500 bg-amber-50"        },
-        ].map(s=>(
-          <div key={s.label} className="bg-white border border-slate-200 rounded-2xl p-3 text-center">
-            <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center mx-auto mb-1.5",s.cls)}>
-              <s.icon size={14}/>
-            </div>
-            <p className="text-sm font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Transaction history */}
-      <div>
-        <p className="font-semibold text-slate-700 text-sm mb-3">Transaction History</p>
-        <div className="space-y-2.5">
-          {WALLET_TXN.map(t=>(
-            <div key={t.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                t.type==="credit"?"bg-emerald-50":"bg-red-50")}>
-                {t.type==="credit"
-                  ? <ArrowDownLeft size={16} className="text-emerald-600"/>
-                  : <ArrowUpRight  size={16} className="text-red-500"/>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{t.desc}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{t.method} · {t.date}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className={cn("font-black text-base",t.type==="credit"?"text-emerald-600":"text-red-500")}
-                  style={{ fontFamily:"'JetBrains Mono',monospace" }}>
-                  {t.type==="credit"?"+":"-"}{fmtFull(t.amount)}
-                </p>
-                <p className="text-xs text-slate-400 font-mono">{t.id}</p>
+      <PLoad q={q}>
+        {d && (<>
+          <div className="relative rounded-2xl overflow-hidden" style={{ background:"linear-gradient(135deg,#0E7C66 0%,#0a5c4c 100%)" }}>
+            <div className="p-6 text-white relative z-10">
+              <div className="flex items-center gap-2 mb-2"><Wallet size={18} className="text-white/80"/><p className="text-sm text-white/80 font-medium">Agent Wallet Balance</p></div>
+              <p className="text-4xl font-black" data-wallet-balance style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(d.balance)}</p>
+              <p className="text-white/60 text-xs mt-1">Immutable commission ledger — read-only</p>
+              <div className="mt-4 flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 text-xs text-white/80">
+                <Shield size={13}/> Withdrawals are processed by the back office. This ledger is append-only.
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5"/>
+          </div>
 
-      {/* Withdraw modal */}
-      {withdrawModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-slate-800 text-lg">Withdraw Funds</h3>
-              <button onClick={()=>{setWithdrawModal(false);setStep(0);}} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18}/></button>
-            </div>
-            {step===0 ? (
-              <div className="space-y-4">
-                <div className="bg-slate-50 rounded-2xl p-4 text-center">
-                  <p className="text-xs text-slate-400 mb-1">Available Balance</p>
-                  <p className="text-3xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtFull(balance)}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Amount to Withdraw</label>
-                  <input type="number" placeholder="Enter amount" className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E7C66]/25 font-mono text-lg"/>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-2">Withdrawal Method</label>
-                  <div className="space-y-2">
-                    {[["bKash","#E2136E","Mobile banking"],["Nagad","#F7941D","Mobile banking"],["Bank Transfer","#0E6BB8","1–3 business days"]].map(([name,color,sub])=>(
-                      <label key={name} className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-[#0E7C66] transition-colors">
-                        <input type="radio" name="method" className="accent-[#0E7C66]"/>
-                        <div className="w-6 h-6 rounded-md flex-shrink-0" style={{ background:color }}/>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">{name}</p>
-                          <p className="text-xs text-slate-400">{sub}</p>
-                        </div>
-                      </label>
-                    ))}
+          <div>
+            <p className="font-semibold text-slate-700 text-sm mb-3">Transaction History</p>
+            <div className="space-y-2.5">
+              {d.transactions.length === 0 && <p className="text-sm text-slate-400 py-2">No transactions.</p>}
+              {d.transactions.map(t=>{
+                const credit = t.type === "CREDIT";
+                return (
+                  <div key={t.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", credit?"bg-emerald-50":"bg-red-50")}>
+                      {credit ? <ArrowDownLeft size={16} className="text-emerald-600"/> : <ArrowUpRight size={16} className="text-red-500"/>}
+                    </div>
+                    <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-800 truncate">{t.description || t.type}</p><p className="text-xs text-slate-400 mt-0.5">{iso2date(t.postedAt)}{t.reversed?" · reversed":""}</p></div>
+                    <p className={cn("font-black text-base",t.reversed?"text-slate-400 line-through":credit?"text-emerald-600":"text-red-500")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{credit?"+":"-"}{fmtBDT2(t.amount)}</p>
                   </div>
-                </div>
-                <button onClick={()=>setStep(1)} className="w-full py-3.5 bg-[#0E7C66] text-white font-bold rounded-2xl hover:bg-[#0a5c4c]">
-                  Continue
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
-                  <CheckCircle size={36} className="text-emerald-500 mx-auto mb-2"/>
-                  <p className="font-bold text-slate-800">Confirm Withdrawal</p>
-                  <p className="text-3xl font-black text-emerald-600 mt-1" style={{ fontFamily:"'JetBrains Mono',monospace" }}>৳ 20,000</p>
-                  <p className="text-xs text-slate-400 mt-1">via bKash · +880 1XXXXXXXXX</p>
-                </div>
-                <p className="text-xs text-slate-400 text-center">Funds will be credited within 1–2 hours</p>
-                <div className="flex gap-3">
-                  <button onClick={()=>setStep(0)} className="flex-1 py-3 border border-slate-200 rounded-2xl text-slate-600 text-sm font-medium">Back</button>
-                  <button onClick={()=>{setWithdrawModal(false);setStep(0);}}
-                    className="flex-1 py-3 bg-[#0E7C66] text-white font-bold rounded-2xl text-sm hover:bg-[#0a5c4c]">
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        </>)}
+      </PLoad>
     </div>
   );
 }
 
 // ─── MY TEAM ─────────────────────────────────────────────────────────────────
 function TeamView() {
-  const teamTotalComm = TEAM.reduce((s,t)=>s+t.commission,0);
+  const q = useAgentTeam();
+  const team = q.data ?? [];
+  const teamTotalComm = team.reduce((s,t)=>s+t.commission,0);
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">My Team</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
-          <Plus size={14}/> Invite Sub-agent
-        </button>
-      </div>
-
-      {/* Team summary */}
-      <div className="bg-gradient-to-r from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white">
-        <p className="text-white/70 text-xs mb-3">Team Performance — July 2024</p>
-        <div className="grid grid-cols-3 gap-3">
-          {[["Sub-agents","3"],["Team Bookings","13"],["Team Commission",fmtBDT(teamTotalComm)]].map(([l,v])=>(
-            <div key={l} className="bg-white/10 rounded-xl p-3 text-center">
-              <p className="text-xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p>
-              <p className="text-xs text-white/70 mt-0.5">{l}</p>
+    <div className="space-y-5" data-portal="team">
+      <h2 className="text-xl font-bold text-slate-800">My Team</h2>
+      <PLoad q={q}>
+        <div className="bg-gradient-to-r from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white">
+          <p className="text-white/70 text-xs mb-3">Your downline (sub-agents you introduced)</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[["Sub-agents",String(team.length)],["Team Bookings",String(team.reduce((s,t)=>s+t.bookings,0))],["Team Commission",fmtBDT2(teamTotalComm)]].map(([l,v])=>(
+              <div key={l} className="bg-white/10 rounded-xl p-3 text-center"><p className="text-lg font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p><p className="text-xs text-white/70 mt-0.5">{l}</p></div>
+            ))}
+          </div>
+        </div>
+        {team.length === 0 && <p className="text-sm text-slate-400 text-center py-6">You have no sub-agents.</p>}
+        <div className="space-y-3">
+          {team.map(m=>(
+            <div key={m.id} className="bg-white rounded-2xl border border-slate-200 p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold bg-[#0E6BB8]/10 text-[#0E6BB8] flex-shrink-0">{m.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-slate-800" data-subagent>{m.name}</p>
+                    <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", m.status==="active"?"bg-emerald-50 text-emerald-600":"bg-slate-100 text-slate-400")}>{m.status}</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5 font-mono">{m.agentCode} · <span className="capitalize">{m.tier.toLowerCase()}</span></p>
+                </div>
+                <div className="text-right"><p className="font-black text-emerald-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(m.commission)}</p><p className="text-xs text-slate-400">commission</p></div>
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="bg-slate-50 rounded-xl p-2.5 text-center"><p className="text-sm font-bold text-slate-800">{m.bookings}</p><p className="text-xs text-slate-400">Bookings</p></div>
+              </div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Team leaderboard */}
-      <div className="space-y-3">
-        {TEAM.map((m,i)=>(
-          <div key={m.id} className="bg-white rounded-2xl border border-slate-200 p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="relative flex-shrink-0">
-                <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold",
-                  i===0?"bg-[#E8471F]/20 text-[#C43A15]":"bg-[#0E6BB8]/10 text-[#0E6BB8]")}>
-                  {m.name.split(" ").map(n=>n[0]).join("")}
-                </div>
-                {i===0 && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#E8471F] rounded-full flex items-center justify-center">
-                    <Star size={8} className="text-white fill-white"/>
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-slate-800">{m.name}</p>
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
-                    m.status==="active"?"bg-emerald-50 text-emerald-600":"bg-slate-100 text-slate-400")}>
-                    {m.status}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5">{m.role} · {m.id}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-black text-emerald-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtFull(m.commission)}</p>
-                <p className="text-xs text-slate-400">commission</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {[["Leads",m.leads],["Bookings",m.bookings]].map(([k,v])=>(
-                <div key={k as string} className="bg-slate-50 rounded-xl p-2.5 text-center">
-                  <p className="text-sm font-bold text-slate-800">{v}</p>
-                  <p className="text-xs text-slate-400">{k}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Override commission info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-        <Info size={15} className="text-amber-500 flex-shrink-0 mt-0.5"/>
-        <div>
-          <p className="text-sm font-semibold text-amber-800">Override Commission</p>
-          <p className="text-xs text-amber-600 mt-0.5">You earn 1% override on all bookings made by your sub-agents. This is credited automatically to your wallet.</p>
-        </div>
-      </div>
+      </PLoad>
     </div>
   );
 }
@@ -990,108 +797,54 @@ function AgentSupport() {
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 function AgentProfile() {
-  const [editing, setEditing] = useState(false);
+  const q = useAgentMe();
+  const me = q.data;
+  const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-portal="profile">
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
-
-      {/* Profile card */}
-      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0E4D7A] rounded-2xl p-5 text-white">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/15 border-2 border-[#E8471F] flex items-center justify-center text-2xl font-black">
-            RI
-          </div>
-          <div>
-            <p className="text-xl font-bold">Rashidul Islam</p>
-            <p className="text-white/70 text-sm mt-0.5">Agent ID: AG-0047</p>
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-[#E8471F] rounded-full">
-                <Star size={10} className="fill-white text-white"/>
-                <span className="text-xs font-bold text-white">Gold Tier</span>
+      <PLoad q={q}>
+        {me && (<>
+          <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0E4D7A] rounded-2xl p-5 text-white">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/15 border-2 border-[#E8471F] flex items-center justify-center text-2xl font-black">{initials}</div>
+              <div>
+                <p className="text-xl font-bold" data-portal-name>{me.name}</p>
+                <p className="text-white/70 text-sm mt-0.5 font-mono">{me.agentCode}</p>
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-[#E8471F] rounded-full mt-1.5 w-fit"><Star size={10} className="fill-white text-white"/><span className="text-xs font-bold text-white capitalize">{me.tier.toLowerCase()} Tier</span></div>
               </div>
-              <span className="text-xs text-white/60">Since 2020</span>
             </div>
           </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[["Total Bookings","47"],["Customers","28"],["Commission","৳2.03L"]].map(([l,v])=>(
-            <div key={l} className="bg-white/10 rounded-xl p-2.5 text-center">
-              <p className="font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p>
-              <p className="text-xs text-white/60 mt-0.5">{l}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Personal info */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
-          <button onClick={()=>setEditing(v=>!v)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400">
-            <Edit2 size={15}/>
-          </button>
-        </div>
-        {[
-          { label:"Full Name",    val:"Rashidul Islam"       },
-          { label:"Phone",        val:"+880 1712 XXXXXX"     },
-          { label:"Email",        val:"rashid@agent.com"     },
-          { label:"NID Number",   val:"19851234567890"        },
-          { label:"Trade License",val:"CTGCC-2020-XXXXX"     },
-          { label:"Address",      val:"Agrabad, Chattogram"   },
-        ].map(f=>(
-          <div key={f.label}>
-            <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
-            <input defaultValue={f.val} disabled={!editing}
-              className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                editing?"border-[#0E6BB8]/40 bg-white focus:outline-none":"border-transparent bg-slate-50 text-slate-700")}/>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
+            {[
+              { label:"Full Name",    val:me.name },
+              { label:"Phone",        val:me.phone ?? "—" },
+              { label:"Email",        val:me.email ?? "—" },
+              { label:"NID Number",   val:me.nid ?? "—" },
+              { label:"Trade License",val:me.tradeLicense ?? "—" },
+            ].map(f=>(
+              <div key={f.label}>
+                <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
+                <input value={f.val} disabled data-field={f.label} className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-slate-50 text-slate-700"/>
+              </div>
+            ))}
           </div>
-        ))}
-        {editing && (
-          <button onClick={()=>setEditing(false)}
-            className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
-            <Check size={15}/> Save Changes
-          </button>
-        )}
-      </div>
 
-      {/* Bank details */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-        <p className="font-semibold text-slate-700 text-sm">Bank & Payment Details</p>
-        {[
-          { label:"Bank Name",    val:"Dutch-Bangla Bank Ltd."  },
-          { label:"Account No.",  val:"XXXXXXXXXXXXXX"          },
-          { label:"Branch",       val:"Agrabad, Chattogram"     },
-          { label:"bKash No.",    val:"+880 1712 XXXXXX"        },
-          { label:"Nagad No.",    val:"+880 1712 XXXXXX"        },
-        ].map(f=>(
-          <div key={f.label}>
-            <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
-            <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 rounded-xl">
-              <span className="text-sm text-slate-700 flex-1">{f.val}</span>
-              <button className="text-slate-400 hover:text-[#0E6BB8]"><Copy size={13}/></button>
-            </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <p className="font-semibold text-slate-700 text-sm">Bank & Payment Details</p>
+            {[["Bank Name",me.bankName ?? "—"],["Account No.",me.accountNo ?? "—"],["bKash No.",me.bkashNo ?? "—"],["Nagad No.",me.nagadNo ?? "—"]].map(([l,v])=>(
+              <div key={l}>
+                <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
+                <div className="px-3 py-2.5 bg-slate-50 rounded-xl"><span className="text-sm text-slate-700">{v}</span></div>
+              </div>
+            ))}
           </div>
-        ))}
-        <button className="w-full py-2.5 border border-[#0E6BB8] text-[#0E6BB8] text-sm font-semibold rounded-xl hover:bg-[#0E6BB8]/5">
-          Update Payment Details
-        </button>
-      </div>
 
-      {/* Security */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-        <p className="font-semibold text-slate-700 text-sm">Security</p>
-        {["Change Password","Two-Factor Authentication","Active Sessions"].map(item=>(
-          <button key={item} className="flex items-center justify-between w-full p-3 bg-slate-50 rounded-xl hover:bg-slate-100">
-            <span className="text-sm font-medium text-slate-700">{item}</span>
-            <ChevronRight size={15} className="text-slate-400"/>
-          </button>
-        ))}
-      </div>
-
-      {/* Logout */}
-      <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50">
-        <LogOut size={16}/> Sign Out
-      </button>
+          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> Sign Out</button>
+        </>)}
+      </PLoad>
     </div>
   );
 }
@@ -1099,6 +852,11 @@ function AgentProfile() {
 // ─── PORTAL SHELL ─────────────────────────────────────────────────────────────
 export function AgentPortal() {
   const [view, setView] = useState<AgentView>("dashboard");
+  const { data: me } = useAgentMe();
+  const { data: dash } = useAgentDashboard();
+  const name = me?.name ?? "Agent";
+  const initials = name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const walletStr = fmtBDT2(dash?.walletBalance ?? 0);
 
   const go = (v: AgentView) => setView(v);
 
@@ -1136,12 +894,12 @@ export function AgentPortal() {
           {/* Agent card */}
           <div className="px-4 py-3 border-b border-slate-100">
             <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#0E6BB8]/5 to-[#E8471F]/5 rounded-2xl border border-[#0E6BB8]/10">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0E6BB8] to-[#E8471F] flex items-center justify-center text-white text-xs font-black">RI</div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0E6BB8] to-[#E8471F] flex items-center justify-center text-white text-xs font-black">{initials}</div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate">Rashidul Islam</p>
+                <p className="text-sm font-bold text-slate-800 truncate" data-portal-name>{name}</p>
                 <div className="flex items-center gap-1">
                   <Star size={10} className="text-[#C43A15] fill-[#E8471F]"/>
-                  <p className="text-xs text-[#C43A15] font-semibold">Gold Agent</p>
+                  <p className="text-xs text-[#C43A15] font-semibold capitalize">{(me?.tier ?? "").toLowerCase()} Agent</p>
                 </div>
               </div>
             </div>
@@ -1151,7 +909,7 @@ export function AgentPortal() {
                 <Wallet size={14} className="text-[#0E7C66]"/>
                 <span className="text-xs font-semibold text-slate-600">Wallet</span>
               </div>
-              <span className="text-xs font-black text-[#0E7C66]" style={{ fontFamily:"'JetBrains Mono',monospace" }}>৳46,850</span>
+              <span className="text-xs font-black text-[#0E7C66]" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{walletStr}</span>
             </div>
           </div>
           {/* Nav */}
@@ -1199,7 +957,7 @@ export function AgentPortal() {
           <div className="flex items-center gap-2">
             <button onClick={()=>go("wallet")}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0E7C66]/10 border border-[#0E7C66]/20 rounded-xl text-xs font-bold text-[#0E7C66]">
-              <Wallet size={12}/> ৳46,850
+              <Wallet size={12}/> {walletStr}
             </button>
             <button className="relative p-2 hover:bg-slate-100 rounded-xl">
               <Bell size={18} className="text-slate-500"/>

@@ -11,6 +11,15 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
+import { Loader2 } from "lucide-react";
+import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
+
+const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
+function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
+  if (q.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
+  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || "Failed to load."}</div>;
+  return <>{children}</>;
+}
 
 type AccView =
   | "dashboard" | "income-expense" | "bank-cash" | "journal"
@@ -122,127 +131,50 @@ function AmountBig({ val, color }: { val: number; color?: string }) {
 
 // ─── FINANCIAL DASHBOARD ──────────────────────────────────────────────────────
 function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
-  const totalIncome  = INCOME_DATA[INCOME_DATA.length-1];
-  const totalExpense = EXPENSE_DATA[EXPENSE_DATA.length-1];
-  const netProfit    = totalIncome - totalExpense;
-  const maxVal = Math.max(...INCOME_DATA, ...EXPENSE_DATA);
-  const totalBank    = BANK_ACCOUNTS.reduce((s,a)=>s+a.balance,0);
-
+  const q = useAccountantDashboard();
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Accountant Dashboard</p>
-          <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Financial Overview</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Fiscal Year 2024 · As of Jul 20</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">
-          <Download size={14} /> Export
-        </button>
-      </div>
-
-      {/* Top KPIs */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label:"Total Income",  val:fmtShort(totalIncome),  sub:"Jul 2024",      color:"text-emerald-600", bg:"bg-emerald-500",  Icon:TrendingUp,         delta:"+12%", up:true  },
-          { label:"Total Expenses",val:fmtShort(totalExpense), sub:"Jul 2024",      color:"text-red-500",     bg:"bg-red-500",      Icon:TrendingDown,        delta:"+8%",  up:false },
-          { label:"Net Profit",    val:fmtShort(netProfit),    sub:"Jul 2024",      color:"text-[#0E6BB8]",   bg:"bg-[#0E6BB8]",    Icon:CircleDollarSign,   delta:"+21%", up:true  },
-          { label:"Bank Balance",  val:fmtShort(totalBank),    sub:"All accounts",  color:"text-purple-600",  bg:"bg-purple-500",   Icon:Building2,                                  },
-        ].map(k => (
-          <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-white", k.bg)}>
-                <k.Icon size={16} />
-              </div>
-              {k.delta && (
-                <span className={cn("text-xs font-semibold flex items-center gap-0.5 px-1.5 py-0.5 rounded-md",
-                  k.up ? "text-emerald-600 bg-emerald-50" : "text-red-500 bg-red-50")}>
-                  {k.up ? <TrendingUp size={10}/> : <TrendingDown size={10}/>}{k.delta}
-                </span>
-              )}
-            </div>
-            <p className={cn("text-xl font-black", k.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{k.val}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{k.label}</p>
-            <p className="text-xs text-slate-400">{k.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* P&L chart */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-slate-800">Income vs Expense — 2024</p>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#0E6BB8] inline-block"/>Income</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-red-400 inline-block"/>Expense</span>
+    <PLoad q={q}>
+      {d && (
+      <div className="space-y-5" data-portal="dashboard">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Accountant Dashboard</p>
+            <h1 className="text-2xl font-bold text-slate-900 mt-0.5" data-portal-name>Financial Overview</h1>
+            <p className="text-sm text-slate-500 mt-0.5">{d.accountantName} · {d.branchName ?? "—"}</p>
           </div>
         </div>
-        <div className="flex items-end gap-2 h-36">
-          {MONTHS.map((m,i) => (
-            <div key={m} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full flex gap-0.5 items-end" style={{ height:"120px" }}>
-                <div className="flex-1 rounded-t-sm" style={{ height:`${(INCOME_DATA[i]/maxVal)*100}%`, background:"#0E6BB8" }} />
-                <div className="flex-1 rounded-t-sm" style={{ height:`${(EXPENSE_DATA[i]/maxVal)*100}%`, background:"#FCA5A5" }} />
-              </div>
-              <p className="text-xs text-slate-400">{m}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bank balances */}
-      <div className="bg-white rounded-2xl border border-slate-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <p className="font-bold text-slate-800">Bank & Cash Balances</p>
-          <button onClick={() => onGo("bank-cash")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">View all</button>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {BANK_ACCOUNTS.map(a => (
-            <div key={a.id} className="flex items-center gap-4 px-5 py-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0">
-                <Building2 size={15} className="text-[#0E6BB8]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{a.bank}</p>
-                <p className="text-xs text-slate-400">{a.type} · {a.acct}</p>
-              </div>
-              <p className="font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtShort(a.balance)}</p>
-            </div>
-          ))}
-          <div className="flex items-center justify-between px-5 py-3.5 bg-[#0E6BB8]/3">
-            <p className="text-sm font-bold text-slate-700">Total Available</p>
-            <p className="font-black text-[#0E6BB8] text-lg" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtShort(totalBank)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Pending invoices alert */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <AlertCircle size={15} className="text-amber-500" />
-          <p className="font-semibold text-amber-800 text-sm">Pending Actions</p>
-        </div>
-        <div className="space-y-2">
+        <div className="grid grid-cols-4 gap-3">
           {[
-            { label:"Unpaid supplier invoices", val: fmtShort(INVOICES_DATA.filter(i=>i.status==="unpaid").reduce((s,i)=>s+i.balance,0)), cta:"View", v:"invoices-payments" as AccView },
-            { label:"Draft journal entries",    val:"2 pending",  cta:"Review",   v:"journal"            as AccView },
-            { label:"Q3 tax filing due",        val:"Oct 31",     cta:"Prepare",  v:"tax"                as AccView },
-          ].map(item => (
-            <div key={item.label} className="flex items-center justify-between p-3 bg-white rounded-xl border border-amber-100">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{item.label}</p>
-                <p className="text-xs text-amber-600 font-mono font-bold">{item.val}</p>
-              </div>
-              <button onClick={() => onGo(item.v)}
-                className="text-xs text-[#0E6BB8] font-bold px-3 py-1.5 bg-[#0E6BB8]/8 rounded-lg hover:bg-[#0E6BB8]/15 flex items-center gap-1">
-                {item.cta} <ChevronRight size={11}/>
-              </button>
+            { label:"Revenue (YTD)", val:fmtBDT2(d.revenue), color:"text-emerald-600", bg:"bg-emerald-500", Icon:TrendingUp },
+            { label:"Expenses (YTD)", val:fmtBDT2(d.expense), color:"text-red-500", bg:"bg-red-500", Icon:TrendingDown },
+            { label:"Net Profit", val:fmtBDT2(d.netProfit), color:"text-[#0E6BB8]", bg:"bg-[#0E6BB8]", Icon:CircleDollarSign },
+            { label:"Posted Journals", val:String(d.postedJournalCount), color:"text-purple-600", bg:"bg-purple-500", Icon:Building2 },
+          ].map(k => (
+            <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-white mb-3", k.bg)}><k.Icon size={16} /></div>
+              <p className={cn("text-xl font-black", k.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{k.val}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{k.label}</p>
             </div>
           ))}
         </div>
+        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <p className="font-bold text-slate-800 mb-4">Invoices (YTD)</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[["Billed",d.invoices.billed],["Collected",d.invoices.collected],["Outstanding",d.invoices.outstanding]].map(([l,v])=>(
+              <div key={l} className="bg-slate-50 rounded-xl p-3 text-center"><p className="text-sm font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(v)}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[["income-expense","Income & Expense"],["journal","Journal"],["invoices-payments","Invoices"]].map(([v,label])=>(
+            <button key={v} onClick={()=>onGo(v as AccView)} className="p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 text-sm font-semibold text-slate-700 text-left">{label} <span className="text-slate-300">→</span></button>
+          ))}
+        </div>
+        <p className="text-xs text-slate-400 text-center">Detailed ledgers below reuse the branch-scoped finance &amp; report endpoints.</p>
       </div>
-    </div>
+      )}
+    </PLoad>
   );
 }
 
@@ -897,62 +829,46 @@ function AuditView() {
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function AccProfile() {
-  const [editing, setEditing] = useState(false);
+  const q = useAccountantMe();
+  const me = q.data;
+  const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-portal="profile">
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
-      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black">FA</div>
-        <div>
-          <p className="text-xl font-bold">Ferdous Ahmed</p>
-          <p className="text-white/70 text-sm mt-0.5">Senior Accountant · Agrabad HO</p>
-          <p className="text-white/50 text-xs mt-1 font-mono">EMP-0012 · CA (ICAB) · Since Mar 2019</p>
-        </div>
-        <button onClick={() => setEditing(v=>!v)} className="ml-auto p-2 hover:bg-white/10 rounded-xl text-white/70">
-          <Edit2 size={15}/>
-        </button>
-      </div>
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-        <p className="font-semibold text-slate-700 text-sm">Account Information</p>
-        {[
-          ["Full Name","Ferdous Ahmed"],["Employee ID","EMP-0012"],
-          ["Role","Senior Accountant"],["Qualification","CA (ICAB)"],
-          ["Phone","+880 1811 XXXXXX"],["Email","ferdous@bdhtravels.com"],
-        ].map(([l,v]) => (
-          <div key={l}>
-            <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
-            <input defaultValue={v} disabled={!editing || ["Employee ID","Role"].includes(l)}
-              className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                editing && !["Employee ID","Role"].includes(l)
-                  ? "border-[#0E6BB8]/40 bg-white focus:outline-none"
-                  : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
+      <PLoad q={q}>
+        {me && (<>
+          <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black">{initials}</div>
+            <div>
+              <p className="text-xl font-bold" data-portal-name>{me.name}</p>
+              <p className="text-white/70 text-sm mt-0.5">{me.department ?? "Finance"} · {me.branchName ?? "—"}</p>
+              <p className="text-white/50 text-xs mt-1 font-mono">{me.employeeId ?? ""}</p>
+            </div>
           </div>
-        ))}
-        {editing && (
-          <button onClick={() => setEditing(false)}
-            className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
-            <Check size={15}/> Save Changes
-          </button>
-        )}
-      </div>
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2.5">
-        <p className="font-semibold text-slate-700 text-sm">Security & Access</p>
-        {["Change Password","Two-Factor Authentication","API Keys","Data Export Permissions"].map(item => (
-          <button key={item} className="flex items-center justify-between w-full p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-            <span className="text-sm font-medium text-slate-700">{item}</span>
-            <ChevronRight size={15} className="text-slate-400"/>
-          </button>
-        ))}
-      </div>
-      <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50">
-        <LogOut size={16}/> Sign Out
-      </button>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
+            {[
+              ["Full Name",me.name],["Employee ID",me.employeeId ?? "—"],["Department",me.department ?? "—"],
+              ["Branch",me.branchName ?? "—"],["Phone",me.phone ?? "—"],["Email",me.email],["NID Number",me.nid ?? "—"],
+            ].map(([l,v]) => (
+              <div key={l}>
+                <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
+                <input value={v} disabled data-field={l} className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-slate-50 text-slate-700"/>
+              </div>
+            ))}
+          </div>
+          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> Sign Out</button>
+        </>)}
+      </PLoad>
     </div>
   );
 }
 
 // ─── Sidebar inner ────────────────────────────────────────────────────────────
 function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => void; onClose?: () => void }) {
+  const { data: me } = useAccountantMe();
+  const aName = me?.name ?? "Accountant";
+  const aInit = aName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
     <aside className="w-56 bg-[#17456B] flex flex-col h-full">
       <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
@@ -969,10 +885,10 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
       </div>
       <div className="px-3 py-3 border-b border-white/10">
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-white/8">
-          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">FA</div>
+          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{aInit}</div>
           <div className="min-w-0">
-            <p className="text-white text-xs font-semibold truncate">Ferdous Ahmed</p>
-            <p className="text-white/50 text-xs truncate">Sr. Accountant</p>
+            <p className="text-white text-xs font-semibold truncate" data-portal-name>{aName}</p>
+            <p className="text-white/50 text-xs truncate">{me?.department ?? "Finance"}</p>
           </div>
         </div>
       </div>

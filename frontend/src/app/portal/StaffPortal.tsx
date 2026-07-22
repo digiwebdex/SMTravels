@@ -11,6 +11,15 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable } from "../lib/responsive";
+import { Loader2 } from "lucide-react";
+import { useStaffMe, useStaffDashboard } from "../hooks/portals";
+
+const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
+function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
+  if (q.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
+  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || "Failed to load."}</div>;
+  return <>{children}</>;
+}
 
 type StaffView =
   | "dashboard" | "tasks" | "bookings" | "customers"
@@ -104,130 +113,64 @@ function Chip({ label, cls }: { label: string; cls: string }) {
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
-  const pending = TASKS.filter(t => !t.done);
-  const highPriority = pending.filter(t => t.priority === "high");
-
+  const q = useStaffDashboard();
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      {/* Welcome */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Staff Dashboard</p>
-          <h1 className="text-2xl font-bold text-slate-900 mt-0.5">Good morning, Rafiq!</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Saturday, Jul 20, 2024 · Branch: Agrabad HO</p>
-        </div>
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white font-bold">
-          RI
-        </div>
-      </div>
-
-      {/* KPI row */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label:"Pending Tasks",   val: pending.length,                  sub:"Today",         color:"bg-amber-500",    Icon:CheckSquare  },
-          { label:"My Bookings",     val: BOOKINGS.length,                 sub:"Active",        color:"bg-[#0E6BB8]",    Icon:Briefcase    },
-          { label:"Customers",       val: CUSTOMERS_DATA.length,           sub:"Assigned",      color:"bg-[#0E7C66]",    Icon:Users        },
-          { label:"Completed",       val: TASKS.filter(t=>t.done).length,  sub:"Today",         color:"bg-purple-500",   Icon:CheckCircle  },
-        ].map(k => (
-          <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white mb-2", k.color)}>
-              <k.Icon size={15} />
-            </div>
-            <p className="text-2xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{k.val}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{k.label}</p>
-            <p className="text-xs text-slate-400">{k.sub}</p>
+    <PLoad q={q}>
+      {d && (
+      <div className="space-y-5" data-portal="dashboard">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Staff Dashboard</p>
+            <h1 className="text-2xl font-bold text-slate-900 mt-0.5" data-portal-name>Good day, {d.staffName.split(" ")[0]}!</h1>
+            <p className="text-sm text-slate-500 mt-0.5">Branch: {d.branchName ?? "—"}</p>
           </div>
-        ))}
-      </div>
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white font-bold">{d.staffName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase()}</div>
+        </div>
 
-      {/* High priority tasks */}
-      {highPriority.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle size={15} className="text-red-500" />
-              <p className="text-sm font-bold text-red-700">Urgent Tasks ({highPriority.length})</p>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label:"Open Tasks", val: d.counts.openTasks, color:"bg-amber-500", Icon:CheckSquare },
+            { label:"My Bookings", val: d.counts.assignedBookings, color:"bg-[#0E6BB8]", Icon:Briefcase },
+            { label:"Branch Customers", val: d.counts.branchCustomers, color:"bg-[#0E7C66]", Icon:Users },
+          ].map(k => (
+            <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
+              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white mb-2", k.color)}><k.Icon size={15} /></div>
+              <p className="text-2xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{k.val}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{k.label}</p>
             </div>
-            <button onClick={() => onGo("tasks")} className="text-xs text-red-600 font-semibold hover:underline">View all</button>
-          </div>
+          ))}
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <p className="font-bold text-slate-800 mb-4">My Tasks by Status</p>
           <div className="space-y-2">
-            {highPriority.map(t => (
-              <div key={t.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-red-100">
-                <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                <p className="text-sm text-slate-800 flex-1 font-medium">{t.title}</p>
-                <span className="text-xs text-red-500 font-semibold whitespace-nowrap">{t.due}</span>
+            {d.tasksByStatus.length === 0 && <p className="text-sm text-slate-400">No tasks assigned.</p>}
+            {d.tasksByStatus.map(s => (
+              <div key={s.status} className="flex items-center justify-between"><span className="text-sm text-slate-600 capitalize">{s.status.toLowerCase().replace("_"," ")}</span><span className="font-bold text-slate-800">{s.count}</span></div>
+            ))}
+          </div>
+          <button onClick={() => onGo("tasks")} className="w-full mt-3 py-2 text-sm text-[#0E6BB8] font-semibold hover:underline">View all tasks</button>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-2"><Pin size={14} className="text-[#C43A15]" /><p className="font-bold text-slate-800">Pinned Announcements</p></div>
+            <button onClick={() => onGo("announcements")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">All</button>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {d.pinnedAnnouncements.length === 0 && <p className="px-5 py-4 text-sm text-slate-400">No announcements.</p>}
+            {d.pinnedAnnouncements.map(a => (
+              <div key={a.id} className="px-5 py-3.5">
+                <div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-slate-800">{a.title}</p><span className="text-xs text-slate-400 whitespace-nowrap">{iso2date(a.createdAt)}</span></div>
+                <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{a.body}</p>
               </div>
             ))}
           </div>
         </div>
+      </div>
       )}
-
-      {/* Today's bookings snapshot */}
-      <div className="bg-white rounded-2xl border border-slate-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <p className="font-bold text-slate-800">My Bookings</p>
-          <button onClick={() => onGo("bookings")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">View all</button>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {BOOKINGS.slice(0, 3).map(b => (
-            <div key={b.id} className="flex items-center gap-3 px-5 py-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center text-[#0E6BB8] text-xs font-bold flex-shrink-0">
-                {b.customer.split(" ").map(n => n[0]).slice(0, 2).join("")}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{b.customer}</p>
-                <p className="text-xs text-slate-400 truncate">{b.service} · {b.id}</p>
-              </div>
-              <Chip label={BK_STATUS[b.status].label} cls={BK_STATUS[b.status].cls} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Announcements pinned */}
-      <div className="bg-white rounded-2xl border border-slate-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <Pin size={14} className="text-[#C43A15]" />
-            <p className="font-bold text-slate-800">Pinned Announcements</p>
-          </div>
-          <button onClick={() => onGo("announcements")} className="text-xs text-[#0E6BB8] font-semibold hover:underline">All</button>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {ANNOUNCEMENTS.filter(a => a.pinned).map(a => (
-            <div key={a.id} className="px-5 py-3.5">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-800">{a.title}</p>
-                <span className="text-xs text-slate-400 whitespace-nowrap">{a.date}</span>
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{a.body}</p>
-              <p className="text-xs text-[#0E6BB8] mt-1 font-medium">From: {a.from}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Productivity */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-4">Today's Progress</p>
-        <div className="space-y-3">
-          {[
-            { label:"Tasks completed", done: TASKS.filter(t=>t.done).length, total: TASKS.length, color:"#0E6BB8" },
-            { label:"Bookings active",  done: BOOKINGS.filter(b=>b.status==="confirmed").length, total:BOOKINGS.length, color:"#0E7C66" },
-          ].map(p => (
-            <div key={p.label}>
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-slate-500">{p.label}</span>
-                <span className="font-bold text-slate-700">{p.done}/{p.total}</span>
-              </div>
-              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width:`${(p.done/p.total)*100}%`, background:p.color }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    </PLoad>
   );
 }
 
@@ -731,65 +674,46 @@ function StaffNotifications() {
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 function StaffProfile() {
-  const [editing, setEditing] = useState(false);
+  const q = useStaffMe();
+  const me = q.data;
+  const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-portal="profile">
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
-      <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black flex-shrink-0">RI</div>
-        <div>
-          <p className="text-xl font-bold">Rafiqul Islam</p>
-          <p className="text-white/70 text-sm mt-0.5">Booking Officer · Agrabad HO</p>
-          <p className="text-white/60 text-xs mt-1 font-mono">EMP-0047 · Since Jan 2022</p>
-        </div>
-        <button onClick={() => setEditing(v=>!v)} className="ml-auto p-2 hover:bg-white/10 rounded-xl text-white/70">
-          <Edit2 size={15} />
-        </button>
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-        <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
-        {[
-          ["Full Name","Rafiqul Islam"],["Employee ID","EMP-0047"],["Role","Booking Officer"],
-          ["Department","Operations"],["Branch","Agrabad HO"],
-          ["Phone","+880 1711 XXXXXX"],["Email","rafiq@bdhtravels.com"],
-        ].map(([l,v]) => (
-          <div key={l}>
-            <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
-            <input defaultValue={v} disabled={!editing || ["Employee ID","Role","Department","Branch"].includes(l)}
-              className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                editing && !["Employee ID","Role","Department","Branch"].includes(l)
-                  ? "border-[#0E6BB8]/40 bg-white focus:outline-none"
-                  : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
+      <PLoad q={q}>
+        {me && (<>
+          <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black flex-shrink-0">{initials}</div>
+            <div>
+              <p className="text-xl font-bold" data-portal-name>{me.name}</p>
+              <p className="text-white/70 text-sm mt-0.5">{me.department ?? "Staff"} · {me.branchName ?? "—"}</p>
+              <p className="text-white/60 text-xs mt-1 font-mono">{me.employeeId ?? ""}</p>
+            </div>
           </div>
-        ))}
-        {editing && (
-          <button onClick={() => setEditing(false)}
-            className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
-            <Check size={15}/> Save
-          </button>
-        )}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2.5">
-        <p className="font-semibold text-slate-700 text-sm">Security</p>
-        {["Change Password","Notification Preferences"].map(item => (
-          <button key={item} className="flex items-center justify-between w-full p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-            <span className="text-sm font-medium text-slate-700">{item}</span>
-            <ChevronRight size={15} className="text-slate-400" />
-          </button>
-        ))}
-      </div>
-
-      <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50">
-        <LogOut size={16}/> Sign Out
-      </button>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
+            {[
+              ["Full Name",me.name],["Employee ID",me.employeeId ?? "—"],["Department",me.department ?? "—"],
+              ["Branch",me.branchName ?? "—"],["Phone",me.phone ?? "—"],["Email",me.email],["NID Number",me.nid ?? "—"],
+            ].map(([l,v]) => (
+              <div key={l}>
+                <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
+                <input value={v} disabled data-field={l} className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-slate-50 text-slate-700"/>
+              </div>
+            ))}
+          </div>
+          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> Sign Out</button>
+        </>)}
+      </PLoad>
     </div>
   );
 }
 
 // ─── Sidebar inner component (shared desktop + drawer) ───────────────────────
 function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void }) {
+  const { data: me } = useStaffMe();
+  const sName = me?.name ?? "Staff";
+  const sInit = sName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
     <aside className="w-56 bg-[#17456B] flex flex-col h-full">
       <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
@@ -806,10 +730,10 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
       </div>
       <div className="px-3 py-3 border-b border-white/10">
         <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-white/8">
-          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">RI</div>
+          <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{sInit}</div>
           <div className="min-w-0">
-            <p className="text-white text-xs font-semibold truncate">Rafiqul Islam</p>
-            <p className="text-white/50 text-xs truncate">Booking Officer</p>
+            <p className="text-white text-xs font-semibold truncate" data-portal-name>{sName}</p>
+            <p className="text-white/50 text-xs truncate">{me?.department ?? "Staff"}</p>
           </div>
         </div>
       </div>

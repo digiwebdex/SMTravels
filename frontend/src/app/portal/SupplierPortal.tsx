@@ -11,6 +11,16 @@ import {
   CircleDollarSign, Banknote, Upload, ExternalLink, Hash,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { Loader2 } from "lucide-react";
+import { useSupplierMe, useSupplierDashboard, useSupplierRequests, useSupplierInvoices } from "../hooks/portals";
+
+const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
+const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
+function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
+  if (q.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
+  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || "Failed to load."}</div>;
+  return <>{children}</>;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SupView =
@@ -186,114 +196,68 @@ function KpiCard({ label, value, sub, icon: Icon, accent, delta, up }: {
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
-  const totalRevenue = INVOICES.reduce((s, i) => s + i.amount, 0);
-  const pending = INVOICES.filter(i => i.status === "pending").reduce((s, i) => s + i.amount, 0);
-
+  const q = useSupplierDashboard();
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      {/* Header strip */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wider">Supplier Dashboard</p>
-            <h2 className="text-xl font-bold text-slate-800">Al-Amin Hotels & Tourism</h2>
-            <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1.5">
-              <Hash size={12} />Supplier ID: SUP-0014
-              <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-200">
-                <CheckCircle size={10} /> Verified
-              </span>
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Account Active
+    <PLoad q={q}>
+      {d && (
+      <div className="space-y-5" data-portal="dashboard">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wider">Supplier Dashboard</p>
+              <h2 className="text-xl font-bold text-slate-800" data-portal-name>{d.supplierName}</h2>
+              <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-200 capitalize"><CheckCircle size={10} /> {d.status.toLowerCase()}</span>
+              </p>
             </div>
-            <span className="text-xs text-slate-400">Rating: <span className="text-amber-500 font-bold">4.8 ★</span></span>
+            <span className="text-xs text-slate-400">Rating: <span className="text-amber-500 font-bold">{d.rating ?? "—"} ★</span></span>
           </div>
         </div>
-      </div>
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <KpiCard label="Pending Requests"  value="5"               sub="Require action"       icon={Inbox}           accent="bg-amber-500"    delta="+2" up />
-        <KpiCard label="Confirmed Bookings"value="2"               sub="Upcoming"             icon={CheckCircle}     accent="bg-blue-600"              />
-        <KpiCard label="Outstanding Invoice"value={fmtShort(pending)} sub="Due Aug 1"         icon={FileText}        accent="bg-red-500"               />
-        <KpiCard label="Total Revenue"     value={fmtShort(totalRevenue)} sub="All time"      icon={CircleDollarSign}accent="bg-emerald-600" delta="+18%" up />
-      </div>
+        <div className="grid grid-cols-2 gap-3">
+          <KpiCard label="Pending Requests" value={String(d.counts.pendingRequests)} sub="Require action" icon={Inbox} accent="bg-amber-500" />
+          <KpiCard label="My Services" value={String(d.counts.services)} sub="Listed" icon={CheckCircle} accent="bg-blue-600" />
+          <KpiCard label="Unpaid Invoices" value={String(d.counts.unpaidInvoices)} sub="Outstanding" icon={FileText} accent="bg-red-500" />
+          <KpiCard label="Outstanding" value={fmtShort(d.outstanding)} sub="Payables" icon={CircleDollarSign} accent="bg-emerald-600" />
+        </div>
 
-      {/* Pending requests alert */}
-      {REQUESTS.filter(r => r.status === "pending").length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle size={16} className="text-amber-500" />
-              <p className="font-semibold text-amber-800 text-sm">Action Required</p>
+        {d.recentRequests.filter(r => r.status === "PENDING").length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2"><AlertCircle size={16} className="text-amber-500" /><p className="font-semibold text-amber-800 text-sm">Action Required</p></div>
+              <button onClick={() => onGo("requests")} className="text-xs text-amber-700 font-semibold hover:underline flex items-center gap-1">View all <ChevronRight size={12} /></button>
             </div>
-            <button onClick={() => onGo("requests")}
-              className="text-xs text-amber-700 font-semibold hover:underline flex items-center gap-1">
-              View all <ChevronRight size={12} />
-            </button>
+            {d.recentRequests.filter(r => r.status === "PENDING").map(r => (
+              <div key={r.id} className="flex items-center justify-between py-2.5 border-t border-amber-200 first:border-0">
+                <div><p className="text-sm font-semibold text-slate-800">{r.clientLabel || r.serviceLabel}</p><p className="text-xs text-slate-500">{r.requestNo} · {fmtBDT2(r.amount)}</p></div>
+                <button onClick={() => onGo("requests")} className="px-3 py-1.5 bg-[#0E6BB8] text-white text-xs font-semibold rounded-lg hover:bg-[#0B5794]">Review</button>
+              </div>
+            ))}
           </div>
-          {REQUESTS.filter(r => r.status === "pending").map(r => (
-            <div key={r.id} className="flex items-center justify-between py-2.5 border-t border-amber-200 first:border-0">
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{r.client}</p>
-                <p className="text-xs text-slate-500">{r.id} · Respond by {r.deadline}</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => onGo("requests")}
-                  className="px-3 py-1.5 bg-[#0E6BB8] text-white text-xs font-semibold rounded-lg hover:bg-[#0B5794]">
-                  Review
-                </button>
-              </div>
-            </div>
+        )}
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <p className="font-bold text-slate-800 mb-3">Total Invoiced</p>
+          <p className="text-3xl font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(d.totalInvoiced)}</p>
+          <p className="text-xs text-slate-400 mt-1">Outstanding payables {fmtBDT2(d.outstanding)}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: Inbox, label: "Requests", color: "bg-amber-50 text-amber-600", v: "requests" as SupView },
+            { icon: FileText, label: "Invoices", color: "bg-[#0E6BB8]/10 text-[#0E6BB8]", v: "invoices" as SupView },
+          ].map(l => (
+            <button key={l.label} onClick={() => onGo(l.v)} className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all group text-left">
+              <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", l.color)}><l.icon size={16} /></div>
+              <span className="text-sm font-semibold text-slate-700">{l.label}</span>
+              <ChevronRight size={13} className="ml-auto text-slate-300 group-hover:text-[#0E6BB8]" />
+            </button>
           ))}
         </div>
+      </div>
       )}
-
-      {/* Revenue snapshot */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-slate-800">Revenue Snapshot</p>
-          <span className="text-xs text-slate-400">2024</span>
-        </div>
-        {[
-          { label: "Total Invoiced",  val: totalRevenue, color: "bg-[#0E6BB8]", pct: 100 },
-          { label: "Received",        val: totalRevenue - pending, color: "bg-emerald-500", pct: Math.round(((totalRevenue-pending)/totalRevenue)*100) },
-          { label: "Outstanding",     val: pending,      color: "bg-amber-400",  pct: Math.round((pending/totalRevenue)*100) },
-        ].map(r => (
-          <div key={r.label} className="mb-3 last:mb-0">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-500">{r.label}</span>
-              <span className="font-bold text-slate-700" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT(r.val)}</span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className={cn("h-full rounded-full", r.color)} style={{ width: `${r.pct}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Quick links */}
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { icon: FileText,      label: "Raise Invoice",  color: "bg-[#0E6BB8]/10 text-[#0E6BB8]", v: "invoices"   as SupView },
-          { icon: Download,      label: "Statement",      color: "bg-emerald-50 text-emerald-600",  v: "statements" as SupView },
-          { icon: MessageSquare, label: "Messages",       color: "bg-blue-50 text-blue-600",        v: "messages"   as SupView },
-          { icon: BarChart3,     label: "Reports",        color: "bg-purple-50 text-purple-600",    v: "reports"    as SupView },
-        ].map(q => (
-          <button key={q.label} onClick={() => onGo(q.v)}
-            className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all group text-left">
-            <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", q.color)}>
-              <q.icon size={16} />
-            </div>
-            <span className="text-sm font-semibold text-slate-700">{q.label}</span>
-            <ChevronRight size={13} className="ml-auto text-slate-300 group-hover:text-[#0E6BB8]" />
-          </button>
-        ))}
-      </div>
-    </div>
+    </PLoad>
   );
 }
 
@@ -1094,166 +1058,54 @@ function SupportView() {
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function ProfileView() {
-  const [editing, setEditing] = useState(false);
-  const [tab, setTab] = useState<"company"|"bank"|"docs"|"security">("company");
-
-  const TABS: { id: typeof tab; label: string }[] = [
-    { id: "company",  label: "Company"  },
-    { id: "bank",     label: "Bank"     },
-    { id: "docs",     label: "Documents"},
-    { id: "security", label: "Security" },
-  ];
-
+  const q = useSupplierMe();
+  const me = q.data;
+  const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-portal="profile">
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
-
-      {/* Company card */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xl font-black flex-shrink-0">
-            AL
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-lg font-bold text-slate-800">Al-Amin Hotels & Tourism</p>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-200">
-                <CheckCircle size={10} /> Verified
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">Supplier ID: SUP-0014 · Active since 2020</p>
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <span className="flex items-center gap-1 text-xs text-amber-500 font-bold"><Star size={11} className="fill-amber-400" />4.8 Rating</span>
-              <span className="text-xs text-slate-400">122 total bookings</span>
-              <span className="text-xs px-2 py-0.5 bg-[#0E6BB8]/10 text-[#0E6BB8] rounded-full font-semibold">Hotel & Visa</span>
-            </div>
-          </div>
-          <button onClick={() => setEditing(v => !v)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400">
-            <Edit2 size={15} />
-          </button>
-        </div>
-      </div>
-
-      {/* Tab nav */}
-      <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl">
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={cn("flex-1 py-2 text-xs font-semibold rounded-xl transition-all",
-              tab === t.id ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700")}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Company tab */}
-      {tab === "company" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-          {[
-            { label: "Company Name",     val: "Al-Amin Hotels & Tourism"        },
-            { label: "Contact Person",   val: "Aminul Islam"                    },
-            { label: "Phone",            val: "+880 1811 XXXXXX"                 },
-            { label: "Email",            val: "aminul@alaminhotels.com"          },
-            { label: "Website",          val: "www.alaminhotels.com"             },
-            { label: "Trade License No", val: "CTGCC-2020-XXXXX"                 },
-            { label: "TIN Number",       val: "12-34567-8"                       },
-            { label: "Address",          val: "Agrabad Commercial Area, Chattogram" },
-          ].map(f => (
-            <div key={f.label}>
-              <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
-              <input defaultValue={f.val} disabled={!editing}
-                className={cn("w-full px-3 py-2.5 text-sm rounded-xl border transition-colors",
-                  editing ? "border-[#0E6BB8]/40 bg-white focus:outline-none" : "border-transparent bg-slate-50 text-slate-700 cursor-default")} />
-            </div>
-          ))}
-          {editing && (
-            <button onClick={() => setEditing(false)}
-              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
-              <Check size={15} /> Save Changes
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Bank tab */}
-      {tab === "bank" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Info size={14} className="text-blue-500" />
-            <p className="text-xs text-blue-600">Bank details are used for payment disbursements. Changes require re-verification.</p>
-          </div>
-          {[
-            { label: "Bank Name",       val: "Dutch-Bangla Bank Ltd." },
-            { label: "Account Name",    val: "Al-Amin Hotels & Tourism" },
-            { label: "Account Number",  val: "XXXXXXXXXXXXXX"           },
-            { label: "Branch",          val: "Agrabad Branch, Chattogram" },
-            { label: "Routing Number",  val: "090271278"                },
-          ].map(f => (
-            <div key={f.label}>
-              <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 rounded-xl border border-transparent">
-                <span className="text-sm text-slate-700 flex-1">{f.val}</span>
-                <button className="text-slate-400 hover:text-[#0E6BB8]"><Copy size={13} /></button>
+      <PLoad q={q}>
+        {me && (<>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xl font-black flex-shrink-0">{initials}</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-lg font-bold text-slate-800" data-portal-name>{me.name}</p>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-200 capitalize"><CheckCircle size={10} /> {me.status.toLowerCase()}</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5 font-mono">{me.supplierCode}</p>
+                {me.rating != null && <span className="flex items-center gap-1 text-xs text-amber-500 font-bold mt-1"><Star size={11} className="fill-amber-400" />{me.rating} Rating</span>}
               </div>
             </div>
-          ))}
-          <button className="w-full py-2.5 border border-[#0E6BB8] text-[#0E6BB8] text-sm font-semibold rounded-xl hover:bg-[#0E6BB8]/5">
-            Request Bank Detail Update
-          </button>
-        </div>
-      )}
-
-      {/* Documents tab */}
-      {tab === "docs" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-          {[
-            { label: "Trade License",          status: "verified" },
-            { label: "TIN Certificate",        status: "verified" },
-            { label: "VAT Registration",       status: "pending"  },
-            { label: "Company Profile (PDF)",  status: "verified" },
-            { label: "Bank Statement (6 mo.)", status: "missing"  },
-          ].map(d => {
-            const sc = d.status === "verified"
-              ? { cls: "text-emerald-600 bg-emerald-50 border-emerald-200", Icon: CheckCircle, label: "Verified" }
-              : d.status === "pending"
-              ? { cls: "text-amber-600 bg-amber-50 border-amber-200", Icon: Clock, label: "Pending" }
-              : { cls: "text-red-500 bg-red-50 border-red-200", Icon: AlertCircle, label: "Missing" };
-            return (
-              <div key={d.label} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <div className="flex items-center gap-2">
-                  <FileText size={15} className="text-slate-400" />
-                  <span className="text-sm font-medium text-slate-700">{d.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={cn("flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-semibold border", sc.cls)}>
-                    <sc.Icon size={10} />{sc.label}
-                  </span>
-                  {d.status === "missing" && (
-                    <button className="text-xs text-[#0E6BB8] font-semibold flex items-center gap-1 hover:underline">
-                      <Upload size={11} /> Upload
-                    </button>
-                  )}
-                </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <p className="font-semibold text-slate-700 text-sm">Company Information</p>
+            {[
+              ["Company Name", me.name],
+              ["Contact Person", me.contactPerson ?? "—"],
+              ["Phone", me.phone ?? "—"],
+              ["Email", me.email ?? "—"],
+              ["Category", me.category ?? "—"],
+              ["Trade License", me.tradeLicense ?? "—"],
+              ["TIN", me.tin ?? "—"],
+              ["Address", me.address ?? "—"],
+            ].map(([l,v])=>(
+              <div key={l}>
+                <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
+                <input value={v} disabled data-field={l} className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-slate-50 text-slate-700"/>
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Security tab */}
-      {tab === "security" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-          {["Change Password", "Two-Factor Authentication", "API Access Key", "Active Sessions"].map(item => (
-            <button key={item} className="flex items-center justify-between w-full p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-              <span className="text-sm font-medium text-slate-700">{item}</span>
-              <ChevronRight size={15} className="text-slate-400" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50 transition-colors">
-        <LogOut size={16} /> Sign Out
-      </button>
+            ))}
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <p className="font-semibold text-slate-700 text-sm">Bank Details</p>
+            {[["Bank Name", me.bankName ?? "—"],["Account No.", me.accountNo ?? "—"]].map(([l,v])=>(
+              <div key={l}><label className="block text-xs font-medium text-slate-400 mb-1">{l}</label><div className="px-3 py-2.5 bg-slate-50 rounded-xl text-sm text-slate-700">{v}</div></div>
+            ))}
+          </div>
+          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50 transition-colors"><LogOut size={16} /> Sign Out</button>
+        </>)}
+      </PLoad>
     </div>
   );
 }
@@ -1261,6 +1113,9 @@ function ProfileView() {
 // ─── PORTAL SHELL ─────────────────────────────────────────────────────────────
 export function SupplierPortal() {
   const [view, setView] = useState<SupView>("dashboard");
+  const { data: me } = useSupplierMe();
+  const name = me?.name ?? "Supplier";
+  const initials = name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   const unread = MESSAGES.filter(m => m.unread).length;
 
   const go = (v: SupView) => setView(v);
@@ -1300,10 +1155,10 @@ export function SupplierPortal() {
           <div className="px-4 py-3.5 border-b border-slate-100">
             <div className="bg-slate-50 rounded-2xl p-3">
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-[#0E6BB8]/12 flex items-center justify-center text-[#0E6BB8] text-xs font-black">AL</div>
+                <div className="w-8 h-8 rounded-xl bg-[#0E6BB8]/12 flex items-center justify-center text-[#0E6BB8] text-xs font-black">{initials}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-800 truncate">Al-Amin Hotels</p>
-                  <p className="text-xs text-slate-400 font-mono">SUP-0014</p>
+                  <p className="text-xs font-bold text-slate-800 truncate" data-portal-name>{name}</p>
+                  <p className="text-xs text-slate-400 font-mono">{me?.supplierCode ?? ""}</p>
                 </div>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
               </div>

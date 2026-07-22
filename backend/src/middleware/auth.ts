@@ -180,3 +180,17 @@ export async function requireCustomerId(auth: AuthCtx): Promise<string> {
   if (!owner.customerId) throw new HttpError(403, "NotACustomer", { detail: "This endpoint is for customer portal accounts." });
   return owner.customerId;
 }
+
+/** Convenience: the caller's own agent id, or 403 if not a linked agent. */
+export async function requireAgentId(auth: AuthCtx): Promise<string> {
+  const owner = await resolveOwner(auth);
+  if (!owner.agentId) throw new HttpError(403, "NotAnAgent", { detail: "This endpoint is for agent portal accounts." });
+  return owner.agentId;
+}
+
+/** Convenience: the caller's own supplier id, or 403 if not a linked supplier. */
+export async function requireSupplierId(auth: AuthCtx): Promise<string> {
+  const owner = await resolveOwner(auth);
+  if (!owner.supplierId) throw new HttpError(403, "NotASupplier", { detail: "This endpoint is for supplier portal accounts." });
+  return owner.supplierId;
+}
