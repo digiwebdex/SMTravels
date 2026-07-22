@@ -275,6 +275,148 @@ async function main() {
     update: { name: "Cash in Hand" },
   });
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // REPORT DATA — realistic distribution so the Reports module reconciles and
+  // mixed-currency aggregation (baseAmount) is actually exercised. All amounts
+  // in baseAmount (BDT); non-BDT rows carry a real exchangeRate. Idempotent.
+  // USD→120, SAR→32 exchange rates.
+  // ══════════════════════════════════════════════════════════════════════════
+  const dt = (s: string) => new Date(`${s}T00:00:00.000Z`);
+
+  // 13) Agents (for AgentCommission + agent bookings)
+  const AGENTS = [
+    { id: "agt_rahim", agentCode: "AGT-RAHIM", name: "Rahim & Sons", tier: "GOLD" as AgentTier, rate: 5, branchId: "brn_dhaka" },
+    { id: "agt_nmt", agentCode: "AGT-NMT", name: "NMT Travels", tier: "GOLD" as AgentTier, rate: 5, branchId: "brn_dhaka" },
+  ];
+  for (const a of AGENTS) {
+    await prisma.agent.upsert({
+      where: { id: a.id },
+      create: { id: a.id, agentCode: a.agentCode, name: a.name, tier: a.tier, commissionRate: a.rate, branchId: a.branchId, status: "active" },
+      update: { name: a.name, tier: a.tier, commissionRate: a.rate, branchId: a.branchId },
+    });
+  }
+
+  // 14) Confirmed bookings across branches / services / months. Two non-BDT rows
+  //     (USD, SAR) so Bookings/Sales totals differ between baseAmount and raw amount.
+  const BOOKINGS = [
+    { id: "bkg_s1", no: "BK-S-01", branchId: "brn_dhaka", svc: "HAJJ" as ServiceType, amount: 295000, cur: "BDT", rate: 1, base: 295000, paid: 295000, agentId: "agt_rahim", date: "2026-03-05" },
+    { id: "bkg_s2", no: "BK-S-02", branchId: "brn_dhaka", svc: "UMRAH" as ServiceType, amount: 145000, cur: "BDT", rate: 1, base: 145000, paid: 145000, agentId: "agt_nmt", date: "2026-05-12" },
+    { id: "bkg_s3", no: "BK-S-03", branchId: "brn_ctg", svc: "HAJJ" as ServiceType, amount: 295000, cur: "BDT", rate: 1, base: 295000, paid: 100000, agentId: null, date: "2026-06-08" },
+    { id: "bkg_s4", no: "BK-S-04", branchId: "brn_dhaka", svc: "TOUR" as ServiceType, amount: 1000, cur: "USD", rate: 120, base: 120000, paid: 120000, agentId: null, date: "2026-06-20" },
+    { id: "bkg_s5", no: "BK-S-05", branchId: "brn_ctg", svc: "VISA" as ServiceType, amount: 8500, cur: "BDT", rate: 1, base: 8500, paid: 0, agentId: null, date: "2026-07-03" },
+    { id: "bkg_s6", no: "BK-S-06", branchId: "brn_dhaka", svc: "MANPOWER" as ServiceType, amount: 3000, cur: "SAR", rate: 32, base: 96000, paid: 96000, agentId: null, date: "2026-07-15" },
+  ];
+  for (const b of BOOKINGS) {
+    await prisma.booking.upsert({
+      where: { id: b.id },
+      create: {
+        id: b.id, bookingNo: b.no, branchId: b.branchId, customerId: b.branchId === "brn_ctg" ? "cus_ctg" : "cus_demo",
+        serviceType: b.svc, status: "CONFIRMED", amount: b.amount, currency: b.cur as never, exchangeRate: b.rate,
+        baseAmount: b.base, paidAmount: b.paid, agentId: b.agentId, createdAt: dt(b.date), travelersCount: 1,
+      },
+      update: { status: "CONFIRMED", amount: b.amount, baseAmount: b.base, currency: b.cur as never, exchangeRate: b.rate, paidAmount: b.paid, agentId: b.agentId },
+    });
+  }
+
+  // 15) Issued invoices (Sales report source). issueDate is the business date.
+  //     One USD invoice so Sales baseAmount ≠ raw total.
+  const INVOICES = [
+    { id: "inv_s1", no: "INV-SEED-DHK-01", branchId: "brn_dhaka", cust: "cus_demo", booking: "bkg_s1", status: "SENT", cur: "BDT", rate: 1, total: 200000, base: 200000, paid: 0, date: "2026-04-10" },
+    { id: "inv_s2", no: "INV-SEED-DHK-02", branchId: "brn_dhaka", cust: "cus_demo", booking: "bkg_s2", status: "PAID", cur: "BDT", rate: 1, total: 150000, base: 150000, paid: 150000, date: "2026-06-15" },
+    { id: "inv_s3", no: "INV-SEED-DHK-03", branchId: "brn_dhaka", cust: "cus_demo", booking: "bkg_s4", status: "PARTIAL", cur: "USD", rate: 120, total: 500, base: 60000, paid: 24000, date: "2026-07-02" },
+    { id: "inv_s4", no: "INV-SEED-CTG-01", branchId: "brn_ctg", cust: "cus_ctg", booking: "bkg_s3", status: "PAID", cur: "BDT", rate: 1, total: 90000, base: 90000, paid: 90000, date: "2026-05-20" },
+  ];
+  for (const v of INVOICES) {
+    await prisma.invoice.upsert({
+      where: { id: v.id },
+      create: {
+        id: v.id, invoiceNo: v.no, fiscalYear: 2026, branchId: v.branchId, customerId: v.cust, bookingId: v.booking,
+        issueDate: dt(v.date), dueDate: dt(v.date), currency: v.cur as never, exchangeRate: v.rate,
+        subtotal: v.total, taxRate: 0, taxAmount: 0, total: v.total, baseAmount: v.base, paidAmount: v.paid, status: v.status as never,
+      },
+      update: { status: v.status as never, total: v.total, baseAmount: v.base, paidAmount: v.paid, issueDate: dt(v.date), bookingId: v.booking },
+    });
+    await prisma.invoiceItem.upsert({
+      where: { id: `${v.id}_it1` },
+      create: { id: `${v.id}_it1`, invoiceId: v.id, description: "Seeded service", qty: 1, unitPrice: v.total, amount: v.total },
+      update: { unitPrice: v.total, amount: v.total },
+    });
+  }
+
+  // 16) Expenses + Income across months / categories / branches, incl non-BDT.
+  const EXPENSES = [
+    { id: "exp_s1", branchId: "brn_dhaka", cat: "Salaries", amount: 150000, cur: "BDT", rate: 1, base: 150000, status: "PAID", date: "2026-05-05" },
+    { id: "exp_s2", branchId: "brn_dhaka", cat: "Airline Costs", amount: 2000, cur: "USD", rate: 120, base: 240000, status: "PAID", date: "2026-06-10" },
+    { id: "exp_s3", branchId: "brn_ctg", cat: "Office Rent", amount: 40000, cur: "BDT", rate: 1, base: 40000, status: "PAID", date: "2026-06-01" },
+    { id: "exp_s4", branchId: "brn_dhaka", cat: "Marketing", amount: 30000, cur: "BDT", rate: 1, base: 30000, status: "PENDING", date: "2026-07-08" },
+    { id: "exp_s5", branchId: "brn_ctg", cat: "Hotel Costs", amount: 5000, cur: "SAR", rate: 32, base: 160000, status: "PAID", date: "2026-07-12" },
+  ];
+  for (const e of EXPENSES) {
+    await prisma.expense.upsert({
+      where: { id: e.id },
+      create: { id: e.id, ref: e.id.toUpperCase(), branchId: e.branchId, category: e.cat, amount: e.amount, currency: e.cur as never, exchangeRate: e.rate, baseAmount: e.base, status: e.status as never, date: dt(e.date) },
+      update: { category: e.cat, amount: e.amount, baseAmount: e.base, status: e.status as never, date: dt(e.date) },
+    });
+  }
+  const INCOME = [
+    { id: "inc_s1", branchId: "brn_dhaka", cat: "Commission", amount: 45000, cur: "BDT", rate: 1, base: 45000, status: "CONFIRMED", date: "2026-06-14" },
+    { id: "inc_s2", branchId: "brn_ctg", cat: "Service Fee", amount: 20000, cur: "BDT", rate: 1, base: 20000, status: "PENDING", date: "2026-07-06" },
+    { id: "inc_s3", branchId: "brn_dhaka", cat: "Refund Adjustment", amount: 300, cur: "USD", rate: 120, base: 36000, status: "CONFIRMED", date: "2026-05-20" },
+  ];
+  for (const i of INCOME) {
+    await prisma.income.upsert({
+      where: { id: i.id },
+      create: { id: i.id, ref: i.id.toUpperCase(), branchId: i.branchId, category: i.cat, amount: i.amount, currency: i.cur as never, exchangeRate: i.rate, baseAmount: i.base, status: i.status as never, date: dt(i.date) },
+      update: { category: i.cat, amount: i.amount, baseAmount: i.base, status: i.status as never, date: dt(i.date) },
+    });
+  }
+
+  // 17) Agent commissions — 2 agents × 2 periods.
+  const COMMISSIONS = [
+    { id: "cmm_rahim_06", agentId: "agt_rahim", period: "2026-06", gross: 295000, rate: 5, amount: 14750, status: "PAID" },
+    { id: "cmm_rahim_07", agentId: "agt_rahim", period: "2026-07", gross: 100000, rate: 5, amount: 5000, status: "PENDING" },
+    { id: "cmm_nmt_06", agentId: "agt_nmt", period: "2026-06", gross: 145000, rate: 5, amount: 7250, status: "PAID" },
+    { id: "cmm_nmt_07", agentId: "agt_nmt", period: "2026-07", gross: 60000, rate: 5, amount: 3000, status: "PENDING" },
+  ];
+  for (const c of COMMISSIONS) {
+    await prisma.agentCommission.upsert({
+      where: { id: c.id },
+      create: { id: c.id, agentId: c.agentId, period: c.period, grossAmount: c.gross, rate: c.rate, amount: c.amount, baseAmount: c.amount, status: c.status as never },
+      update: { grossAmount: c.gross, amount: c.amount, baseAmount: c.amount, status: c.status as never },
+    });
+  }
+
+  // 18) POSTED journal entries (P&L source). Each entry + its balanced lines are
+  //     committed in ONE transaction (the balance trigger is deferred to COMMIT).
+  //     je_seed_5 is reversed by je_seed_5r → the pair nets to ZERO in P&L.
+  const upsertJournal = async (o: { id: string; ref: string; branchId: string; date: string; desc: string; reversalOfId?: string; lines: { id: string; code: string; debit?: number; credit?: number }[] }) => {
+    await prisma.$transaction(async (tx) => {
+      await tx.journalEntry.upsert({
+        where: { id: o.id },
+        create: { id: o.id, ref: o.ref, fiscalYear: dt(o.date).getUTCFullYear(), branchId: o.branchId, date: dt(o.date), description: o.desc, status: "POSTED", postedAt: dt(o.date), reversalOfId: o.reversalOfId ?? null },
+        update: { description: o.desc, status: "POSTED", date: dt(o.date) },
+      });
+      for (const l of o.lines) {
+        await tx.journalLine.upsert({
+          where: { id: l.id },
+          create: { id: l.id, entryId: o.id, accountId: acctIdByCode[l.code], debit: l.debit ?? 0, credit: l.credit ?? 0 },
+          update: { accountId: acctIdByCode[l.code], debit: l.debit ?? 0, credit: l.credit ?? 0 },
+        });
+      }
+    });
+  };
+  // 1200 = AR (asset), 1110/1120 = cash/bank (asset), 4100/4200 = revenue, 5100/5200 = expense
+  await upsertJournal({ id: "je_seed_1", ref: "JV-SEED-DHK-01", branchId: "brn_dhaka", date: "2026-05-10", desc: "Hajj package revenue", lines: [{ id: "jl_s1a", code: "1200", debit: 500000 }, { id: "jl_s1b", code: "4100", credit: 500000 }] });
+  await upsertJournal({ id: "je_seed_2", ref: "JV-SEED-DHK-02", branchId: "brn_dhaka", date: "2026-06-12", desc: "Umrah package revenue", lines: [{ id: "jl_s2a", code: "1200", debit: 300000 }, { id: "jl_s2b", code: "4200", credit: 300000 }] });
+  await upsertJournal({ id: "je_seed_3", ref: "JV-SEED-DHK-03", branchId: "brn_dhaka", date: "2026-06-15", desc: "Airline cost", lines: [{ id: "jl_s3a", code: "5100", debit: 200000 }, { id: "jl_s3b", code: "1120", credit: 200000 }] });
+  await upsertJournal({ id: "je_seed_4", ref: "JV-SEED-DHK-04", branchId: "brn_dhaka", date: "2026-07-05", desc: "July salaries", lines: [{ id: "jl_s4a", code: "5200", debit: 150000 }, { id: "jl_s4b", code: "1110", credit: 150000 }] });
+  // reversed pair (nets to zero in P&L)
+  await upsertJournal({ id: "je_seed_5", ref: "JV-SEED-DHK-05", branchId: "brn_dhaka", date: "2026-07-10", desc: "Revenue booked in error", lines: [{ id: "jl_s5a", code: "1200", debit: 80000 }, { id: "jl_s5b", code: "4100", credit: 80000 }] });
+  await upsertJournal({ id: "je_seed_5r", ref: "JV-SEED-DHK-05R", branchId: "brn_dhaka", date: "2026-07-10", desc: "Reversal of JV-SEED-DHK-05", reversalOfId: "je_seed_5", lines: [{ id: "jl_s5ra", code: "1200", credit: 80000 }, { id: "jl_s5rb", code: "4100", debit: 80000 }] });
+  await prisma.journalEntry.update({ where: { id: "je_seed_5" }, data: { isReversed: true, reversedById: "je_seed_5r" } });
+  // one CTG revenue entry so P&L branch-scoping differs (CTG sees only this)
+  await upsertJournal({ id: "je_seed_6", ref: "JV-SEED-CTG-01", branchId: "brn_ctg", date: "2026-06-20", desc: "CTG Hajj revenue", lines: [{ id: "jl_s6a", code: "1200", debit: 100000 }, { id: "jl_s6b", code: "4100", credit: 100000 }] });
+
   // eslint-disable-next-line no-console
   console.log("[seed] done.");
 }

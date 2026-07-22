@@ -12,6 +12,13 @@ import {
   AlertTriangle, Layers, Sliders, Eye, Package,
 } from "lucide-react";
 import { cn, fmtPrice } from "../lib/utils";
+import {
+  useOverview, useSalesReport, useBookingsReport, useAgentsReport, useServiceReport,
+  usePnlReport, useBalanceSheet, useCashFlow, useBranches, downloadReport,
+  type ReportFilters,
+} from "../hooks/reports";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ReportView =
@@ -65,113 +72,6 @@ const NAV_GROUPS = [
   },
 ];
 
-// ─── Shared mock data ─────────────────────────────────────────────────────────
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-const MONTHLY_REVENUE = [
-  { month:"Jan", revenue:3200000, target:3000000, bookings:198, expense:2100000 },
-  { month:"Feb", revenue:2850000, target:3000000, bookings:171, expense:1900000 },
-  { month:"Mar", revenue:3600000, target:3200000, bookings:224, expense:2300000 },
-  { month:"Apr", revenue:4100000, target:3500000, bookings:256, expense:2600000 },
-  { month:"May", revenue:5200000, target:4800000, bookings:318, expense:3100000 },
-  { month:"Jun", revenue:7800000, target:7000000, bookings:487, expense:4800000 },
-  { month:"Jul", revenue:9400000, target:8500000, bookings:592, expense:5600000 },
-];
-
-const SERVICE_BREAKDOWN = [
-  { name:"Hajj", value:38, color:"#E8471F", revenue:15960000 },
-  { name:"Umrah", value:27, color:"#0E6BB8", revenue:11340000 },
-  { name:"Visa", value:14, color:"#0E7C66", revenue:5880000 },
-  { name:"Air Ticket", value:10, color:"#2563EB", revenue:4200000 },
-  { name:"Manpower", value:7, color:"#7C3AED", revenue:2940000 },
-  { name:"Tour", value:4, color:"#EA580C", revenue:1680000 },
-];
-
-const BRANCH_DATA = [
-  { branch:"Chattogram HQ", bookings:892, revenue:18200000, target:85 },
-  { branch:"Dhaka Office",  bookings:641, revenue:13100000, target:92 },
-  { branch:"Sylhet Branch", bookings:312, revenue:6400000,  target:74 },
-  { branch:"Cox's Bazar",   bookings:198, revenue:4050000,  target:68 },
-  { branch:"Khulna",        bookings:147, revenue:3010000,  target:61 },
-  { branch:"Rajshahi",      bookings:98,  revenue:2010000,  target:55 },
-];
-
-const AGENT_DATA = [
-  { name:"Rahim & Sons", bookings:142, revenue:6800000, commission:340000, rate:"5%", status:"active" },
-  { name:"NMT Travels",  bookings:118, revenue:5400000, commission:270000, rate:"5%", status:"active" },
-  { name:"Al-Madina Agency", bookings:97, revenue:4200000, commission:210000, rate:"5%", status:"active" },
-  { name:"Haji Travels", bookings:84,  revenue:3800000, commission:190000, rate:"5%", status:"active" },
-  { name:"Green Umrah",  bookings:63,  revenue:2900000, commission:145000, rate:"5%", status:"inactive" },
-  { name:"Bismillah Int'l", bookings:51, revenue:2200000, commission:110000, rate:"5%", status:"active" },
-];
-
-const HAJJ_DATA = [
-  { month:"Jan", applications:24,  approved:20, departed:0,  revenue:1680000 },
-  { month:"Feb", applications:31,  approved:28, departed:0,  revenue:2184000 },
-  { month:"Mar", applications:48,  approved:42, departed:0,  revenue:3276000 },
-  { month:"Apr", applications:92,  approved:80, departed:24, revenue:6240000 },
-  { month:"May", applications:180, approved:165, departed:80, revenue:12870000 },
-  { month:"Jun", applications:240, approved:220, departed:210, revenue:17160000 },
-  { month:"Jul", applications:62,  approved:55, departed:40, revenue:4290000 },
-];
-
-const VISA_FUNNEL = [
-  { name:"Inquiries",   value:1240, fill:"#0E6BB8" },
-  { name:"Applied",     value:890,  fill:"#1d4ed8" },
-  { name:"Submitted",   value:720,  fill:"#0E7C66" },
-  { name:"Approved",    value:580,  fill:"#059669" },
-  { name:"Collected",   value:540,  fill:"#E8471F" },
-];
-
-const PNL_DATA = [
-  { category:"Revenue",            q1:9650000,  q2:17100000, ytd:42100000,  prev:36800000,  type:"revenue" },
-  { category:"  Hajj Packages",    q1:4100000,  q2:7200000,  ytd:18500000,  prev:15200000,  type:"revenue-sub" },
-  { category:"  Umrah Packages",   q1:2900000,  q2:5100000,  ytd:12300000,  prev:10800000,  type:"revenue-sub" },
-  { category:"  Visa Services",    q1:1250000,  q2:2400000,  ytd:4800000,   prev:4200000,   type:"revenue-sub" },
-  { category:"  Air Tickets",      q1:800000,   q2:1600000,  ytd:3200000,   prev:3100000,   type:"revenue-sub" },
-  { category:"  Other",            q1:600000,   q2:800000,   ytd:3300000,   prev:3500000,   type:"revenue-sub" },
-  { category:"Cost of Sales",      q1:6800000,  q2:12100000, ytd:29800000,  prev:25900000,  type:"expense" },
-  { category:"Gross Profit",       q1:2850000,  q2:5000000,  ytd:12300000,  prev:10900000,  type:"total" },
-  { category:"Operating Expenses", q1:1400000,  q2:2600000,  ytd:7200000,   prev:6800000,   type:"expense" },
-  { category:"  Salaries",         q1:800000,   q2:1600000,  ytd:4800000,   prev:4200000,   type:"expense-sub" },
-  { category:"  Rent & Utilities", q1:280000,   q2:560000,   ytd:1320000,   prev:1400000,   type:"expense-sub" },
-  { category:"  Marketing",        q1:320000,   q2:440000,   ytd:1080000,   prev:1200000,   type:"expense-sub" },
-  { category:"EBIT",               q1:1450000,  q2:2400000,  ytd:5100000,   prev:4100000,   type:"total" },
-  { category:"Tax (15%)",          q1:217500,   q2:360000,   ytd:765000,    prev:615000,    type:"expense" },
-  { category:"Net Profit",         q1:1232500,  q2:2040000,  ytd:4335000,   prev:3485000,   type:"grand-total" },
-];
-
-const CASHFLOW_DATA = [
-  { month:"Jan", operating:1100000,  investing:-420000, financing:200000  },
-  { month:"Feb", operating:950000,   investing:-180000, financing:-300000 },
-  { month:"Mar", operating:1300000,  investing:-600000, financing:0       },
-  { month:"Apr", operating:1500000,  investing:-240000, financing:500000  },
-  { month:"May", operating:2100000,  investing:-900000, financing:-200000 },
-  { month:"Jun", operating:2900000,  investing:-500000, financing:1000000 },
-  { month:"Jul", operating:3800000,  investing:-1200000,financing:-400000 },
-];
-
-const BALANCE_SHEET = {
-  assets: [
-    { name:"Cash & Bank",       current:18250000, prior:14200000 },
-    { name:"Accounts Receivable",current:9430000,  prior:7800000  },
-    { name:"Prepaid Expenses",  current:1200000,  prior:980000   },
-    { name:"Inventory/Deposits",current:3400000,  prior:2900000  },
-    { name:"Fixed Assets (net)",current:14500000, prior:16200000 },
-    { name:"Other Assets",      current:800000,   prior:620000   },
-  ],
-  liabilities: [
-    { name:"Accounts Payable",  current:8640000,  prior:7100000  },
-    { name:"Advance Receipts",  current:4140000,  prior:3200000  },
-    { name:"Bank Loan (DBBL)",  current:6700000,  prior:9400000  },
-    { name:"Tax Payable",       current:765000,   prior:615000   },
-    { name:"Other Liabilities", current:480000,   prior:380000   },
-  ],
-  equity: [
-    { name:"Owner Capital",     current:20000000, prior:20000000 },
-    { name:"Retained Earnings", current:6840000,  prior:2505000  },
-  ],
-};
 
 // ─── Shared UI components ─────────────────────────────────────────────────────
 function KpiCard({ label, value, sub, trend, icon: Icon, color, mono = true }: {
@@ -206,16 +106,16 @@ interface Filters {
   agent: string;
 }
 function FilterBar({
-  filters, onChange, onExport, onRefresh, title, subtitle,
+  filters, branches, onChange, onExport, onRefresh, title, subtitle,
 }: {
   filters: Filters;
+  branches: { id: string; name: string }[];
   onChange: (f: Partial<Filters>) => void;
   onExport: (type: "pdf" | "excel") => void;
   onRefresh: () => void;
   title: string;
   subtitle?: string;
 }) {
-  const [exportOpen, setExportOpen] = useState(false);
   return (
     <div className="flex flex-col gap-3 mb-5">
       <div className="flex items-start justify-between">
@@ -243,13 +143,15 @@ function FilterBar({
           <Calendar size={14} className="text-slate-400" />
           <select value={filters.dateRange} onChange={e => onChange({ dateRange: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
-            <option value="this-month">This Month (Jul 2024)</option>
-            <option value="last-month">Last Month (Jun 2024)</option>
-            <option value="q1">Q1 2024</option>
-            <option value="q2">Q2 2024</option>
+            <option value="this-month">This Month</option>
+            <option value="last-month">Last Month</option>
+            <option value="q1">Q1</option>
+            <option value="q2">Q2</option>
+            <option value="q3">Q3</option>
+            <option value="q4">Q4</option>
             <option value="ytd">Year to Date</option>
-            <option value="last-year">Last Year (2023)</option>
-            <option value="custom">Custom Range…</option>
+            <option value="last-year">Last Year</option>
+            <option value="all">All Time</option>
           </select>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
@@ -257,12 +159,7 @@ function FilterBar({
           <select value={filters.branch} onChange={e => onChange({ branch: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
             <option value="all">All Branches</option>
-            <option value="ctg">Chattogram HQ</option>
-            <option value="dhaka">Dhaka Office</option>
-            <option value="sylhet">Sylhet Branch</option>
-            <option value="cox">Cox's Bazar</option>
-            <option value="khulna">Khulna</option>
-            <option value="rajshahi">Rajshahi</option>
+            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
@@ -351,6 +248,22 @@ function EmptyState({ report }: { report: string }) {
   );
 }
 
+// ─── Query state wrapper (loading / error / empty around a real report) ───────
+function ReportState({ query, report, isEmpty, children }: {
+  query: { isLoading: boolean; isError: boolean; error?: unknown; isFetching?: boolean };
+  report: string; isEmpty?: boolean; children: React.ReactNode;
+}) {
+  if (query.isLoading) return <LoadingSkeleton />;
+  if (query.isError) return (
+    <div className="bg-white rounded-xl border border-red-200 p-6 text-center">
+      <AlertTriangle size={22} className="mx-auto text-red-400 mb-2" />
+      <p className="text-sm text-red-600">{(query.error as Error)?.message || `Failed to load ${report} report.`}</p>
+    </div>
+  );
+  if (isEmpty) return <EmptyState report={report} />;
+  return <>{children}</>;
+}
+
 // ─── Section card ─────────────────────────────────────────────────────────────
 function Section({ title, actions, children, className }: {
   title: string; actions?: React.ReactNode; children: React.ReactNode; className?: string;
@@ -386,125 +299,110 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 // ─── OVERVIEW DASHBOARD ───────────────────────────────────────────────────────
-function OverviewReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
+const CHART_COLORS = ["#0E6BB8", "#E8471F", "#0E7C66", "#2563EB", "#7C3AED", "#EA580C", "#F59E0B"];
 
-  const totalRevenue = MONTHLY_REVENUE.reduce((s, m) => s + m.revenue, 0);
-  const totalBookings = MONTHLY_REVENUE.reduce((s, m) => s + m.bookings, 0);
-  const totalExpense = MONTHLY_REVENUE.reduce((s, m) => s + m.expense, 0);
-  const netProfit = totalRevenue - totalExpense;
+function OverviewReport({ rf }: { rf: ReportFilters }) {
+  const q = useOverview(rf);
+  const d = q.data;
+  const svc = d?.serviceBreakdown ?? [];
+  const maxBranch = Math.max(1, ...(d?.branchBreakdown ?? []).map(b => b.revenue));
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Revenue (YTD)" value={fmtM(totalRevenue)} trend={14.2} icon={TrendingUp} color="bg-[#0E6BB8]" />
-        <KpiCard label="Total Bookings" value={totalBookings.toLocaleString()} trend={11.8} icon={Calendar} color="bg-emerald-500" />
-        <KpiCard label="Total Expenses" value={fmtM(totalExpense)} trend={8.4} icon={TrendingDown} color="bg-red-500" />
-        <KpiCard label="Net Profit (YTD)" value={fmtM(netProfit)} trend={21.3} icon={DollarSign} color="bg-amber-500" />
-      </div>
+    <ReportState query={q} report="overview" isEmpty={!!d && d.kpis.revenue === 0 && d.kpis.bookings === 0}>
+      {d && (
+      <div className="space-y-5" data-report="overview">
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label="Total Revenue" value={fmtM(d.kpis.revenue)} icon={TrendingUp} color="bg-[#0E6BB8]" />
+          <KpiCard label="Total Bookings" value={d.kpis.bookings.toLocaleString()} icon={Calendar} color="bg-emerald-500" />
+          <KpiCard label="Total Expenses" value={fmtM(d.kpis.expenses)} icon={TrendingDown} color="bg-red-500" />
+          <KpiCard label="Net Profit" value={fmtM(d.kpis.netProfit)} icon={DollarSign} color="bg-amber-500" />
+        </div>
 
-      <div className="grid grid-cols-3 gap-5">
-        {/* Revenue vs Target */}
-        <Section title="Revenue vs Target — 2024" className="col-span-2">
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
-              <defs>
-                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-                tickFormatter={v => `৳${(v / 1000000).toFixed(0)}M`} />
-              <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#revGrad)" />
-              <Line type="monotone" dataKey="target" name="Target" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Section>
+        <div className="grid grid-cols-3 gap-5">
+          <Section title={`Revenue vs Expense — ${d.applied.label}`} className="col-span-2">
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
+                <defs>
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
+                  tickFormatter={v => `৳${(v / 1000000).toFixed(1)}M`} />
+                <Tooltip content={<ChartTooltip />} />
+                <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#revGrad)" />
+                <Line type="monotone" dataKey="expense" name="Expense" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Section>
 
-        {/* Service mix donut */}
-        <Section title="Revenue by Service">
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie data={SERVICE_BREAKDOWN} dataKey="value" cx="50%" cy="50%"
-                innerRadius={48} outerRadius={72} paddingAngle={3}>
-                {SERVICE_BREAKDOWN.map((s, i) => <Cell key={i} fill={s.color} />)}
-              </Pie>
-              <Tooltip formatter={(v: number) => [`${v}%`, ""]} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-1.5 mt-2">
-            {SERVICE_BREAKDOWN.map(s => (
-              <div key={s.name} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: s.color }} />
-                  <span className="text-slate-600">{s.name}</span>
+          <Section title="Bookings by Service">
+            {svc.length === 0 ? <p className="text-sm text-slate-400 py-8 text-center">No bookings in range.</p> : <>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={svc} dataKey="revenue" nameKey="label" cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={3}>
+                  {svc.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Pie>
+                <Tooltip formatter={(v: number) => [fmtC(v), ""]} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="space-y-1.5 mt-2">
+              {svc.map((s, i) => (
+                <div key={s.service} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                    <span className="text-slate-600">{s.label}</span>
+                  </div>
+                  <span className="font-medium text-slate-700">{s.count} · {s.pct}%</span>
                 </div>
-                <span className="font-medium text-slate-700">{s.value}%</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
+              ))}
+            </div></>}
+          </Section>
+        </div>
 
-      <div className="grid grid-cols-2 gap-5">
-        {/* Branch performance */}
-        <Section title="Revenue by Branch">
-          <div className="space-y-3">
-            {BRANCH_DATA.map((b, i) => (
-              <div key={b.branch}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-slate-600">{b.branch}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400">{b.bookings} bkgs</span>
-                    <span className="font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                      {fmtM(b.revenue)}
-                    </span>
+        <div className="grid grid-cols-2 gap-5">
+          <Section title="Revenue by Branch">
+            <div className="space-y-3">
+              {d.branchBreakdown.length === 0 && <p className="text-sm text-slate-400 py-4 text-center">No data.</p>}
+              {d.branchBreakdown.map((b, i) => (
+                <div key={b.branchId}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-slate-600">{b.branchName}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-slate-400">{b.bookings} bkgs</span>
+                      <span className="font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtM(b.revenue)}</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(b.revenue / maxBranch) * 100}%`, background: CHART_COLORS[i % CHART_COLORS.length] }} />
                   </div>
                 </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${(b.revenue / BRANCH_DATA[0].revenue) * 100}%`,
-                      background: i === 0 ? "#0E6BB8" : i === 1 ? "#E8471F" : "#0E7C66",
-                    }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
+              ))}
+            </div>
+          </Section>
 
-        {/* Monthly bookings bar */}
-        <Section title="Monthly Bookings — 2024">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="bookings" name="Bookings" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
+          <Section title={`Monthly Bookings — ${d.applied.label}`}>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="bookings" name="Bookings" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Section>
+        </div>
       </div>
-    </div>
+      )}
+    </ReportState>
   );
 }
 
 // ─── BOOKING REPORT ───────────────────────────────────────────────────────────
-const BOOKING_ROWS = [
-  { id:"BK-0892", date:"Jul 14", customer:"Md. Abdullah Al-Mamun", service:"Hajj – Economy", branch:"Chattogram HQ", agent:"Direct", amount:520000, status:"confirmed" },
-  { id:"BK-0891", date:"Jul 13", customer:"Rabeya Khatun",         service:"Umrah – VIP",   branch:"Dhaka Office",   agent:"NMT Travels", amount:185000, status:"confirmed" },
-  { id:"BK-0890", date:"Jul 12", customer:"Ahmed Family × 3",      service:"Malaysia Tour",  branch:"Chattogram HQ", agent:"Direct", amount:215000, status:"pending" },
-  { id:"BK-0889", date:"Jul 11", customer:"NMT Agency × 15",       service:"Saudi Visa",     branch:"Dhaka Office",   agent:"NMT Travels", amount:450000, status:"overdue" },
-  { id:"BK-0888", date:"Jul 10", customer:"Hosne Ara Begum",        service:"Hajj – Premium", branch:"Sylhet Branch",  agent:"Al-Madina", amount:680000, status:"confirmed" },
-  { id:"BK-0887", date:"Jul 9",  customer:"Rahman Brothers",        service:"Air Ticket × 4", branch:"Chattogram HQ", agent:"Direct", amount:88000,  status:"confirmed" },
-  { id:"BK-0886", date:"Jul 8",  customer:"Karim Family",           service:"Umrah – Standard",branch:"Cox's Bazar",  agent:"Haji Travels", amount:140000, status:"pending" },
-];
-
 const STATUS_CHK: Record<string, string> = {
   confirmed: "bg-emerald-50 text-emerald-700",
   pending:   "bg-amber-50 text-amber-700",
@@ -512,940 +410,500 @@ const STATUS_CHK: Record<string, string> = {
   overdue:   "bg-red-50 text-red-600",
 };
 
-function BookingReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  if (loadState === "empty") return <EmptyState report="booking" />;
-  const total = BOOKING_ROWS.reduce((s, r) => s + r.amount, 0);
+function BookingReport({ rf }: { rf: ReportFilters }) {
+  const q = useBookingsReport(rf);
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Bookings" value="592" trend={21.4} icon={Calendar} color="bg-[#0E6BB8]" />
-        <KpiCard label="Confirmed" value="471" trend={18.2} icon={CheckCircle} color="bg-emerald-500" />
-        <KpiCard label="Pending" value="89" icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Cancelled" value="32" trend={-5} icon={AlertTriangle} color="bg-red-500" />
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <Section title="Bookings by Service" className="col-span-2">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={SERVICE_BREAKDOWN.map(s => ({ name: s.name, bookings: Math.round(592 * s.value / 100) }))}
-              margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="bookings" name="Bookings" radius={[3, 3, 0, 0]}>
-                {SERVICE_BREAKDOWN.map((s, i) => <Cell key={i} fill={s.color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
-        <Section title="Status Breakdown">
-          <div className="space-y-3">
-            {[
-              { label:"Confirmed", count:471, pct:80, color:"#0E7C66" },
-              { label:"Pending",   count:89,  pct:15, color:"#F59E0B" },
-              { label:"Cancelled", count:32,  pct:5,  color:"#EF4444" },
-            ].map(s => (
-              <div key={s.label}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">{s.label}</span>
-                  <span className="font-semibold text-slate-800">{s.count}</span>
+    <ReportState query={q} report="booking" isEmpty={!!d && d.total === 0}>
+      {d && (
+      <div className="space-y-5" data-report="bookings">
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label="Total Bookings" value={d.total.toLocaleString()} icon={Calendar} color="bg-[#0E6BB8]" />
+          <KpiCard label="Confirmed" value={d.confirmed.toLocaleString()} icon={CheckCircle} color="bg-emerald-500" />
+          <KpiCard label="Pending" value={d.pending.toLocaleString()} icon={Clock} color="bg-amber-500" />
+          <KpiCard label="Cancelled" value={d.cancelled.toLocaleString()} icon={AlertTriangle} color="bg-red-500" />
+        </div>
+        <div className="grid grid-cols-3 gap-5">
+          <Section title="Bookings by Service" className="col-span-2">
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={d.byService} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="service" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="count" name="Bookings" radius={[3, 3, 0, 0]}>
+                  {d.byService.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Section>
+          <Section title="Status Breakdown">
+            <div className="space-y-3">
+              {d.byStatus.length === 0 && <p className="text-sm text-slate-400 py-4 text-center">No data.</p>}
+              {d.byStatus.map(s => (
+                <div key={s.status}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-600 capitalize">{s.status.toLowerCase()}</span>
+                    <span className="font-semibold text-slate-800">{s.count}</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-[#0E6BB8]" style={{ width: `${(s.count / Math.max(1, d.total)) * 100}%` }} />
+                  </div>
                 </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: s.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-      <Section title="Booking Transactions" actions={
-        <button className="text-xs text-[#0E6BB8] hover:underline flex items-center gap-1"><Eye size={12} /> View All</button>
-      }>
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              {["Booking ID","Date","Customer","Service","Branch","Agent","Amount","Status"].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 pb-2 pr-4">{h}</th>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {BOOKING_ROWS.map(r => (
-              <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{r.id}</td>
-                <td className="py-3 pr-4 text-sm text-slate-500">{r.date}</td>
-                <td className="py-3 pr-4 text-sm font-medium text-slate-700">{r.customer}</td>
-                <td className="py-3 pr-4 text-sm text-slate-500">{r.service}</td>
-                <td className="py-3 pr-4 text-sm text-slate-500">{r.branch}</td>
-                <td className="py-3 pr-4 text-sm text-slate-500">{r.agent}</td>
-                <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(r.amount)}
-                </td>
-                <td className="py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full capitalize", STATUS_CHK[r.status])}>
-                    {r.status}
-                  </span>
-                </td>
+            </div>
+          </Section>
+        </div>
+        <Section title={`Booking Transactions (${d.rows.length} shown)`}>
+          <table className="w-full min-w-[680px] md:min-w-0">
+            <thead>
+              <tr className="border-b border-slate-100">
+                {["Booking No", "Date", "Customer", "Service", "Branch", "Agent", "Amount (base)", "Status"].map(h => (
+                  <th key={h} className="text-left text-xs font-medium text-slate-500 pb-2 pr-4">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-slate-50">
-              <td colSpan={6} className="px-0 py-3 text-xs font-semibold text-slate-600">Total (shown)</td>
-              <td className="py-3 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtC(total)}
-              </td>
-              <td />
-            </tr>
-          </tfoot>
-        </table>
-      </Section>
-    </div>
+            </thead>
+            <tbody>
+              {d.rows.map(r => (
+                <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="py-3 pr-4 text-xs font-mono text-slate-400">{r.bookingNo || "—"}</td>
+                  <td className="py-3 pr-4 text-sm text-slate-500">{r.date}</td>
+                  <td className="py-3 pr-4 text-sm font-medium text-slate-700">{r.customerName || "—"}</td>
+                  <td className="py-3 pr-4 text-sm text-slate-500">{r.serviceType}</td>
+                  <td className="py-3 pr-4 text-sm text-slate-500">{r.branchName || "—"}</td>
+                  <td className="py-3 pr-4 text-sm text-slate-500">{r.agentName || "Direct"}</td>
+                  <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {fmtC(r.baseAmount)}{r.currency !== "BDT" && <span className="ml-1 text-[10px] text-amber-600">({r.currency})</span>}
+                  </td>
+                  <td className="py-3">
+                    <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full capitalize", STATUS_CHK[r.status.toLowerCase()] ?? "bg-slate-100 text-slate-500")}>
+                      {r.status.toLowerCase()}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50">
+                <td colSpan={6} className="px-0 py-3 text-xs font-semibold text-slate-600">Total value (base, non-cancelled)</td>
+                <td className="py-3 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.totalValue)}</td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
+        </Section>
+      </div>
+      )}
+    </ReportState>
   );
 }
 
 // ─── SALES REPORT ─────────────────────────────────────────────────────────────
-function SalesReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  if (loadState === "empty") return <EmptyState report="sales" />;
+function SalesReport({ rf }: { rf: ReportFilters }) {
+  const q = useSalesReport(rf);
+  const d = q.data;
+  const mixed = !!d && Math.abs(d.rawAmountTotal - d.totalRevenue) > 0.5;
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Sales (Jul)" value={fmtC(9400000)} trend={20.5} icon={TrendingUp} color="bg-[#0E6BB8]" />
-        <KpiCard label="vs Target" value="110.6%" trend={10.6} icon={Star} color="bg-emerald-500" />
-        <KpiCard label="Avg. Booking Value" value={fmtC(15878)} trend={7.2} icon={DollarSign} color="bg-amber-500" />
-        <KpiCard label="Conversion Rate" value="34.2%" trend={3.1} icon={TrendingUp} color="bg-blue-500" />
-      </div>
-      <Section title="Revenue Trend — Monthly">
-        <ResponsiveContainer width="100%" height={240}>
-          <AreaChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
-            <defs>
-              <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#EF4444" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-              tickFormatter={v => `৳${(v / 1000000).toFixed(0)}M`} />
-            <Tooltip content={<ChartTooltip />} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#salesGrad)" />
-            <Area type="monotone" dataKey="expense" name="Expense" stroke="#EF4444" strokeWidth={2} fill="url(#expGrad)" />
-            <Line type="monotone" dataKey="target" name="Target" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </Section>
-      <Section title="Sales by Service — YTD">
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              {["Service","Bookings","Revenue","% of Total","Avg Value","Growth"].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {SERVICE_BREAKDOWN.map((s, i) => {
-              const bookings = Math.round(2288 * s.value / 100);
-              const growth = [14.2, 11.8, 8.4, 5.2, 22.1, 3.8][i];
-              return (
-                <tr key={s.name} className="border-b border-slate-50 hover:bg-slate-50">
+    <ReportState query={q} report="sales" isEmpty={!!d && d.invoiceCount === 0}>
+      {d && (
+      <div className="space-y-5" data-report="sales">
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label={`Billed Revenue (${d.applied.label})`} value={fmtC(d.totalRevenue)} icon={TrendingUp} color="bg-[#0E6BB8]" />
+          <KpiCard label="Collected" value={fmtC(d.totalCollected)} icon={CheckCircle} color="bg-emerald-500" />
+          <KpiCard label="Invoices" value={d.invoiceCount.toLocaleString()} icon={FileText} color="bg-blue-500" />
+          <KpiCard label="Avg. Invoice Value" value={fmtC(d.avgValue)} icon={DollarSign} color="bg-amber-500" />
+        </div>
+        {mixed && (
+          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+            <AlertTriangle size={13} className="text-amber-500" />
+            Totals are summed in <b>baseAmount (BDT)</b> so mixed-currency invoices aggregate correctly — a naive raw-amount sum would read {fmtC(d.rawAmountTotal)}.
+          </div>
+        )}
+        <Section title={`Revenue Trend — ${d.applied.label}`}>
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
+              <defs>
+                <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
+                tickFormatter={v => `৳${(v / 1000000).toFixed(1)}M`} />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#salesGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Section>
+        <Section title={`Sales by Service — ${d.applied.label}`}>
+          <table className="w-full min-w-[680px] md:min-w-0">
+            <thead>
+              <tr className="border-b border-slate-100">
+                {["Service", "Invoices", "Revenue (base)", "% of Total"].map(h => (
+                  <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {d.byService.map((s, i) => (
+                <tr key={s.service} className="border-b border-slate-50 hover:bg-slate-50">
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
-                      <span className="text-sm font-medium text-slate-700">{s.name}</span>
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                      <span className="text-sm font-medium text-slate-700">{s.label}</span>
                     </div>
                   </td>
-                  <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{bookings.toLocaleString()}</td>
-                  <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {fmtC(s.revenue)}
-                  </td>
+                  <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{s.count.toLocaleString()}</td>
+                  <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(s.revenue)}</td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${s.value}%`, background: s.color }} />
+                        <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: CHART_COLORS[i % CHART_COLORS.length] }} />
                       </div>
-                      <span className="text-xs text-slate-500">{s.value}%</span>
+                      <span className="text-xs text-slate-500">{s.pct}%</span>
                     </div>
-                  </td>
-                  <td className="py-3 pr-4 text-sm text-slate-600 font-mono"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {fmtC(Math.round(s.revenue / bookings))}
-                  </td>
-                  <td className="py-3">
-                    <span className={cn("flex items-center gap-0.5 text-xs font-medium", growth > 0 ? "text-emerald-600" : "text-red-500")}>
-                      {growth > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                      {Math.abs(growth)}%
-                    </span>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr className="bg-slate-50">
-              <td className="py-3 pr-4 text-xs font-bold text-slate-700">Total</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">2,288</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtC(SERVICE_BREAKDOWN.reduce((s, r) => s + r.revenue, 0))}
-              </td>
-              <td className="py-3 pr-4 text-xs font-bold text-slate-600">100%</td>
-              <td colSpan={2} />
-            </tr>
-          </tfoot>
-        </table>
-      </Section>
-    </div>
-  );
-}
-
-// ─── HAJJ REPORT ──────────────────────────────────────────────────────────────
-function HajjReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Applicants" value="677" trend={8.2} icon={Users} color="bg-[#0E6BB8]" />
-        <KpiCard label="Approved (Govt.)" value="610" trend={6.1} icon={CheckCircle} color="bg-emerald-500" />
-        <KpiCard label="Departed" value="354" icon={Plane} color="bg-amber-500" />
-        <KpiCard label="Hajj Revenue (YTD)" value={fmtM(47520000)} trend={14.4} icon={DollarSign} color="bg-purple-500" />
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <Section title="Applications Pipeline — 2024" className="col-span-2">
-          <ResponsiveContainer width="100%" height={210}>
-            <BarChart data={HAJJ_DATA} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="applications" name="Applications" fill="#0E6BB8" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="approved" name="Approved" fill="#E8471F" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="departed" name="Departed" fill="#0E7C66" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
-        <Section title="Package Mix">
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie data={[
-                { name:"Economy", value:42, fill:"#0E6BB8" },
-                { name:"Standard", value:35, fill:"#E8471F" },
-                { name:"Premium", value:23, fill:"#0E7C66" },
-              ]} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={3}>
-                {[1,2,3].map((_, i) => <Cell key={i} />)}
-              </Pie>
-              <Tooltip formatter={(v: number) => [`${v}%`, ""]} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-1.5">
-            {[
-              { name:"Economy", pct:42, color:"#0E6BB8" },
-              { name:"Standard", pct:35, color:"#E8471F" },
-              { name:"Premium", pct:23, color:"#0E7C66" },
-            ].map(p => (
-              <div key={p.name} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                  <span className="text-slate-600">{p.name}</span>
-                </div>
-                <span className="font-medium text-slate-700">{p.pct}%</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-      <Section title="Monthly Hajj Summary">
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              {["Month","Applications","Approved","Approval %","Departed","Revenue"].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {HAJJ_DATA.map(r => (
-              <tr key={r.month} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-sm font-medium text-slate-700">{r.month} 2024</td>
-                <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{r.applications}</td>
-                <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{r.approved}</td>
-                <td className="py-3 pr-4 text-sm text-slate-600">
-                  <span className={cn("font-medium", r.approved / r.applications > 0.9 ? "text-emerald-600" : "text-amber-600")}>
-                    {Math.round(r.approved / r.applications * 100)}%
-                  </span>
-                </td>
-                <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{r.departed}</td>
-                <td className="py-3 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(r.revenue)}
-                </td>
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50">
+                <td className="py-3 pr-4 text-xs font-bold text-slate-700">Total</td>
+                <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">{d.invoiceCount.toLocaleString()}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.totalRevenue)}</td>
+                <td className="py-3 pr-4 text-xs font-bold text-slate-600">100%</td>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-slate-50">
-              <td className="py-3 pr-4 text-xs font-bold text-slate-700">Total</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">{HAJJ_DATA.reduce((s,r)=>s+r.applications,0)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">{HAJJ_DATA.reduce((s,r)=>s+r.approved,0)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-emerald-600">90%</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">{HAJJ_DATA.reduce((s,r)=>s+r.departed,0)}</td>
-              <td className="py-3 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtC(HAJJ_DATA.reduce((s,r)=>s+r.revenue,0))}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </Section>
-    </div>
+            </tfoot>
+          </table>
+        </Section>
+      </div>
+      )}
+    </ReportState>
   );
 }
 
-// ─── UMRAH REPORT ─────────────────────────────────────────────────────────────
-function UmrahReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  const UMRAH_MONTHLY = MONTHLY_REVENUE.map(m => ({
-    ...m,
-    pilgrims: Math.round(m.bookings * 0.27),
-    revenue: Math.round(m.revenue * 0.27),
-  }));
+// ─── SERVICE REPORT (Hajj / Umrah / Visa / Manpower) ──────────────────────────
+function ServiceReportView({ rf, type, title }: { rf: ReportFilters; type: string; title: string }) {
+  const q = useServiceReport(type, { ...rf, serviceType: type });
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Umrah Pilgrims (YTD)" value="618" trend={12.4} icon={Users} color="bg-[#0E6BB8]" />
-        <KpiCard label="Groups Operated" value="42" trend={9.8} icon={Globe} color="bg-emerald-500" />
-        <KpiCard label="Avg Package Value" value={fmtC(198000)} trend={6.1} icon={DollarSign} color="bg-amber-500" />
-        <KpiCard label="Revenue (YTD)" value={fmtM(12300000)} trend={14.1} icon={TrendingUp} color="bg-purple-500" />
-      </div>
-      <div className="grid grid-cols-2 gap-5">
-        <Section title="Pilgrims by Month">
-          <ResponsiveContainer width="100%" height={210}>
-            <BarChart data={UMRAH_MONTHLY} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="pilgrims" name="Pilgrims" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
-        <Section title="Package Type Distribution">
-          <div className="space-y-4 pt-2">
-            {[
-              { label:"Economy (7N/8D)", count:224, pct:36, price:95000 },
-              { label:"Standard (10N/11D)", count:198, pct:32, price:140000 },
-              { label:"VIP (14N/15D)", count:124, pct:20, price:195000 },
-              { label:"Ramadan Special", count:72, pct:12, price:320000 },
-            ].map(p => (
-              <div key={p.label}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">{p.label}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400">{p.count} pax</span>
-                    <span className="text-xs font-mono text-slate-600">{fmtC(p.price)}</span>
-                    <span className="font-semibold text-slate-800 w-8 text-right">{p.pct}%</span>
+    <ReportState query={q} report={title.toLowerCase()} isEmpty={!!d && d.totalBookings === 0}>
+      {d && (
+      <div className="space-y-5" data-report={`service-${type.toLowerCase()}`}>
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label={`${title} Bookings`} value={d.totalBookings.toLocaleString()} icon={Calendar} color="bg-[#0E6BB8]" />
+          <KpiCard label="Confirmed" value={d.confirmed.toLocaleString()} icon={CheckCircle} color="bg-emerald-500" />
+          <KpiCard label="Travelers" value={d.travelers.toLocaleString()} icon={Users} color="bg-purple-500" />
+          <KpiCard label={`Revenue (${d.applied.label})`} value={fmtM(d.totalRevenue)} icon={DollarSign} color="bg-amber-500" />
+        </div>
+        <div className="grid grid-cols-3 gap-5">
+          <Section title={`${title} Revenue — Monthly`} className="col-span-2">
+            {d.monthly.length === 0 ? <p className="text-sm text-slate-400 py-10 text-center">No {title.toLowerCase()} bookings in range.</p> : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="revenue" name="Revenue" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+            )}
+          </Section>
+          <Section title="Status Breakdown">
+            <div className="space-y-3">
+              {d.byStatus.length === 0 && <p className="text-sm text-slate-400 py-4 text-center">No data.</p>}
+              {d.byStatus.map(s => (
+                <div key={s.status}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-600 capitalize">{s.status.toLowerCase()}</span>
+                    <span className="font-semibold text-slate-800">{s.count}</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-[#0E6BB8]" style={{ width: `${(s.count / Math.max(1, d.totalBookings)) * 100}%` }} />
                   </div>
                 </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width: `${p.pct}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Section>
+        </div>
+        <Section title={`${title} by Branch`}>
+          <table className="w-full min-w-[680px] md:min-w-0">
+            <thead>
+              <tr className="border-b border-slate-100">
+                {["Branch", "Bookings", "Revenue (base)"].map(h => (
+                  <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {d.byBranch.map(b => (
+                <tr key={b.branchId} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="py-3 pr-4 text-sm font-medium text-slate-700">{b.branchName}</td>
+                  <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{b.bookings}</td>
+                  <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(b.revenue)}</td>
+                </tr>
+              ))}
+              {d.byBranch.length === 0 && <tr><td colSpan={3} className="py-6 text-center text-sm text-slate-400">No bookings in range.</td></tr>}
+            </tbody>
+          </table>
         </Section>
       </div>
-    </div>
-  );
-}
-
-// ─── VISA REPORT ──────────────────────────────────────────────────────────────
-function VisaReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  if (loadState === "empty") return <EmptyState report="visa" />;
-  return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Applications" value="1,240" trend={18.4} icon={FileText} color="bg-[#0E6BB8]" />
-        <KpiCard label="Approved" value="980" trend={15.2} icon={CheckCircle} color="bg-emerald-500" />
-        <KpiCard label="Approval Rate" value="79.0%" trend={2.4} icon={TrendingUp} color="bg-blue-500" />
-        <KpiCard label="Visa Revenue (YTD)" value={fmtM(4800000)} trend={8.4} icon={DollarSign} color="bg-amber-500" />
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <Section title="Application Funnel" className="col-span-2">
-          <div className="space-y-3 py-2">
-            {VISA_FUNNEL.map((stage, i) => {
-              const pct = Math.round(stage.value / VISA_FUNNEL[0].value * 100);
-              const dropoff = i > 0 ? VISA_FUNNEL[i-1].value - stage.value : 0;
-              return (
-                <div key={stage.name}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-600 font-medium">{stage.name}</span>
-                    <div className="flex items-center gap-4">
-                      {dropoff > 0 && (
-                        <span className="text-xs text-red-400">−{dropoff} dropped</span>
-                      )}
-                      <span className="font-semibold text-slate-800 font-mono w-12 text-right">{stage.value.toLocaleString()}</span>
-                      <span className="text-xs text-slate-400 w-10 text-right">{pct}%</span>
-                    </div>
-                  </div>
-                  <div className="h-5 bg-slate-100 rounded-md overflow-hidden">
-                    <div className="h-full rounded-md transition-all flex items-center justify-end pr-2"
-                      style={{ width: `${pct}%`, background: stage.fill }}>
-                      {pct > 20 && <span className="text-white text-xs font-semibold">{pct}%</span>}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-        <Section title="By Country">
-          <div className="space-y-2.5">
-            {[
-              { country:"Saudi Arabia", count:540, flag:"🇸🇦" },
-              { country:"UAE", count:210, flag:"🇦🇪" },
-              { country:"Malaysia", count:148, flag:"🇲🇾" },
-              { country:"Qatar", count:92, flag:"🇶🇦" },
-              { country:"Kuwait", count:71, flag:"🇰🇼" },
-              { country:"Others", count:179, flag:"🌐" },
-            ].map(c => (
-              <div key={c.country} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{c.flag}</span>
-                  <span className="text-slate-600">{c.country}</span>
-                </div>
-                <span className="font-semibold text-slate-800 font-mono">{c.count}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-    </div>
-  );
-}
-
-// ─── MANPOWER REPORT ──────────────────────────────────────────────────────────
-function ManpowerReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Workers Placed (YTD)" value="342" trend={22.1} icon={Users} color="bg-[#0E6BB8]" />
-        <KpiCard label="Active Orders" value="28" icon={Briefcase} color="bg-emerald-500" />
-        <KpiCard label="Avg Placement Fee" value={fmtC(85000)} trend={5.2} icon={DollarSign} color="bg-amber-500" />
-        <KpiCard label="Revenue (YTD)" value={fmtM(2940000)} trend={22.1} icon={TrendingUp} color="bg-purple-500" />
-      </div>
-      <div className="grid grid-cols-2 gap-5">
-        <Section title="Placements by Country">
-          <ResponsiveContainer width="100%" height={210}>
-            <BarChart layout="vertical" margin={{ top: 0, right: 10, bottom: 0, left: 70 }}
-              data={[
-                { country:"Saudi Arabia", workers:142 },
-                { country:"UAE", workers:98 },
-                { country:"Qatar", workers:52 },
-                { country:"Kuwait", workers:28 },
-                { country:"Bahrain", workers:22 },
-              ]}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="country" tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Bar dataKey="workers" name="Workers" fill="#0E6BB8" radius={[0, 3, 3, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Section>
-        <Section title="By Category">
-          <div className="space-y-3">
-            {[
-              { cat:"Domestic Workers", count:124, pct:36, color:"#0E6BB8" },
-              { cat:"Construction", count:98, pct:29, color:"#E8471F" },
-              { cat:"Hospitality", count:72, pct:21, color:"#0E7C66" },
-              { cat:"Healthcare", count:48, pct:14, color:"#7C3AED" },
-            ].map(c => (
-              <div key={c.cat}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">{c.cat}</span>
-                  <span className="font-semibold text-slate-800">{c.count} ({c.pct}%)</span>
-                </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${c.pct}%`, background: c.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-    </div>
+      )}
+    </ReportState>
   );
 }
 
 // ─── AGENT REPORT ─────────────────────────────────────────────────────────────
-function AgentReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
+function AgentReport({ rf }: { rf: ReportFilters }) {
+  const q = useAgentsReport(rf);
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Active Agents" value="24" trend={4} icon={Users} color="bg-[#0E6BB8]" />
-        <KpiCard label="Agent Bookings (YTD)" value="555" trend={18} icon={Calendar} color="bg-emerald-500" />
-        <KpiCard label="Total Commission" value={fmtC(1265000)} trend={14.2} icon={DollarSign} color="bg-amber-500" />
-        <KpiCard label="Agent Revenue Share" value="24.3%" trend={2.1} icon={TrendingUp} color="bg-blue-500" />
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <Section title="Top Agents — Revenue" className="col-span-2">
-          <ResponsiveContainer width="100%" height={210}>
-            <BarChart data={AGENT_DATA.slice(0,5)} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
+    <ReportState query={q} report="agent" isEmpty={!!d && d.agents.length === 0}>
+      {d && (
+      <div className="space-y-5" data-report="agents">
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label="Active Agents" value={d.activeAgents.toLocaleString()} icon={Users} color="bg-[#0E6BB8]" />
+          <KpiCard label={`Agent Bookings (${d.applied.label})`} value={d.totalBookings.toLocaleString()} icon={Calendar} color="bg-emerald-500" />
+          <KpiCard label="Total Commission" value={fmtC(d.totalCommission)} icon={DollarSign} color="bg-amber-500" />
+          <KpiCard label="Agent Revenue" value={fmtC(d.totalRevenue)} icon={TrendingUp} color="bg-blue-500" />
+        </div>
+        <Section title="Top Agents — Revenue vs Commission">
+          {d.agents.length === 0 ? <p className="text-sm text-slate-400 py-10 text-center">No agent activity in range.</p> : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={d.agents.slice(0, 6)} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-                tickFormatter={v => `৳${(v/1000000).toFixed(1)}M`} />
+              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<ChartTooltip />} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="revenue" name="Revenue" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
               <Bar dataKey="commission" name="Commission" fill="#E8471F" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </Section>
-        <Section title="Performance Summary">
-          <div className="space-y-3">
-            {AGENT_DATA.map((a, i) => (
-              <div key={a.name} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">{a.name}</p>
-                  <p className="text-xs text-slate-400">{a.bookings} bookings</p>
-                </div>
-                <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full",
-                  a.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")}>
-                  {a.status}
-                </span>
-              </div>
-            ))}
-          </div>
+        <Section title="Agent Detail Report">
+          <table className="w-full min-w-[680px] md:min-w-0">
+            <thead>
+              <tr className="border-b border-slate-100">
+                {["Agent", "Bookings", "Revenue (base)", "Commission (base)", "Status"].map(h => (
+                  <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {d.agents.map(a => (
+                <tr key={a.agentId} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="py-3 pr-4 text-sm font-medium text-slate-700">{a.name}</td>
+                  <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{a.bookings}</td>
+                  <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(a.revenue)}</td>
+                  <td className="py-3 pr-4 text-sm text-amber-600 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(a.commission)}</td>
+                  <td className="py-3">
+                    <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", a.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")}>{a.status}</span>
+                  </td>
+                </tr>
+              ))}
+              {d.agents.length === 0 && <tr><td colSpan={5} className="py-6 text-center text-sm text-slate-400">No agents.</td></tr>}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50">
+                <td className="py-3 pr-4 text-xs font-bold text-slate-700">Total</td>
+                <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">{d.totalBookings}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.totalRevenue)}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-amber-600 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.totalCommission)}</td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
         </Section>
       </div>
-      <Section title="Agent Detail Report">
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              {["Agent","Bookings","Revenue","Commission","Rate","Status"].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {AGENT_DATA.map(a => (
-              <tr key={a.name} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-sm font-medium text-slate-700">{a.name}</td>
-                <td className="py-3 pr-4 text-sm text-slate-600 font-mono">{a.bookings}</td>
-                <td className="py-3 pr-4 text-sm font-semibold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(a.revenue)}
-                </td>
-                <td className="py-3 pr-4 text-sm text-amber-600 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(a.commission)}
-                </td>
-                <td className="py-3 pr-4 text-sm text-slate-600">{a.rate}</td>
-                <td className="py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                    a.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")}>
-                    {a.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-slate-50">
-              <td className="py-3 pr-4 text-xs font-bold text-slate-700">Total</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-700 font-mono">{AGENT_DATA.reduce((s,a)=>s+a.bookings,0)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtC(AGENT_DATA.reduce((s,a)=>s+a.revenue,0))}
-              </td>
-              <td className="py-3 pr-4 text-sm font-bold text-amber-600 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtC(AGENT_DATA.reduce((s,a)=>s+a.commission,0))}
-              </td>
-              <td colSpan={2} />
-            </tr>
-          </tfoot>
-        </table>
-      </Section>
-    </div>
+      )}
+    </ReportState>
   );
 }
 
 // ─── P&L ─────────────────────────────────────────────────────────────────────
-const PNL_ROW_STYLE: Record<string, string> = {
-  "revenue":      "font-semibold text-slate-800",
-  "revenue-sub":  "text-slate-600 pl-4",
-  "expense":      "font-semibold text-slate-800",
-  "expense-sub":  "text-slate-600 pl-4",
-  "total":        "font-bold text-slate-800 bg-blue-50/50",
-  "grand-total":  "font-bold text-[#0E6BB8] bg-[#0E6BB8]/5",
-};
-const PNL_AMOUNT_COLOR: Record<string, string> = {
-  "revenue": "text-emerald-700", "revenue-sub": "text-emerald-600",
-  "expense": "text-red-600", "expense-sub": "text-red-500",
-  "total": "text-slate-800", "grand-total": "text-[#0E6BB8]",
-};
-
-function PnlReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  const netProfit = 4335000;
-  const revenue = 42100000;
+function PnlReport({ rf }: { rf: ReportFilters }) {
+  const q = usePnlReport(rf);
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Revenue (YTD)" value={fmtC(revenue)} trend={14.4} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Total Expenses (YTD)" value={fmtC(37000000)} trend={8.1} icon={TrendingDown} color="bg-red-500" />
-        <KpiCard label="Net Profit (YTD)" value={fmtC(netProfit)} trend={24.4} icon={DollarSign} color="bg-[#0E6BB8]" />
-        <KpiCard label="Net Margin" value="10.3%" trend={2.1} icon={BarChart3} color="bg-amber-500" />
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <Section title="Revenue vs Expense — Monthly" className="col-span-2">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
+    <ReportState query={q} report="P&L" isEmpty={!!d && d.revenue === 0 && d.expense === 0}>
+      {d && (
+      <div className="space-y-5" data-report="pnl">
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label={`Revenue (${d.applied.label})`} value={fmtC(d.revenue)} icon={TrendingUp} color="bg-emerald-500" />
+          <KpiCard label="Expenses" value={fmtC(d.expense)} icon={TrendingDown} color="bg-red-500" />
+          <KpiCard label="Net Profit" value={fmtC(d.netProfit)} icon={DollarSign} color="bg-[#0E6BB8]" />
+          <KpiCard label="Net Margin" value={`${d.netMargin}%`} icon={BarChart3} color="bg-amber-500" />
+        </div>
+        <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2">
+          <CheckCircle size={13} className="text-emerald-500" />
+          Derived from <b>POSTED</b> journal entries only; reversed entries net to zero.
+        </div>
+        <Section title={`Revenue vs Expense — ${d.applied.label}`}>
+          {d.monthly.length === 0 ? <p className="text-sm text-slate-400 py-10 text-center">No posted journal activity in range.</p> : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-                tickFormatter={v => `৳${(v/1000000).toFixed(0)}M`} />
+              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="revenue" name="Revenue" fill="#0E7C66" radius={[3, 3, 0, 0]} />
               <Bar dataKey="expense" name="Expense" fill="#EF4444" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </Section>
-        <Section title="Profit Margin">
-          <div className="pt-2 space-y-4">
-            {[
-              { label:"Gross Margin", value:29.2, color:"#0E7C66" },
-              { label:"EBIT Margin", value:12.1, color:"#0E6BB8" },
-              { label:"Net Margin", value:10.3, color:"#E8471F" },
-            ].map(m => (
-              <div key={m.label}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">{m.label}</span>
-                  <span className="font-bold" style={{ color: m.color }}>{m.value}%</span>
-                </div>
-                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${m.value * 3}%`, background: m.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
+        <Section title={`Profit & Loss — ${d.applied.label}`}>
+          <table className="w-full min-w-[480px] md:min-w-0">
+            <tbody>
+              <tr className="border-b border-slate-100"><td className="py-2.5 text-sm font-bold text-slate-800" colSpan={2}>Revenue</td></tr>
+              {d.revenueLines.map(l => (
+                <tr key={l.code} className="border-b border-slate-50">
+                  <td className="py-2 pl-6 text-sm text-slate-600">{l.name}</td>
+                  <td className="py-2 pr-2 text-sm text-right font-mono text-emerald-700" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(l.amount)}</td>
+                </tr>
+              ))}
+              <tr className="border-b border-slate-200 bg-emerald-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Revenue</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-emerald-700">{fmtC(d.revenue)}</td></tr>
+              <tr className="border-b border-slate-100"><td className="py-2.5 text-sm font-bold text-slate-800 pt-4" colSpan={2}>Expenses</td></tr>
+              {d.expenseLines.map(l => (
+                <tr key={l.code} className="border-b border-slate-50">
+                  <td className="py-2 pl-6 text-sm text-slate-600">{l.name}</td>
+                  <td className="py-2 pr-2 text-sm text-right font-mono text-red-600" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(l.amount)}</td>
+                </tr>
+              ))}
+              <tr className="border-b border-slate-200 bg-red-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Expenses</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-red-600">{fmtC(d.expense)}</td></tr>
+              <tr className="bg-[#0E6BB8]/5"><td className="py-3 text-sm font-bold text-[#0E6BB8]">Net Profit</td><td className="py-3 pr-2 text-sm text-right font-bold font-mono text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.netProfit)}</td></tr>
+            </tbody>
+          </table>
         </Section>
       </div>
-      <Section title="Profit & Loss Statement — Year to Date 2024">
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-200">
-              <th className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">Account</th>
-              <th className="text-right text-xs font-medium text-slate-500 pb-3 pr-4">Q1 2024</th>
-              <th className="text-right text-xs font-medium text-slate-500 pb-3 pr-4">Q2 2024</th>
-              <th className="text-right text-xs font-medium text-slate-500 pb-3 pr-4">YTD 2024</th>
-              <th className="text-right text-xs font-medium text-slate-500 pb-3 pr-4">YTD 2023</th>
-              <th className="text-right text-xs font-medium text-slate-500 pb-3">Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            {PNL_DATA.map((row, i) => {
-              const change = ((row.ytd - row.prev) / row.prev * 100).toFixed(1);
-              const isPos = parseFloat(change) >= 0;
-              const isRevenue = row.type.startsWith("revenue");
-              return (
-                <tr key={i} className={cn("border-b border-slate-50 hover:bg-slate-50/50", PNL_ROW_STYLE[row.type])}>
-                  <td className={cn("py-2.5 pr-4 text-sm", row.type.includes("sub") ? "pl-6 text-slate-600" : "text-slate-800")}>
-                    {row.category}
-                  </td>
-                  <td className={cn("py-2.5 pr-4 text-sm text-right font-mono", PNL_AMOUNT_COLOR[row.type])}
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {fmtC(row.q1)}
-                  </td>
-                  <td className={cn("py-2.5 pr-4 text-sm text-right font-mono", PNL_AMOUNT_COLOR[row.type])}
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {fmtC(row.q2)}
-                  </td>
-                  <td className={cn("py-2.5 pr-4 text-sm text-right font-bold font-mono", PNL_AMOUNT_COLOR[row.type])}
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {fmtC(row.ytd)}
-                  </td>
-                  <td className="py-2.5 pr-4 text-sm text-right text-slate-400 font-mono"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {fmtC(row.prev)}
-                  </td>
-                  <td className="py-2.5 text-right">
-                    <span className={cn("text-xs font-medium flex items-center justify-end gap-0.5",
-                      (isPos && isRevenue) || (!isPos && !isRevenue) ? "text-emerald-600" : "text-red-500")}>
-                      {isPos ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
-                      {Math.abs(parseFloat(change))}%
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Section>
-    </div>
+      )}
+    </ReportState>
   );
 }
 
 // ─── BALANCE SHEET ────────────────────────────────────────────────────────────
-function BalanceSheetReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  const totalAssets = BALANCE_SHEET.assets.reduce((s, a) => s + a.current, 0);
-  const totalLiabilities = BALANCE_SHEET.liabilities.reduce((s, l) => s + l.current, 0);
-  const totalEquity = BALANCE_SHEET.equity.reduce((s, e) => s + e.current, 0);
+function BalanceSheetReport({ rf }: { rf: ReportFilters }) {
+  const q = useBalanceSheet(rf);
+  const d = q.data;
+  const tbl = (title: string, rows: { code: string; name: string; balance: number }[], total: number, totalColor: string) => (
+    <Section title={title}>
+      <table className="w-full min-w-[280px] md:min-w-0">
+        <tbody>
+          {rows.map(a => (
+            <tr key={a.code} className="border-b border-slate-50">
+              <td className="py-2 text-xs text-slate-600">{a.name}</td>
+              <td className="py-2 text-xs text-right font-mono text-slate-800">{fmtC(a.balance)}</td>
+            </tr>
+          ))}
+          {rows.length === 0 && <tr><td colSpan={2} className="py-4 text-center text-xs text-slate-400">No balances.</td></tr>}
+        </tbody>
+        <tfoot>
+          <tr className="border-t border-slate-200"><td className="py-2 text-xs font-bold text-slate-800">Total</td><td className={cn("py-2 text-xs font-bold text-right font-mono", totalColor)}>{fmtC(total)}</td></tr>
+        </tfoot>
+      </table>
+    </Section>
+  );
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Assets" value={fmtC(totalAssets)} icon={Layers} color="bg-[#0E6BB8]" />
-        <KpiCard label="Total Liabilities" value={fmtC(totalLiabilities)} icon={AlertTriangle} color="bg-red-500" />
-        <KpiCard label="Total Equity" value={fmtC(totalEquity)} trend={74.2} icon={TrendingUp} color="bg-emerald-500" />
+    <ReportState query={q} report="balance sheet" isEmpty={!!d && d.totalAssets === 0 && d.totalLiabilities === 0 && d.totalEquity === 0}>
+      {d && (
+      <div className="space-y-5" data-report="balance-sheet">
+        <div className="grid grid-cols-3 gap-4">
+          <KpiCard label="Total Assets" value={fmtC(d.totalAssets)} icon={Layers} color="bg-[#0E6BB8]" />
+          <KpiCard label="Total Liabilities" value={fmtC(d.totalLiabilities)} icon={AlertTriangle} color="bg-red-500" />
+          <KpiCard label="Total Equity" value={fmtC(d.totalEquity)} icon={TrendingUp} color="bg-emerald-500" />
+        </div>
+        <div className={cn("flex items-center gap-2 text-xs rounded-lg px-3 py-2 border", d.balanced ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700")}>
+          {d.balanced ? <CheckCircle size={13} /> : <AlertTriangle size={13} />}
+          {d.balanced
+            ? `Balanced: Assets ${fmtC(d.totalAssets)} = Liabilities ${fmtC(d.totalLiabilities)} + Equity ${fmtC(d.totalEquity)} (incl. retained earnings ${fmtC(d.retainedEarnings)}).`
+            : `Out of balance by ${fmtC(d.imbalance)}.`}
+        </div>
+        <div className="grid grid-cols-3 gap-5">
+          {tbl("Assets", d.assets, d.totalAssets, "text-[#0E6BB8]")}
+          {tbl("Liabilities", d.liabilities, d.totalLiabilities, "text-red-600")}
+          {tbl("Equity", d.equity, d.totalEquity, "text-emerald-700")}
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-5">
-        {/* Asset composition */}
-        <Section title="Asset Composition">
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie data={BALANCE_SHEET.assets} dataKey="current" nameKey="name"
-                cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2}>
-                {BALANCE_SHEET.assets.map((_, i) => (
-                  <Cell key={i} fill={["#0E6BB8","#1d4ed8","#0E7C66","#E8471F","#7C3AED","#94A3B8"][i]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v: number) => [fmtC(v), ""]} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="grid grid-cols-2 gap-1.5 mt-2">
-            {BALANCE_SHEET.assets.map((a, i) => (
-              <div key={a.name} className="flex items-center gap-1.5 text-xs">
-                <div className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ background: ["#0E6BB8","#1d4ed8","#0E7C66","#E8471F","#7C3AED","#94A3B8"][i] }} />
-                <span className="text-slate-500 truncate">{a.name}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-        {/* Funding structure */}
-        <Section title="Funding Structure">
-          <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex mb-3">
-            <div className="h-full bg-red-400 rounded-l-full" style={{ width: `${(totalLiabilities / totalAssets * 100).toFixed(0)}%` }} />
-            <div className="h-full bg-[#0E6BB8] rounded-r-full flex-1" />
-          </div>
-          <div className="flex justify-between text-xs text-slate-500 mb-5">
-            <span>Liabilities {(totalLiabilities / totalAssets * 100).toFixed(0)}%</span>
-            <span>Equity {(totalEquity / totalAssets * 100).toFixed(0)}%</span>
-          </div>
-          <div className="space-y-2">
-            {[
-              { label:"Debt-to-Equity", value:(totalLiabilities/totalEquity).toFixed(2) },
-              { label:"Current Ratio", value:"1.84" },
-              { label:"Asset Turnover", value:"1.23×" },
-              { label:"Return on Equity", value:"21.7%" },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-semibold text-slate-800 font-mono">{value}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        {/* Assets */}
-        <Section title="Assets">
-          <table className="w-full min-w-[680px] md:min-w-0">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left text-xs font-medium text-slate-500 pb-2">Item</th>
-                <th className="text-right text-xs font-medium text-slate-500 pb-2">Current</th>
-                <th className="text-right text-xs font-medium text-slate-500 pb-2">Prior</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BALANCE_SHEET.assets.map(a => (
-                <tr key={a.name} className="border-b border-slate-50">
-                  <td className="py-2 text-xs text-slate-600">{a.name}</td>
-                  <td className="py-2 text-xs text-right font-mono text-slate-800">{fmtC(a.current)}</td>
-                  <td className="py-2 text-xs text-right font-mono text-slate-400">{fmtC(a.prior)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-slate-200">
-                <td className="py-2 text-xs font-bold text-slate-800">Total Assets</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-[#0E6BB8]">{fmtC(totalAssets)}</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-slate-400">
-                  {fmtC(BALANCE_SHEET.assets.reduce((s,a)=>s+a.prior,0))}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </Section>
-        {/* Liabilities */}
-        <Section title="Liabilities">
-          <table className="w-full min-w-[680px] md:min-w-0">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left text-xs font-medium text-slate-500 pb-2">Item</th>
-                <th className="text-right text-xs font-medium text-slate-500 pb-2">Current</th>
-                <th className="text-right text-xs font-medium text-slate-500 pb-2">Prior</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BALANCE_SHEET.liabilities.map(l => (
-                <tr key={l.name} className="border-b border-slate-50">
-                  <td className="py-2 text-xs text-slate-600">{l.name}</td>
-                  <td className="py-2 text-xs text-right font-mono text-slate-800">{fmtC(l.current)}</td>
-                  <td className="py-2 text-xs text-right font-mono text-slate-400">{fmtC(l.prior)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-slate-200">
-                <td className="py-2 text-xs font-bold text-slate-800">Total Liabilities</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-red-600">{fmtC(totalLiabilities)}</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-slate-400">
-                  {fmtC(BALANCE_SHEET.liabilities.reduce((s,l)=>s+l.prior,0))}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </Section>
-        {/* Equity */}
-        <Section title="Equity">
-          <table className="w-full min-w-[680px] md:min-w-0">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left text-xs font-medium text-slate-500 pb-2">Item</th>
-                <th className="text-right text-xs font-medium text-slate-500 pb-2">Current</th>
-                <th className="text-right text-xs font-medium text-slate-500 pb-2">Prior</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BALANCE_SHEET.equity.map(e => (
-                <tr key={e.name} className="border-b border-slate-50">
-                  <td className="py-2 text-xs text-slate-600">{e.name}</td>
-                  <td className="py-2 text-xs text-right font-mono text-slate-800">{fmtC(e.current)}</td>
-                  <td className="py-2 text-xs text-right font-mono text-slate-400">{fmtC(e.prior)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-slate-200">
-                <td className="py-2 text-xs font-bold text-slate-800">Total Equity</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-emerald-700">{fmtC(totalEquity)}</td>
-                <td className="py-2 text-xs font-bold text-right font-mono text-slate-400">
-                  {fmtC(BALANCE_SHEET.equity.reduce((s,e)=>s+e.prior,0))}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-          <div className="mt-4 pt-4 border-t-2 border-slate-300">
-            <div className="flex justify-between text-sm font-bold">
-              <span className="text-slate-800">Liabilities + Equity</span>
-              <span className="font-mono text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                {fmtC(totalLiabilities + totalEquity)}
-              </span>
-            </div>
-          </div>
-        </Section>
-      </div>
-    </div>
+      )}
+    </ReportState>
   );
 }
 
 // ─── CASH FLOW ────────────────────────────────────────────────────────────────
-function CashFlowReport({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
-  if (loadState === "loading") return <LoadingSkeleton />;
-  const totalOp = CASHFLOW_DATA.reduce((s,m)=>s+m.operating,0);
-  const totalInv = CASHFLOW_DATA.reduce((s,m)=>s+m.investing,0);
-  const totalFin = CASHFLOW_DATA.reduce((s,m)=>s+m.financing,0);
-  const netChange = totalOp + totalInv + totalFin;
+function CashFlowReport({ rf }: { rf: ReportFilters }) {
+  const q = useCashFlow(rf);
+  const d = q.data;
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Operating Cash Flow" value={fmtC(totalOp)} trend={18.4} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Investing Cash Flow" value={fmtC(Math.abs(totalInv))} icon={TrendingDown} color="bg-red-500" />
-        <KpiCard label="Financing Cash Flow" value={fmtC(Math.abs(totalFin))} icon={DollarSign} color="bg-amber-500" />
-        <KpiCard label="Net Cash Change" value={fmtC(netChange)} trend={12.1} icon={BarChart3} color="bg-[#0E6BB8]" />
-      </div>
-      <Section title="Cash Flow by Category — Monthly">
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={CASHFLOW_DATA} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-              tickFormatter={v => `৳${(v/1000000).toFixed(1)}M`} />
-            <Tooltip content={<ChartTooltip />} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Bar dataKey="operating" name="Operating" fill="#0E7C66" radius={[3,3,0,0]} />
-            <Bar dataKey="investing" name="Investing" fill="#EF4444" radius={[3,3,0,0]} />
-            <Bar dataKey="financing" name="Financing" fill="#E8471F" radius={[3,3,0,0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </Section>
-      <Section title="Cash Flow Statement — Year to Date">
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              <th className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">Month</th>
-              {["Operating","Investing","Financing","Net Change","Running Balance"].map(h => (
-                <th key={h} className="text-right text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {CASHFLOW_DATA.reduce((acc: any[], m, i) => {
-              const net = m.operating + m.investing + m.financing;
-              const prev = acc[i - 1]?.balance ?? 14200000;
-              return [...acc, { ...m, net, balance: prev + net }];
-            }, []).map(row => (
-              <tr key={row.month} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-sm font-medium text-slate-700">{row.month} 2024</td>
-                <td className={cn("py-3 pr-4 text-sm text-right font-mono", row.operating > 0 ? "text-emerald-600" : "text-red-500")}
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.operating > 0 ? "+" : ""}{fmtC(row.operating)}
-                </td>
-                <td className="py-3 pr-4 text-sm text-right font-mono text-red-500"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(row.investing)}
-                </td>
-                <td className={cn("py-3 pr-4 text-sm text-right font-mono", row.financing > 0 ? "text-emerald-600" : "text-amber-600")}
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.financing > 0 ? "+" : ""}{fmtC(row.financing)}
-                </td>
-                <td className={cn("py-3 pr-4 text-sm text-right font-bold font-mono", row.net > 0 ? "text-emerald-700" : "text-red-600")}
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {row.net > 0 ? "+" : ""}{fmtC(row.net)}
-                </td>
-                <td className="py-3 text-sm text-right font-mono font-semibold text-slate-800"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(row.balance)}
-                </td>
+    <ReportState query={q} report="cash flow" isEmpty={!!d && d.monthly.length === 0}>
+      {d && (
+      <div className="space-y-5" data-report="cashflow">
+        <div className="grid grid-cols-4 gap-4">
+          <KpiCard label="Operating" value={fmtC(d.totalOperating)} icon={TrendingUp} color="bg-emerald-500" />
+          <KpiCard label="Investing" value={fmtC(d.totalInvesting)} icon={TrendingDown} color="bg-red-500" />
+          <KpiCard label="Financing" value={fmtC(d.totalFinancing)} icon={DollarSign} color="bg-amber-500" />
+          <KpiCard label="Net Cash Change" value={fmtC(d.netChange)} icon={BarChart3} color="bg-[#0E6BB8]" />
+        </div>
+        <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">{d.note}</div>
+        <Section title={`Cash Flow — ${d.applied.label}`}>
+          {d.monthly.length === 0 ? <p className="text-sm text-slate-400 py-10 text-center">No cash movement in range.</p> : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
+              <Tooltip content={<ChartTooltip />} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar dataKey="operating" name="Operating" fill="#0E7C66" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="investing" name="Investing" fill="#EF4444" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="financing" name="Financing" fill="#E8471F" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+          )}
+        </Section>
+        <Section title="Cash Flow Statement">
+          <table className="w-full min-w-[680px] md:min-w-0">
+            <thead>
+              <tr className="border-b border-slate-100">
+                <th className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">Month</th>
+                {["Operating", "Investing", "Financing", "Net", "Running Balance"].map(h => (
+                  <th key={h} className="text-right text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="bg-slate-50 border-t border-slate-200">
-              <td className="py-3 pr-4 text-xs font-bold text-slate-800">YTD Total</td>
-              <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-emerald-700">{fmtC(totalOp)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-red-600">{fmtC(totalInv)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-amber-600">{fmtC(totalFin)}</td>
-              <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-[#0E6BB8]">{fmtC(netChange)}</td>
-              <td className="py-3 text-sm font-bold text-right font-mono text-[#0E6BB8]">{fmtC(18250000)}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </Section>
-    </div>
+            </thead>
+            <tbody>
+              {d.monthly.map(m => (
+                <tr key={m.ym} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="py-3 pr-4 text-sm font-medium text-slate-700">{m.month}</td>
+                  <td className="py-3 pr-4 text-sm text-right font-mono text-emerald-600" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(m.operating)}</td>
+                  <td className="py-3 pr-4 text-sm text-right font-mono text-red-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(m.investing)}</td>
+                  <td className="py-3 pr-4 text-sm text-right font-mono text-amber-600" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(m.financing)}</td>
+                  <td className={cn("py-3 pr-4 text-sm text-right font-bold font-mono", m.net >= 0 ? "text-emerald-700" : "text-red-600")} style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(m.net)}</td>
+                  <td className="py-3 pr-4 text-sm text-right font-mono font-semibold text-slate-800" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(m.balance)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50 border-t border-slate-200">
+                <td className="py-3 pr-4 text-xs font-bold text-slate-800">Total</td>
+                <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-emerald-700">{fmtC(d.totalOperating)}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-red-600">{fmtC(d.totalInvesting)}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-amber-600">{fmtC(d.totalFinancing)}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-[#0E6BB8]">{fmtC(d.netChange)}</td>
+                <td className="py-3 pr-4" />
+              </tr>
+            </tfoot>
+          </table>
+        </Section>
+      </div>
+      )}
+    </ReportState>
   );
 }
 
@@ -1457,7 +915,7 @@ const SAVED_REPORTS = [
   { name:"Overdue Payments Alert", schedule:"Daily", lastRun:"Jul 14", format:"Email" },
 ];
 
-function CustomReports({ filters, loadState }: { filters: Filters; loadState: LoadState }) {
+function CustomReports() {
   const [fields, setFields] = useState(["Date","Customer","Service","Branch","Amount","Status"]);
   const [drag, setDrag] = useState<string | null>(null);
   const AVAILABLE = ["Date","Booking ID","Customer","Phone","Service","Branch","Agent","Amount","Paid","Balance","Status","Departure","Notes"];
@@ -1579,9 +1037,19 @@ function CustomReports({ filters, loadState }: { filters: Filters; loadState: Lo
 }
 
 // ─── Main Module ──────────────────────────────────────────────────────────────
+const SERVICE_ENUM: Record<string, string | undefined> = {
+  hajj: "HAJJ", umrah: "UMRAH", visa: "VISA", "air-ticket": "AIR_TICKET", manpower: "MANPOWER", tour: "TOUR",
+};
+// which CSV export each report view maps to (endpoint supports sales/bookings/agents/pnl)
+const EXPORT_FOR: Record<ReportView, "sales" | "bookings" | "agents" | "pnl" | null> = {
+  overview: "bookings", bookings: "bookings", sales: "sales", agents: "agents",
+  hajj: "bookings", umrah: "bookings", visa: "bookings", manpower: "bookings",
+  pnl: "pnl", "balance-sheet": "pnl", cashflow: "pnl", custom: null,
+};
+
 export function ReportsModule() {
   const [view, setView] = useState<ReportView>("overview");
-  const [loadState, setLoadState] = useState<LoadState>("loaded");
+  const { data: branches } = useBranches();
   const [filters, setFilters] = useState<Filters>({
     dateRange: "ytd",
     branch: "all",
@@ -1589,20 +1057,22 @@ export function ReportsModule() {
     agent: "all",
   });
 
-  const updateFilters = (partial: Partial<Filters>) => {
-    setLoadState("loading");
-    setFilters(prev => ({ ...prev, ...partial }));
-    setTimeout(() => setLoadState("loaded"), 900);
+  // map the UI filters onto the backend report query
+  const rf: ReportFilters = {
+    range: filters.dateRange === "custom" ? "ytd" : filters.dateRange,
+    branchId: filters.branch,
+    serviceType: SERVICE_ENUM[filters.service],
+    agentId: filters.agent !== "all" ? filters.agent : undefined,
   };
 
-  const handleViewChange = (v: ReportView) => {
-    setLoadState("loading");
-    setView(v);
-    setTimeout(() => setLoadState("loaded"), 700);
-  };
+  const updateFilters = (partial: Partial<Filters>) => setFilters(prev => ({ ...prev, ...partial }));
+  const handleViewChange = (v: ReportView) => setView(v);
 
   const handleExport = (type: "pdf" | "excel") => {
-    // UI-only: would trigger download
+    if (type === "pdf") { toast.info("PDF export is deferred — use Excel/CSV for now."); return; }
+    const report = EXPORT_FOR[view];
+    if (!report) { toast.info("This view has no tabular export."); return; }
+    void downloadReport(report, rf);
   };
 
   const REPORT_TITLES: Record<ReportView, { title: string; subtitle: string }> = {
@@ -1623,20 +1093,19 @@ export function ReportsModule() {
   const { title, subtitle } = REPORT_TITLES[view];
 
   const renderReport = () => {
-    const props = { filters, loadState };
     switch (view) {
-      case "overview":        return <OverviewReport {...props} />;
-      case "bookings":        return <BookingReport {...props} />;
-      case "sales":           return <SalesReport {...props} />;
-      case "hajj":            return <HajjReport {...props} />;
-      case "umrah":           return <UmrahReport {...props} />;
-      case "visa":            return <VisaReport {...props} />;
-      case "manpower":        return <ManpowerReport {...props} />;
-      case "agents":          return <AgentReport {...props} />;
-      case "pnl":             return <PnlReport {...props} />;
-      case "balance-sheet":   return <BalanceSheetReport {...props} />;
-      case "cashflow":        return <CashFlowReport {...props} />;
-      case "custom":          return <CustomReports {...props} />;
+      case "overview":        return <OverviewReport rf={rf} />;
+      case "bookings":        return <BookingReport rf={rf} />;
+      case "sales":           return <SalesReport rf={rf} />;
+      case "hajj":            return <ServiceReportView rf={rf} type="HAJJ" title="Hajj" />;
+      case "umrah":           return <ServiceReportView rf={rf} type="UMRAH" title="Umrah" />;
+      case "visa":            return <ServiceReportView rf={rf} type="VISA" title="Visa" />;
+      case "manpower":        return <ServiceReportView rf={rf} type="MANPOWER" title="Manpower" />;
+      case "agents":          return <AgentReport rf={rf} />;
+      case "pnl":             return <PnlReport rf={rf} />;
+      case "balance-sheet":   return <BalanceSheetReport rf={rf} />;
+      case "cashflow":        return <CashFlowReport rf={rf} />;
+      case "custom":          return <CustomReports />;
       default:                return null;
     }
   };
@@ -1668,10 +1137,10 @@ export function ReportsModule() {
 
         {/* Quick export strip */}
         <div className="p-3 border-t border-slate-100 space-y-1.5">
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">
+          <button onClick={() => handleExport("pdf")} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">
             <Printer size={12} /> Export current as PDF
           </button>
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
+          <button onClick={() => handleExport("excel")} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
             <Download size={12} /> Export as Excel
           </button>
         </div>
@@ -1682,9 +1151,10 @@ export function ReportsModule() {
         <div className="p-6">
           <FilterBar
             filters={filters}
+            branches={branches ?? []}
             onChange={updateFilters}
             onExport={handleExport}
-            onRefresh={() => updateFilters({})}
+            onRefresh={() => setFilters(prev => ({ ...prev }))}
             title={title}
             subtitle={subtitle}
           />
