@@ -53,7 +53,28 @@ const BRANCHES = [
   { id: "brn_khl", code: "KHL", name: "Khulna Branch", city: "Khulna", isHq: false, address: "KDA Avenue, Khulna-9100", phone: "+880 41 720145", email: "khulna@smtravel.com.bd" },
 ];
 
-async function main() {
+
+// ── shared helper: link a user to an RBAC role (used by both phases) ─────────
+let _roleByKey: Record<string, string> | null = null;
+async function linkRole(userId: string, roleKey: string): Promise<void> {
+  _roleByKey ??= Object.fromEntries((await prisma.role.findMany()).map((r) => [r.key, r.id]));
+  const roleId = _roleByKey[roleKey];
+  if (roleId) {
+    await prisma.userRoleLink.upsert({
+      where: { userId_roleId: { userId, roleId } },
+      create: { userId, roleId },
+      update: {},
+    });
+  }
+}
+
+/**
+ * STRUCTURAL seed — the only phase production runs. Master/reference data a
+ * fresh install needs to operate: company, branches, RBAC, commission tiers,
+ * services, chart of accounts, bank accounts. Idempotent (stable-id upserts).
+ * NO users, NO sample transactions, NO demo credentials.
+ */
+async function seedStructural() {
   // 1) Company (singleton)
   await prisma.company.upsert({
     where: { id: COMPANY_ID },
@@ -96,47 +117,6 @@ async function main() {
       });
     }
   }
-  const roleByKey = Object.fromEntries((await prisma.role.findMany()).map((r) => [r.key, r.id]));
-
-  const linkRole = async (userId: string, roleKey: string) => {
-    const roleId = roleByKey[roleKey];
-    if (roleId) {
-      await prisma.userRoleLink.upsert({
-        where: { userId_roleId: { userId, roleId } },
-        create: { userId, roleId },
-        update: {},
-      });
-    }
-  };
-
-  // 5) One demo user per role, linked to the matching RBAC role
-  for (const role of Object.values(UserRole)) {
-    const email = `${role.toLowerCase()}@smtravel.com.bd`;
-    const uid = `usr_${role.toLowerCase()}`;
-    const u = await prisma.user.upsert({
-      where: { id: uid },
-      create: {
-        id: uid, email, name: `Demo ${role.replace(/_/g, " ")}`, role,
-        passwordHash: hashPw(DEMO_PW, email), branchId: "brn_dhaka", status: "active",
-      },
-      update: { name: `Demo ${role.replace(/_/g, " ")}`, role, branchId: "brn_dhaka" },
-    });
-    await linkRole(u.id, role);
-  }
-
-  // 5b) An extra BRANCH_MANAGER in Chittagong so branch scoping can be proven
-  //     across two branches (Dhaka users vs this CTG user).
-  const ctgEmail = "ctg.manager@smtravel.com.bd";
-  const ctgUser = await prisma.user.upsert({
-    where: { id: "usr_ctg_manager" },
-    create: {
-      id: "usr_ctg_manager", email: ctgEmail, name: "Demo CTG Manager", role: UserRole.BRANCH_MANAGER,
-      passwordHash: hashPw(DEMO_PW, ctgEmail), branchId: "brn_ctg", status: "active",
-    },
-    update: { name: "Demo CTG Manager", role: UserRole.BRANCH_MANAGER, branchId: "brn_ctg" },
-  });
-  await linkRole(ctgUser.id, UserRole.BRANCH_MANAGER);
-
   // 6) Commission tiers (volume-driven)
   const tiers: { tier: AgentTier; rate: number; min: number; max: number | null }[] = [
     { tier: "SILVER", rate: 3, min: 0, max: 9 },
@@ -168,6 +148,98 @@ async function main() {
       update: { name: s.name, type: s.type, refPrefix: s.prefix },
     });
   }
+
+  // 11) Chart of Accounts (company-wide) — headers + detail accounts by code.
+  const COA: { code: string; name: string; parent?: string; cls: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"; role: "HEADER" | "DETAIL" }[] = [
+    { code: "1000", name: "Assets", cls: "ASSET", role: "HEADER" },
+    { code: "1100", name: "Current Assets", parent: "1000", cls: "ASSET", role: "HEADER" },
+    { code: "1110", name: "Cash in Hand", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1120", name: "Dutch-Bangla Bank – Current", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1200", name: "Accounts Receivable", parent: "1000", cls: "ASSET", role: "DETAIL" },
+    { code: "2000", name: "Liabilities", cls: "LIABILITY", role: "HEADER" },
+    { code: "2100", name: "Accounts Payable", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
+    { code: "2200", name: "Advance from Customers", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
+    { code: "3000", name: "Equity", cls: "EQUITY", role: "HEADER" },
+    { code: "3100", name: "Owner Capital", parent: "3000", cls: "EQUITY", role: "DETAIL" },
+    { code: "4000", name: "Revenue", cls: "REVENUE", role: "HEADER" },
+    { code: "4100", name: "Hajj Package Revenue", parent: "4000", cls: "REVENUE", role: "DETAIL" },
+    { code: "4200", name: "Umrah Package Revenue", parent: "4000", cls: "REVENUE", role: "DETAIL" },
+    { code: "5000", name: "Expenses", cls: "EXPENSE", role: "HEADER" },
+    { code: "5100", name: "Airline Costs", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
+    { code: "5200", name: "Salaries & Wages", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
+  ];
+  const normalBalanceFor = (cls: string) => (cls === "ASSET" || cls === "EXPENSE" ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT";
+  const acctIdByCode: Record<string, string> = {};
+  for (const a of COA) {
+    const row = await prisma.account.upsert({
+      where: { code: a.code },
+      create: { code: a.code, name: a.name, accountClass: a.cls, role: a.role, normalBalance: normalBalanceFor(a.cls), parentId: a.parent ? acctIdByCode[a.parent] : null },
+      update: { name: a.name, parentId: a.parent ? acctIdByCode[a.parent] : null },
+    });
+    acctIdByCode[a.code] = row.id;
+  }
+  // 12) A couple of bank accounts linked to COA cash/bank accounts.
+  await prisma.bankAccount.upsert({
+    where: { id: "bank_dbbl" },
+    create: { id: "bank_dbbl", name: "Dutch-Bangla Bank Ltd.", bankName: "DBBL", type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Agrabad", currency: "BDT", coaAccountId: acctIdByCode["1120"], balance: 12400000 },
+    update: { name: "Dutch-Bangla Bank Ltd." },
+  });
+  await prisma.bankAccount.upsert({
+    where: { id: "bank_cash" },
+    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000 },
+    update: { name: "Cash in Hand" },
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // REPORT DATA — realistic distribution so the Reports module reconciles and
+  // mixed-currency aggregation (baseAmount) is actually exercised. All amounts
+  // in baseAmount (BDT); non-BDT rows carry a real exchangeRate. Idempotent.
+  // USD→120, SAR→32 exchange rates.
+  // ══════════════════════════════════════════════════════════════════════════
+  const dt = (s: string) => new Date(`${s}T00:00:00.000Z`);
+
+  console.log("[seed] structural done.");
+}
+
+/**
+ * DEMO seed — sample users/bookings/invoices/leads for dev & staging ONLY.
+ * Every account here uses the shared DEMO_PW; that must never exist on a
+ * public URL, so this phase HARD-REFUSES to run in production.
+ */
+async function seedDemo() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "seedDemo() refused: NODE_ENV=production. Demo users (shared password) must never be seeded on production. " +
+      "Production runs seedStructural() only; create the real admin with prisma/create-admin.ts.",
+    );
+  }
+  // 5) One demo user per role, linked to the matching RBAC role
+  for (const role of Object.values(UserRole)) {
+    const email = `${role.toLowerCase()}@smtravel.com.bd`;
+    const uid = `usr_${role.toLowerCase()}`;
+    const u = await prisma.user.upsert({
+      where: { id: uid },
+      create: {
+        id: uid, email, name: `Demo ${role.replace(/_/g, " ")}`, role,
+        passwordHash: hashPw(DEMO_PW, email), branchId: "brn_dhaka", status: "active",
+      },
+      update: { name: `Demo ${role.replace(/_/g, " ")}`, role, branchId: "brn_dhaka" },
+    });
+    await linkRole(u.id, role);
+  }
+
+  // 5b) An extra BRANCH_MANAGER in Chittagong so branch scoping can be proven
+  //     across two branches (Dhaka users vs this CTG user).
+  const ctgEmail = "ctg.manager@smtravel.com.bd";
+  const ctgUser = await prisma.user.upsert({
+    where: { id: "usr_ctg_manager" },
+    create: {
+      id: "usr_ctg_manager", email: ctgEmail, name: "Demo CTG Manager", role: UserRole.BRANCH_MANAGER,
+      passwordHash: hashPw(DEMO_PW, ctgEmail), branchId: "brn_ctg", status: "active",
+    },
+    update: { name: "Demo CTG Manager", role: UserRole.BRANCH_MANAGER, branchId: "brn_ctg" },
+  });
+  await linkRole(ctgUser.id, UserRole.BRANCH_MANAGER);
 
   // 8) Sample packages (BDT: exchangeRate=1, baseAmount=basePrice)
   const packages = [
@@ -233,55 +305,6 @@ async function main() {
     create: { location: "MAIN_NAV", name: "Primary Navigation" },
     update: { name: "Primary Navigation" },
   });
-
-  // 11) Chart of Accounts (company-wide) — headers + detail accounts by code.
-  const COA: { code: string; name: string; parent?: string; cls: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"; role: "HEADER" | "DETAIL" }[] = [
-    { code: "1000", name: "Assets", cls: "ASSET", role: "HEADER" },
-    { code: "1100", name: "Current Assets", parent: "1000", cls: "ASSET", role: "HEADER" },
-    { code: "1110", name: "Cash in Hand", parent: "1100", cls: "ASSET", role: "DETAIL" },
-    { code: "1120", name: "Dutch-Bangla Bank – Current", parent: "1100", cls: "ASSET", role: "DETAIL" },
-    { code: "1200", name: "Accounts Receivable", parent: "1000", cls: "ASSET", role: "DETAIL" },
-    { code: "2000", name: "Liabilities", cls: "LIABILITY", role: "HEADER" },
-    { code: "2100", name: "Accounts Payable", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
-    { code: "2200", name: "Advance from Customers", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
-    { code: "3000", name: "Equity", cls: "EQUITY", role: "HEADER" },
-    { code: "3100", name: "Owner Capital", parent: "3000", cls: "EQUITY", role: "DETAIL" },
-    { code: "4000", name: "Revenue", cls: "REVENUE", role: "HEADER" },
-    { code: "4100", name: "Hajj Package Revenue", parent: "4000", cls: "REVENUE", role: "DETAIL" },
-    { code: "4200", name: "Umrah Package Revenue", parent: "4000", cls: "REVENUE", role: "DETAIL" },
-    { code: "5000", name: "Expenses", cls: "EXPENSE", role: "HEADER" },
-    { code: "5100", name: "Airline Costs", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
-    { code: "5200", name: "Salaries & Wages", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
-  ];
-  const normalBalanceFor = (cls: string) => (cls === "ASSET" || cls === "EXPENSE" ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT";
-  const acctIdByCode: Record<string, string> = {};
-  for (const a of COA) {
-    const row = await prisma.account.upsert({
-      where: { code: a.code },
-      create: { code: a.code, name: a.name, accountClass: a.cls, role: a.role, normalBalance: normalBalanceFor(a.cls), parentId: a.parent ? acctIdByCode[a.parent] : null },
-      update: { name: a.name, parentId: a.parent ? acctIdByCode[a.parent] : null },
-    });
-    acctIdByCode[a.code] = row.id;
-  }
-  // 12) A couple of bank accounts linked to COA cash/bank accounts.
-  await prisma.bankAccount.upsert({
-    where: { id: "bank_dbbl" },
-    create: { id: "bank_dbbl", name: "Dutch-Bangla Bank Ltd.", bankName: "DBBL", type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Agrabad", currency: "BDT", coaAccountId: acctIdByCode["1120"], balance: 12400000 },
-    update: { name: "Dutch-Bangla Bank Ltd." },
-  });
-  await prisma.bankAccount.upsert({
-    where: { id: "bank_cash" },
-    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000 },
-    update: { name: "Cash in Hand" },
-  });
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // REPORT DATA — realistic distribution so the Reports module reconciles and
-  // mixed-currency aggregation (baseAmount) is actually exercised. All amounts
-  // in baseAmount (BDT); non-BDT rows carry a real exchangeRate. Idempotent.
-  // USD→120, SAR→32 exchange rates.
-  // ══════════════════════════════════════════════════════════════════════════
-  const dt = (s: string) => new Date(`${s}T00:00:00.000Z`);
 
   // 13) Agents (for AgentCommission + agent bookings)
   const AGENTS = [
@@ -688,7 +711,16 @@ async function main() {
   await prisma.user.update({ where: { id: "usr_accountant" }, data: { nid: "1988555566667", employeeId: "EMP-0012", department: "Finance" } });
 
   // eslint-disable-next-line no-console
-  console.log("[seed] done.");
+  console.log("[seed] demo done.");
+}
+
+async function main() {
+  await seedStructural();
+  if (process.env.NODE_ENV === "production") {
+    console.log("[seed] NODE_ENV=production -> demo phase SKIPPED (structural only).");
+    return;
+  }
+  await seedDemo();
 }
 
 main()
