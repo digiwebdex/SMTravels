@@ -551,10 +551,13 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   </button>
                 </div>
 
-                {/* Demo credentials hint */}
-                <div className="mt-5 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] p-3 text-[11px] text-[#9CA3AF] text-center">
-                  Demo: <span className="font-bold text-[#374151]">super_admin@smtravel.com.bd</span> · <span className="font-bold text-[#374151]">Password123!</span>
-                </div>
+                {/* Demo credentials hint — DEV BUILDS ONLY. Never advertise a
+                    credential pattern on the production login page. */}
+                {import.meta.env.DEV && (
+                  <div className="mt-5 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] p-3 text-[11px] text-[#9CA3AF] text-center">
+                    Demo: <span className="font-bold text-[#374151]">super_admin@smtravel.com.bd</span> · <span className="font-bold text-[#374151]">Password123!</span>
+                  </div>
+                )}
               </div>
             )}
 

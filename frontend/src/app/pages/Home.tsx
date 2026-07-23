@@ -132,8 +132,8 @@ export function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#1B75BC]/85 via-[#1B75BC]/70 to-[#1B75BC]/90" />
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 md:px-6 flex flex-col items-center text-center gap-6 md:gap-8 py-12 md:py-16">
-          <div className="inline-flex items-center gap-2 bg-[#F15A24]/20 border border-[#F15A24]/30 rounded-full px-4 py-1.5 text-[#D64A12] text-[12px] font-semibold">
-            <Star size={13} fill="currentColor" />
+          <div className="inline-flex items-center gap-2 bg-white/95 border border-white rounded-full px-4 py-1.5 text-[#D64A12] text-[12px] font-bold shadow-sm">
+            <Star size={13} fill="currentColor" className="text-[#F15A24]" />
             Bangladesh's Most Trusted Hajj & Travel Partner
           </div>
 
