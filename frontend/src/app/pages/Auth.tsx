@@ -412,7 +412,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
   };
 
   // ── LOGIN ──────────────────────────────────────────────────────────────────
-  const [loginId, setLoginId] = useState("super_admin@smtravel.com.bd");
+  // dev builds pre-fill the demo admin for convenience; production starts empty
+  const [loginId, setLoginId] = useState(import.meta.env.DEV ? "super_admin@smtravel.com.bd" : "");
   const [loginPass, setLoginPass] = useState("");
   const [loginMode, setLoginMode] = useState<"email" | "phone">("email");
   const [remember, setRemember] = useState(false);

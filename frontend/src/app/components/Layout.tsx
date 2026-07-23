@@ -81,7 +81,7 @@ export function Header() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center flex-shrink-0">
-            <BrandLogo className="h-10 md:h-11 w-auto" />
+            <BrandLogo className="h-11 md:h-12 w-auto" />
           </Link>
 
           {/* Desktop Nav */}
