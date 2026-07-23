@@ -4,6 +4,7 @@ import { AuditSeverity } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { env } from "../lib/env";
 import { hashPassword, verifyPassword } from "../lib/password";
+import { sendPasswordResetOtp } from "./notification.service";
 import {
   signAccessToken,
   signRefreshToken,
@@ -197,7 +198,9 @@ export async function forgotPassword(email: string, ctx: Ctx): Promise<string | 
     data: { userId: user.id, type: "PASSWORD_RESET_OTP", codeHash: hashToken(`${otp}:${user.id}`), expiresAt: new Date(Date.now() + OTP_TTL_MS) },
   });
   await audit({ event: "PASSWORD_RESET_REQUESTED", userId: user.id, ip: ctx.ip, severity: AuditSeverity.INFO });
-  // TODO: deliver via SMS/email gateway. Returned only outside production.
+  // Deliver by email (log-only when SMTP is unconfigured — never throws).
+  sendPasswordResetOtp(user.email, otp);
+  // Returned only outside production so the flow can be exercised without SMTP.
   return env.NODE_ENV === "production" ? undefined : otp;
 }
 

@@ -16,6 +16,17 @@ const EnvSchema = z.object({
   /** Server-volume root for uploaded files (passports/visas — OUTSIDE the web
    *  root; nginx never serves it). Prod: /var/www/SMTravels/uploads. */
   UPLOAD_DIR: z.string().min(1).default("uploads"),
+
+  // ── outbound messaging — ALL optional. Missing credentials NEVER crash the
+  //    app: senders fall back to log-only mode (see lib/notify.ts).
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: z.coerce.boolean().default(false),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default("SM Travels <no-reply@smtravel.com.bd>"),
+  BULKSMSBD_API_KEY: z.string().optional(),
+  BULKSMSBD_SENDER_ID: z.string().optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

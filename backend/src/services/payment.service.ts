@@ -4,6 +4,7 @@ import { branchWhere, resolveBranchId, isGlobalRole, type AuthCtx } from "../mid
 import { HttpError } from "../middleware/errorHandler";
 import { money, type CurrencyCode } from "../lib/money";
 import { allocateSequence, formatDocNo } from "../lib/sequence";
+import { notifyPaymentRecorded } from "./notification.service";
 import type {
   PaymentRecordInput, PaymentListQuery, PaymentDto, PaymentListResponse,
   RefundCreateInput, RefundDto, RefundListResponse,
@@ -103,6 +104,9 @@ export async function recordPayment(auth: AuthCtx, input: PaymentRecordInput): P
     await tx.activityLog.create({ data: { userId: auth.userId, action: "PAYMENT_RECORDED", target: payment.id, module: "invoices" } });
     return payment.id;
   });
+
+  // customer receipt (email/SMS/in-app) — after the tx commits, fire-and-forget
+  notifyPaymentRecorded(paymentId);
 
   const p = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: payInclude });
   const inv = input.invoiceId ? await prisma.invoice.findUnique({ where: { id: input.invoiceId }, select: { status: true } }) : null;

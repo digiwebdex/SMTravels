@@ -4,6 +4,7 @@ import { branchWhere, isGlobalRole, type AuthCtx } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import { money, type CurrencyCode } from "../lib/money";
 import { allocateSequence, formatBookingNo } from "../lib/sequence";
+import { notifyBookingConfirmed } from "./notification.service";
 import {
   detailSchemaFor,
   travelerSchema,
@@ -442,6 +443,9 @@ export async function confirmBooking(auth: AuthCtx, id: string): Promise<Booking
     await tx.booking.update({ where: { id }, data: { bookingNo, status: "CONFIRMED", ...moneyData } });
     await logActivity(tx, id, auth.userId, "Booking confirmed", `Allocated ${bookingNo}`);
   });
+
+  // customer email/SMS/in-app — after the tx commits; failures never surface here
+  notifyBookingConfirmed(id);
 
   return getBooking(auth, id);
 }

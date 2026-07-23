@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
+import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
 
 // ─── Mobile bottom nav items ──────────────────────────────────────────────────
 const MOBILE_NAV = [
@@ -71,14 +72,6 @@ const NAV_GROUPS = [
 ];
 
 const BRANCHES = ["All Branches", "Dhaka HQ (Main)", "Chittagong", "Sylhet", "Khulna", "Rajshahi"];
-
-const NOTIFICATIONS = [
-  { id: 1, type: "booking", msg: "New booking #BK-2847 needs confirmation", time: "2m", unread: true },
-  { id: 2, type: "payment", msg: "Payment received ৳1,20,000 — INV-0391", time: "15m", unread: true },
-  { id: 3, type: "alert",   msg: "3 visa applications expiring in 48h", time: "1h", unread: true },
-  { id: 4, type: "lead",    msg: "High-value lead assigned: MD Group (Hajj ×24)", time: "2h", unread: false },
-  { id: 5, type: "system",  msg: "Scheduled report generated: Q3 2025", time: "3h", unread: false },
-];
 
 const typeIcon: Record<string, { icon: React.FC<{ size?: number; className?: string }>, color: string, bg: string }> = {
   booking: { icon: CalendarDays, color: "#0E6BB8", bg: "#EEF2FF" },
@@ -267,7 +260,10 @@ function Topbar({
   const roleLabel = (user?.role ?? "").replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   const handleSignOut = async () => { await logout(); navigate("/login", { replace: true }); };
 
-  const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
+  const notifQ = useMyNotifications();
+  const notifications = notifQ.data ?? [];
+  const markAllRead = useMarkAllNotificationsRead();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const DATE_RANGES = ["Today", "Yesterday", "This Week", "Last Week", "This Month", "Last Month", "Last 3 Months", "This Year", "Custom Range"];
 
@@ -383,31 +379,40 @@ function Topbar({
             <div className="absolute right-0 top-full mt-1.5 bg-white border border-[#E5E7EB] rounded-[12px] shadow-xl w-80 z-50">
               <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
                 <span className="text-[13px] font-bold text-[#111827]">Notifications</span>
-                <button className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">Mark all read</button>
+                {unreadCount > 0 && (
+                  <button onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}
+                    className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer disabled:opacity-50">
+                    Mark all read
+                  </button>
+                )}
               </div>
               <div className="max-h-72 overflow-y-auto no-scrollbar py-1.5">
-                {NOTIFICATIONS.map(n => {
-                  const cfg = typeIcon[n.type] || typeIcon.system;
+                {notifications.length === 0 && (
+                  <p className="px-4 py-6 text-center text-[12px] text-[#9CA3AF]">
+                    {notifQ.isLoading ? "Loading…" : "No notifications yet."}
+                  </p>
+                )}
+                {notifications.map(n => {
+                  const cfg = typeIcon[n.type ?? "system"] || typeIcon.system;
                   const Icon = cfg.icon;
                   return (
                     <div key={n.id} className={cn(
-                      "flex items-start gap-3 px-4 py-3 hover:bg-[#F7F8FA] transition-colors cursor-pointer",
-                      n.unread && "bg-[#0E6BB8]/3"
+                      "flex items-start gap-3 px-4 py-3 hover:bg-[#F7F8FA] transition-colors",
+                      !n.read && "bg-[#0E6BB8]/3"
                     )}>
                       <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: cfg.bg }}>
                         <Icon size={14} style={{ color: cfg.color }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={cn("text-[12px] leading-snug", n.unread ? "text-[#111827] font-medium" : "text-[#6B7280]")}>{n.msg}</p>
-                        <p className="text-[10px] text-[#9CA3AF] mt-0.5">{n.time} ago</p>
+                        <p className={cn("text-[12px] leading-snug", !n.read ? "text-[#111827] font-medium" : "text-[#6B7280]")}>
+                          {n.title}{n.body ? ` — ${n.body}` : ""}
+                        </p>
+                        <p className="text-[10px] text-[#9CA3AF] mt-0.5">{relAge(n.createdAt)} ago</p>
                       </div>
-                      {n.unread && <div className="w-2 h-2 bg-[#0E6BB8] rounded-full flex-shrink-0 mt-1.5" />}
+                      {!n.read && <div className="w-2 h-2 bg-[#0E6BB8] rounded-full flex-shrink-0 mt-1.5" />}
                     </div>
                   );
                 })}
-              </div>
-              <div className="px-4 py-2.5 border-t border-[#F3F4F6] text-center">
-                <button className="text-[12px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer">View all notifications</button>
               </div>
             </div>
           )}

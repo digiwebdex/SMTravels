@@ -10,6 +10,8 @@
  */
 import { prisma } from "../lib/prisma";
 import { HttpError } from "../middleware/errorHandler";
+import { notifySafe } from "../lib/notify";
+import { notifyStaffNewLead } from "./notification.service";
 import type { PublicBookingRequestInput, PublicContactInput, PublicIntakeResult } from "../contracts/public.contract";
 
 /** HQ branch id, resolved once per boot (isHq → oldest branch as fallback). */
@@ -53,7 +55,7 @@ async function upsertWebsiteLead(data: LeadSeedData): Promise<void> {
   }
 
   try {
-    await prisma.$transaction(async (tx) => {
+    const leadId = await prisma.$transaction(async (tx) => {
       const lead = await tx.lead.create({
         data: {
           branchId,
@@ -70,7 +72,10 @@ async function upsertWebsiteLead(data: LeadSeedData): Promise<void> {
       await tx.leadActivity.create({
         data: { leadId: lead.id, actorId: null, type: "CREATED", note: "Created from the website form" },
       });
+      return lead.id;
     });
+    // in-app staff alert — after the tx commits, never blocking the visitor
+    notifySafe("staff-new-lead", notifyStaffNewLead(leadId));
   } catch (err: unknown) {
     // Race with a concurrent submit hitting the partial unique index — treat as
     // the repeat-inquiry case (the first submit already carries the details).
