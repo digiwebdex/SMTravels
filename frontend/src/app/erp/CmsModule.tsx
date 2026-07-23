@@ -114,9 +114,9 @@ const FAQS = [
 ];
 
 const CATEGORIES = [
-  { id: 1, name: "Hajj",   slug: "hajj",    count: 14, color: "#0E6BB8" },
+  { id: 1, name: "Hajj",   slug: "hajj",    count: 14, color: "#1B75BC" },
   { id: 2, name: "Umrah",  slug: "umrah",   count: 11, color: "#0E7C66" },
-  { id: 3, name: "Visa",   slug: "visa",    count: 8,  color: "#E8471F" },
+  { id: 3, name: "Visa",   slug: "visa",    count: 8,  color: "#F15A24" },
   { id: 4, name: "Hotel",  slug: "hotel",   count: 5,  color: "#7C3AED" },
   { id: 5, name: "Tour",   slug: "tour",    count: 7,  color: "#2563EB" },
   { id: 6, name: "News",   slug: "news",    count: 12, color: "#EF4444" },
@@ -127,9 +127,9 @@ type MediaFile = {
   size: string; dims?: string; uploaded: string; color: string;
 };
 const MEDIA: MediaFile[] = [
-  { id: 1, name: "hajj-hero.jpg",       type: "image", size: "248 KB", dims: "1920×640", uploaded: "Jul 14", color: "#0E6BB8"  },
+  { id: 1, name: "hajj-hero.jpg",       type: "image", size: "248 KB", dims: "1920×640", uploaded: "Jul 14", color: "#1B75BC"  },
   { id: 2, name: "umrah-banner.jpg",    type: "image", size: "185 KB", dims: "1280×480", uploaded: "Jul 12", color: "#0E7C66"  },
-  { id: 3, name: "makkah-aerial.jpg",   type: "image", size: "412 KB", dims: "2400×1600",uploaded: "Jul 10", color: "#E8471F"  },
+  { id: 3, name: "makkah-aerial.jpg",   type: "image", size: "412 KB", dims: "2400×1600",uploaded: "Jul 10", color: "#F15A24"  },
   { id: 4, name: "madinah-hotel.jpg",   type: "image", size: "320 KB", dims: "1600×900", uploaded: "Jul 8",  color: "#2563EB"  },
   { id: 5, name: "malaysia-tour.jpg",   type: "image", size: "196 KB", dims: "1280×720", uploaded: "Jul 6",  color: "#7C3AED"  },
   { id: 6, name: "team-photo.jpg",      type: "image", size: "512 KB", dims: "2000×1333",uploaded: "Jul 4",  color: "#EF4444"  },
@@ -167,13 +167,13 @@ function Toolbar({ onNew, onSearch, newLabel = "New", children }: {
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input onChange={e => onSearch?.(e.target.value)} placeholder="Search…"
-            className="pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20 w-56" />
+            className="pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 w-56" />
         </div>
         {children}
       </div>
       {onNew && (
         <button onClick={onNew}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+          className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Plus size={14} /> {newLabel}
         </button>
       )}
@@ -253,7 +253,7 @@ function FeaturedImagePicker({ value, onChange }: { value: string; onChange: (v:
   const [drag, setDrag] = useState(false);
   if (value) return (
     <div className="relative rounded-xl overflow-hidden border border-slate-200">
-      <div className="h-40 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0E6BB8 0%, #0E7C66 100%)" }}>
+      <div className="h-40 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1B75BC 0%, #0E7C66 100%)" }}>
         <div className="text-center text-white">
           <Image size={28} className="mx-auto mb-1 opacity-60" />
           <p className="text-sm opacity-80">{value}</p>
@@ -272,7 +272,7 @@ function FeaturedImagePicker({ value, onChange }: { value: string; onChange: (v:
       onDrop={e => { e.preventDefault(); setDrag(false); onChange("dropped-image.jpg"); }}
       className={cn(
         "h-40 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors",
-        drag ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+        drag ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
       )}>
       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
         <Upload size={18} className="text-slate-400" />
@@ -327,7 +327,7 @@ function ContentEditor({
         <div className="flex items-center gap-2">
           <button onClick={() => setShowPreview(v => !v)}
             className={cn("flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border transition-colors",
-              showPreview ? "bg-[#0E6BB8] text-white border-[#0E6BB8]" : "border-slate-200 text-slate-600 hover:bg-slate-50")}>
+              showPreview ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "border-slate-200 text-slate-600 hover:bg-slate-50")}>
             <Eye size={13} /> Preview
           </button>
           <button onClick={() => handleSave()}
@@ -347,14 +347,14 @@ function ContentEditor({
           <div className="flex items-center gap-2 mb-4">
             {([["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([k, Icon]) => (
               <button key={k} onClick={() => setPreview(k)}
-                className={cn("p-2 rounded-lg", preview === k ? "bg-white shadow text-[#0E6BB8]" : "text-slate-400 hover:text-slate-600")}>
+                className={cn("p-2 rounded-lg", preview === k ? "bg-white shadow text-[#1B75BC]" : "text-slate-400 hover:text-slate-600")}>
                 <Icon size={16} />
               </button>
             ))}
           </div>
           <div className={cn("bg-white shadow-xl rounded-xl overflow-hidden transition-all",
             preview === "desktop" ? "w-full max-w-3xl" : preview === "tablet" ? "w-[768px] max-w-full" : "w-[375px]")}>
-            <div className="bg-[#0E6BB8] px-6 py-4">
+            <div className="bg-[#1B75BC] px-6 py-4">
               <div className="h-4 bg-white/20 rounded w-1/3 mb-2" />
               <div className="flex gap-3">
                 {[...Array(4)].map((_, i) => <div key={i} className="h-3 bg-white/15 rounded w-12" />)}
@@ -392,7 +392,7 @@ function ContentEditor({
                   <span>bdhtravels.com</span>
                   <span>/</span>
                   <input value={slug} onChange={e => setSlug(e.target.value)}
-                    className="text-[#0E6BB8] underline-offset-2 hover:underline focus:outline-none bg-transparent" />
+                    className="text-[#1B75BC] underline-offset-2 hover:underline focus:outline-none bg-transparent" />
                 </div>
               </div>
 
@@ -408,14 +408,14 @@ function ContentEditor({
                     <label className="block text-xs font-medium text-slate-600 mb-1">Meta Title</label>
                     <input value={metaTitle} onChange={e => setMetaTitle(e.target.value)}
                       placeholder={title || "Enter meta title…"}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
                     <p className="text-xs text-slate-400 mt-1">{metaTitle.length}/60 chars</p>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Meta Description</label>
                     <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)}
                       rows={3} placeholder="Describe this page for search engines…"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20 resize-none" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none" />
                     <p className="text-xs text-slate-400 mt-1">{metaDesc.length}/160 chars</p>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
@@ -458,7 +458,7 @@ function ContentEditor({
                     <button onClick={() => handleSave()} className="flex-1 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
                       Save Draft
                     </button>
-                    <button onClick={() => handleSave(true)} className="flex-1 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+                    <button onClick={() => handleSave(true)} className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                       Publish
                     </button>
                   </div>
@@ -474,7 +474,7 @@ function ContentEditor({
                       {CATEGORIES.map(c => <option key={c.id}>{c.name}</option>)}
                     </select>
                     <input placeholder="Add tags, comma-separated…"
-                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
                   </div>
                 </div>
               )}
@@ -532,7 +532,7 @@ function PagesView({ onEdit }: { onEdit: (title: string) => void }) {
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50 group">
                 <td className="px-4 py-3">
                   <button onClick={() => onEdit(p.title)}
-                    className="text-sm font-medium text-[#0E6BB8] hover:underline">{p.title}</button>
+                    className="text-sm font-medium text-[#1B75BC] hover:underline">{p.title}</button>
                 </td>
                 <td className="px-4 py-3 text-xs text-slate-400 font-mono">{p.slug}</td>
                 <td className="px-4 py-3"><StatusChip status={p.status} /></td>
@@ -593,7 +593,7 @@ function BlogView({ onEdit }: { onEdit: (title: string) => void }) {
                 </td>
                 <td className="px-4 py-3">
                   <button onClick={() => onEdit(p.title)}
-                    className="text-sm font-medium text-[#0E6BB8] hover:underline text-left">{p.title}</button>
+                    className="text-sm font-medium text-[#1B75BC] hover:underline text-left">{p.title}</button>
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-xs px-2 py-0.5 rounded-full"
@@ -652,7 +652,7 @@ function MenusView() {
             </select>
           </div>
         ))}
-        <button className="mt-3 w-full py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794] flex items-center justify-center gap-1.5">
+        <button className="mt-3 w-full py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] flex items-center justify-center gap-1.5">
           <Save size={13} /> Save Locations
         </button>
       </div>
@@ -668,7 +668,7 @@ function MenusView() {
             <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
               <Plus size={13} /> Add Item
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
               <Save size={13} /> Save Menu
             </button>
           </div>
@@ -678,7 +678,7 @@ function MenusView() {
           {items.map((item, idx) => (
             <div key={item.id}
               className={cn("border border-slate-200 rounded-xl overflow-hidden transition-all",
-                dragging === item.id ? "opacity-50 border-[#0E6BB8]" : "")}>
+                dragging === item.id ? "opacity-50 border-[#1B75BC]" : "")}>
               <div
                 draggable
                 onDragStart={() => setDragging(item.id)}
@@ -719,7 +719,7 @@ function MenusView() {
                       </div>
                     </div>
                   ))}
-                  <button className="flex items-center gap-1 text-xs text-[#0E6BB8] hover:underline ml-4 px-1">
+                  <button className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline ml-4 px-1">
                     <Plus size={11} /> Add sub-item
                   </button>
                 </div>
@@ -733,7 +733,7 @@ function MenusView() {
 }
 
 // ─── SLIDERS ──────────────────────────────────────────────────────────────────
-const SLIDE_COLORS = ["#0E6BB8","#0E7C66","#2563EB","#7C3AED"];
+const SLIDE_COLORS = ["#1B75BC","#0E7C66","#2563EB","#7C3AED"];
 
 function SlidersView() {
   const [slides, setSlides] = useState(SLIDES);
@@ -759,7 +759,7 @@ function SlidersView() {
           <div key={slide.id}
             draggable onDragStart={() => setDragging(slide.id)} onDragEnd={() => setDragging(null)}
             className={cn("bg-white rounded-xl border overflow-hidden transition-all",
-              dragging === slide.id ? "opacity-50 border-[#0E6BB8] scale-95" : "border-slate-200")}>
+              dragging === slide.id ? "opacity-50 border-[#1B75BC] scale-95" : "border-slate-200")}>
             {/* Slide preview */}
             <div className="relative h-32 flex items-center justify-center overflow-hidden"
               style={{ background: `linear-gradient(135deg, ${SLIDE_COLORS[idx % 4]} 0%, ${SLIDE_COLORS[(idx+1) % 4]} 100%)` }}>
@@ -808,7 +808,7 @@ function SlidersView() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setEditing(null)}
-                    className="flex-1 py-1.5 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">Save</button>
+                    className="flex-1 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save</button>
                   <button onClick={() => setEditing(null)}
                     className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-500">Cancel</button>
                 </div>
@@ -831,7 +831,7 @@ function BannersView() {
         {banners.map(b => (
           <div key={b.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
             <div className="w-24 h-14 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: b.type === "hero" ? "#0E6BB8" : b.type === "promo" ? "#E8471F" : b.type === "cta" ? "#0E7C66" : "#64748B" }}>
+              style={{ background: b.type === "hero" ? "#1B75BC" : b.type === "promo" ? "#F15A24" : b.type === "cta" ? "#0E7C66" : "#64748B" }}>
               {b.type.toUpperCase()}
             </div>
             <div className="flex-1">
@@ -873,18 +873,18 @@ function CategoriesView() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-800">Blog Categories</h3>
           <button onClick={() => setAdding(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
             <Plus size={13} /> Add Category
           </button>
         </div>
         {adding && (
-          <div className="mb-3 p-3 bg-white border border-[#0E6BB8]/30 rounded-xl space-y-2">
+          <div className="mb-3 p-3 bg-white border border-[#1B75BC]/30 rounded-xl space-y-2">
             <input value={newName} onChange={e => setNewName(e.target.value)}
               placeholder="Category name…" autoFocus
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none" />
             <div className="flex gap-2">
               <button onClick={() => { if (newName.trim()) { setCats(c => [...c, { id: Date.now(), name: newName, slug: newName.toLowerCase(), count: 0, color: "#64748B" }]); } setAdding(false); setNewName(""); }}
-                className="px-3 py-1.5 text-sm bg-[#0E6BB8] text-white rounded-lg">Add</button>
+                className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg">Add</button>
               <button onClick={() => setAdding(false)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-500">Cancel</button>
             </div>
           </div>
@@ -943,7 +943,7 @@ function TestimonialsView() {
           <div key={t.id} className={cn("bg-white rounded-xl border p-4", t.approved ? "border-slate-200" : "border-amber-200 bg-amber-50/30")}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-sm font-bold">
+                <div className="w-9 h-9 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-sm font-bold">
                   {t.name.slice(0, 2)}
                 </div>
                 <div>
@@ -1001,7 +1001,7 @@ function FaqsView() {
         {faqs.map((faq, idx) => (
           <div key={faq.id}
             className={cn("bg-white rounded-xl border overflow-hidden transition-all",
-              dragging === faq.id ? "opacity-50 border-[#0E6BB8]" : "border-slate-200")}>
+              dragging === faq.id ? "opacity-50 border-[#1B75BC]" : "border-slate-200")}>
             <div
               draggable onDragStart={() => setDragging(faq.id)} onDragEnd={() => setDragging(null)}
               className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50"
@@ -1033,7 +1033,7 @@ function FaqsView() {
                 <textarea rows={3} placeholder="Type the answer here…"
                   className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none resize-none" />
                 <div className="flex gap-2 mt-2">
-                  <button className="px-3 py-1.5 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">Save Answer</button>
+                  <button className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save Answer</button>
                   <button onClick={() => setExpanded(null)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100">Cancel</button>
                 </div>
               </div>
@@ -1117,7 +1117,7 @@ function MediaView() {
           <input ref={fileRef} type="file" multiple className="hidden"
             onChange={e => { if (e.target.files) simulateUpload([...e.target.files].map(f => f.name)); }} />
           <button onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
             <Upload size={13} /> Upload Files
           </button>
         </div>
@@ -1132,10 +1132,10 @@ function MediaView() {
           simulateUpload([...e.dataTransfer.files].map(f => f.name));
         }}
         className={cn("border-2 border-dashed rounded-xl p-4 text-center transition-all",
-          dropping ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-slate-200 hover:border-slate-300")}>
+          dropping ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-slate-200 hover:border-slate-300")}>
         <div className="flex items-center justify-center gap-3">
           <Upload size={16} className="text-slate-400" />
-          <span className="text-sm text-slate-400">Drag & drop files here, or <button className="text-[#0E6BB8] hover:underline" onClick={() => fileRef.current?.click()}>browse</button></span>
+          <span className="text-sm text-slate-400">Drag & drop files here, or <button className="text-[#1B75BC] hover:underline" onClick={() => fileRef.current?.click()}>browse</button></span>
         </div>
       </div>
 
@@ -1156,7 +1156,7 @@ function MediaView() {
                   }
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className={cn("h-full rounded-full transition-all", u.done ? "bg-emerald-500" : "bg-[#0E6BB8]")}
+                  <div className={cn("h-full rounded-full transition-all", u.done ? "bg-emerald-500" : "bg-[#1B75BC]")}
                     style={{ width: `${u.progress}%` }} />
                 </div>
               </div>
@@ -1172,7 +1172,7 @@ function MediaView() {
             <div key={file.id}
               onClick={() => toggle(file.id)}
               className={cn("relative rounded-xl overflow-hidden border-2 cursor-pointer group transition-all",
-                selected.includes(file.id) ? "border-[#0E6BB8] shadow-lg shadow-[#0E6BB8]/20" : "border-transparent hover:border-slate-200")}>
+                selected.includes(file.id) ? "border-[#1B75BC] shadow-lg shadow-[#1B75BC]/20" : "border-transparent hover:border-slate-200")}>
               {/* Thumbnail */}
               <div className="h-28 flex items-center justify-center relative"
                 style={{ background: file.color + "20" }}>
@@ -1192,8 +1192,8 @@ function MediaView() {
                   </div>
                 )}
                 {selected.includes(file.id) && (
-                  <div className="absolute inset-0 bg-[#0E6BB8]/10 flex items-center justify-center">
-                    <div className="w-6 h-6 bg-[#0E6BB8] rounded-full flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#1B75BC]/10 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-[#1B75BC] rounded-full flex items-center justify-center">
                       <Check size={12} className="text-white" />
                     </div>
                   </div>
@@ -1325,7 +1325,7 @@ function SettingsView() {
           <p className="text-sm text-slate-500 mt-0.5">Global configuration for the public website</p>
         </div>
         <button onClick={save}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+          className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           {saved ? <><Check size={13} /> Saved!</> : <><Save size={13} /> Save All Changes</>}
         </button>
       </div>
@@ -1344,7 +1344,7 @@ function SettingsView() {
                 </div>
                 <button onClick={() => setOn(v => !v)}
                   className={cn("relative w-10 h-5 rounded-full transition-colors flex-shrink-0",
-                    on ? "bg-[#0E6BB8]" : "bg-slate-300")}>
+                    on ? "bg-[#1B75BC]" : "bg-slate-300")}>
                   <div className={cn("absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all",
                     on ? "left-5" : "left-0.5")} />
                 </button>
@@ -1358,7 +1358,7 @@ function SettingsView() {
       {groups.map(group => (
         <div key={group.title} className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <group.icon size={16} className="text-[#0E6BB8]" />
+            <group.icon size={16} className="text-[#1B75BC]" />
             <p className="font-semibold text-slate-800">{group.title}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -1367,10 +1367,10 @@ function SettingsView() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">{f.label}</label>
                 {f.type === "textarea" ? (
                   <textarea rows={2} defaultValue={f.default}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20 resize-none" />
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none" />
                 ) : (
                   <input type={f.type} defaultValue={f.default}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
                 )}
               </div>
             ))}
@@ -1438,11 +1438,11 @@ export function CmsModule() {
                 <button key={item.id} onClick={() => setView(item.id)}
                   className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                     (view === item.id || (view === "page-editor" && item.id === "pages") || (view === "blog-editor" && item.id === "blog"))
-                      ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium border-r-2 border-[#0E6BB8]"
+                      ? "bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]"
                       : "text-slate-600 hover:bg-slate-50")}>
                   <item.icon size={15} className={cn(
                     (view === item.id || (view === "page-editor" && item.id === "pages") || (view === "blog-editor" && item.id === "blog"))
-                      ? "text-[#0E6BB8]" : "text-slate-400"
+                      ? "text-[#1B75BC]" : "text-slate-400"
                   )} />
                   {item.label}
                 </button>
@@ -1451,7 +1451,7 @@ export function CmsModule() {
           ))}
         </nav>
         <div className="p-3 border-t border-slate-100">
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#0E6BB8] border border-[#0E6BB8]/30 rounded-lg hover:bg-[#0E6BB8]/5">
+          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#1B75BC] border border-[#1B75BC]/30 rounded-lg hover:bg-[#1B75BC]/5">
             <ExternalLink size={12} /> Preview Website
           </button>
         </div>

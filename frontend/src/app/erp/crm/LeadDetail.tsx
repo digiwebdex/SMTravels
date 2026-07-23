@@ -29,10 +29,10 @@ function TabBtn({ active, onClick, children, count }: { active: boolean; onClick
   return (
     <button onClick={onClick}
       className={cn("flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium border-b-2 transition-all cursor-pointer whitespace-nowrap",
-        active ? "border-[#0E6BB8] text-[#0E6BB8]" : "border-transparent text-[#6B7280] hover:text-[#374151]")}>
+        active ? "border-[#1B75BC] text-[#1B75BC]" : "border-transparent text-[#6B7280] hover:text-[#374151]")}>
       {children}
       {count !== undefined && count > 0 && (
-        <span className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-full", active ? "bg-[#0E6BB8] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]")}>{count}</span>
+        <span className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-full", active ? "bg-[#1B75BC] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]")}>{count}</span>
       )}
     </button>
   );
@@ -73,7 +73,7 @@ export function LeadDetailDrawer({ leadId, onClose, onEdit }: { leadId: string; 
             <Pill label={`${lead.interest[0]}${lead.interest.slice(1).toLowerCase()} interest`} color={INTEREST_META[lead.interest].color} bg={INTEREST_META[lead.interest].bg} />
             {lead.converted && <Pill label="Converted" color="#065F46" bg="#D1FAE5" icon={CheckCircle2} />}
             <div className="ml-auto flex items-center gap-2">
-              <button onClick={() => onEdit(lead)} className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer"><Edit3 size={12} /> Edit</button>
+              <button onClick={() => onEdit(lead)} className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer"><Edit3 size={12} /> Edit</button>
               {!lead.converted && (
                 <button onClick={() => convert.mutate(lead.id)} disabled={convert.isPending}
                   className="flex items-center gap-1.5 h-8 px-3 bg-[#0E7C66] text-white rounded-[7px] text-[11px] font-bold hover:bg-[#065F46] cursor-pointer disabled:opacity-60">
@@ -112,7 +112,7 @@ export function LeadDetailDrawer({ leadId, onClose, onEdit }: { leadId: string; 
               {lead.activities.length > 0 && <div className="absolute left-4 top-3 bottom-3 w-px bg-[#F3F4F6]" />}
               {lead.activities.map((a) => (
                 <div key={a.id} className="flex gap-4 pb-4 relative">
-                  <div className="w-8 h-8 rounded-full bg-[#EEF2FF] border-2 border-white z-10 flex items-center justify-center flex-shrink-0"><Activity size={13} className="text-[#0E6BB8]" /></div>
+                  <div className="w-8 h-8 rounded-full bg-[#EEF2FF] border-2 border-white z-10 flex items-center justify-center flex-shrink-0"><Activity size={13} className="text-[#1B75BC]" /></div>
                   <div className="flex-1 pt-1">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -135,11 +135,11 @@ export function LeadDetailDrawer({ leadId, onClose, onEdit }: { leadId: string; 
                 <Field label="Due"><input type="datetime-local" className={inputCls} value={followAt} onChange={(e) => setFollowAt(e.target.value)} /></Field>
                 <Field label="Note"><input className={inputCls} placeholder="What to do" value={followNote} onChange={(e) => setFollowNote(e.target.value)} /></Field>
                 <button onClick={() => followAt && addFollow.mutate({ id: lead.id, body: { dueAt: new Date(followAt).toISOString(), note: followNote || undefined } }, { onSuccess: () => { setFollowAt(""); setFollowNote(""); } })}
-                  disabled={!followAt || addFollow.isPending} className="h-[42px] px-3 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Add</button>
+                  disabled={!followAt || addFollow.isPending} className="h-[42px] px-3 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Add</button>
               </div>
               {lead.followUps.map((fu) => (
                 <div key={fu.id} className="flex items-center gap-3 border border-[#E5E7EB] rounded-[10px] px-4 py-2.5">
-                  <Calendar size={14} className={fu.done ? "text-[#0E7C66]" : "text-[#0E6BB8]"} />
+                  <Calendar size={14} className={fu.done ? "text-[#0E7C66]" : "text-[#1B75BC]"} />
                   <div className="flex-1"><div className="text-[12px] font-semibold text-[#374151]">{fu.note || "Follow-up"}</div><div className="text-[10px] text-[#9CA3AF]">Due {fmtDateTime(fu.dueAt)}{fu.assignedTo ? ` · ${fu.assignedTo}` : ""}</div></div>
                   {fu.done ? <Pill label="Done" color="#065F46" bg="#D1FAE5" /> : <Pill label="Pending" color="#92400E" bg="#FEF3C7" />}
                 </div>
@@ -156,11 +156,11 @@ export function LeadDetailDrawer({ leadId, onClose, onEdit }: { leadId: string; 
                 <Field label="Duration (s)"><input type="number" className={inputCls} value={callDur} onChange={(e) => setCallDur(e.target.value)} /></Field>
                 <Field label="Note"><input className={inputCls} value={callNote} onChange={(e) => setCallNote(e.target.value)} /></Field>
                 <button onClick={() => addCall.mutate({ id: lead.id, body: { direction: callDir, durationSec: callDur ? Number(callDur) : undefined, note: callNote || undefined } }, { onSuccess: () => { setCallDur(""); setCallNote(""); } })}
-                  disabled={addCall.isPending} className="h-[42px] px-3 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Log</button>
+                  disabled={addCall.isPending} className="h-[42px] px-3 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Log</button>
               </div>
               {lead.callLogs.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 border border-[#E5E7EB] rounded-[10px] px-4 py-2.5">
-                  <PhoneCall size={14} className="text-[#0E6BB8]" />
+                  <PhoneCall size={14} className="text-[#1B75BC]" />
                   <div className="flex-1"><div className="text-[12px] font-semibold text-[#374151] capitalize">{c.direction} call{c.durationSec ? ` · ${c.durationSec}s` : ""}</div>{c.note && <div className="text-[10px] text-[#9CA3AF]">{c.note}</div>}</div>
                   <span className="text-[10px] text-[#9CA3AF]">{fmtDateTime(c.createdAt)}</span>
                 </div>
@@ -175,7 +175,7 @@ export function LeadDetailDrawer({ leadId, onClose, onEdit }: { leadId: string; 
               <div className="flex items-end gap-2">
                 <input className={inputCls} placeholder="Add a note…" value={noteBody} onChange={(e) => setNoteBody(e.target.value)} />
                 <button onClick={() => noteBody.trim() && addNote.mutate({ id: lead.id, body: { body: noteBody.trim() } }, { onSuccess: () => setNoteBody("") })}
-                  disabled={!noteBody.trim() || addNote.isPending} className="h-[42px] px-3 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Add</button>
+                  disabled={!noteBody.trim() || addNote.isPending} className="h-[42px] px-3 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Add</button>
               </div>
               {lead.notes.map((n) => (
                 <div key={n.id} className="border border-[#E5E7EB] rounded-[10px] px-4 py-2.5">
@@ -194,11 +194,11 @@ export function LeadDetailDrawer({ leadId, onClose, onEdit }: { leadId: string; 
                 <Field label="Task"><input className={inputCls} value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="Prepare quote…" /></Field>
                 <Field label="Priority"><select className={selectCls} value={taskPrio} onChange={(e) => setTaskPrio(e.target.value)}>{["HIGH", "MEDIUM", "LOW"].map((p) => <option key={p} value={p}>{p[0] + p.slice(1).toLowerCase()}</option>)}</select></Field>
                 <button onClick={() => taskTitle.trim() && addTask.mutate({ id: lead.id, body: { title: taskTitle.trim(), priority: taskPrio } }, { onSuccess: () => setTaskTitle("") })}
-                  disabled={!taskTitle.trim() || addTask.isPending} className="h-[42px] px-3 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Add</button>
+                  disabled={!taskTitle.trim() || addTask.isPending} className="h-[42px] px-3 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold cursor-pointer disabled:opacity-50 flex items-center gap-1"><Plus size={13} /> Add</button>
               </div>
               {lead.tasks.map((t) => (
                 <div key={t.id} className="flex items-center gap-3 border border-[#E5E7EB] rounded-[10px] px-4 py-2.5">
-                  <CheckSquare size={14} className="text-[#0E6BB8]" />
+                  <CheckSquare size={14} className="text-[#1B75BC]" />
                   <div className="flex-1"><div className="text-[12px] font-semibold text-[#374151]">{t.title}</div>{t.assignee && <div className="text-[10px] text-[#9CA3AF]">{t.assignee}</div>}</div>
                   <Pill label={t.priority[0] + t.priority.slice(1).toLowerCase()} color={t.priority === "HIGH" ? "#991B1B" : t.priority === "MEDIUM" ? "#92400E" : "#6B7280"} bg={t.priority === "HIGH" ? "#FEE2E2" : t.priority === "MEDIUM" ? "#FEF3C7" : "#F3F4F6"} />
                   <Pill label={t.status.replace(/_/g, " ")} color="#374151" bg="#F3F4F6" />

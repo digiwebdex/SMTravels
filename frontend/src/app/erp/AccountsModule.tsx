@@ -326,7 +326,7 @@ function ChartOfAccountsView() {
           <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={15} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
             <Plus size={15} /> Add Account
           </button>
         </div>
@@ -382,7 +382,7 @@ function LedgerTableView({ title, rows, type }: {
           <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={14} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
             <Plus size={14} /> Add {type === "income" ? "Income" : "Expense"}
           </button>
         </div>
@@ -475,12 +475,12 @@ function JournalEntryView() {
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Reference #</label>
                 <input value={ref} onChange={e => setRef(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Currency</label>
@@ -557,14 +557,14 @@ function JournalEntryView() {
               </tfoot>
             </table>
             <button onClick={() => setLines(prev => [...prev, { account: "", debit: "", credit: "", narration: "" }])}
-              className="text-sm text-[#0E6BB8] hover:underline flex items-center gap-1">
+              className="text-sm text-[#1B75BC] hover:underline flex items-center gap-1">
               <Plus size={13} /> Add line
             </button>
             <div className="flex justify-end gap-3 mt-5 pt-5 border-t border-slate-100">
               <button onClick={() => submit("DRAFT")} disabled={create.isPending}
                 className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">Save Draft</button>
               <button onClick={() => submit("POSTED")} disabled={!balanced || create.isPending}
-                className={cn("px-5 py-2 text-sm rounded-lg text-white flex items-center gap-2", balanced && !create.isPending ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-slate-300 cursor-not-allowed")}>
+                className={cn("px-5 py-2 text-sm rounded-lg text-white flex items-center gap-2", balanced && !create.isPending ? "bg-[#1B75BC] hover:bg-[#14588F]" : "bg-slate-300 cursor-not-allowed")}>
                 {create.isPending && <Loader2 size={14} className="animate-spin" />} Post Entry
               </button>
             </div>
@@ -619,7 +619,7 @@ function BankCashView() {
           <h2 className="text-xl font-bold text-slate-800">Bank & Cash Accounts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Manage all bank and cash positions</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Plus size={15} /> Add Account
         </button>
       </div>
@@ -639,10 +639,10 @@ function BankCashView() {
                 <button key={acc.id} onClick={() => setSelectedId(acc.id)}
                   className={cn("text-left p-4 rounded-xl border transition-all",
                     account.id === acc.id
-                      ? "border-[#0E6BB8] bg-[#0E6BB8]/5 ring-1 ring-[#0E6BB8]/20"
+                      ? "border-[#1B75BC] bg-[#1B75BC]/5 ring-1 ring-[#1B75BC]/20"
                       : "border-slate-200 bg-white hover:border-slate-300")}>
                   <div className="flex items-center gap-2 mb-2">
-                    {isCash ? <Banknote size={16} className="text-emerald-600" /> : <Building2 size={16} className="text-[#0E6BB8]" />}
+                    {isCash ? <Banknote size={16} className="text-emerald-600" /> : <Building2 size={16} className="text-[#1B75BC]" />}
                     <span className="text-xs font-medium text-slate-500 capitalize">{acc.type.toLowerCase()}</span>
                   </div>
                   <p className="text-xs text-slate-600 font-medium leading-tight">{acc.name}</p>
@@ -735,7 +735,7 @@ function TransferView() {
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-mono">{CURRENCY_SYMBOL[currency]}</span>
                 <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                  className="w-full border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
             </div>
             <div>
@@ -751,11 +751,11 @@ function TransferView() {
           <div className="mb-5">
             <label className="block text-xs font-medium text-slate-600 mb-1">Narration / Reference</label>
             <input placeholder="Transfer narration…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
-            <button className="px-5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794] flex items-center gap-2">
+            <button className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] flex items-center gap-2">
               <Send size={14} /> Submit Transfer
             </button>
           </div>
@@ -790,7 +790,7 @@ function InstallmentsView() {
           <h2 className="text-xl font-bold text-slate-800">Installment Plans</h2>
           <p className="text-sm text-slate-500 mt-0.5">Track all active payment schedules</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Plus size={15} /> New Plan
         </button>
       </div>
@@ -819,7 +819,7 @@ function InstallmentsView() {
                   <td className="px-4 py-3 w-40">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={cn("h-full rounded-full", plan.status === "completed" ? "bg-emerald-500" : plan.status === "overdue" ? "bg-red-400" : "bg-[#0E6BB8]")}
+                        <div className={cn("h-full rounded-full", plan.status === "completed" ? "bg-emerald-500" : plan.status === "overdue" ? "bg-red-400" : "bg-[#1B75BC]")}
                           style={{ width: `${pct}%` }} />
                       </div>
                       <span className="text-xs text-slate-500 font-mono">{pct}%</span>
@@ -832,7 +832,7 @@ function InstallmentsView() {
                   <td className="px-4 py-3 text-sm text-slate-500">{plan.next_date}</td>
                   <td className="px-4 py-3"><StatusChip status={plan.status} /></td>
                   <td className="px-4 py-3">
-                    <button className="text-xs text-[#0E6BB8] hover:underline">Collect</button>
+                    <button className="text-xs text-[#1B75BC] hover:underline">Collect</button>
                   </td>
                 </tr>
               );
@@ -853,7 +853,7 @@ function SupplierPaymentsView() {
           <h2 className="text-xl font-bold text-slate-800">Supplier Payments</h2>
           <p className="text-sm text-slate-500 mt-0.5">Payables to vendors and partners</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Plus size={15} /> Record Payment
         </button>
       </div>
@@ -884,7 +884,7 @@ function SupplierPaymentsView() {
                 <td className="px-4 py-3"><StatusChip status={sp.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
-                    <button className="text-xs text-[#0E6BB8] hover:underline">Pay</button>
+                    <button className="text-xs text-[#1B75BC] hover:underline">Pay</button>
                     <span className="text-slate-300">·</span>
                     <button className="text-xs text-slate-400 hover:underline">View</button>
                   </div>
@@ -907,7 +907,7 @@ function CustomerPaymentsView() {
           <h2 className="text-xl font-bold text-slate-800">Customer Payments</h2>
           <p className="text-sm text-slate-500 mt-0.5">Receivables from customers and agencies</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Plus size={15} /> Collect Payment
         </button>
       </div>
@@ -982,7 +982,7 @@ function PaymentGatewaysView() {
         {GATEWAYS.map(g => (
           <button key={g.id} onClick={() => setSelected(g.id)}
             className={cn("text-left p-5 rounded-xl border transition-all bg-white",
-              selected === g.id ? "border-[#0E6BB8] ring-1 ring-[#0E6BB8]/20" : "border-slate-200 hover:border-slate-300")}>
+              selected === g.id ? "border-[#1B75BC] ring-1 ring-[#1B75BC]/20" : "border-slate-200 hover:border-slate-300")}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: g.color }}>{g.logo}</div>
@@ -1024,7 +1024,7 @@ function PaymentGatewaysView() {
             ))}
           </div>
           <div className="flex gap-3 mt-5 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">Save Changes</button>
+            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save Changes</button>
             <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Test Connection</button>
             {gw.status === "sandbox" && (
               <button className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 ml-auto">Go Live</button>
@@ -1059,7 +1059,7 @@ function AccountsOverview() {
       <div className="grid grid-cols-4 gap-4">
         <KpiCard label="Total Revenue (Jul)" value={fmtCurrency(4680000)} trend={12.4} icon={TrendingUp} color="bg-emerald-500" />
         <KpiCard label="Total Expenses (Jul)" value={fmtCurrency(3200000)} trend={5.2} icon={TrendingDown} color="bg-red-500" />
-        <KpiCard label="Net Profit" value={fmtCurrency(1480000)} trend={21.8} icon={BarChart3} color="bg-[#0E6BB8]" />
+        <KpiCard label="Net Profit" value={fmtCurrency(1480000)} trend={21.8} icon={BarChart3} color="bg-[#1B75BC]" />
         <KpiCard label="Receivables Due" value={fmtCurrency(9430000)} trend={-3.1} icon={AlertTriangle} color="bg-amber-500" />
       </div>
       <div className="grid grid-cols-3 gap-5">
@@ -1096,7 +1096,7 @@ function AccountsOverview() {
               { label: "Payables", value: 8640000, color: "text-red-500" },
               { label: "Revenue (YTD)", value: 42100000, color: "text-emerald-600" },
               { label: "Expenses (YTD)", value: 28400000, color: "text-red-500" },
-              { label: "Net Equity", value: 26840000, color: "text-[#0E6BB8]" },
+              { label: "Net Equity", value: 26840000, color: "text-[#1B75BC]" },
             ].map(({ label, value, color }) => (
               <div key={label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
                 <span className="text-sm text-slate-600">{label}</span>
@@ -1164,9 +1164,9 @@ export function AccountsModule() {
                 <button key={item.id} onClick={() => setView(item.id)}
                   className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                     view === item.id
-                      ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium"
+                      ? "bg-[#1B75BC]/8 text-[#1B75BC] font-medium"
                       : "text-slate-600 hover:bg-slate-50")}>
-                  <item.icon size={15} className={view === item.id ? "text-[#0E6BB8]" : "text-slate-400"} />
+                  <item.icon size={15} className={view === item.id ? "text-[#1B75BC]" : "text-slate-400"} />
                   {item.label}
                 </button>
               ))}

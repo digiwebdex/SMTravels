@@ -15,8 +15,8 @@ import { useServices, useUpdateService, type ServiceDto } from "../hooks/catalog
 // The service's real state (name/desc/category/active/featured) comes from the
 // API; these are display-only (the schema has no per-service booking stats).
 const PRESENTATION: Record<string, { icon: ServiceDef["icon"]; color: string; bg: string; stats: ServiceDef["stats"] }> = {
-  HAJJ:       { icon: Star,     color: "#E8471F", bg: "#FFF9E6", stats: { bookings: 342, pending: 27, revenue: "৳14.2 Cr", avgTime: "180 days" } },
-  UMRAH:      { icon: MapPin,   color: "#0E6BB8", bg: "#EEF2FF", stats: { bookings: 1124, pending: 84, revenue: "৳9.8 Cr", avgTime: "30 days" } },
+  HAJJ:       { icon: Star,     color: "#F15A24", bg: "#FFF9E6", stats: { bookings: 342, pending: 27, revenue: "৳14.2 Cr", avgTime: "180 days" } },
+  UMRAH:      { icon: MapPin,   color: "#1B75BC", bg: "#EEF2FF", stats: { bookings: 1124, pending: 84, revenue: "৳9.8 Cr", avgTime: "30 days" } },
   VISA:       { icon: FileText, color: "#7C3AED", bg: "#F5F3FF", stats: { bookings: 487, pending: 63, revenue: "৳61L", avgTime: "7 days" } },
   AIR_TICKET: { icon: Plane,    color: "#2563EB", bg: "#EFF6FF", stats: { bookings: 621, pending: 12, revenue: "৳2.8 Cr", avgTime: "1 day" } },
   MANPOWER:   { icon: Users,    color: "#EA580C", bg: "#FFF7ED", stats: { bookings: 198, pending: 31, revenue: "৳89L", avgTime: "60 days" } },
@@ -63,14 +63,14 @@ interface PricingRule {
 const SERVICES: ServiceDef[] = [
   {
     id: "hajj", name: "Hajj Service", category: "Pilgrimage", icon: Star,
-    color: "#E8471F", bg: "#FFF9E6",
+    color: "#F15A24", bg: "#FFF9E6",
     description: "Full Hajj pilgrimage management — registration, visa, flights, Makkah & Madinah accommodation, group coordination and on-site support.",
     stats: { bookings: 342, pending: 27, revenue: "৳14.2 Cr", avgTime: "180 days" },
     active: true, featured: true,
   },
   {
     id: "umrah", name: "Umrah Service", category: "Pilgrimage", icon: MapPin,
-    color: "#0E6BB8", bg: "#EEF2FF",
+    color: "#1B75BC", bg: "#EEF2FF",
     description: "Year-round and seasonal Umrah packages — economy to VIP, with hotel, transport, and pilgrim coordination.",
     stats: { bookings: 1124, pending: 84, revenue: "৳9.8 Cr", avgTime: "30 days" },
     active: true, featured: true,
@@ -192,7 +192,7 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
   return <div className={cn("bg-white border border-[#E5E7EB] rounded-[14px]", className)}>{children}</div>;
 }
 
-const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[9px] text-[13px] text-[#111827] bg-white outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all placeholder:text-[#D1D5DB]";
+const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[9px] text-[13px] text-[#111827] bg-white outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all placeholder:text-[#D1D5DB]";
 
 function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
@@ -242,9 +242,9 @@ function ServiceGrid({ services, onConfigure, onToggle }: { services: ServiceDef
       {/* Stats strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: "Total Services",   value: svcs.length.toString(),           color: "#0E6BB8", bg: "#EEF2FF" },
+          { label: "Total Services",   value: svcs.length.toString(),           color: "#1B75BC", bg: "#EEF2FF" },
           { label: "Active",           value: activeCount.toString(),            color: "#0E7C66", bg: "#ECFDF5" },
-          { label: "Total Bookings",   value: svcs.reduce((s, v) => s + v.stats.bookings, 0).toLocaleString(), color: "#E8471F", bg: "#FFF9E6" },
+          { label: "Total Bookings",   value: svcs.reduce((s, v) => s + v.stats.bookings, 0).toLocaleString(), color: "#F15A24", bg: "#FFF9E6" },
           { label: "Total Pending",    value: svcs.reduce((s, v) => s + v.stats.pending, 0).toString(), color: "#DC2626", bg: "#FEF2F2" },
         ].map(stat => (
           <Card key={stat.label} className="px-4 py-3">
@@ -280,7 +280,7 @@ function ServiceGrid({ services, onConfigure, onToggle }: { services: ServiceDef
                             {svc.active ? "ACTIVE" : "INACTIVE"}
                           </span>
                           {svc.featured && (
-                            <span className="text-[9px] font-bold text-[#C43A15] bg-[#FFF9E6] px-1.5 py-0.5 rounded-full">FEATURED</span>
+                            <span className="text-[9px] font-bold text-[#D64A12] bg-[#FFF9E6] px-1.5 py-0.5 rounded-full">FEATURED</span>
                           )}
                         </div>
                       </div>
@@ -305,7 +305,7 @@ function ServiceGrid({ services, onConfigure, onToggle }: { services: ServiceDef
                   </div>
 
                   <button onClick={() => onConfigure(svc.id)}
-                    className="w-full h-9 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-[8px] text-[12px] font-semibold text-[#374151] hover:border-[#0E6BB8]/40 hover:text-[#0E6BB8] hover:bg-[#EEF2FF]/50 transition-all cursor-pointer">
+                    className="w-full h-9 flex items-center justify-center gap-1.5 border border-[#E5E7EB] rounded-[8px] text-[12px] font-semibold text-[#374151] hover:border-[#1B75BC]/40 hover:text-[#1B75BC] hover:bg-[#EEF2FF]/50 transition-all cursor-pointer">
                     <Settings size={13} /> Configure Service <ChevronRight size={12} />
                   </button>
                 </Card>
@@ -388,7 +388,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
       {/* Breadcrumb + actions */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-1.5 text-[13px]">
-          <button onClick={onBack} className="text-[#0E6BB8] font-semibold hover:underline cursor-pointer">Services</button>
+          <button onClick={onBack} className="text-[#1B75BC] font-semibold hover:underline cursor-pointer">Services</button>
           <ChevronRight size={13} className="text-[#D1D5DB]" />
           <span className="text-[#374151] font-semibold">{svc.name}</span>
         </div>
@@ -402,7 +402,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
             <ChevronLeft size={14} className="inline" /> Back
           </button>
           <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0B5794] transition-colors cursor-pointer disabled:opacity-60 shadow-sm">
+            className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#14588F] transition-colors cursor-pointer disabled:opacity-60 shadow-sm">
             {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Save size={13} /> Save Changes</>}
           </button>
         </div>
@@ -450,7 +450,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={cn("flex items-center gap-1.5 h-8 px-3 rounded-[8px] text-[11px] font-semibold whitespace-nowrap transition-all cursor-pointer flex-shrink-0",
-                tab === t.id ? "bg-white text-[#0E6BB8] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]")}>
+                tab === t.id ? "bg-white text-[#1B75BC] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]")}>
               <TabIcon size={12} /> {t.label}
             </button>
           );
@@ -566,19 +566,19 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
               <p className="text-[11px] text-[#9CA3AF] mt-0.5">Drag to reorder. Controls which fields appear on the booking form.</p>
             </div>
             <button onClick={addField}
-              className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#0E6BB8] font-bold rounded-[8px] text-[11px] hover:bg-[#0E6BB8] hover:text-white transition-colors cursor-pointer">
+              className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#1B75BC] font-bold rounded-[8px] text-[11px] hover:bg-[#1B75BC] hover:text-white transition-colors cursor-pointer">
               <Plus size={12} /> Add Field
             </button>
           </div>
           <div className="space-y-2">
             {fields.map((field, i) => (
-              <div key={field.id} className="flex items-start gap-3 p-3.5 bg-[#F7F8FA] rounded-[10px] border border-[#E5E7EB] group hover:border-[#0E6BB8]/20 transition-colors">
+              <div key={field.id} className="flex items-start gap-3 p-3.5 bg-[#F7F8FA] rounded-[10px] border border-[#E5E7EB] group hover:border-[#1B75BC]/20 transition-colors">
                 {/* Order */}
                 <div className="flex flex-col gap-0.5 flex-shrink-0 pt-0.5">
                   <button onClick={() => moveField(field.id, "up")} disabled={i === 0}
                     className="w-5 h-5 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] disabled:opacity-30 cursor-pointer"><ArrowUpDown size={10} /></button>
                 </div>
-                <div className="w-6 h-6 rounded-full bg-[#0E6BB8] text-white text-[9px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-[#1B75BC] text-white text-[9px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
                   {field.order}
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -613,8 +613,8 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
               </div>
             ))}
           </div>
-          <div className="mt-4 p-3 bg-[#FFF9E6] border border-[#E8471F]/30 rounded-[8px] flex items-center gap-2 text-[11px] text-[#78590F]">
-            <AlertTriangle size={13} className="text-[#C43A15] flex-shrink-0" />
+          <div className="mt-4 p-3 bg-[#FFF9E6] border border-[#F15A24]/30 rounded-[8px] flex items-center gap-2 text-[11px] text-[#78590F]">
+            <AlertTriangle size={13} className="text-[#D64A12] flex-shrink-0" />
             Removing a required field from a live service may cause existing bookings to fail validation.
           </div>
         </Card>
@@ -629,7 +629,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
               <p className="text-[11px] text-[#9CA3AF] mt-0.5">Define fees, commissions, and pricing tiers for this service.</p>
             </div>
             <button onClick={addPricing}
-              className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#0E6BB8] font-bold rounded-[8px] text-[11px] hover:bg-[#0E6BB8] hover:text-white transition-colors cursor-pointer">
+              className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#1B75BC] font-bold rounded-[8px] text-[11px] hover:bg-[#1B75BC] hover:text-white transition-colors cursor-pointer">
               <Plus size={12} /> Add Rule
             </button>
           </div>
@@ -647,27 +647,27 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                   <tr key={rule.id} className="border-t border-[#F3F4F6] group">
                     <td className="py-2.5 px-3">
                       <input value={rule.label} onChange={e => updatePricing(rule.id, { label: e.target.value })}
-                        className="w-36 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-semibold text-[#111827] focus:border-[#0E6BB8] outline-none" />
+                        className="w-36 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-semibold text-[#111827] focus:border-[#1B75BC] outline-none" />
                     </td>
                     <td className="py-2.5 px-3">
                       <select value={rule.type} onChange={e => updatePricing(rule.id, { type: e.target.value })}
-                        className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] text-[#374151] focus:border-[#0E6BB8] outline-none cursor-pointer bg-white">
+                        className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] text-[#374151] focus:border-[#1B75BC] outline-none cursor-pointer bg-white">
                         {["fixed","percent","per-person","per-group"].map(t => <option key={t}>{t}</option>)}
                       </select>
                     </td>
                     <td className="py-2.5 px-3">
                       <input type="number" value={rule.amount} onChange={e => updatePricing(rule.id, { amount: +e.target.value })}
-                        className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#0E6BB8] outline-none" />
+                        className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#1B75BC] outline-none" />
                     </td>
                     <td className="py-2.5 px-3">
                       <select value={rule.currency} onChange={e => updatePricing(rule.id, { currency: e.target.value })}
-                        className="w-20 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] text-[#374151] focus:border-[#0E6BB8] outline-none cursor-pointer bg-white">
+                        className="w-20 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] text-[#374151] focus:border-[#1B75BC] outline-none cursor-pointer bg-white">
                         {["BDT","USD","SAR"].map(c => <option key={c}>{c}</option>)}
                       </select>
                     </td>
                     <td className="py-2.5 px-3">
                       <input value={rule.note} onChange={e => updatePricing(rule.id, { note: e.target.value })}
-                        className="w-48 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] text-[#6B7280] focus:border-[#0E6BB8] outline-none" placeholder="Note…" />
+                        className="w-48 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] text-[#6B7280] focus:border-[#1B75BC] outline-none" placeholder="Note…" />
                     </td>
                     <td className="py-2.5 px-3">
                       <button onClick={() => removePricing(rule.id)}
@@ -695,7 +695,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
               <div className="space-y-1.5 mt-1">
                 {["Bank Transfer","Mobile Banking (bKash/Nagad)","Cash at Branch","Online Payment Gateway"].map(m => (
                   <label key={m} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-3.5 h-3.5 accent-[#0E6BB8]" />
+                    <input type="checkbox" defaultChecked className="w-3.5 h-3.5 accent-[#1B75BC]" />
                     <span className="text-[11px] text-[#374151]">{m}</span>
                   </label>
                 ))}
@@ -714,7 +714,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
               <p className="text-[11px] text-[#9CA3AF] mt-0.5">Documents customers must upload during or after booking.</p>
             </div>
             <button onClick={addDoc}
-              className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#0E6BB8] font-bold rounded-[8px] text-[11px] hover:bg-[#0E6BB8] hover:text-white transition-colors cursor-pointer">
+              className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#1B75BC] font-bold rounded-[8px] text-[11px] hover:bg-[#1B75BC] hover:text-white transition-colors cursor-pointer">
               <Plus size={12} /> Add Document
             </button>
           </div>
@@ -723,7 +723,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
               <div key={doc.id} className="p-4 bg-[#F7F8FA] rounded-[10px] border border-[#E5E7EB] group">
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0 mt-1" style={{ backgroundColor: doc.required ? "#EEF2FF" : "#F3F4F6" }}>
-                    <FileText size={13} style={{ color: doc.required ? "#0E6BB8" : "#9CA3AF" }} />
+                    <FileText size={13} style={{ color: doc.required ? "#1B75BC" : "#9CA3AF" }} />
                   </div>
                   <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-3">
                     <div className="md:col-span-2">
@@ -801,7 +801,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                 { step: 5, label: "Outcome Notification",       actor: "System (automatic)", status: "active" },
               ].map(step => (
                 <div key={step.step} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[8px]">
-                  <div className="w-6 h-6 rounded-full bg-[#0E6BB8] text-white flex items-center justify-center text-[10px] font-black flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-[#1B75BC] text-white flex items-center justify-center text-[10px] font-black flex-shrink-0">
                     {step.step}
                   </div>
                   <div className="flex-1">
@@ -811,7 +811,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                   <span className="w-1.5 h-1.5 rounded-full bg-[#0E7C66] flex-shrink-0" />
                 </div>
               ))}
-              <button className="w-full h-8 border-2 border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] hover:border-[#0E6BB8]/50 hover:text-[#0E6BB8] transition-colors cursor-pointer flex items-center justify-center gap-1">
+              <button className="w-full h-8 border-2 border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] hover:border-[#1B75BC]/50 hover:text-[#1B75BC] transition-colors cursor-pointer flex items-center justify-center gap-1">
                 <Plus size={12} /> Add Step
               </button>
             </div>
@@ -838,7 +838,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                   <div className="text-[12px] font-bold text-[#111827]">{notif.event}</div>
                   <div className="flex items-center gap-2 mt-1">
                     {notif.channels.map(ch => (
-                      <span key={ch} className="text-[9px] font-bold text-[#0E6BB8] bg-[#EEF2FF] px-2 py-0.5 rounded-full">{ch}</span>
+                      <span key={ch} className="text-[9px] font-bold text-[#1B75BC] bg-[#EEF2FF] px-2 py-0.5 rounded-full">{ch}</span>
                     ))}
                   </div>
                 </div>

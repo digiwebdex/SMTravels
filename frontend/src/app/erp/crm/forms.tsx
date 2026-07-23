@@ -13,7 +13,7 @@ import type { ServiceTypeDto } from "@contracts/booking.contract";
 const SERVICE_OPTS = Object.entries(SERVICE_LABEL) as [ServiceTypeDto, string][];
 
 function Cancel({ onClose }: { onClose: () => void }) {
-  return <button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer">Cancel</button>;
+  return <button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer">Cancel</button>;
 }
 
 // ── Lead ──────────────────────────────────────────────────────────────────────

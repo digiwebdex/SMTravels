@@ -45,21 +45,21 @@ export function CustomersView() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h1 className="text-[20px] font-black text-[#111827]">Customers</h1><p className="text-[11px] text-[#9CA3AF] mt-0.5">{stats.total} total{isFetching ? " · refreshing…" : ""}</p></div>
-        <button onClick={openNew} className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#0B5794] transition-colors cursor-pointer shadow-lg shadow-[#0E6BB8]/20"><Plus size={14} /> New Customer</button>
+        <button onClick={openNew} className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#14588F] transition-colors cursor-pointer shadow-lg shadow-[#1B75BC]/20"><Plus size={14} /> New Customer</button>
       </div>
 
       <StatCards items={[
-        { label: "Total Customers", value: String(stats.total), icon: Users, color: "#0E6BB8", bg: "#EEF2FF" },
+        { label: "Total Customers", value: String(stats.total), icon: Users, color: "#1B75BC", bg: "#EEF2FF" },
         { label: "Individuals", value: String(stats.individual), icon: UserCircle, color: "#2563EB", bg: "#EFF6FF" },
         { label: "Corporate", value: String(stats.corporate), icon: Building2, color: "#0E7C66", bg: "#ECFDF5" },
-        { label: "Branches", value: String((branches ?? []).length), icon: MapPin, color: "#E8471F", bg: "#FFF9E6" },
+        { label: "Branches", value: String((branches ?? []).length), icon: MapPin, color: "#F15A24", bg: "#FFF9E6" },
       ]} />
 
       <Card className="mb-4 p-4">
         <div className="flex items-center gap-3">
           <div className="flex-1 relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-            <input placeholder="Search by name, phone, email…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]" />
+            <input placeholder="Search by name, phone, email…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]" />
           </div>
           <select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }} className="h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#374151] cursor-pointer">
             <option value="All">All Types</option><option value="INDIVIDUAL">Individual</option><option value="CORPORATE">Corporate</option>
@@ -84,7 +84,7 @@ export function CustomersView() {
                   <tr key={c.id} className="hover:bg-[#F7F8FA] transition-colors group cursor-pointer" onClick={() => setDetailId(c.id)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#0E6BB8] text-white flex items-center justify-center text-[12px] font-black flex-shrink-0">{c.name[0]}</div>
+                        <div className="w-8 h-8 rounded-full bg-[#1B75BC] text-white flex items-center justify-center text-[12px] font-black flex-shrink-0">{c.name[0]}</div>
                         <div><div className="text-[12px] font-semibold text-[#111827]">{c.name}</div>{c.rating && <div className="text-[9px] text-[#0E7C66] font-bold">{c.rating}</div>}</div>
                       </div>
                     </td>
@@ -121,7 +121,7 @@ function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: st
           <div className="flex items-center gap-2">
             {c.isCorporate ? <Pill label="Corporate" color="#0E7C66" bg="#ECFDF5" icon={Building2} /> : <Pill label="Individual" color="#1D4ED8" bg="#DBEAFE" />}
             {c.rating && <Pill label={c.rating} color="#065F46" bg="#D1FAE5" />}
-            <button onClick={() => onEdit(c)} className="ml-auto flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer"><Edit3 size={12} /> Edit</button>
+            <button onClick={() => onEdit(c)} className="ml-auto flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer"><Edit3 size={12} /> Edit</button>
           </div>
           <div className="border border-[#E5E7EB] rounded-[12px] p-4 grid grid-cols-3 gap-4">
             <KV label="Phone" value={c.phone} icon={Phone} />
@@ -134,7 +134,7 @@ function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: st
 
           <div className="flex items-center gap-1 border-b border-[#E5E7EB]">
             {(["bookings", "notes", "activity"] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)} className={cn("flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium border-b-2 capitalize cursor-pointer", tab === t ? "border-[#0E6BB8] text-[#0E6BB8]" : "border-transparent text-[#6B7280]")}>
+              <button key={t} onClick={() => setTab(t)} className={cn("flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium border-b-2 capitalize cursor-pointer", tab === t ? "border-[#1B75BC] text-[#1B75BC]" : "border-transparent text-[#6B7280]")}>
                 {t === "bookings" ? <Package size={13} /> : t === "notes" ? <StickyNote size={13} /> : <Activity size={13} />} {t}
                 {((t === "bookings" && c.bookings.length) || (t === "notes" && c.notes.length) || (t === "activity" && c.activity.length)) ? <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#F3F4F6] text-[#9CA3AF]">{t === "bookings" ? c.bookings.length : t === "notes" ? c.notes.length : c.activity.length}</span> : null}
               </button>
@@ -145,7 +145,7 @@ function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: st
             <div className="flex flex-col gap-2">
               {c.bookings.map((b) => (
                 <div key={b.id} className="flex items-center gap-3 border border-[#E5E7EB] rounded-[10px] px-4 py-2.5">
-                  <div className="flex-1"><div className="text-[12px] font-bold text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.bookingNo || "Draft"}</div><div className="text-[10px] text-[#9CA3AF]">{b.serviceType} · {b.status}</div></div>
+                  <div className="flex-1"><div className="text-[12px] font-bold text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.bookingNo || "Draft"}</div><div className="text-[10px] text-[#9CA3AF]">{b.serviceType} · {b.status}</div></div>
                   <span className="text-[12px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtPrice(b.amount)}</span>
                 </div>
               ))}
@@ -160,7 +160,7 @@ function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: st
           )}
           {tab === "activity" && (
             <div className="flex flex-col gap-2">
-              {c.activity.map((a) => (<div key={a.id} className="flex items-center gap-3 border border-[#E5E7EB] rounded-[10px] px-4 py-2.5"><Activity size={13} className="text-[#0E6BB8]" /><span className="text-[12px] text-[#374151] flex-1">{a.action.replace(/_/g, " ")}</span><span className="text-[10px] text-[#9CA3AF]">{fmtDateTime(a.createdAt)}</span></div>))}
+              {c.activity.map((a) => (<div key={a.id} className="flex items-center gap-3 border border-[#E5E7EB] rounded-[10px] px-4 py-2.5"><Activity size={13} className="text-[#1B75BC]" /><span className="text-[12px] text-[#374151] flex-1">{a.action.replace(/_/g, " ")}</span><span className="text-[10px] text-[#9CA3AF]">{fmtDateTime(a.createdAt)}</span></div>))}
               {c.activity.length === 0 && <p className="text-[12px] text-[#9CA3AF] py-4 text-center">No activity.</p>}
             </div>
           )}

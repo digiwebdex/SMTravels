@@ -80,7 +80,7 @@ function buildWizardData(form: WizardForm) {
 }
 
 // ─── Shared form atoms ─────────────────────────────────────────────────────────
-const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] bg-white outline-none transition-all focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]";
+const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] bg-white outline-none transition-all focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]";
 const selectCls = `${inputCls} cursor-pointer`;
 const labelCls = "block text-[11px] font-bold text-[#374151] uppercase tracking-wide mb-1";
 
@@ -130,19 +130,19 @@ function StepService({ selected, onSelect }: { selected: ServiceType | null; onS
             <button key={s.type} onClick={() => onSelect(s.type)}
               className={cn(
                 "flex items-start gap-3 p-4 rounded-[12px] border-2 text-left transition-all cursor-pointer group",
-                active ? "border-[#0E6BB8] bg-[#0E6BB8]/3 shadow-md" : "border-[#E5E7EB] bg-white hover:border-[#0E6BB8]/30 hover:shadow-sm"
+                active ? "border-[#1B75BC] bg-[#1B75BC]/3 shadow-md" : "border-[#E5E7EB] bg-white hover:border-[#1B75BC]/30 hover:shadow-sm"
               )}>
               <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: active ? `${cfg.color}20` : cfg.light }}>
                 <Icon size={19} style={{ color: cfg.color }} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className={cn("text-[13px] font-black mb-0.5 transition-colors", active ? "text-[#0E6BB8]" : "text-[#111827] group-hover:text-[#0E6BB8]")}>
+                <div className={cn("text-[13px] font-black mb-0.5 transition-colors", active ? "text-[#1B75BC]" : "text-[#111827] group-hover:text-[#1B75BC]")}>
                   {s.type}
                 </div>
                 <div className="text-[11px] text-[#9CA3AF] leading-snug">{s.desc}</div>
               </div>
               <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
-                active ? "bg-[#0E6BB8] border-[#0E6BB8]" : "border-[#D1D5DB]")}>
+                active ? "bg-[#1B75BC] border-[#1B75BC]" : "border-[#D1D5DB]")}>
                 {active && <Check size={11} className="text-white" />}
               </div>
             </button>
@@ -274,7 +274,7 @@ function VisaDetails({ detail, set }: DetailProps) {
             { doc: "Travel insurance", required: false, default: false },
           ].map((d, i) => (
             <label key={i} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F7F8FA] cursor-pointer">
-              <input type="checkbox" defaultChecked={d.default} className="w-4 h-4 accent-[#0E6BB8]" />
+              <input type="checkbox" defaultChecked={d.default} className="w-4 h-4 accent-[#1B75BC]" />
               <span className="text-[12px] text-[#374151] flex-1">{d.doc}</span>
               {d.required && <span className="text-[9px] font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded-full">Required</span>}
             </label>
@@ -310,7 +310,7 @@ function AirTicketDetails({ detail, set }: DetailProps) {
         <div className="flex gap-3">
           {["One-way", "Return", "Multi-city"].map(t => (
             <label key={t} className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="journey" value={t} className="accent-[#0E6BB8]" checked={val(detail, "journeyType") === t} onChange={() => set("journeyType", t)} />
+              <input type="radio" name="journey" value={t} className="accent-[#1B75BC]" checked={val(detail, "journeyType") === t} onChange={() => set("journeyType", t)} />
               <span className="text-[12px] text-[#374151]">{t}</span>
             </label>
           ))}
@@ -406,8 +406,8 @@ function HotelDetails({ detail, set }: DetailProps) {
       <Field label="Board Basis" required>
         <div className="grid grid-cols-2 gap-2">
           {["Room Only", "Bed & Breakfast", "Half Board (2 meals)", "Full Board (3 meals)", "All Inclusive"].map(b => (
-            <label key={b} className="flex items-center gap-2 p-2.5 border border-[#E5E7EB] rounded-[8px] cursor-pointer hover:border-[#0E6BB8]/30 transition-colors">
-              <input type="radio" name="board" value={b} className="accent-[#0E6BB8]" checked={val(detail, "boardBasis") === b} onChange={() => set("boardBasis", b)} />
+            <label key={b} className="flex items-center gap-2 p-2.5 border border-[#E5E7EB] rounded-[8px] cursor-pointer hover:border-[#1B75BC]/30 transition-colors">
+              <input type="radio" name="board" value={b} className="accent-[#1B75BC]" checked={val(detail, "boardBasis") === b} onChange={() => set("boardBasis", b)} />
               <span className="text-[12px] text-[#374151]">{b}</span>
             </label>
           ))}
@@ -553,7 +553,7 @@ function TourDetails({ detail, set }: DetailProps) {
         <div className="flex gap-3 flex-wrap">
           {["No Meals", "Breakfast Only", "Breakfast + 2 Dinners", "All Meals Included"].map(m => (
             <label key={m} className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="meal" value={m} className="accent-[#0E6BB8]" checked={val(detail, "mealPlan") === m} onChange={() => set("mealPlan", m)} />
+              <input type="radio" name="meal" value={m} className="accent-[#1B75BC]" checked={val(detail, "mealPlan") === m} onChange={() => set("mealPlan", m)} />
               <span className="text-[12px] text-[#374151]">{m}</span>
             </label>
           ))}
@@ -586,7 +586,7 @@ function StepTravelers({ service, travelers, setTravelers }: { service: ServiceT
           <p className="text-[12px] text-[#9CA3AF]">Add all travelers — passport details required for all.</p>
         </div>
         <button onClick={add}
-          className="flex items-center gap-1.5 px-3 py-2 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#0B5794] transition-colors cursor-pointer">
+          className="flex items-center gap-1.5 px-3 py-2 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#14588F] transition-colors cursor-pointer">
           <Plus size={13} /> Add Traveler
         </button>
       </div>
@@ -596,9 +596,9 @@ function StepTravelers({ service, travelers, setTravelers }: { service: ServiceT
           <div key={t.id} className="border border-[#E5E7EB] rounded-[12px] overflow-hidden">
             <div className="flex items-center justify-between bg-[#F7F8FA] px-4 py-2.5 border-b border-[#E5E7EB]">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#0E6BB8] text-white text-[10px] font-black flex items-center justify-center">{i + 1}</div>
+                <div className="w-6 h-6 rounded-full bg-[#1B75BC] text-white text-[10px] font-black flex items-center justify-center">{i + 1}</div>
                 <span className="text-[12px] font-bold text-[#374151]">{t.name || `Traveler ${i + 1}`}</span>
-                {i === 0 && <span className="text-[9px] font-bold text-white bg-[#E8471F] px-1.5 py-0.5 rounded-full">PRIMARY</span>}
+                {i === 0 && <span className="text-[9px] font-bold text-white bg-[#F15A24] px-1.5 py-0.5 rounded-full">PRIMARY</span>}
               </div>
               {i > 0 && (
                 <button onClick={() => remove(t.id)} className="text-[#DC2626] hover:text-[#991B1B] cursor-pointer p-1">
@@ -724,12 +724,12 @@ function StepDocuments({ service, bookingId }: { service: ServiceType | null; bo
               ) : (
                 <label className={cn(
                   "flex flex-col items-center justify-center h-20 border-2 border-dashed border-[#E5E7EB] rounded-[8px] transition-colors group",
-                  bookingId && busy !== doc ? "cursor-pointer hover:border-[#0E6BB8]/40 hover:bg-[#0E6BB8]/2" : "opacity-60 cursor-not-allowed",
+                  bookingId && busy !== doc ? "cursor-pointer hover:border-[#1B75BC]/40 hover:bg-[#1B75BC]/2" : "opacity-60 cursor-not-allowed",
                 )}>
                   {busy === doc
-                    ? <Loader2 size={16} className="text-[#0E6BB8] mb-1 animate-spin" />
-                    : <Upload size={16} className="text-[#D1D5DB] group-hover:text-[#0E6BB8] mb-1 transition-colors" />}
-                  <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#0E6BB8] transition-colors">
+                    ? <Loader2 size={16} className="text-[#1B75BC] mb-1 animate-spin" />
+                    : <Upload size={16} className="text-[#D1D5DB] group-hover:text-[#1B75BC] mb-1 transition-colors" />}
+                  <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#1B75BC] transition-colors">
                     {busy === doc ? "Uploading…" : "Click to upload"}
                   </span>
                   <input
@@ -820,7 +820,7 @@ function StepPricing({ pricing, setPricing }: { pricing: PricingForm; setPricing
         <div className="flex items-center justify-between bg-[#F7F8FA] px-4 py-2.5 border-b border-[#E5E7EB]">
           <span className="text-[11px] font-bold text-[#374151] uppercase tracking-wide">Additional Charges</span>
           <button onClick={() => set({ charges: [...pricing.charges, { label: "", amount: 0 }] })}
-            className="text-[11px] text-[#0E6BB8] font-semibold hover:underline cursor-pointer flex items-center gap-1"><Plus size={11} /> Add charge</button>
+            className="text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer flex items-center gap-1"><Plus size={11} /> Add charge</button>
         </div>
         <div className="divide-y divide-[#F3F4F6]">
           {pricing.charges.map((c, i) => (
@@ -835,7 +835,7 @@ function StepPricing({ pricing, setPricing }: { pricing: PricingForm; setPricing
       </div>
 
       {/* Total summary */}
-      <div className="bg-[#0E6BB8] rounded-[12px] p-5 text-white">
+      <div className="bg-[#1B75BC] rounded-[12px] p-5 text-white">
         <div className="flex flex-col gap-2 mb-4">
           {[
             ["Subtotal", fmtPrice(subtotal)],
@@ -882,9 +882,9 @@ function StepPayment({ payment, setPayment, total }: { payment: PaymentForm; set
           ].map(m => (
             <button key={m.key} onClick={() => set({ mode: m.key as "full" | "installment" })}
               className={cn("flex-1 p-4 rounded-[12px] border-2 text-left transition-all cursor-pointer",
-                payment.mode === m.key ? "border-[#0E6BB8] bg-[#0E6BB8]/3" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
+                payment.mode === m.key ? "border-[#1B75BC] bg-[#1B75BC]/3" : "border-[#E5E7EB] hover:border-[#1B75BC]/30"
               )}>
-              <div className={cn("text-[13px] font-bold mb-0.5", payment.mode === m.key ? "text-[#0E6BB8]" : "text-[#111827]")}>{m.label}</div>
+              <div className={cn("text-[13px] font-bold mb-0.5", payment.mode === m.key ? "text-[#1B75BC]" : "text-[#111827]")}>{m.label}</div>
               <div className="text-[11px] text-[#9CA3AF]">{m.sub}</div>
             </button>
           ))}
@@ -895,18 +895,18 @@ function StepPayment({ payment, setPayment, total }: { payment: PaymentForm; set
             <div className="flex items-center justify-between mb-4">
               <div className={labelCls}>Number of Installments</div>
               <div className="flex items-center gap-2">
-                <button onClick={() => set({ installments: Math.max(2, payment.installments - 1) })} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer text-lg leading-none">−</button>
+                <button onClick={() => set({ installments: Math.max(2, payment.installments - 1) })} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer text-lg leading-none">−</button>
                 <span className="w-8 text-center text-[14px] font-black text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{payment.installments}</span>
-                <button onClick={() => set({ installments: Math.min(12, payment.installments + 1) })} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#0E6BB8]/30 cursor-pointer text-lg leading-none">+</button>
+                <button onClick={() => set({ installments: Math.min(12, payment.installments + 1) })} className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer text-lg leading-none">+</button>
               </div>
             </div>
             <div className="flex flex-col gap-2">
               {Array.from({ length: payment.installments }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#0E6BB8]/8 text-[#0E6BB8] text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                  <span className="w-6 h-6 rounded-full bg-[#1B75BC]/8 text-[#1B75BC] text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
                   <span className="text-[12px] text-[#374151] w-32">{i === 0 ? "Booking Deposit" : i === payment.installments - 1 ? "Final Payment" : `Installment ${i + 1}`}</span>
-                  <input type="number" className="flex-1 px-2.5 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[12px] outline-none focus:border-[#0E6BB8] text-right" defaultValue={perInst} />
-                  <input type="date" className="px-2.5 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[11px] outline-none focus:border-[#0E6BB8] cursor-pointer" />
+                  <input type="number" className="flex-1 px-2.5 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[12px] outline-none focus:border-[#1B75BC] text-right" defaultValue={perInst} />
+                  <input type="date" className="px-2.5 py-1.5 border border-[#E5E7EB] rounded-[6px] text-[11px] outline-none focus:border-[#1B75BC] cursor-pointer" />
                 </div>
               ))}
             </div>
@@ -922,10 +922,10 @@ function StepPayment({ payment, setPayment, total }: { payment: PaymentForm; set
             return (
               <button key={m.key} onClick={() => set({ method: m.key })}
                 className={cn("flex items-center gap-2.5 p-3 rounded-[10px] border-2 transition-all cursor-pointer",
-                  payment.method === m.key ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
+                  payment.method === m.key ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-[#E5E7EB] hover:border-[#1B75BC]/30"
                 )}>
-                <Icon size={15} style={{ color: payment.method === m.key ? "#0E6BB8" : "#9CA3AF" }} />
-                <span className={cn("text-[12px] font-medium", payment.method === m.key ? "text-[#0E6BB8]" : "text-[#374151]")}>{m.label}</span>
+                <Icon size={15} style={{ color: payment.method === m.key ? "#1B75BC" : "#9CA3AF" }} />
+                <span className={cn("text-[12px] font-medium", payment.method === m.key ? "text-[#1B75BC]" : "text-[#374151]")}>{m.label}</span>
               </button>
             );
           })}
@@ -977,7 +977,7 @@ function StepReview({ service, form, total }: { service: ServiceType | null; for
             <div className="text-[16px] font-black" style={{ color: cfg.color }}>{service} Booking</div>
             <div className="text-[12px] text-[#6B7280]">{form.travelers.filter(t => t.name.trim()).length} Traveler(s) · {fmtPrice(total)}</div>
           </div>
-          <div className="ml-auto px-3 py-1 bg-[#FEF3C7] border border-[#E8471F]/30 rounded-full text-[11px] font-bold text-[#92400E]">Pending Confirmation</div>
+          <div className="ml-auto px-3 py-1 bg-[#FEF3C7] border border-[#F15A24]/30 rounded-full text-[11px] font-bold text-[#92400E]">Pending Confirmation</div>
         </div>
       )}
 
@@ -997,8 +997,8 @@ function StepReview({ service, form, total }: { service: ServiceType | null; for
         ))}
       </div>
 
-      <div className="bg-[#FEF3C7] border border-[#E8471F]/40 rounded-[10px] p-4 flex items-start gap-3">
-        <AlertCircle size={15} className="text-[#C43A15] flex-shrink-0 mt-0.5" />
+      <div className="bg-[#FEF3C7] border border-[#F15A24]/40 rounded-[10px] p-4 flex items-start gap-3">
+        <AlertCircle size={15} className="text-[#D64A12] flex-shrink-0 mt-0.5" />
         <div className="text-[11px] text-[#92400E] leading-relaxed">
           <strong>Before confirming:</strong> verify that passport validity exceeds 6 months from departure, all document uploads are complete, and the initial payment has been received and recorded.
         </div>
@@ -1132,15 +1132,15 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
             return (
               <button key={s.label} onClick={() => i < step && setStep(i)}
                 className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] mb-1 text-left transition-all cursor-pointer",
-                  active ? "bg-[#0E6BB8]/5" : done ? "hover:bg-[#F7F8FA]" : "cursor-not-allowed opacity-50"
+                  active ? "bg-[#1B75BC]/5" : done ? "hover:bg-[#F7F8FA]" : "cursor-not-allowed opacity-50"
                 )}>
                 <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black flex-shrink-0 transition-all",
-                  done ? "bg-[#0E7C66] text-white" : active ? "bg-[#0E6BB8] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"
+                  done ? "bg-[#0E7C66] text-white" : active ? "bg-[#1B75BC] text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"
                 )}>
                   {done ? <Check size={12} /> : i + 1}
                 </div>
                 <div>
-                  <div className={cn("text-[12px] font-bold", active ? "text-[#0E6BB8]" : done ? "text-[#374151]" : "text-[#9CA3AF]")}>{s.label}</div>
+                  <div className={cn("text-[12px] font-bold", active ? "text-[#1B75BC]" : done ? "text-[#374151]" : "text-[#9CA3AF]")}>{s.label}</div>
                   <div className="text-[10px] text-[#9CA3AF]">{s.sub}</div>
                 </div>
               </button>
@@ -1149,7 +1149,7 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
         </nav>
         <div className="p-4 border-t border-[#F3F4F6]">
           <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-            <div className="h-full bg-[#0E6BB8] rounded-full transition-all duration-300"
+            <div className="h-full bg-[#1B75BC] rounded-full transition-all duration-300"
               style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
           </div>
           <div className="text-[10px] text-[#9CA3AF] mt-1.5">Step {step + 1} of {STEPS.length}</div>
@@ -1167,7 +1167,7 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
         {/* Footer nav */}
         <div className="flex-shrink-0 bg-white border-t border-[#E5E7EB] px-8 py-4 flex items-center justify-between">
           <button onClick={prev} disabled={busy}
-            className="flex items-center gap-2 px-4 py-2.5 border border-[#E5E7EB] text-[#374151] font-medium text-[13px] rounded-[8px] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer disabled:opacity-50">
+            className="flex items-center gap-2 px-4 py-2.5 border border-[#E5E7EB] text-[#374151] font-medium text-[13px] rounded-[8px] hover:border-[#1B75BC]/30 transition-colors cursor-pointer disabled:opacity-50">
             <ChevronLeft size={15} /> {step === 0 ? "Cancel" : "Back"}
           </button>
           <div className="flex items-center gap-2">
@@ -1179,7 +1179,7 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
             ) : (
               <button onClick={next} disabled={!canNext || busy}
                 className={cn("flex items-center gap-2 px-6 py-2.5 font-bold text-[13px] rounded-[8px] transition-colors cursor-pointer",
-                  canNext && !busy ? "bg-[#0E6BB8] text-white hover:bg-[#0B5794] shadow-lg shadow-[#0E6BB8]/20" : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
+                  canNext && !busy ? "bg-[#1B75BC] text-white hover:bg-[#14588F] shadow-lg shadow-[#1B75BC]/20" : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
                 )}>
                 {busy ? <Loader2 size={15} className="animate-spin" /> : null} Continue <ChevronRight size={15} />
               </button>

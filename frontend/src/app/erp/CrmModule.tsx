@@ -24,7 +24,7 @@ export function CrmModule() {
           return (
             <button key={s.key} onClick={() => setSeg(s.key)}
               className={cn("flex items-center gap-1.5 px-4 h-9 rounded-[8px] text-[12px] font-bold transition-all cursor-pointer",
-                seg === s.key ? "bg-white text-[#0E6BB8] shadow" : "text-[#9CA3AF] hover:text-[#374151]")}>
+                seg === s.key ? "bg-white text-[#1B75BC] shadow" : "text-[#9CA3AF] hover:text-[#374151]")}>
               <Icon size={14} /> {s.label}
             </button>
           );

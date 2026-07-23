@@ -6,8 +6,8 @@ import { apiFetch } from "../lib/api";
 import type { ServiceTypeDto } from "@contracts/booking.contract";
 
 const SERVICES: { id: string; enum: ServiceTypeDto; icon: React.ElementType; label: string; color: string; desc: string }[] = [
-  { id: "hajj", enum: "HAJJ", icon: Star, label: "Hajj Package", color: "#E8471F", desc: "Govt-approved pilgrimage packages" },
-  { id: "umrah", enum: "UMRAH", icon: MapPin, label: "Umrah Package", color: "#0E6BB8", desc: "Year-round Umrah services" },
+  { id: "hajj", enum: "HAJJ", icon: Star, label: "Hajj Package", color: "#F15A24", desc: "Govt-approved pilgrimage packages" },
+  { id: "umrah", enum: "UMRAH", icon: MapPin, label: "Umrah Package", color: "#1B75BC", desc: "Year-round Umrah services" },
   { id: "visa", enum: "VISA", icon: Shield, label: "Visa Services", color: "#0E7C66", desc: "50+ countries worldwide" },
   { id: "air-ticket", enum: "AIR_TICKET", icon: Plane, label: "Air Ticket", color: "#2563EB", desc: "Best airfare guaranteed" },
   { id: "manpower", enum: "MANPOWER", icon: Briefcase, label: "Manpower", color: "#7C3AED", desc: "International recruitment" },
@@ -25,13 +25,13 @@ function StepIndicator({ current }: { current: number }) {
           <div className="flex flex-col items-center">
             <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-black transition-all",
               i < current ? "bg-[#0E7C66] text-white"
-                : i === current ? "bg-[#0E6BB8] text-white shadow-lg"
+                : i === current ? "bg-[#1B75BC] text-white shadow-lg"
                   : "bg-[#E5E7EB] text-[#9CA3AF]"
             )}>
               {i < current ? <CheckCircle size={16} /> : i + 1}
             </div>
             <div className={cn("text-[10px] font-bold mt-1 hidden sm:block",
-              i === current ? "text-[#0E6BB8]" : i < current ? "text-[#0E7C66]" : "text-[#9CA3AF]"
+              i === current ? "text-[#1B75BC]" : i < current ? "text-[#0E7C66]" : "text-[#9CA3AF]"
             )}>
               {step}
             </div>
@@ -112,7 +112,7 @@ export function BookingPage() {
             <div className="flex justify-between"><span className="text-[#9CA3AF]">Contact</span><span className="font-bold">{traveler.phone || traveler.email}</span></div>
           </div>
           <div className="flex gap-3 justify-center">
-            <Link to="/" className="px-5 py-2.5 bg-[#0E6BB8] text-white font-bold rounded-[10px] text-sm hover:bg-[#0B5794] transition-colors">
+            <Link to="/" className="px-5 py-2.5 bg-[#1B75BC] text-white font-bold rounded-[10px] text-sm hover:bg-[#14588F] transition-colors">
               Back to Home
             </Link>
             <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
@@ -127,9 +127,9 @@ export function BookingPage() {
 
   return (
     <>
-      <section className="bg-[#0E6BB8] py-12 text-white text-center">
+      <section className="bg-[#1B75BC] py-12 text-white text-center">
         <div className="max-w-[700px] mx-auto px-6">
-          <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Online Booking</div>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Online Booking</div>
           <h1 className="text-2xl font-black mb-1">Book Your Travel</h1>
           <p className="text-white/50 text-sm">Complete the form below and our team will confirm your booking</p>
         </div>
@@ -151,12 +151,12 @@ export function BookingPage() {
                     <button key={s.id} onClick={() => setService(s.id)}
                       className={cn(
                         "p-4 rounded-[12px] border-2 text-left transition-all cursor-pointer",
-                        service === s.id ? "border-[#0E6BB8] bg-[#0E6BB8]/5 shadow" : "border-[#E5E7EB] hover:border-[#0E6BB8]/30"
+                        service === s.id ? "border-[#1B75BC] bg-[#1B75BC]/5 shadow" : "border-[#E5E7EB] hover:border-[#1B75BC]/30"
                       )}>
                       <s.icon size={20} className="mb-2" style={{ color: s.color }} />
                       <div className="text-[12px] font-bold text-[#111827]">{s.label}</div>
                       <div className="text-[10px] text-[#9CA3AF] mt-0.5">{s.desc}</div>
-                      {service === s.id && <CheckCircle size={14} className="text-[#0E6BB8] mt-2" />}
+                      {service === s.id && <CheckCircle size={14} className="text-[#1B75BC] mt-2" />}
                     </button>
                   ))}
                 </div>
@@ -181,14 +181,14 @@ export function BookingPage() {
                         <input type={f.type || "text"} placeholder={f.placeholder}
                           value={trip[f.k as keyof typeof trip]}
                           onChange={e => setT(f.k as keyof typeof trip)(e.target.value)}
-                          className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all" />
+                          className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all" />
                       </div>
                     ))}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">Number of Travelers</label>
                     <select value={trip.pax} onChange={e => setT("pax")(e.target.value)}
-                      className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] bg-white cursor-pointer">
+                      className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] bg-white cursor-pointer">
                       {["1","2","3","4","5","6","7","8","9","10+"].map(n => <option key={n}>{n}</option>)}
                     </select>
                   </div>
@@ -196,7 +196,7 @@ export function BookingPage() {
                     <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">Special Requirements / Notes</label>
                     <textarea rows={3} placeholder="Wheelchair access, dietary restrictions, specific package preferences..."
                       value={trip.notes} onChange={e => setT("notes")(e.target.value)}
-                      className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] resize-none transition-all" />
+                      className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] resize-none transition-all" />
                   </div>
                 </div>
               </div>
@@ -219,7 +219,7 @@ export function BookingPage() {
                         <input type={f.type || "text"} placeholder={f.placeholder}
                           value={traveler[f.k as keyof typeof traveler]}
                           onChange={e => setTr(f.k as keyof typeof traveler)(e.target.value)}
-                          className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all" />
+                          className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all" />
                       </div>
                     ))}
                   </div>
@@ -273,7 +273,7 @@ export function BookingPage() {
             <div className="flex justify-between mt-7 pt-5 border-t border-[#F3F4F6]">
               {step > 0 ? (
                 <button onClick={() => setStep(s => s - 1)}
-                  className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#E5E7EB] text-[#374151] font-bold rounded-[10px] text-[13px] hover:border-[#0E6BB8]/30 transition-all cursor-pointer">
+                  className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#E5E7EB] text-[#374151] font-bold rounded-[10px] text-[13px] hover:border-[#1B75BC]/30 transition-all cursor-pointer">
                   <ArrowLeft size={14} /> Back
                 </button>
               ) : <div />}
@@ -286,7 +286,7 @@ export function BookingPage() {
                     "flex items-center gap-2 px-6 py-2.5 font-bold rounded-[10px] text-[13px] transition-all cursor-pointer",
                     step === 0 && !service
                       ? "bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
-                      : "bg-[#0E6BB8] hover:bg-[#0B5794] text-white"
+                      : "bg-[#1B75BC] hover:bg-[#14588F] text-white"
                   )}>
                   Next Step <ArrowRight size={14} />
                 </button>
@@ -302,7 +302,7 @@ export function BookingPage() {
 
           {/* Help */}
           <div className="mt-5 text-center text-[12px] text-[#9CA3AF]">
-            Need help? <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer" className="text-[#25D366] font-bold hover:underline">Chat on WhatsApp</a> or call <a href="tel:+88029553421" className="text-[#0E6BB8] font-bold hover:underline">+880 2 9553421</a>
+            Need help? <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer" className="text-[#25D366] font-bold hover:underline">Chat on WhatsApp</a> or call <a href="tel:+88029553421" className="text-[#1B75BC] font-bold hover:underline">+880 2 9553421</a>
           </div>
         </div>
       </section>

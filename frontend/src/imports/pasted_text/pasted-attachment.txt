@@ -17,10 +17,10 @@ consistently across 100% of the project.
 The logo is an orange airplane with a blue flight-path swoosh, the word "SM" in
 orange, "Travels" in bright blue, and "International" in deep navy blue.
 
-Primary — Brand Blue:      #0E6BB8   (hover #0B5794, active #094A7E)
+Primary — Brand Blue:      #1B75BC   (hover #14588F, active #094A7E)
 Deep Navy (headings/nav):  #17456B   (the "International" text + swoosh navy)
-Accent — Brand Orange:     #E8471F   (hover #CC3C17, active #B23413)
-Orange text on white:      #C43A15   (darkened for WCAG AA on white bg)
+Accent — Brand Orange:     #F15A24   (hover #CC3C17, active #B23413)
+Orange text on white:      #D64A12   (darkened for WCAG AA on white bg)
 Light Blue tint:           #E8F2FA   (selected rows, active nav bg, info bg)
 Light Orange tint:         #FDEDE8   (accent highlights, alert backgrounds)
 
@@ -29,21 +29,21 @@ Background #F7F8FA · Surface #FFFFFF · Border #E5E7EB
 Text primary #111827 · secondary #6B7280 · muted #9CA3AF
 
 Semantic (keep meaning, harmonize hue with brand):
-Success #16A34A · Warning #F59E0B · Danger #DC2626 · Info = Brand Blue #0E6BB8
+Success #16A34A · Warning #F59E0B · Danger #DC2626 · Info = Brand Blue #1B75BC
 
 === HOW TO APPLY THE COLORS ===
 - Primary buttons, active nav items, links, focus rings, selected states,
-  progress bars, primary chart series → Brand Blue #0E6BB8.
+  progress bars, primary chart series → Brand Blue #1B75BC.
 - Sidebar background, top bar, ERP shell, footer, table headers, page
   headings, dark surfaces → Deep Navy #17456B.
-- Orange #E8471F is the ACCENT ONLY — use it sparingly and deliberately for:
+- Orange #F15A24 is the ACCENT ONLY — use it sparingly and deliberately for:
   the main hero CTA ("Book Now" / "Get Quote"), key call-to-action buttons on
   the public website, important badges/counts, notification dots, the active
   step in wizards, and secondary chart series. Do NOT use orange as a large
   background fill or for body text. Target roughly 70% blue / 20% neutral /
   10% orange across any given screen.
-- For any orange text rendered on a white/light background, use #C43A15
-  (the darkened variant) to pass WCAG AA contrast — never #E8471F on white text.
+- For any orange text rendered on a white/light background, use #D64A12
+  (the darkened variant) to pass WCAG AA contrast — never #F15A24 on white text.
 - Charts: Brand Blue → Orange → Deep Navy → Light Blue → Success Green, in
   that order.
 - Status badges keep their semantic meaning (Pending, Confirmed, Processing,
@@ -59,19 +59,19 @@ icons, borders, shadows, gradients, and chart colors:
 
 OLD VALUES TO REPLACE (exhaustive list — grep these exact strings):
   #14356B  →  context-dependent: sidebar/nav/dark surfaces → #17456B;
-              buttons/links/primary actions → #0E6BB8
-  #0f2a56  →  #0B5794  (primary button hover)
-  #0F2A55  →  #0B5794  (same, different case — both must go)
-  #C9A227  →  #E8471F  (accent / CTA / badges)
+              buttons/links/primary actions → #1B75BC
+  #0f2a56  →  #14588F  (primary button hover)
+  #0F2A55  →  #14588F  (same, different case — both must go)
+  #C9A227  →  #F15A24  (accent / CTA / badges)
   #b8911f  →  #CC3C17  (gold hover → orange hover)
-  #C9A22740  →  #E8471F40  (translucent gold borders)
+  #C9A22740  →  #F15A2440  (translucent gold borders)
   #0E7C66  →  #16A34A  (old emerald accent → standard success green)
               Exception: keep #0E7C66 where it is used as "Accountant Portal"
-              brand accent — change those instances to #0E6BB8 instead.
-  bg-\[#14356B\]  →  bg-\[#17456B\] (sidebar) or bg-\[#0E6BB8\] (buttons)
-  text-\[#14356B\]  →  text-\[#0E6BB8\]
-  border-\[#14356B\]  →  border-\[#0E6BB8\]
-  ring-\[#14356B\]  →  ring-\[#0E6BB8\]
+              brand accent — change those instances to #1B75BC instead.
+  bg-\[#14356B\]  →  bg-\[#17456B\] (sidebar) or bg-\[#1B75BC\] (buttons)
+  text-\[#14356B\]  →  text-\[#1B75BC\]
+  border-\[#14356B\]  →  border-\[#1B75BC\]
+  ring-\[#14356B\]  →  ring-\[#1B75BC\]
   fill-\[#14356B\]  →  fill-\[#17456B\]
 
 Nothing gold (#C9A227 or any amber used as a brand color, not a semantic
@@ -83,28 +83,28 @@ any component, and the change will cascade through most of the codebase
 automatically:
 
 1. src/styles/theme.css  — CSS custom properties used by Tailwind:
-   --primary:           #14356B  →  #0E6BB8
-   --accent:            #C9A227  →  #E8471F
-   --ring:              #14356B  →  #0E6BB8
-   --chart-1:           #14356B  →  #0E6BB8
-   --chart-2:           #C9A227  →  #E8471F
+   --primary:           #14356B  →  #1B75BC
+   --accent:            #C9A227  →  #F15A24
+   --ring:              #14356B  →  #1B75BC
+   --chart-1:           #14356B  →  #1B75BC
+   --chart-2:           #C9A227  →  #F15A24
    --chart-3:           #0E7C66  →  #16A34A
    --chart-4:           #2563EB  →  #E8F2FA  (light blue as 4th series)
    --sidebar:           #14356B  →  #17456B
-   --sidebar-primary:   #C9A227  →  #E8471F
+   --sidebar-primary:   #C9A227  →  #F15A24
    --sidebar-primary-foreground: #14356B  →  #FFFFFF
-   --sidebar-ring:      #C9A227  →  #0E6BB8
+   --sidebar-ring:      #C9A227  →  #1B75BC
 
 2. src/app/lib/ds.tsx  — BRAND constants (canonical source of truth):
-   BRAND.navy    = "#14356B"  →  "#0E6BB8"   (primary blue)
-   BRAND.navyDk  = "#0f2a56"  →  "#0B5794"   (primary blue hover)
-   BRAND.gold    = "#C9A227"  →  "#E8471F"   (accent orange)
+   BRAND.navy    = "#14356B"  →  "#1B75BC"   (primary blue)
+   BRAND.navyDk  = "#0f2a56"  →  "#14588F"   (primary blue hover)
+   BRAND.gold    = "#C9A227"  →  "#F15A24"   (accent orange)
    BRAND.emerald = "#0E7C66"  →  "#16A34A"   (success green — semantic only)
    BRAND.erpBg   = "#F0F2F5"  →  "#F7F8FA"   (align with theme.css --background)
    Add new constant:
    BRAND.deepNavy = "#17456B"                (sidebar / dark surfaces)
    Add new constant:
-   BRAND.orangeText = "#C43A15"              (orange on white, WCAG AA safe)
+   BRAND.orangeText = "#D64A12"              (orange on white, WCAG AA safe)
 
 After updating these two files, sweep the remaining inline hex values in all
 component and page files as listed in the "REMOVE COMPLETELY" section above.
@@ -112,8 +112,8 @@ component and page files as listed in the "REMOVE COMPLETELY" section above.
 === LOGO & IDENTITY ===
 Build an inline SVG logo component (src/app/components/Logo.tsx) that renders
 the SM Travels International mark in code — an orange airplane silhouette (✈)
-with a blue arc/swoosh beneath it, "SM" in Brand Orange (#E8471F), "Travels"
-in Brand Blue (#0E6BB8), "International" in Deep Navy (#17456B).
+with a blue arc/swoosh beneath it, "SM" in Brand Orange (#F15A24), "Travels"
+in Brand Blue (#1B75BC), "International" in Deep Navy (#17456B).
 
 Provide these variants as props:
   variant="full"      — full wordmark (plane + swoosh + all three text parts)
@@ -141,8 +141,8 @@ or style={{ backgroundColor }} inline styles, update Tailwind class strings:
 
 Design System (/ds)
   → Update token swatches on the page to show new values
-  → Re-label "Navy #14356B" → "Brand Blue #0E6BB8" and "Gold #C9A227" →
-    "Brand Orange #E8471F" and add "Deep Navy #17456B"
+  → Re-label "Navy #14356B" → "Brand Blue #1B75BC" and "Gold #C9A227" →
+    "Brand Orange #F15A24" and add "Deep Navy #17456B"
   → Add logo section showing all four variants
 
 Public Website
@@ -160,7 +160,7 @@ Auth (/login, /register)
 
 ERP Shell (src/app/erp/ErpLayout.tsx)
   → Sidebar background → Deep Navy #17456B
-  → Active nav item highlight → Brand Blue #0E6BB8 tint (white/15%)
+  → Active nav item highlight → Brand Blue #1B75BC tint (white/15%)
   → Topbar border accent → Brand Blue
   → Mobile bottom nav active → Brand Blue
 
@@ -169,8 +169,8 @@ ERP Modules (all files in src/app/erp/):
   AccountsModule, InvoicesModule, ReportsModule, ReportsBIModule,
   DocumentsModule, CommunicationsModule, CmsModule, OperationsModule,
   SettingsModule
-  → Replace all #14356B → #0E6BB8 (buttons, links, active states)
-  → Replace all #C9A227 → #E8471F (accent badges, highlights)
+  → Replace all #14356B → #1B75BC (buttons, links, active states)
+  → Replace all #C9A227 → #F15A24 (accent badges, highlights)
   → Chart colors → follow new chart order (Blue → Orange → Navy → etc.)
 
 Customer Portal (src/app/portal/CustomerPortal.tsx) — route: /portal
@@ -179,7 +179,7 @@ Supplier Portal (src/app/portal/SupplierPortal.tsx) — route: /supplier
 Staff Portal    (src/app/portal/StaffPortal.tsx)    — route: /staff
 Accountant Portal (src/app/portal/AccountantPortal.tsx) — route: /accountant
   → Each portal sidebar → Deep Navy #17456B
-  → Active states → Brand Blue #0E6BB8
+  → Active states → Brand Blue #1B75BC
   → CTAs / wallet hero / commission tier badge → Brand Blue or Orange as
     contextually appropriate
   → Remove all gold references
@@ -191,8 +191,8 @@ inline in the same component files.
 Sitemap & Workflow (/sitemap — src/app/pages/Sitemap.tsx)
   → Zone panel border/badge colors: update the ZONE_CFG object
     - "erp" zone: was navy → now Deep Navy #17456B
-    - Primary flow step cards: was #14356B → #0E6BB8 for buttons/Brand Blue nodes
-    - Entry point / payment flow nodes → Brand Orange #E8471F
+    - Primary flow step cards: was #14356B → #1B75BC for buttons/Brand Blue nodes
+    - Entry point / payment flow nodes → Brand Orange #F15A24
     - Connector lines/arrows → Deep Navy #17456B
   → Portal connection grid → update per-zone dot colors
 
@@ -203,11 +203,11 @@ Design System showcase (/ds — src/app/pages/DesignSystem.tsx)
 
 === ACCESSIBILITY CHECK ===
 After replacing colors, verify:
-  ✓ White text on Brand Blue #0E6BB8 — passes WCAG AA (contrast ~4.6:1) ✓
+  ✓ White text on Brand Blue #1B75BC — passes WCAG AA (contrast ~4.6:1) ✓
   ✓ White text on Deep Navy #17456B — passes WCAG AA (contrast ~7.2:1) ✓
-  ✗ Orange #E8471F on white text — FAILS WCAG AA — use #C43A15 instead for
+  ✗ Orange #F15A24 on white text — FAILS WCAG AA — use #D64A12 instead for
     any text rendered on white or light backgrounds
-  ✓ Focus rings: change ring color from #14356B to #0E6BB8; ensure 3px ring
+  ✓ Focus rings: change ring color from #14356B to #1B75BC; ensure 3px ring
     is visible against both white and light-blue backgrounds
   ✓ Bangla text (Noto Sans Bengali) and English text must remain legible on
     Deep Navy sidebar — use white (#FFFFFF) not grey for sidebar text

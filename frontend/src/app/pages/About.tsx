@@ -37,10 +37,10 @@ export function About() {
       <section className="relative py-16 md:py-24 overflow-hidden">
         <img src={img("photo-1693590614566-1d3ea9ef32f7", 1920, 600)} alt="Umrah pilgrims"
           className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0E6BB8]/95 to-[#0E6BB8]/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/95 to-[#1B75BC]/70" />
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="max-w-xl">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-3">Company Profile</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Company Profile</div>
             <h1 className="text-4xl font-black text-white mb-4">About SMTravel International</h1>
             <p className="text-white/70 leading-relaxed text-sm">
               Bangladesh's most trusted Hajj, Umrah & travel management company — serving pilgrims and travelers with integrity since 1998.
@@ -53,7 +53,7 @@ export function About() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-3">Our Story</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Our Story</div>
             <h2 className="text-3xl font-black text-[#111827] mb-5">A Legacy Built on Trust</h2>
             <div className="flex flex-col gap-4 text-[13px] text-[#374151] leading-relaxed">
               <p>
@@ -75,7 +75,7 @@ export function About() {
                 { n: "4", l: "Branches" },
               ].map(i => (
                 <div key={i.l} className="text-center">
-                  <div className="text-2xl font-black text-[#0E6BB8]">{i.n}</div>
+                  <div className="text-2xl font-black text-[#1B75BC]">{i.n}</div>
                   <div className="text-[11px] text-[#9CA3AF]">{i.l}</div>
                 </div>
               ))}
@@ -93,7 +93,7 @@ export function About() {
       <section className="py-12 md:py-20 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Our Foundation</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Foundation</div>
             <h2 className="text-3xl font-black text-[#111827]">Mission, Vision & Values</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -101,7 +101,7 @@ export function About() {
               {
                 icon: Target,
                 title: "Our Mission",
-                color: "#0E6BB8",
+                color: "#1B75BC",
                 bg: "#EEF2FF",
                 text: "To provide the highest quality Hajj, Umrah and travel services that honor the sacred trust our clients place in us — with transparency, professionalism, and genuine care for every pilgrim's journey.",
               },
@@ -136,7 +136,7 @@ export function About() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[900px] mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Our Journey</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Journey</div>
             <h2 className="text-3xl font-black text-[#111827]">25 Years of Milestones</h2>
           </div>
           <div className="relative">
@@ -146,12 +146,12 @@ export function About() {
                 <div key={m.year} className={cn("flex gap-6 items-start", i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse")}>
                   <div className={cn("flex-1 hidden md:block", i % 2 === 0 ? "text-right" : "text-left")} />
                   <div className="relative z-10 flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-[#0E6BB8] text-white text-[11px] font-black flex items-center justify-center border-4 border-white shadow">
+                    <div className="w-12 h-12 rounded-full bg-[#1B75BC] text-white text-[11px] font-black flex items-center justify-center border-4 border-white shadow">
                       {m.year.slice(2)}
                     </div>
                   </div>
                   <div className="flex-1 bg-[#F7F8FA] rounded-[12px] p-4 border border-[#E5E7EB]">
-                    <div className="text-[12px] font-black text-[#C43A15] mb-0.5">{m.year}</div>
+                    <div className="text-[12px] font-black text-[#D64A12] mb-0.5">{m.year}</div>
                     <div className="text-[13px] text-[#374151]">{m.event}</div>
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export function About() {
       <section className="py-12 md:py-20 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Certifications & Accreditations</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Certifications & Accreditations</div>
             <h2 className="text-3xl font-black text-[#111827]">Licensed & Trusted</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -183,17 +183,17 @@ export function About() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Our Leadership</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Leadership</div>
             <h2 className="text-3xl font-black text-[#111827]">Meet the Team</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {TEAM.map(t => (
               <div key={t.name} className="bg-[#F7F8FA] rounded-2xl p-6 text-center border border-[#E5E7EB]">
-                <div className="w-16 h-16 bg-[#0E6BB8]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-black text-[#0E6BB8]">
+                <div className="w-16 h-16 bg-[#1B75BC]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-black text-[#1B75BC]">
                   {t.name[0]}
                 </div>
                 <h3 className="text-[14px] font-bold text-[#111827] mb-1">{t.name}</h3>
-                <div className="text-[12px] font-semibold text-[#0E6BB8] mb-1">{t.role}</div>
+                <div className="text-[12px] font-semibold text-[#1B75BC] mb-1">{t.role}</div>
                 <div className="text-[11px] text-[#9CA3AF]">{t.exp}</div>
               </div>
             ))}
@@ -202,13 +202,13 @@ export function About() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-10 md:py-16 bg-[#0E6BB8] text-white text-center">
+      <section className="py-10 md:py-16 bg-[#1B75BC] text-white text-center">
         <div className="max-w-xl mx-auto px-4 md:px-6">
-          <Star size={32} className="text-[#C43A15] mx-auto mb-4" fill="currentColor" />
+          <Star size={32} className="text-[#D64A12] mx-auto mb-4" fill="currentColor" />
           <h2 className="text-2xl font-black mb-3">Ready to Begin Your Journey?</h2>
           <p className="text-white/60 text-sm mb-7">Speak with our travel experts today. No obligation, just honest advice.</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link to="/contact" className="px-6 py-3 bg-[#E8471F] text-[#0E6BB8] font-bold rounded-[10px] text-sm hover:bg-[#CC3C17] transition-colors">
+            <Link to="/contact" className="px-6 py-3 bg-[#F15A24] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#CC3C17] transition-colors">
               Contact Us
             </Link>
             <Link to="/packages" className="px-6 py-3 border-2 border-white/30 text-white font-bold rounded-[10px] text-sm hover:border-white/50 transition-colors">

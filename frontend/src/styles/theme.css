@@ -9,13 +9,13 @@
   --card-foreground: #111827;
   --popover: #FFFFFF;
   --popover-foreground: #111827;
-  --primary: #0E6BB8;
+  --primary: #1B75BC;
   --primary-foreground: #FFFFFF;
   --secondary: #F3F4F6;
   --secondary-foreground: #111827;
   --muted: #F3F4F6;
   --muted-foreground: #6B7280;
-  --accent: #E8471F;
+  --accent: #F15A24;
   --accent-foreground: #FFFFFF;
   --destructive: #DC2626;
   --destructive-foreground: #FFFFFF;
@@ -25,29 +25,29 @@
   --switch-background: #D1D5DB;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --ring: #0E6BB8;
-  --chart-1: #0E6BB8;
-  --chart-2: #E8471F;
+  --ring: #1B75BC;
+  --chart-1: #1B75BC;
+  --chart-2: #F15A24;
   --chart-3: #17456B;
   --chart-4: #7EB8E3;
   --chart-5: #16A34A;
   --radius: 0.5rem;
   --sidebar: #17456B;
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #E8471F;
+  --sidebar-primary: #F15A24;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: rgba(255,255,255,0.12);
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: rgba(255,255,255,0.1);
-  --sidebar-ring: #E8471F;
+  --sidebar-ring: #F15A24;
 
   /* Brand tokens — SM Travels International */
-  --brand-blue: #0E6BB8;
-  --brand-blue-hover: #0B5794;
+  --brand-blue: #1B75BC;
+  --brand-blue-hover: #14588F;
   --brand-navy: #17456B;
-  --brand-orange: #E8471F;
+  --brand-orange: #F15A24;
   --brand-orange-hover: #CC3C17;
-  --brand-orange-text: #C43A15;
+  --brand-orange-text: #D64A12;
   --tint-blue: #E8F2FA;
   --tint-orange: #FDEDE8;
 }

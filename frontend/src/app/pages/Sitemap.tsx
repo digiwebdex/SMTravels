@@ -24,7 +24,7 @@ interface RouteNode {
 // ─── Color config per zone ────────────────────────────────────────────────────
 const ZONE_CFG: Record<ZoneKey, { bg: string; border: string; text: string; badge: string; dot: string; label: string }> = {
   public:     { bg: "bg-amber-50",   border: "border-amber-200",  text: "text-amber-700",  badge: "bg-amber-100 text-amber-700",   dot: "bg-amber-400",   label: "Public Website" },
-  erp:        { bg: "bg-blue-50",    border: "border-blue-200",   text: "text-blue-800",   badge: "bg-blue-100 text-blue-800",     dot: "bg-[#0E6BB8]",   label: "ERP (Staff)" },
+  erp:        { bg: "bg-blue-50",    border: "border-blue-200",   text: "text-blue-800",   badge: "bg-blue-100 text-blue-800",     dot: "bg-[#1B75BC]",   label: "ERP (Staff)" },
   customer:   { bg: "bg-teal-50",    border: "border-teal-200",   text: "text-teal-700",   badge: "bg-teal-100 text-teal-700",     dot: "bg-teal-500",    label: "Customer Portal" },
   agent:      { bg: "bg-slate-50",   border: "border-slate-200",  text: "text-slate-700",  badge: "bg-slate-100 text-slate-700",   dot: "bg-slate-500",   label: "Agent Portal" },
   supplier:   { bg: "bg-violet-50",  border: "border-violet-200", text: "text-violet-700", badge: "bg-violet-100 text-violet-700", dot: "bg-violet-500",  label: "Supplier Portal" },
@@ -38,9 +38,9 @@ const WORKFLOW = [
     id: "visitor",
     label: "Visitor / Prospect",
     icon: Globe,
-    color: "#E8471F",
+    color: "#F15A24",
     bg: "#FFF9E6",
-    border: "#E8471F40",
+    border: "#F15A2440",
     desc: "Organic, referral, WhatsApp, social media",
     actions: ["Browse website", "View packages", "WhatsApp inquiry"],
   },
@@ -69,9 +69,9 @@ const WORKFLOW = [
     id: "crm",
     label: "CRM & Lead Management",
     icon: Users,
-    color: "#0E6BB8",
+    color: "#1B75BC",
     bg: "#EEF2FF",
-    border: "#0E6BB840",
+    border: "#1B75BC40",
     desc: "Centralized lead tracking & assignment",
     actions: ["Lead scoring", "Assign executive", "Follow-up tasks", "Convert to booking"],
   },
@@ -110,9 +110,9 @@ const WORKFLOW = [
     id: "reports",
     label: "Reports & Analytics",
     icon: BarChart3,
-    color: "#0E6BB8",
+    color: "#1B75BC",
     bg: "#EEF2FF",
-    border: "#0E6BB840",
+    border: "#1B75BC40",
     desc: "Business intelligence & dashboards",
     actions: ["Revenue reports", "Agent performance", "Booking trends", "Export PDF/Excel"],
   },
@@ -229,10 +229,10 @@ const ROUTE_TREE: { zone: ZoneKey; root: string; icon: React.ElementType; routes
 // ─── Role legend ──────────────────────────────────────────────────────────────
 const ROLES_LEGEND = [
   { label: "Super Admin",    color: "#DC2626", bg: "#FEF2F2" },
-  { label: "Admin",          color: "#0E6BB8", bg: "#EEF2FF" },
+  { label: "Admin",          color: "#1B75BC", bg: "#EEF2FF" },
   { label: "Accountant",     color: "#0E7C66", bg: "#ECFDF5" },
   { label: "Sales Exec",     color: "#EA580C", bg: "#FFF7ED" },
-  { label: "Hajj/Umrah Exec",color: "#E8471F", bg: "#FFF9E6" },
+  { label: "Hajj/Umrah Exec",color: "#F15A24", bg: "#FFF9E6" },
   { label: "Visa Exec",      color: "#0891B2", bg: "#F0F9FF" },
   { label: "Agent",          color: "#374151", bg: "#F9FAFB" },
   { label: "Supplier",       color: "#7C3AED", bg: "#F5F3FF" },
@@ -346,7 +346,7 @@ export function SitemapWorkflow() {
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#1B75BC] flex items-center justify-center">
               <BarChart3 size={18} className="text-white" />
             </div>
             <div>
@@ -360,7 +360,7 @@ export function SitemapWorkflow() {
                 className={cn(
                   "px-4 py-2 rounded-xl text-sm font-semibold transition-all capitalize",
                   activeTab === tab
-                    ? "bg-[#0E6BB8] text-white shadow-sm"
+                    ? "bg-[#1B75BC] text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
                 )}>
                 {tab === "workflow" ? "Business Workflow" : tab === "routes" ? "Route Map" : "Role Access"}
@@ -371,7 +371,7 @@ export function SitemapWorkflow() {
             <Link to="/" className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 px-3 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all">
               <Home size={13} /> Website
             </Link>
-            <Link to="/login" className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#0E6BB8] px-3 py-2 rounded-xl hover:bg-[#0B5794] transition-all">
+            <Link to="/login" className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1B75BC] px-3 py-2 rounded-xl hover:bg-[#14588F] transition-all">
               <Shield size={13} /> Login Portal
             </Link>
           </div>
@@ -412,9 +412,9 @@ export function SitemapWorkflow() {
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Entry Channels</p>
                 <div className="space-y-2">
                   {[
-                    { label: "Organic Website Visit", icon: Globe, color: "#E8471F", action: "Book Now → /book" },
+                    { label: "Organic Website Visit", icon: Globe, color: "#F15A24", action: "Book Now → /book" },
                     { label: "WhatsApp Inquiry", icon: MessageSquare, color: "#25D366", action: "CRM Lead (manual)" },
-                    { label: "Walk-in / Phone", icon: Users, color: "#0E6BB8", action: "CRM Lead (manual)" },
+                    { label: "Walk-in / Phone", icon: Users, color: "#1B75BC", action: "CRM Lead (manual)" },
                     { label: "Agent Referral", icon: Briefcase, color: "#374151", action: "/agent portal → Lead" },
                     { label: "Email Campaign", icon: Mail, color: "#0891B2", action: "Landing → /book" },
                   ].map(ch => {
@@ -438,7 +438,7 @@ export function SitemapWorkflow() {
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Service Types</p>
                 <div className="space-y-2">
                   {[
-                    { label: "Hajj Package",     icon: Star,    color: "#E8471F", route: "/hajj" },
+                    { label: "Hajj Package",     icon: Star,    color: "#F15A24", route: "/hajj" },
                     { label: "Umrah Package",    icon: MapPin,  color: "#7C3AED", route: "/umrah" },
                     { label: "Visa Processing",  icon: FileCheck, color: "#0891B2", route: "/visa" },
                     { label: "Air Ticket",       icon: Plane,   color: "#2563EB", route: "/air-ticket" },
@@ -466,10 +466,10 @@ export function SitemapWorkflow() {
                   {[
                     { label: "Full Payment",       icon: CheckCircle, color: "#0E7C66", desc: "Invoice → single receipt" },
                     { label: "Installment Plan",   icon: CalendarDays, color: "#0891B2", desc: "Custom schedule + reminders" },
-                    { label: "Bank Transfer",      icon: Landmark,    color: "#0E6BB8", desc: "BEFTN / NPSB / RTGS" },
+                    { label: "Bank Transfer",      icon: Landmark,    color: "#1B75BC", desc: "BEFTN / NPSB / RTGS" },
                     { label: "Mobile Banking",     icon: CreditCard,  color: "#7C3AED", desc: "bKash / Nagad / Rocket" },
                     { label: "Card Payment",       icon: CreditCard,  color: "#EA580C", desc: "Visa / Mastercard (gateway)" },
-                    { label: "Agent Commission",   icon: TrendingUp,  color: "#E8471F", desc: "Auto-deducted on payment" },
+                    { label: "Agent Commission",   icon: TrendingUp,  color: "#F15A24", desc: "Auto-deducted on payment" },
                   ].map(pay => {
                     const Icon = pay.icon;
                     return (
@@ -614,11 +614,11 @@ export function SitemapWorkflow() {
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">Login → Portal Routing</p>
               <div className="flex flex-wrap gap-3">
                 {[
-                  { from: "/login", label: "Login Screen", color: "#0E6BB8" },
+                  { from: "/login", label: "Login Screen", color: "#1B75BC" },
                   { from: null, label: "→ Role Select", color: "#374151" },
                 ].concat(
                   [
-                    { from: "/erp",        label: "Admin / Exec → /erp",         color: "#0E6BB8" },
+                    { from: "/erp",        label: "Admin / Exec → /erp",         color: "#1B75BC" },
                     { from: "/accountant", label: "Accountant → /accountant",    color: "#0E7C66" },
                     { from: "/staff",      label: "Staff → /staff",              color: "#6D28D9" },
                     { from: "/agent",      label: "Agent → /agent",              color: "#374151" },
@@ -629,7 +629,7 @@ export function SitemapWorkflow() {
                   <div key={i} className="flex items-center gap-2">
                     {item.from ? (
                       <Link to={item.from}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-slate-200 hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all bg-white group">
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-slate-200 hover:border-[#1B75BC]/30 hover:shadow-sm transition-all bg-white group">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                         <span className="text-[12px] font-bold text-slate-700">{item.label}</span>
                         <ExternalLink size={10} className="text-slate-300 group-hover:text-slate-500 transition-colors" />

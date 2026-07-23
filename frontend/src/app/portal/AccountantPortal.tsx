@@ -46,9 +46,9 @@ const INCOME_DATA  = [820000,940000,1050000,1240000,1080000,1540000,1380000];
 const EXPENSE_DATA = [540000,620000,690000,780000,690000,920000,850000];
 
 const INCOME_ROWS = [
-  { category:"Package Sales",        amount:980000,  pct:71, color:"#0E6BB8" },
+  { category:"Package Sales",        amount:980000,  pct:71, color:"#1B75BC" },
   { category:"Visa Services",        amount:145000,  pct:10, color:"#0E7C66" },
-  { category:"Air Ticket Commission",amount:138000,  pct:10, color:"#E8471F" },
+  { category:"Air Ticket Commission",amount:138000,  pct:10, color:"#F15A24" },
   { category:"Hotel Bookings",       amount:82000,   pct:6,  color:"#7C3AED" },
   { category:"Tour Packages",        amount:35000,   pct:3,  color:"#2563EB" },
 ];
@@ -151,7 +151,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
           {[
             { label:"Revenue (YTD)", val:fmtBDT2(d.revenue), color:"text-emerald-600", bg:"bg-emerald-500", Icon:TrendingUp },
             { label:"Expenses (YTD)", val:fmtBDT2(d.expense), color:"text-red-500", bg:"bg-red-500", Icon:TrendingDown },
-            { label:"Net Profit", val:fmtBDT2(d.netProfit), color:"text-[#0E6BB8]", bg:"bg-[#0E6BB8]", Icon:CircleDollarSign },
+            { label:"Net Profit", val:fmtBDT2(d.netProfit), color:"text-[#1B75BC]", bg:"bg-[#1B75BC]", Icon:CircleDollarSign },
             { label:"Posted Journals", val:String(d.postedJournalCount), color:"text-purple-600", bg:"bg-purple-500", Icon:Building2 },
           ].map(k => (
             <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
@@ -171,7 +171,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
         </div>
         <div className="grid grid-cols-3 gap-3">
           {[["income-expense","Income & Expense"],["journal","Journal"],["invoices-payments","Invoices"]].map(([v,label])=>(
-            <button key={v} onClick={()=>onGo(v as AccView)} className="p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 text-sm font-semibold text-slate-700 text-left">{label} <span className="text-slate-300">→</span></button>
+            <button key={v} onClick={()=>onGo(v as AccView)} className="p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#1B75BC]/30 text-sm font-semibold text-slate-700 text-left">{label} <span className="text-slate-300">→</span></button>
           ))}
         </div>
         <p className="text-xs text-slate-400 text-center">Detailed ledgers below reuse the branch-scoped finance &amp; report endpoints.</p>
@@ -233,7 +233,7 @@ function BankCashView() {
       <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Bank & Cash</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5">
           <Download size={14}/> Statement
         </button>
       </div>
@@ -241,14 +241,14 @@ function BankCashView() {
       {/* Account cards */}
       <div className="grid grid-cols-2 gap-3">
         {BANK_ACCOUNTS.map((a,i) => (
-          <div key={a.id} className={cn("rounded-2xl p-5", i===0?"bg-gradient-to-br from-[#0E6BB8] to-[#0a2a52] text-white":"bg-white border border-slate-200")}>
+          <div key={a.id} className={cn("rounded-2xl p-5", i===0?"bg-gradient-to-br from-[#1B75BC] to-[#0a2a52] text-white":"bg-white border border-slate-200")}>
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className={cn("text-xs font-medium", i===0?"text-white/70":"text-slate-400")}>{a.type}</p>
                 <p className={cn("font-bold mt-0.5", i===0?"text-white":"text-slate-800")}>{a.bank}</p>
               </div>
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i===0?"bg-white/15":"bg-[#0E6BB8]/8")}>
-                <Building2 size={14} className={i===0?"text-white":"text-[#0E6BB8]"} />
+              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i===0?"bg-white/15":"bg-[#1B75BC]/8")}>
+                <Building2 size={14} className={i===0?"text-white":"text-[#1B75BC]"} />
               </div>
             </div>
             <p className={cn("text-2xl font-black", i===0?"text-white":"text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>
@@ -395,7 +395,7 @@ function FinReportsView() {
       <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Financial Reports</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3.5 py-2 rounded-xl hover:bg-[#0E6BB8]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3.5 py-2 rounded-xl hover:bg-[#1B75BC]/5">
           <Plus size={14}/> Custom Report
         </button>
       </div>
@@ -405,7 +405,7 @@ function FinReportsView() {
         {[
           { label:"Gross Revenue YTD",  val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)),   color:"text-emerald-600" },
           { label:"Total Expenses YTD", val:fmtShort(EXPENSE_DATA.reduce((s,v)=>s+v,0)),  color:"text-red-500"     },
-          { label:"Net Profit YTD",     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#0E6BB8]" },
+          { label:"Net Profit YTD",     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#1B75BC]" },
         ].map(s => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
             <p className={cn("text-xl font-black", s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
@@ -429,7 +429,7 @@ function FinReportsView() {
               <tr key={i} className="hover:bg-slate-50 transition-colors">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-9 bg-[#0E6BB8]/10 border border-[#0E6BB8]/20 rounded-lg flex items-center justify-center text-[#0E6BB8] text-xs font-bold">PDF</div>
+                    <div className="w-8 h-9 bg-[#1B75BC]/10 border border-[#1B75BC]/20 rounded-lg flex items-center justify-center text-[#1B75BC] text-xs font-bold">PDF</div>
                     <p className="text-sm font-semibold text-slate-800">{r.name}</p>
                   </div>
                 </td>
@@ -439,7 +439,7 @@ function FinReportsView() {
                 <td className="px-5 py-4 text-xs text-slate-400">{r.date}</td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline"><Eye size={12}/> View</button>
+                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline"><Eye size={12}/> View</button>
                     <button className="flex items-center gap-1 text-xs text-slate-500 font-semibold hover:underline"><Download size={12}/> PDF</button>
                   </div>
                 </td>
@@ -461,7 +461,7 @@ function TaxView() {
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"VAT Collected YTD",  val:"৳10,01,000", color:"bg-[#0E6BB8]"  },
+          { label:"VAT Collected YTD",  val:"৳10,01,000", color:"bg-[#1B75BC]"  },
           { label:"Income Tax (est.)",  val:"৳1,33,400",  color:"bg-purple-500" },
           { label:"Next Filing",        val:"Oct 31",     color:"bg-amber-500"  },
         ].map(s => (
@@ -500,7 +500,7 @@ function TaxView() {
                 <td className="px-4 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{q.quarter}</td>
                 <td className="px-4 py-4 text-sm font-mono font-bold text-slate-800">{q.income ? fmtShort(q.income) : "—"}</td>
                 <td className="px-4 py-4 text-sm font-mono text-purple-600">{q.vat ? fmtShort(q.vat) : "—"}</td>
-                <td className="px-4 py-4 text-sm font-mono text-[#0E6BB8]">{q.tax ? fmtShort(q.tax) : "—"}</td>
+                <td className="px-4 py-4 text-sm font-mono text-[#1B75BC]">{q.tax ? fmtShort(q.tax) : "—"}</td>
                 <td className="px-4 py-4">
                   <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border",
                     q.filed
@@ -512,8 +512,8 @@ function TaxView() {
                 <td className="px-4 py-4 text-xs text-slate-500">{q.deadline}</td>
                 <td className="px-4 py-4">
                   {q.filed
-                    ? <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline"><Download size={12}/> Return</button>
-                    : <button className="text-xs bg-[#0E6BB8] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#0B5794]">Prepare</button>}
+                    ? <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline"><Download size={12}/> Return</button>
+                    : <button className="text-xs bg-[#1B75BC] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14588F]">Prepare</button>}
                 </td>
               </tr>
             ))}
@@ -528,7 +528,7 @@ function TaxView() {
           {["VAT Return Q1 2024","VAT Return Q2 2024","TIN Certificate","Trade License 2024"].map(doc => (
             <div key={doc} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
               <span className="text-sm font-medium text-slate-700">{doc}</span>
-              <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
+              <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline">
                 <Download size={12}/> Download
               </button>
             </div>
@@ -549,7 +549,7 @@ function AuditView() {
       <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Audit Logs</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#0E6BB8] font-semibold border border-[#0E6BB8]/30 px-3 py-1.5 rounded-xl hover:bg-[#0E6BB8]/5">
+        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5">
           <Download size={14}/> Export
         </button>
       </div>
@@ -558,7 +558,7 @@ function AuditView() {
         {["all","info","warning","critical"].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all",
-              filter===f ? "bg-[#0E6BB8] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#0E6BB8]/30")}>
+              filter===f ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
             {f}
           </button>
         ))}
@@ -609,7 +609,7 @@ function AccProfile() {
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
       <PLoad q={q}>
         {me && (<>
-          <div className="bg-gradient-to-br from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
+          <div className="bg-gradient-to-br from-[#1B75BC] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black">{initials}</div>
             <div>
               <p className="text-xl font-bold" data-portal-name>{me.name}</p>
@@ -734,7 +734,7 @@ export function AccountantPortal() {
                 FY: <span className="font-semibold text-slate-700">2024</span>
               </div>
               <button onClick={() => go("profile")}
-                className="w-7 h-7 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
+                className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
                 FA
               </button>
             </div>
@@ -759,7 +759,7 @@ export function AccountantPortal() {
               style={{ minWidth: 44, minHeight: 44 }}
               className="flex items-center justify-center"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[160px]">{currentLabel}</p>
@@ -769,7 +769,7 @@ export function AccountantPortal() {
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-400 font-mono">FY 2024</span>
             <button onClick={() => go("profile")}
-              className="w-8 h-8 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold ml-1">
+              className="w-8 h-8 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">
               FA
             </button>
           </div>

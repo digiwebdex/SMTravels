@@ -74,7 +74,7 @@ function DocLibrary() {
         <div className="relative flex-1 max-w-xs">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input placeholder="Search documents…" value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+            className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
         </div>
         <div className="flex items-center gap-0.5 ml-auto">
           <button onClick={() => setViewMode("list")} className={cn("p-1.5 rounded", viewMode === "list" ? "bg-slate-100 text-slate-800" : "text-slate-400 hover:text-slate-600")}>
@@ -135,7 +135,7 @@ function DocLibrary() {
         <div className="grid grid-cols-4 gap-3 p-4">
           {rows.map(doc => (
             <div key={doc.id} onClick={() => doc.hasFile && void downloadDocumentFile(doc)}
-              className="border border-slate-200 rounded-xl p-4 hover:border-[#0E6BB8]/30 hover:bg-slate-50 cursor-pointer transition-all">
+              className="border border-slate-200 rounded-xl p-4 hover:border-[#1B75BC]/30 hover:bg-slate-50 cursor-pointer transition-all">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mb-3">
                 <FileText size={18} className="text-red-500" />
               </div>
@@ -205,19 +205,19 @@ function UploadView() {
         onClick={() => fileInput.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-2xl flex flex-col items-center justify-center py-16 transition-all cursor-pointer",
-          dragging ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-slate-300 bg-white hover:border-[#0E6BB8]/40 hover:bg-slate-50"
+          dragging ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-slate-300 bg-white hover:border-[#1B75BC]/40 hover:bg-slate-50"
         )}>
         <input ref={fileInput} type="file" multiple className="hidden" accept=".pdf,.jpg,.jpeg,.png"
           onChange={e => { addFiles(e.target.files); e.target.value = ""; }} />
         <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all",
-          dragging ? "bg-[#0E6BB8] text-white" : "bg-slate-100 text-slate-400")}>
+          dragging ? "bg-[#1B75BC] text-white" : "bg-slate-100 text-slate-400")}>
           <Upload size={28} />
         </div>
         <p className="text-base font-semibold text-slate-700">
           {dragging ? "Drop files here" : "Drag & drop files here"}
         </p>
         <p className="text-sm text-slate-400 mt-1 mb-4">or click to browse from your computer</p>
-        <span className="px-5 py-2 bg-[#0E6BB8] text-white text-sm rounded-lg hover:bg-[#0B5794]">
+        <span className="px-5 py-2 bg-[#1B75BC] text-white text-sm rounded-lg hover:bg-[#14588F]">
           Browse Files
         </span>
       </div>
@@ -242,13 +242,13 @@ function UploadView() {
                         <span className="text-xs text-slate-400">{fmtBytes(u.file.size)}</span>
                         {u.status === "done" && <CheckCircle size={14} className="text-emerald-500" />}
                         {u.status === "error" && <XCircle size={14} className="text-red-500" />}
-                        {u.status === "uploading" && <Loader2 size={14} className="text-[#0E6BB8] animate-spin" />}
+                        {u.status === "uploading" && <Loader2 size={14} className="text-[#1B75BC] animate-spin" />}
                         {u.status === "queued" && <Clock size={14} className="text-slate-400" />}
                       </div>
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className={cn("h-full rounded-full transition-all",
-                        u.status === "done" ? "bg-emerald-500 w-full" : u.status === "error" ? "bg-red-400 w-full" : u.status === "uploading" ? "bg-[#0E6BB8] w-2/3" : "bg-slate-200 w-0")} />
+                        u.status === "done" ? "bg-emerald-500 w-full" : u.status === "error" ? "bg-red-400 w-full" : u.status === "uploading" ? "bg-[#1B75BC] w-2/3" : "bg-slate-200 w-0")} />
                     </div>
                   </div>
                   {u.status === "queued" && (
@@ -285,12 +285,12 @@ function UploadView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Expiry Date (optional)</label>
               <input type="date" value={expiryAt} onChange={e => setExpiryAt(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
             <p className="text-xs text-slate-400">OCR fields are manual entry — review documents after upload.</p>
             <button onClick={() => void startUpload()} disabled={!customerId || pending === 0}
               className={cn("w-full py-2 text-sm rounded-lg mt-1",
-                customerId && pending > 0 ? "bg-[#0E6BB8] text-white hover:bg-[#0B5794] cursor-pointer" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>
+                customerId && pending > 0 ? "bg-[#1B75BC] text-white hover:bg-[#14588F] cursor-pointer" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>
               Upload {pending > 0 ? `${pending} file${pending > 1 ? "s" : ""}` : ""}
             </button>
           </div>
@@ -433,7 +433,7 @@ function OcrView() {
                     {editIdx === i ? (
                       <div className="flex items-center gap-2">
                         <input value={editVal} onChange={e => setEditVal(e.target.value)}
-                          className="border border-[#0E6BB8] rounded px-2 py-1 text-sm font-mono w-full focus:outline-none" />
+                          className="border border-[#1B75BC] rounded px-2 py-1 text-sm font-mono w-full focus:outline-none" />
                         <button onClick={() => setEditIdx(null)} className="text-emerald-600 hover:text-emerald-700">
                           <CheckCircle size={14} />
                         </button>
@@ -472,7 +472,7 @@ function OcrView() {
             </tbody>
           </table>
           <div className="px-5 py-4 border-t border-slate-100 flex gap-3">
-            <button className="px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
               Save Corrections
             </button>
             <button className="px-4 py-2 text-sm border border-emerald-300 text-emerald-700 rounded-lg hover:bg-emerald-50">
@@ -514,14 +514,14 @@ function VersionsView() {
               <div key={i} onClick={() => setSelected(i)}
                 className={cn("relative flex gap-3 pb-5 cursor-pointer", i === VERSIONS.length - 1 && "pb-0")}>
                 <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 z-10 mt-0.5 transition-all",
-                  v.current ? "border-[#0E6BB8] bg-[#0E6BB8]" : selected === i ? "border-[#0E6BB8] bg-white" : "border-slate-300 bg-white")}>
+                  v.current ? "border-[#1B75BC] bg-[#1B75BC]" : selected === i ? "border-[#1B75BC] bg-white" : "border-slate-300 bg-white")}>
                   {v.current && <div className="w-2 h-2 rounded-full bg-white" />}
                 </div>
                 <div className={cn("flex-1 p-3 rounded-lg border transition-all",
-                  selected === i ? "border-[#0E6BB8]/30 bg-[#0E6BB8]/5" : "border-transparent hover:bg-slate-50")}>
+                  selected === i ? "border-[#1B75BC]/30 bg-[#1B75BC]/5" : "border-transparent hover:bg-slate-50")}>
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-bold text-[#0E6BB8] font-mono">{v.v}</span>
-                    {v.current && <span className="text-xs bg-[#0E6BB8] text-white px-1.5 rounded-full">current</span>}
+                    <span className="text-xs font-bold text-[#1B75BC] font-mono">{v.v}</span>
+                    {v.current && <span className="text-xs bg-[#1B75BC] text-white px-1.5 rounded-full">current</span>}
                   </div>
                   <p className="text-xs text-slate-700 font-medium">{v.note}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{v.user}</p>
@@ -546,7 +546,7 @@ function VersionsView() {
                   <Download size={13} /> Download
                 </button>
                 {!VERSIONS[selected].current && (
-                  <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+                  <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                     <RotateCcw size={13} /> Restore
                   </button>
                 )}
@@ -603,7 +603,7 @@ function SignatureView() {
           <h2 className="text-xl font-bold text-slate-800">Digital Signature</h2>
           <p className="text-sm text-slate-500 mt-0.5">Collect and manage legally binding e-signatures</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <UserPlus size={15} /> Add Signer
         </button>
       </div>
@@ -639,7 +639,7 @@ function SignatureView() {
               <div
                 onClick={() => setCanvasActive(true)}
                 className={cn("border-2 rounded-xl h-32 flex items-center justify-center cursor-pointer transition-all",
-                  canvasActive ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-dashed border-slate-300 hover:border-[#0E6BB8]/40")}>
+                  canvasActive ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-dashed border-slate-300 hover:border-[#1B75BC]/40")}>
                 {canvasActive ? (
                   <p className="text-slate-400 text-sm italic">[ Signature canvas — draw here ]</p>
                 ) : (
@@ -653,7 +653,7 @@ function SignatureView() {
                 <button onClick={() => setCanvasActive(false)} className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 ml-auto">
                   Clear
                 </button>
-                <button className="px-4 py-1.5 text-xs bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+                <button className="px-4 py-1.5 text-xs bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                   Apply Signature
                 </button>
               </div>
@@ -685,7 +685,7 @@ function SignatureView() {
           <div className="px-4 py-4 border-t border-slate-100">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width: "66%" }} />
+                <div className="h-full bg-[#1B75BC] rounded-full" style={{ width: "66%" }} />
               </div>
               <span className="text-xs font-mono font-medium text-slate-600">2/3</span>
             </div>
@@ -713,7 +713,7 @@ function ExpiryView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Expiry Reminders</h2>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Bell size={15} /> Configure Alerts
         </button>
       </div>
@@ -759,7 +759,7 @@ function ExpiryView() {
                 <td className="px-4 py-3"><StatusChip status={d.status} /></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1">
-                    <button className="text-xs text-[#0E6BB8] hover:underline">Renew</button>
+                    <button className="text-xs text-[#1B75BC] hover:underline">Renew</button>
                     <span className="text-slate-300">·</span>
                     <button className="text-xs text-slate-500 hover:underline">Remind</button>
                   </div>
@@ -788,7 +788,7 @@ function ExpiryView() {
         <div className="flex gap-2 mt-4">
           {["Email","SMS","System Notification"].map(ch => (
             <label key={ch} className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
-              <input type="checkbox" defaultChecked className="accent-[#0E6BB8]" /> {ch}
+              <input type="checkbox" defaultChecked className="accent-[#1B75BC]" /> {ch}
             </label>
           ))}
         </div>
@@ -815,7 +815,7 @@ function SharingView() {
               {(["link","email"] as const).map(m => (
                 <button key={m} onClick={() => setShareMode(m)}
                   className={cn("flex-1 py-2 text-sm rounded-lg font-medium transition-all",
-                    shareMode === m ? "bg-[#0E6BB8] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50")}>
+                    shareMode === m ? "bg-[#1B75BC] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50")}>
                   {m === "link" ? "Link" : "Email"}
                 </button>
               ))}
@@ -838,7 +838,7 @@ function SharingView() {
                   <span className="text-xs text-slate-500 flex-1 truncate">https://bdh.app/share/abc123…</span>
                   <button className="p-1.5 hover:bg-slate-100 rounded"><Copy size={12} className="text-slate-400" /></button>
                 </div>
-                <button className="w-full py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794] flex items-center justify-center gap-2">
+                <button className="w-full py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] flex items-center justify-center gap-2">
                   <Link2 size={14} /> Generate Link
                 </button>
               </div>
@@ -852,7 +852,7 @@ function SharingView() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Message (optional)</label>
                   <textarea rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
                 </div>
-                <button className="w-full py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">Send</button>
+                <button className="w-full py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Send</button>
               </div>
             )}
           </div>
@@ -909,7 +909,7 @@ function WatermarkView() {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button className="px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
               Apply to Document
             </button>
             <button className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
@@ -924,17 +924,17 @@ function WatermarkView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Watermark Text</label>
               <input value={text} onChange={e => setText(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Opacity: {opacity}%</label>
               <input type="range" min={5} max={60} value={opacity} onChange={e => setOpacity(+e.target.value)}
-                className="w-full accent-[#0E6BB8]" />
+                className="w-full accent-[#1B75BC]" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Angle: {angle}°</label>
               <input type="range" min={0} max={90} value={angle} onChange={e => setAngle(+e.target.value)}
-                className="w-full accent-[#0E6BB8]" />
+                className="w-full accent-[#1B75BC]" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Position</label>
@@ -948,7 +948,7 @@ function WatermarkView() {
               <div className="grid grid-cols-2 gap-1.5">
                 {["CONFIDENTIAL","DRAFT","COPY","VOID"].map(t => (
                   <button key={t} onClick={() => setText(t)}
-                    className="py-1.5 text-xs border border-slate-200 rounded-lg hover:border-[#0E6BB8] hover:text-[#0E6BB8] transition-colors text-slate-600">
+                    className="py-1.5 text-xs border border-slate-200 rounded-lg hover:border-[#1B75BC] hover:text-[#1B75BC] transition-colors text-slate-600">
                     {t}
                   </button>
                 ))}
@@ -978,7 +978,7 @@ function TrashView() {
         {(["trash","archive"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn("px-4 py-2 text-sm rounded-lg font-medium capitalize transition-all",
-              tab === t ? "bg-[#0E6BB8] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50")}>
+              tab === t ? "bg-[#1B75BC] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50")}>
             {t === "trash" ? <><Trash2 size={13} className="inline mr-1" />Trash ({TRASH_DOCS.length})</> : <><Archive size={13} className="inline mr-1" />Archive</>}
           </button>
         ))}
@@ -1010,7 +1010,7 @@ function TrashView() {
                   <td className="px-4 py-3 text-sm text-slate-400">{d.deletedAt}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button className="text-xs text-[#0E6BB8] hover:underline flex items-center gap-1">
+                      <button className="text-xs text-[#1B75BC] hover:underline flex items-center gap-1">
                         <RotateCcw size={11} /> Restore
                       </button>
                       <span className="text-slate-300">·</span>
@@ -1064,8 +1064,8 @@ export function DocumentsModule() {
           {NAV.map(item => (
             <button key={item.id} onClick={() => setView(item.id)}
               className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                view === item.id ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium" : "text-slate-600 hover:bg-slate-50")}>
-              <item.icon size={15} className={view === item.id ? "text-[#0E6BB8]" : "text-slate-400"} />
+                view === item.id ? "bg-[#1B75BC]/8 text-[#1B75BC] font-medium" : "text-slate-600 hover:bg-slate-50")}>
+              <item.icon size={15} className={view === item.id ? "text-[#1B75BC]" : "text-slate-400"} />
               {item.label}
             </button>
           ))}
@@ -1073,7 +1073,7 @@ export function DocumentsModule() {
         <div className="p-3 border-t border-slate-100">
           <div className="text-xs text-slate-400 mb-1">Storage used</div>
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
-            <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width: "34%" }} />
+            <div className="h-full bg-[#1B75BC] rounded-full" style={{ width: "34%" }} />
           </div>
           <p className="text-xs text-slate-500">3.4 GB / 10 GB</p>
         </div>

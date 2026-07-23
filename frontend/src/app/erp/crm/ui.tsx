@@ -52,18 +52,18 @@ export function Pagination({ page, totalPages, total, pageSize, onPage }: { page
       </span>
       <div className="flex items-center gap-1">
         <button onClick={() => onPage(Math.max(1, page - 1))} disabled={page === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
+          className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
           <ChevronLeft size={13} />
         </button>
         {Array.from({ length: totalPages }).map((_, i) => (
           <button key={i} onClick={() => onPage(i + 1)}
             className={cn("w-8 h-8 flex items-center justify-center rounded-[6px] text-[12px] font-medium border transition-colors cursor-pointer",
-              page === i + 1 ? "bg-[#0E6BB8] text-white border-[#0E6BB8]" : "border-[#E5E7EB] text-[#374151] hover:border-[#0E6BB8]/30")}>
+              page === i + 1 ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "border-[#E5E7EB] text-[#374151] hover:border-[#1B75BC]/30")}>
             {i + 1}
           </button>
         ))}
         <button onClick={() => onPage(Math.min(totalPages, page + 1))} disabled={page === totalPages}
-          className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
+          className="w-8 h-8 flex items-center justify-center rounded-[6px] border border-[#E5E7EB] text-[#374151] disabled:opacity-40 hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
           <ChevronRight size={13} />
         </button>
       </div>
@@ -95,7 +95,7 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
 }
 
 // ── form atoms (match the wizard styling) ─────────────────────────────────────
-export const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] bg-white outline-none transition-all focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]";
+export const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] bg-white outline-none transition-all focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]";
 export const selectCls = `${inputCls} cursor-pointer`;
 
 export function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
@@ -110,7 +110,7 @@ export function Field({ label, required, children }: { label: string; required?:
 export function PrimaryBtn({ children, onClick, disabled, type = "button" }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; type?: "button" | "submit" }) {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#0B5794] transition-colors cursor-pointer shadow-lg shadow-[#0E6BB8]/20 disabled:opacity-60">
+      className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#14588F] transition-colors cursor-pointer shadow-lg shadow-[#1B75BC]/20 disabled:opacity-60">
       {children}
     </button>
   );
@@ -119,7 +119,7 @@ export function PrimaryBtn({ children, onClick, disabled, type = "button" }: { c
 export function GhostBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer disabled:opacity-50">
+      className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer disabled:opacity-50">
       {children}
     </button>
   );

@@ -65,11 +65,11 @@ export function MobileBottomNav<T extends string>({
             >
               <item.icon
                 size={22}
-                className={isActive ? "text-[#0E6BB8]" : "text-slate-400"}
+                className={isActive ? "text-[#1B75BC]" : "text-slate-400"}
               />
               <span className={cn(
                 "text-[10px] font-semibold leading-none",
-                isActive ? "text-[#0E6BB8]" : "text-slate-400"
+                isActive ? "text-[#1B75BC]" : "text-slate-400"
               )}>
                 {item.label}
               </span>
@@ -79,7 +79,7 @@ export function MobileBottomNav<T extends string>({
                 </span>
               ) : null}
               {isActive && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[#0E6BB8] rounded-full" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[#1B75BC] rounded-full" />
               )}
             </button>
           );
@@ -106,12 +106,12 @@ export function MobileTopBar({
           className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 flex-shrink-0"
           style={{ minWidth: 44, minHeight: 44 }}
         >
-          <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">
+          <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">
             {logoLabel}
           </div>
         </button>
       ) : (
-        <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black flex-shrink-0">
           {logoLabel}
         </div>
       )}
@@ -157,7 +157,7 @@ export function FilterDrawer({
         <div className="px-5 pb-8">
           <button
             onClick={onClose}
-            className="w-full py-3.5 bg-[#0E6BB8] text-white font-bold rounded-2xl hover:bg-[#0B5794] transition-colors"
+            className="w-full py-3.5 bg-[#1B75BC] text-white font-bold rounded-2xl hover:bg-[#14588F] transition-colors"
           >
             Apply Filters
           </button>
@@ -187,8 +187,8 @@ export function FilterSection({
             className={cn(
               "px-3 py-2 rounded-xl text-sm font-semibold border transition-all",
               selected === opt
-                ? "bg-[#0E6BB8] text-white border-[#0E6BB8]"
-                : "bg-white text-slate-600 border-slate-200 hover:border-[#0E6BB8]/30"
+                ? "bg-[#1B75BC] text-white border-[#1B75BC]"
+                : "bg-white text-slate-600 border-slate-200 hover:border-[#1B75BC]/30"
             )}
             style={{ minHeight: 44 }}
           >
@@ -247,16 +247,16 @@ export function StepBar({
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all",
                 i < current
-                  ? "bg-[#0E6BB8] border-[#0E6BB8] text-white"
+                  ? "bg-[#1B75BC] border-[#1B75BC] text-white"
                   : i === current
-                  ? "bg-white border-[#0E6BB8] text-[#0E6BB8]"
+                  ? "bg-white border-[#1B75BC] text-[#1B75BC]"
                   : "bg-white border-slate-200 text-slate-400"
               )}>
                 {i < current ? <Check size={14} /> : i + 1}
               </div>
               <span className={cn(
                 "text-[9px] font-semibold whitespace-nowrap",
-                i === current ? "text-[#0E6BB8]" : "text-slate-400"
+                i === current ? "text-[#1B75BC]" : "text-slate-400"
               )}>
                 {step}
               </span>
@@ -264,7 +264,7 @@ export function StepBar({
             {i < steps.length - 1 && (
               <div className={cn(
                 "flex-1 h-0.5 mx-1 mb-4 rounded-full",
-                i < current ? "bg-[#0E6BB8]" : "bg-slate-200"
+                i < current ? "bg-[#1B75BC]" : "bg-slate-200"
               )} />
             )}
           </React.Fragment>

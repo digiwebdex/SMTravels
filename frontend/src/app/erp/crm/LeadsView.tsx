@@ -66,15 +66,15 @@ export function LeadsView() {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-[#F3F4F6] rounded-[8px] p-0.5">
-            <button onClick={() => setView("table")} className={cn("flex items-center gap-1 px-2.5 h-8 rounded-[6px] text-[12px] font-bold cursor-pointer", view === "table" ? "bg-white text-[#0E6BB8] shadow" : "text-[#9CA3AF]")}><List size={13} /> Table</button>
-            <button onClick={() => setView("kanban")} className={cn("flex items-center gap-1 px-2.5 h-8 rounded-[6px] text-[12px] font-bold cursor-pointer", view === "kanban" ? "bg-white text-[#0E6BB8] shadow" : "text-[#9CA3AF]")}><LayoutGrid size={13} /> Kanban</button>
+            <button onClick={() => setView("table")} className={cn("flex items-center gap-1 px-2.5 h-8 rounded-[6px] text-[12px] font-bold cursor-pointer", view === "table" ? "bg-white text-[#1B75BC] shadow" : "text-[#9CA3AF]")}><List size={13} /> Table</button>
+            <button onClick={() => setView("kanban")} className={cn("flex items-center gap-1 px-2.5 h-8 rounded-[6px] text-[12px] font-bold cursor-pointer", view === "kanban" ? "bg-white text-[#1B75BC] shadow" : "text-[#9CA3AF]")}><LayoutGrid size={13} /> Kanban</button>
           </div>
-          <button onClick={openNew} className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#0B5794] transition-colors cursor-pointer shadow-lg shadow-[#0E6BB8]/20"><Plus size={14} /> New Lead</button>
+          <button onClick={openNew} className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#14588F] transition-colors cursor-pointer shadow-lg shadow-[#1B75BC]/20"><Plus size={14} /> New Lead</button>
         </div>
       </div>
 
       <StatCards items={[
-        { label: "Total Leads", value: String(stats.total), icon: Users, color: "#0E6BB8", bg: "#EEF2FF" },
+        { label: "Total Leads", value: String(stats.total), icon: Users, color: "#1B75BC", bg: "#EEF2FF" },
         { label: "Open", value: String(stats.open), icon: Target, color: "#2563EB", bg: "#EFF6FF" },
         { label: "Won", value: String(stats.won), icon: Trophy, color: "#0E7C66", bg: "#ECFDF5" },
         { label: "Lost", value: String(stats.byStage.LOST ?? 0), icon: XCircle, color: "#DC2626", bg: "#FEF2F2" },
@@ -86,13 +86,13 @@ export function LeadsView() {
           <div className="flex-1 relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
             <input placeholder="Search by name, phone, email…" value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 placeholder:text-[#D1D5DB]" />
+              className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]" />
           </div>
-          <select value={branch} onChange={(e) => { setBranch(e.target.value); setPage(1); }} className="h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#374151] outline-none focus:border-[#0E6BB8] cursor-pointer">
+          <select value={branch} onChange={(e) => { setBranch(e.target.value); setPage(1); }} className="h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#374151] outline-none focus:border-[#1B75BC] cursor-pointer">
             <option value="All">All Branches</option>
             {(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
-          <button onClick={() => setAdvanced((v) => !v)} className={cn("flex items-center gap-1.5 h-9 px-3 border rounded-[8px] text-[12px] font-medium transition-colors cursor-pointer", advanced ? "border-[#0E6BB8] bg-[#0E6BB8]/5 text-[#0E6BB8]" : "border-[#E5E7EB] bg-[#F7F8FA] text-[#374151] hover:border-[#0E6BB8]/30")}><SlidersHorizontal size={13} /> Filters</button>
+          <button onClick={() => setAdvanced((v) => !v)} className={cn("flex items-center gap-1.5 h-9 px-3 border rounded-[8px] text-[12px] font-medium transition-colors cursor-pointer", advanced ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-[#E5E7EB] bg-[#F7F8FA] text-[#374151] hover:border-[#1B75BC]/30")}><SlidersHorizontal size={13} /> Filters</button>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {(["All", ...STAGE_ORDER] as const).map((s) => {
@@ -101,7 +101,7 @@ export function LeadsView() {
             return (
               <button key={s} onClick={() => { setStage(s); setPage(1); }}
                 className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer border",
-                  stage === s ? "border-[#0E6BB8] bg-[#0E6BB8] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#0E6BB8]/30")}>
+                  stage === s ? "border-[#1B75BC] bg-[#1B75BC] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#1B75BC]/30")}>
                 {label}
                 <span className={cn("text-[9px] font-black px-1 py-0.5 rounded-full", stage === s ? "bg-white/20 text-white" : "bg-[#F3F4F6] text-[#9CA3AF]")}>{count}</span>
               </button>

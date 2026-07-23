@@ -54,9 +54,9 @@ export function ContactPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-[#0E6BB8] py-14 text-white">
+      <section className="bg-[#1B75BC] py-14 text-white">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Get in Touch</div>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Get in Touch</div>
           <h1 className="text-3xl font-black mb-2">Contact Us</h1>
           <p className="text-white/60 text-sm">We're here to help. Reach us via form, phone, or WhatsApp — 6 days a week.</p>
         </div>
@@ -66,36 +66,36 @@ export function ContactPage() {
       <section className="py-10 md:py-14 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-8 md:mb-10">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Our Offices</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Offices</div>
             <h2 className="text-2xl font-black text-[#111827]">Branch Offices</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10 md:mb-14">
             {BRANCHES.map((branch, i) => (
               <div key={branch.city} className={cn(
                 "bg-white rounded-2xl border p-5 hover:shadow-md transition-shadow",
-                i === 0 ? "border-[#E8471F]" : "border-[#E5E7EB]"
+                i === 0 ? "border-[#F15A24]" : "border-[#E5E7EB]"
               )}>
                 {i === 0 && (
-                  <div className="text-[10px] font-black text-[#C43A15] uppercase tracking-widest mb-2">Head Office</div>
+                  <div className="text-[10px] font-black text-[#D64A12] uppercase tracking-widest mb-2">Head Office</div>
                 )}
-                <h3 className="text-[15px] font-black text-[#0E6BB8] mb-3">{branch.city}</h3>
+                <h3 className="text-[15px] font-black text-[#1B75BC] mb-3">{branch.city}</h3>
                 <ul className="flex flex-col gap-2.5">
                   <li className="flex items-start gap-2 text-[12px] text-[#6B7280]">
-                    <MapPin size={13} className="text-[#C43A15] flex-shrink-0 mt-0.5" />
+                    <MapPin size={13} className="text-[#D64A12] flex-shrink-0 mt-0.5" />
                     {branch.address}
                   </li>
                   <li>
-                    <a href={`tel:${branch.phone}`} className="flex items-center gap-2 text-[12px] text-[#374151] hover:text-[#0E6BB8] transition-colors">
-                      <Phone size={13} className="text-[#C43A15]" />{branch.phone}
+                    <a href={`tel:${branch.phone}`} className="flex items-center gap-2 text-[12px] text-[#374151] hover:text-[#1B75BC] transition-colors">
+                      <Phone size={13} className="text-[#D64A12]" />{branch.phone}
                     </a>
                   </li>
                   <li>
-                    <a href={`mailto:${branch.email}`} className="flex items-center gap-2 text-[12px] text-[#374151] hover:text-[#0E6BB8] transition-colors">
-                      <Mail size={13} className="text-[#C43A15]" />{branch.email}
+                    <a href={`mailto:${branch.email}`} className="flex items-center gap-2 text-[12px] text-[#374151] hover:text-[#1B75BC] transition-colors">
+                      <Mail size={13} className="text-[#D64A12]" />{branch.email}
                     </a>
                   </li>
                   <li className="flex items-center gap-2 text-[12px] text-[#6B7280]">
-                    <Clock size={13} className="text-[#C43A15]" />{branch.hours}
+                    <Clock size={13} className="text-[#D64A12]" />{branch.hours}
                   </li>
                 </ul>
               </div>
@@ -105,7 +105,7 @@ export function ContactPage() {
           {/* Map placeholder */}
           <div className="rounded-2xl overflow-hidden border border-[#E5E7EB] h-[300px] bg-[#E9EEF5] flex items-center justify-center mb-14 shadow-sm">
             <div className="text-center text-[#9CA3AF]">
-              <MapPin size={36} className="text-[#0E6BB8]/30 mx-auto mb-2" />
+              <MapPin size={36} className="text-[#1B75BC]/30 mx-auto mb-2" />
               <p className="text-[13px] font-semibold">Interactive Map</p>
               <p className="text-[11px]">32 Motijheel C/A, Dhaka — Head Office</p>
             </div>
@@ -139,13 +139,13 @@ export function ContactPage() {
                           <input type={f.type} placeholder={f.placeholder}
                             value={form[f.key as keyof typeof form]}
                             onChange={e => set(f.key as keyof typeof form)(e.target.value)}
-                            className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all" />
+                            className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all" />
                         </div>
                       ))}
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">Service Needed</label>
                         <select value={form.service} onChange={e => set("service")(e.target.value)}
-                          className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] bg-white cursor-pointer">
+                          className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] bg-white cursor-pointer">
                           <option value="">Select service</option>
                           {SERVICES.map(s => <option key={s}>{s}</option>)}
                         </select>
@@ -155,7 +155,7 @@ export function ContactPage() {
                       <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">Your Message</label>
                       <textarea rows={5} placeholder="Tell us about your travel plans, preferred dates, number of travelers, any special requirements..."
                         value={form.message} onChange={e => set("message")(e.target.value)}
-                        className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all resize-none" />
+                        className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all resize-none" />
                     </div>
                     {error && (
                       <div className="flex items-start gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] p-3">
@@ -164,7 +164,7 @@ export function ContactPage() {
                       </div>
                     )}
                     <button type="submit" disabled={sending}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#0E6BB8] hover:bg-[#0B5794] text-white font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
                       {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                       {sending ? "Sending…" : "Send Message"}
                     </button>
@@ -175,12 +175,12 @@ export function ContactPage() {
 
             {/* Quick contact */}
             <div className="flex flex-col gap-4">
-              <div className="bg-[#0E6BB8] rounded-2xl p-6 text-white">
+              <div className="bg-[#1B75BC] rounded-2xl p-6 text-white">
                 <h3 className="text-[15px] font-black mb-4">Quick Contact</h3>
                 <ul className="flex flex-col gap-4">
                   <li>
                     <div className="text-[10px] text-white/40 uppercase font-bold mb-0.5">Hotline</div>
-                    <a href="tel:+88029553421" className="text-[#C43A15] font-bold text-[15px] hover:underline">+880 2 9553421</a>
+                    <a href="tel:+88029553421" className="text-[#D64A12] font-bold text-[15px] hover:underline">+880 2 9553421</a>
                   </li>
                   <li>
                     <div className="text-[10px] text-white/40 uppercase font-bold mb-0.5">WhatsApp</div>
@@ -200,7 +200,7 @@ export function ContactPage() {
                   <div className="text-[11px] text-white/40 mb-2">Social Media</div>
                   <div className="flex gap-3">
                     {[Facebook, Instagram].map((Icon, i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#E8471F] transition-colors">
+                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F15A24] transition-colors">
                         <Icon size={14} />
                       </a>
                     ))}

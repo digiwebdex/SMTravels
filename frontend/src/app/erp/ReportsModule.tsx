@@ -299,7 +299,7 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 // ─── OVERVIEW DASHBOARD ───────────────────────────────────────────────────────
-const CHART_COLORS = ["#0E6BB8", "#E8471F", "#0E7C66", "#2563EB", "#7C3AED", "#EA580C", "#F59E0B"];
+const CHART_COLORS = ["#1B75BC", "#F15A24", "#0E7C66", "#2563EB", "#7C3AED", "#EA580C", "#F59E0B"];
 
 function OverviewReport({ rf }: { rf: ReportFilters }) {
   const q = useOverview(rf);
@@ -312,7 +312,7 @@ function OverviewReport({ rf }: { rf: ReportFilters }) {
       {d && (
       <div className="space-y-5" data-report="overview">
         <div className="grid grid-cols-4 gap-4">
-          <KpiCard label="Total Revenue" value={fmtM(d.kpis.revenue)} icon={TrendingUp} color="bg-[#0E6BB8]" />
+          <KpiCard label="Total Revenue" value={fmtM(d.kpis.revenue)} icon={TrendingUp} color="bg-[#1B75BC]" />
           <KpiCard label="Total Bookings" value={d.kpis.bookings.toLocaleString()} icon={Calendar} color="bg-emerald-500" />
           <KpiCard label="Total Expenses" value={fmtM(d.kpis.expenses)} icon={TrendingDown} color="bg-red-500" />
           <KpiCard label="Net Profit" value={fmtM(d.kpis.netProfit)} icon={DollarSign} color="bg-amber-500" />
@@ -324,8 +324,8 @@ function OverviewReport({ rf }: { rf: ReportFilters }) {
               <AreaChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#1B75BC" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#1B75BC" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -333,8 +333,8 @@ function OverviewReport({ rf }: { rf: ReportFilters }) {
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                   tickFormatter={v => `৳${(v / 1000000).toFixed(1)}M`} />
                 <Tooltip content={<ChartTooltip />} />
-                <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#revGrad)" />
-                <Line type="monotone" dataKey="expense" name="Expense" stroke="#E8471F" strokeWidth={2} strokeDasharray="5 4" dot={false} />
+                <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#1B75BC" strokeWidth={2.5} fill="url(#revGrad)" />
+                <Line type="monotone" dataKey="expense" name="Expense" stroke="#F15A24" strokeWidth={2} strokeDasharray="5 4" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </Section>
@@ -391,7 +391,7 @@ function OverviewReport({ rf }: { rf: ReportFilters }) {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="bookings" name="Bookings" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="bookings" name="Bookings" fill="#1B75BC" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Section>
@@ -418,7 +418,7 @@ function BookingReport({ rf }: { rf: ReportFilters }) {
       {d && (
       <div className="space-y-5" data-report="bookings">
         <div className="grid grid-cols-4 gap-4">
-          <KpiCard label="Total Bookings" value={d.total.toLocaleString()} icon={Calendar} color="bg-[#0E6BB8]" />
+          <KpiCard label="Total Bookings" value={d.total.toLocaleString()} icon={Calendar} color="bg-[#1B75BC]" />
           <KpiCard label="Confirmed" value={d.confirmed.toLocaleString()} icon={CheckCircle} color="bg-emerald-500" />
           <KpiCard label="Pending" value={d.pending.toLocaleString()} icon={Clock} color="bg-amber-500" />
           <KpiCard label="Cancelled" value={d.cancelled.toLocaleString()} icon={AlertTriangle} color="bg-red-500" />
@@ -447,7 +447,7 @@ function BookingReport({ rf }: { rf: ReportFilters }) {
                     <span className="font-semibold text-slate-800">{s.count}</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-[#0E6BB8]" style={{ width: `${(s.count / Math.max(1, d.total)) * 100}%` }} />
+                    <div className="h-full rounded-full bg-[#1B75BC]" style={{ width: `${(s.count / Math.max(1, d.total)) * 100}%` }} />
                   </div>
                 </div>
               ))}
@@ -508,7 +508,7 @@ function SalesReport({ rf }: { rf: ReportFilters }) {
       {d && (
       <div className="space-y-5" data-report="sales">
         <div className="grid grid-cols-4 gap-4">
-          <KpiCard label={`Billed Revenue (${d.applied.label})`} value={fmtC(d.totalRevenue)} icon={TrendingUp} color="bg-[#0E6BB8]" />
+          <KpiCard label={`Billed Revenue (${d.applied.label})`} value={fmtC(d.totalRevenue)} icon={TrendingUp} color="bg-[#1B75BC]" />
           <KpiCard label="Collected" value={fmtC(d.totalCollected)} icon={CheckCircle} color="bg-emerald-500" />
           <KpiCard label="Invoices" value={d.invoiceCount.toLocaleString()} icon={FileText} color="bg-blue-500" />
           <KpiCard label="Avg. Invoice Value" value={fmtC(d.avgValue)} icon={DollarSign} color="bg-amber-500" />
@@ -524,8 +524,8 @@ function SalesReport({ rf }: { rf: ReportFilters }) {
             <AreaChart data={d.monthly} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
               <defs>
                 <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0E6BB8" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#0E6BB8" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#1B75BC" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#1B75BC" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -534,7 +534,7 @@ function SalesReport({ rf }: { rf: ReportFilters }) {
                 tickFormatter={v => `৳${(v / 1000000).toFixed(1)}M`} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#0E6BB8" strokeWidth={2.5} fill="url(#salesGrad)" />
+              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#1B75BC" strokeWidth={2.5} fill="url(#salesGrad)" />
             </AreaChart>
           </ResponsiveContainer>
         </Section>
@@ -594,7 +594,7 @@ function ServiceReportView({ rf, type, title }: { rf: ReportFilters; type: strin
       {d && (
       <div className="space-y-5" data-report={`service-${type.toLowerCase()}`}>
         <div className="grid grid-cols-4 gap-4">
-          <KpiCard label={`${title} Bookings`} value={d.totalBookings.toLocaleString()} icon={Calendar} color="bg-[#0E6BB8]" />
+          <KpiCard label={`${title} Bookings`} value={d.totalBookings.toLocaleString()} icon={Calendar} color="bg-[#1B75BC]" />
           <KpiCard label="Confirmed" value={d.confirmed.toLocaleString()} icon={CheckCircle} color="bg-emerald-500" />
           <KpiCard label="Travelers" value={d.travelers.toLocaleString()} icon={Users} color="bg-purple-500" />
           <KpiCard label={`Revenue (${d.applied.label})`} value={fmtM(d.totalRevenue)} icon={DollarSign} color="bg-amber-500" />
@@ -608,7 +608,7 @@ function ServiceReportView({ rf, type, title }: { rf: ReportFilters; type: strin
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="revenue" name="Revenue" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="revenue" name="Revenue" fill="#1B75BC" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
             )}
@@ -623,7 +623,7 @@ function ServiceReportView({ rf, type, title }: { rf: ReportFilters; type: strin
                     <span className="font-semibold text-slate-800">{s.count}</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-[#0E6BB8]" style={{ width: `${(s.count / Math.max(1, d.totalBookings)) * 100}%` }} />
+                    <div className="h-full rounded-full bg-[#1B75BC]" style={{ width: `${(s.count / Math.max(1, d.totalBookings)) * 100}%` }} />
                   </div>
                 </div>
               ))}
@@ -666,7 +666,7 @@ function AgentReport({ rf }: { rf: ReportFilters }) {
       {d && (
       <div className="space-y-5" data-report="agents">
         <div className="grid grid-cols-4 gap-4">
-          <KpiCard label="Active Agents" value={d.activeAgents.toLocaleString()} icon={Users} color="bg-[#0E6BB8]" />
+          <KpiCard label="Active Agents" value={d.activeAgents.toLocaleString()} icon={Users} color="bg-[#1B75BC]" />
           <KpiCard label={`Agent Bookings (${d.applied.label})`} value={d.totalBookings.toLocaleString()} icon={Calendar} color="bg-emerald-500" />
           <KpiCard label="Total Commission" value={fmtC(d.totalCommission)} icon={DollarSign} color="bg-amber-500" />
           <KpiCard label="Agent Revenue" value={fmtC(d.totalRevenue)} icon={TrendingUp} color="bg-blue-500" />
@@ -680,8 +680,8 @@ function AgentReport({ rf }: { rf: ReportFilters }) {
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="revenue" name="Revenue" fill="#0E6BB8" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="commission" name="Commission" fill="#E8471F" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="revenue" name="Revenue" fill="#1B75BC" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="commission" name="Commission" fill="#F15A24" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           )}
@@ -737,7 +737,7 @@ function PnlReport({ rf }: { rf: ReportFilters }) {
         <div className="grid grid-cols-4 gap-4">
           <KpiCard label={`Revenue (${d.applied.label})`} value={fmtC(d.revenue)} icon={TrendingUp} color="bg-emerald-500" />
           <KpiCard label="Expenses" value={fmtC(d.expense)} icon={TrendingDown} color="bg-red-500" />
-          <KpiCard label="Net Profit" value={fmtC(d.netProfit)} icon={DollarSign} color="bg-[#0E6BB8]" />
+          <KpiCard label="Net Profit" value={fmtC(d.netProfit)} icon={DollarSign} color="bg-[#1B75BC]" />
           <KpiCard label="Net Margin" value={`${d.netMargin}%`} icon={BarChart3} color="bg-amber-500" />
         </div>
         <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2">
@@ -778,7 +778,7 @@ function PnlReport({ rf }: { rf: ReportFilters }) {
                 </tr>
               ))}
               <tr className="border-b border-slate-200 bg-red-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Expenses</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-red-600">{fmtC(d.expense)}</td></tr>
-              <tr className="bg-[#0E6BB8]/5"><td className="py-3 text-sm font-bold text-[#0E6BB8]">Net Profit</td><td className="py-3 pr-2 text-sm text-right font-bold font-mono text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.netProfit)}</td></tr>
+              <tr className="bg-[#1B75BC]/5"><td className="py-3 text-sm font-bold text-[#1B75BC]">Net Profit</td><td className="py-3 pr-2 text-sm text-right font-bold font-mono text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.netProfit)}</td></tr>
             </tbody>
           </table>
         </Section>
@@ -815,7 +815,7 @@ function BalanceSheetReport({ rf }: { rf: ReportFilters }) {
       {d && (
       <div className="space-y-5" data-report="balance-sheet">
         <div className="grid grid-cols-3 gap-4">
-          <KpiCard label="Total Assets" value={fmtC(d.totalAssets)} icon={Layers} color="bg-[#0E6BB8]" />
+          <KpiCard label="Total Assets" value={fmtC(d.totalAssets)} icon={Layers} color="bg-[#1B75BC]" />
           <KpiCard label="Total Liabilities" value={fmtC(d.totalLiabilities)} icon={AlertTriangle} color="bg-red-500" />
           <KpiCard label="Total Equity" value={fmtC(d.totalEquity)} icon={TrendingUp} color="bg-emerald-500" />
         </div>
@@ -826,7 +826,7 @@ function BalanceSheetReport({ rf }: { rf: ReportFilters }) {
             : `Out of balance by ${fmtC(d.imbalance)}.`}
         </div>
         <div className="grid grid-cols-3 gap-5">
-          {tbl("Assets", d.assets, d.totalAssets, "text-[#0E6BB8]")}
+          {tbl("Assets", d.assets, d.totalAssets, "text-[#1B75BC]")}
           {tbl("Liabilities", d.liabilities, d.totalLiabilities, "text-red-600")}
           {tbl("Equity", d.equity, d.totalEquity, "text-emerald-700")}
         </div>
@@ -848,7 +848,7 @@ function CashFlowReport({ rf }: { rf: ReportFilters }) {
           <KpiCard label="Operating" value={fmtC(d.totalOperating)} icon={TrendingUp} color="bg-emerald-500" />
           <KpiCard label="Investing" value={fmtC(d.totalInvesting)} icon={TrendingDown} color="bg-red-500" />
           <KpiCard label="Financing" value={fmtC(d.totalFinancing)} icon={DollarSign} color="bg-amber-500" />
-          <KpiCard label="Net Cash Change" value={fmtC(d.netChange)} icon={BarChart3} color="bg-[#0E6BB8]" />
+          <KpiCard label="Net Cash Change" value={fmtC(d.netChange)} icon={BarChart3} color="bg-[#1B75BC]" />
         </div>
         <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">{d.note}</div>
         <Section title={`Cash Flow — ${d.applied.label}`}>
@@ -862,7 +862,7 @@ function CashFlowReport({ rf }: { rf: ReportFilters }) {
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="operating" name="Operating" fill="#0E7C66" radius={[3, 3, 0, 0]} />
               <Bar dataKey="investing" name="Investing" fill="#EF4444" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="financing" name="Financing" fill="#E8471F" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="financing" name="Financing" fill="#F15A24" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           )}
@@ -895,7 +895,7 @@ function CashFlowReport({ rf }: { rf: ReportFilters }) {
                 <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-emerald-700">{fmtC(d.totalOperating)}</td>
                 <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-red-600">{fmtC(d.totalInvesting)}</td>
                 <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-amber-600">{fmtC(d.totalFinancing)}</td>
-                <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-[#0E6BB8]">{fmtC(d.netChange)}</td>
+                <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-[#1B75BC]">{fmtC(d.netChange)}</td>
                 <td className="py-3 pr-4" />
               </tr>
             </tfoot>
@@ -929,7 +929,7 @@ function CustomReports() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Report Name</label>
               <input defaultValue="Custom Booking Report — Jul 2024"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -949,7 +949,7 @@ function CustomReports() {
               <label className="block text-xs font-medium text-slate-600 mb-2">Columns to Include</label>
               <div className="flex flex-wrap gap-1.5 p-3 border border-slate-200 rounded-lg min-h-[80px] bg-slate-50">
                 {fields.map(f => (
-                  <span key={f} className="flex items-center gap-1 px-2 py-1 bg-[#0E6BB8] text-white text-xs rounded-md">
+                  <span key={f} className="flex items-center gap-1 px-2 py-1 bg-[#1B75BC] text-white text-xs rounded-md">
                     {f}
                     <button onClick={() => setFields(prev => prev.filter(x => x !== f))} className="hover:opacity-70">×</button>
                   </span>
@@ -962,14 +962,14 @@ function CustomReports() {
               <div className="flex flex-wrap gap-1.5">
                 {AVAILABLE.filter(a => !fields.includes(a)).map(a => (
                   <button key={a} onClick={() => setFields(prev => [...prev, a])}
-                    className="px-2 py-1 border border-slate-200 text-xs text-slate-600 rounded-md hover:border-[#0E6BB8] hover:text-[#0E6BB8] transition-colors">
+                    className="px-2 py-1 border border-slate-200 text-xs text-slate-600 rounded-md hover:border-[#1B75BC] hover:text-[#1B75BC] transition-colors">
                     + {a}
                   </button>
                 ))}
               </div>
             </div>
             <div className="pt-3 border-t border-slate-100 flex gap-2">
-              <button className="flex-1 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+              <button className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                 Generate Report
               </button>
               <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
@@ -996,7 +996,7 @@ function CustomReports() {
                       r.format === "Excel" ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700")}>
                       {r.format}
                     </span>
-                    <button className="text-xs text-[#0E6BB8] hover:underline">Run</button>
+                    <button className="text-xs text-[#1B75BC] hover:underline">Run</button>
                   </div>
                 </div>
               ))}
@@ -1125,9 +1125,9 @@ export function ReportsModule() {
                 <button key={item.id} onClick={() => handleViewChange(item.id)}
                   className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
                     view === item.id
-                      ? "bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium"
+                      ? "bg-[#1B75BC]/8 text-[#1B75BC] font-medium"
                       : "text-slate-600 hover:bg-slate-50")}>
-                  <item.icon size={15} className={view === item.id ? "text-[#0E6BB8]" : "text-slate-400"} />
+                  <item.icon size={15} className={view === item.id ? "text-[#1B75BC]" : "text-slate-400"} />
                   {item.label}
                 </button>
               ))}

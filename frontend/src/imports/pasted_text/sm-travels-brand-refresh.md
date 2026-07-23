@@ -15,9 +15,9 @@ across 100% of the project.
 The logo is an orange airplane with a blue flight-path swoosh, the word "SM" in 
 orange, "Travels" in bright blue, and "International" in deep navy blue.
 
-Primary — Brand Blue:      #0E6BB8   (hover #0B5794, active #094A7E)
+Primary — Brand Blue:      #1B75BC   (hover #14588F, active #094A7E)
 Deep Navy (headings/nav):  #17456B   (the "International" + swoosh navy)
-Accent — Brand Orange:     #E8471F   (hover #CC3C17, active #B23413)
+Accent — Brand Orange:     #F15A24   (hover #CC3C17, active #B23413)
 Light Blue tint:           #E8F2FA   (selected rows, active nav, info bg)
 Light Orange tint:         #FDEDE8   (accent highlights, warning-free alerts)
 
@@ -26,14 +26,14 @@ Background #F7F8FA · Surface #FFFFFF · Border #E5E7EB
 Text primary #111827 · secondary #6B7280 · muted #9CA3AF
 
 Semantic (keep, but harmonize tone with the brand):
-Success #16A34A · Warning #F59E0B · Danger #DC2626 · Info = Brand Blue #0E6BB8
+Success #16A34A · Warning #F59E0B · Danger #DC2626 · Info = Brand Blue #1B75BC
 
 === HOW TO APPLY THE COLORS ===
 - Primary buttons, active nav items, links, focus rings, selected states, 
-  progress bars, primary chart series → Brand Blue #0E6BB8.
+  progress bars, primary chart series → Brand Blue #1B75BC.
 - Sidebar background, top bar, footer, table headers, page headings, dark 
   surfaces → Deep Navy #17456B.
-- Orange #E8471F is the ACCENT ONLY — use it sparingly and deliberately for: 
+- Orange #F15A24 is the ACCENT ONLY — use it sparingly and deliberately for: 
   the main hero CTA ("Book Now" / "Get Quote"), key call-to-action buttons on 
   the public website, important badges/counts, notification dots, the active 
   step in wizards, and secondary chart series. Do NOT use orange as a large 
@@ -86,8 +86,8 @@ so it stays readable.
 
 === ACCESSIBILITY CHECK ===
 Verify WCAG AA contrast after the change: white text on Brand Blue and Deep 
-Navy must pass; orange #E8471F must NOT be used for small text on white 
-(darken to #C43A15 for text-on-white cases). Check focus rings remain clearly 
+Navy must pass; orange #F15A24 must NOT be used for small text on white 
+(darken to #D64A12 for text-on-white cases). Check focus rings remain clearly 
 visible. Confirm both Bangla (Noto Sans Bengali) and English (Inter) text 
 remain legible on all new backgrounds.
 

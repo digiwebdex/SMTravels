@@ -54,7 +54,7 @@ function PageHeader({ title, subtitle, action }: { title:string; subtitle?:strin
   );
 }
 
-function Panel({ title, icon: Icon, iconColor="#0E6BB8", children, className }: {
+function Panel({ title, icon: Icon, iconColor="#1B75BC", children, className }: {
   title:string; icon?:React.ElementType; iconColor?:string; children:React.ReactNode; className?:string;
 }) {
   return (
@@ -91,7 +91,7 @@ function Field({ label, hint, full, children }: { label:string; hint?:string; fu
 
 const Inp = ({ dv="", type="text", placeholder="" }: { dv?:string; type?:string; placeholder?:string }) => (
   <input type={type} defaultValue={dv} placeholder={placeholder}
-    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
+    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
 );
 const Sel = ({ opts, dv }: { opts:string[]; dv?:string }) => (
   <select defaultValue={dv} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
@@ -100,7 +100,7 @@ const Sel = ({ opts, dv }: { opts:string[]; dv?:string }) => (
 );
 const Txt = ({ dv="", rows=2 }: { dv?:string; rows?:number }) => (
   <textarea rows={rows} defaultValue={dv}
-    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20 resize-none"/>
+    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none"/>
 );
 
 function Toggle({ on: initOn=false, label }: { on?:boolean; label?:string }) {
@@ -108,7 +108,7 @@ function Toggle({ on: initOn=false, label }: { on?:boolean; label?:string }) {
   return (
     <div className="flex items-center gap-2">
       <button onClick={()=>setOn(v=>!v)}
-        className={cn("relative w-10 h-5 rounded-full transition-colors", on?"bg-[#0E6BB8]":"bg-slate-300")}>
+        className={cn("relative w-10 h-5 rounded-full transition-colors", on?"bg-[#1B75BC]":"bg-slate-300")}>
         <div className={cn("absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all", on?"left-5":"left-0.5")}/>
       </button>
       {label && <span className="text-sm text-slate-600">{label}</span>}
@@ -134,7 +134,7 @@ function SaveBtn() {
   return (
     <div className="flex justify-end mt-5">
       <button onClick={()=>{ setOk(true); setTimeout(()=>setOk(false),2200); }}
-        className="flex items-center gap-2 px-5 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+        className="flex items-center gap-2 px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
         {ok?<><Check size={14}/> Saved!</>:<><Save size={14}/> Save Changes</>}
       </button>
     </div>
@@ -163,11 +163,11 @@ function GeneralSettings() {
       </Panel>
       <Panel title="Branding" icon={Star}>
         <Field label="Primary Color">
-          <div className="flex gap-2"><input type="color" defaultValue="#0E6BB8" className="w-10 h-9 rounded-lg border border-slate-200 p-0.5 cursor-pointer"/><Inp dv="#0E6BB8"/></div>
+          <div className="flex gap-2"><input type="color" defaultValue="#1B75BC" className="w-10 h-9 rounded-lg border border-slate-200 p-0.5 cursor-pointer"/><Inp dv="#1B75BC"/></div>
         </Field>
         <Field label="Company Logo">
           <div className="flex items-center gap-3">
-            <div className="w-16 h-10 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold">BDH</div>
+            <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold">BDH</div>
             <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"><Upload size={13}/> Upload</button>
           </div>
         </Field>
@@ -332,7 +332,7 @@ function OcrSettings() {
         <Field label="Model"><Sel opts={["gpt-4o","gpt-4-vision-preview","claude-sonnet-4-6"]}/></Field>
         <Field label="Confidence Threshold" hint="Min % to auto-accept field">
           <div className="flex items-center gap-3">
-            <input type="range" min={50} max={99} defaultValue={85} className="flex-1 accent-[#0E6BB8]"/>
+            <input type="range" min={50} max={99} defaultValue={85} className="flex-1 accent-[#1B75BC]"/>
             <span className="text-sm font-bold text-slate-700 w-10 text-right">85%</span>
           </div>
         </Field>
@@ -353,9 +353,9 @@ function OcrSettings() {
       <Panel title="Monthly Usage" icon={Star}>
         <div className="flex justify-between text-xs text-slate-500 mb-1"><span>Scans used</span><span className="font-medium">312 / 500</span></div>
         <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1.5">
-          <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width:"62.4%" }}/>
+          <div className="h-full bg-[#1B75BC] rounded-full" style={{ width:"62.4%" }}/>
         </div>
-        <p className="text-xs text-slate-400">Resets Aug 1, 2024 · <button className="text-[#0E6BB8] hover:underline">Upgrade Plan</button></p>
+        <p className="text-xs text-slate-400">Resets Aug 1, 2024 · <button className="text-[#1B75BC] hover:underline">Upgrade Plan</button></p>
       </Panel>
       <SaveBtn/>
     </div>
@@ -374,7 +374,7 @@ function BackupSettings() {
   return (
     <div className="space-y-5">
       <PageHeader title="Backup Settings" subtitle="Automated database and file backup"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg"><Download size={14}/> Backup Now</button>}/>
+        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Download size={14}/> Backup Now</button>}/>
       <Panel title="Schedule" icon={Database}>
         <Field label="Auto Backup"><Toggle on={true}/></Field>
         <Field label="Frequency"><Sel opts={["Daily","Twice Daily","Weekly","Monthly"]} dv="Daily"/></Field>
@@ -413,9 +413,9 @@ function BackupSettings() {
 // ─── ROLES ───────────────────────────────────────────────────────────────────
 const ROLES_DATA = [
   { id:1, name:"Super Admin",    users:1, color:"#EF4444", desc:"Full system access. No restrictions."              },
-  { id:2, name:"Branch Manager", users:3, color:"#0E6BB8", desc:"Full branch access, read-only other branches."     },
+  { id:2, name:"Branch Manager", users:3, color:"#1B75BC", desc:"Full branch access, read-only other branches."     },
   { id:3, name:"Sales Executive",users:8, color:"#0E7C66", desc:"Manage bookings, clients, invoices."               },
-  { id:4, name:"Visa Officer",   users:4, color:"#E8471F", desc:"Visa applications, OCR, status updates."           },
+  { id:4, name:"Visa Officer",   users:4, color:"#F15A24", desc:"Visa applications, OCR, status updates."           },
   { id:5, name:"Accountant",     users:2, color:"#2563EB", desc:"Finance, invoices, reports. No booking edits."     },
   { id:6, name:"HR Manager",     users:1, color:"#7C3AED", desc:"Staff, KPI, payroll, manpower management."         },
   { id:7, name:"Support Staff",  users:5, color:"#64748B", desc:"View-only CRM, respond to inquiries."              },
@@ -428,13 +428,13 @@ function RolesView() {
   return (
     <div>
       <PageHeader title="Role Management" subtitle="Define roles and their access scope"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg"><Plus size={14}/> New Role</button>}/>
+        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Plus size={14}/> New Role</button>}/>
       <div className="grid grid-cols-3 gap-5">
         <div className="space-y-2">
           {ROLES_DATA.map(r=>(
             <button key={r.id} onClick={()=>setSel(r.id)}
               className={cn("w-full text-left p-4 rounded-xl border transition-all",
-                sel===r.id?"border-[#0E6BB8] bg-[#0E6BB8]/5":"bg-white border-slate-200 hover:bg-slate-50")}>
+                sel===r.id?"border-[#1B75BC] bg-[#1B75BC]/5":"bg-white border-slate-200 hover:bg-slate-50")}>
               <div className="flex items-center gap-2.5 mb-0.5">
                 <div className="w-3 h-3 rounded-full" style={{ background: r.color }}/>
                 <span className="text-sm font-semibold text-slate-800 flex-1">{r.name}</span>
@@ -497,8 +497,8 @@ const INIT_MATRIX: Record<string,Record<string,Perm>> = {
   "Settings":  { "Super Admin":"full","Branch Mgr":"none","Sales Exec":"none","Visa Officer":"none","Accountant":"none","Support":"none" },
 };
 const P_CELL: Record<Perm,string> = {
-  full: "bg-[#0E6BB8] text-white",
-  view: "bg-[#0E6BB8]/15 text-[#0E6BB8]",
+  full: "bg-[#1B75BC] text-white",
+  view: "bg-[#1B75BC]/15 text-[#1B75BC]",
   none: "bg-slate-100 text-slate-400",
 };
 const P_ICON: Record<Perm,React.ElementType> = { full:Check, view:Eye, none:X };
@@ -610,17 +610,17 @@ function BranchesView() {
   return (
     <div>
       <PageHeader title="Branch Management" subtitle="Head office and regional branches"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg"><Plus size={14}/> Add Branch</button>}/>
+        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Plus size={14}/> Add Branch</button>}/>
       <div className="space-y-3">
         {BRANCH_DATA.map((b,i)=>(
-          <div key={i} className={cn("bg-white rounded-xl border p-5",b.hq?"border-[#0E6BB8]/30 bg-[#0E6BB8]/3":"border-slate-200")}>
+          <div key={i} className={cn("bg-white rounded-xl border p-5",b.hq?"border-[#1B75BC]/30 bg-[#1B75BC]/3":"border-slate-200")}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold",b.hq?"bg-[#0E6BB8]":"bg-slate-400")}>{b.city.slice(0,2)}</div>
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold",b.hq?"bg-[#1B75BC]":"bg-slate-400")}>{b.city.slice(0,2)}</div>
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-slate-800">{b.name}</p>
-                    {b.hq && <span className="text-xs px-2 py-0.5 bg-[#0E6BB8] text-white rounded-full font-medium">HQ</span>}
+                    {b.hq && <span className="text-xs px-2 py-0.5 bg-[#1B75BC] text-white rounded-full font-medium">HQ</span>}
                     <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
                       b.status==="active"?"bg-emerald-50 text-emerald-600":"bg-amber-50 text-amber-600")}>{b.status}</span>
                   </div>
@@ -652,15 +652,15 @@ const USERS_DATA = [
   { name:"Kamal Hossain",      email:"kamal@bdhtravels.com",    role:"Accountant",     branch:"Chattogram HQ", status:"inactive", last:"Jul 10"      },
 ];
 const U_ROLE_COLOR: Record<string,string> = {
-  "Super Admin":"#EF4444","Branch Manager":"#0E6BB8","Sales Executive":"#0E7C66",
-  "Visa Officer":"#E8471F","Accountant":"#2563EB","Support Staff":"#64748B",
+  "Super Admin":"#EF4444","Branch Manager":"#1B75BC","Sales Executive":"#0E7C66",
+  "Visa Officer":"#F15A24","Accountant":"#2563EB","Support Staff":"#64748B",
 };
 
 function UsersView() {
   return (
     <div>
       <PageHeader title="Users Management" subtitle="Staff accounts, roles, and access control"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-lg"><Plus size={14}/> Invite User</button>}/>
+        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Plus size={14}/> Invite User</button>}/>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full">
           <thead><tr className="bg-slate-50 border-b border-slate-100">
@@ -705,9 +705,9 @@ function UsersView() {
 const PLANS = [
   { id:"starter",  name:"Starter",    price:0,    users:3,  branches:1, color:"#64748B", current:false,
     features:["Core bookings","Basic reports","5 GB storage"] },
-  { id:"pro",      name:"Pro",        price:4900, users:15, branches:3, color:"#0E6BB8", current:true,
+  { id:"pro",      name:"Pro",        price:4900, users:15, branches:3, color:"#1B75BC", current:true,
     features:["Everything in Starter","WhatsApp integration","OCR 200/mo","Advanced reports","Priority support"] },
-  { id:"business", name:"Business",   price:9900, users:50, branches:10,color:"#E8471F", current:false,
+  { id:"business", name:"Business",   price:9900, users:50, branches:10,color:"#F15A24", current:false,
     features:["Everything in Pro","OCR 2000/mo","Custom domain","API access","Dedicated support"] },
   { id:"enterprise",name:"Enterprise",price:-1,   users:-1, branches:-1,color:"#0E7C66", current:false,
     features:["Unlimited everything","White-label ERP","On-premise deploy","SLA","Custom integrations"] },
@@ -720,8 +720,8 @@ function PlansView() {
       <div className="grid grid-cols-4 gap-4 mb-5">
         {PLANS.map(p=>(
           <div key={p.id} className={cn("rounded-xl border p-5 relative",
-            p.current?"border-[#0E6BB8] bg-[#0E6BB8]/3":"bg-white border-slate-200")}>
-            {p.current && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#0E6BB8] text-white text-xs font-bold rounded-full whitespace-nowrap">Current Plan</div>}
+            p.current?"border-[#1B75BC] bg-[#1B75BC]/3":"bg-white border-slate-200")}>
+            {p.current && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#1B75BC] text-white text-xs font-bold rounded-full whitespace-nowrap">Current Plan</div>}
             <div className="w-8 h-8 rounded-xl mb-3 flex items-center justify-center text-white text-xs font-bold" style={{ background: p.color }}>{p.name.slice(0,1)}</div>
             <p className="font-bold text-slate-800 mb-0.5">{p.name}</p>
             <p className="text-2xl font-black text-slate-800 mb-1" style={{ fontFamily:"'JetBrains Mono',monospace" }}>
@@ -735,7 +735,7 @@ function PlansView() {
               {p.features.map(f=><li key={f} className="flex items-start gap-1.5 text-xs text-slate-600"><Check size={11} className="text-emerald-500 mt-0.5 flex-shrink-0"/>{f}</li>)}
             </ul>
             <button className={cn("w-full py-2 text-sm font-medium rounded-lg transition-colors",
-              p.current?"bg-[#0E6BB8] text-white cursor-default":"border border-slate-200 text-slate-600 hover:bg-slate-50")}>
+              p.current?"bg-[#1B75BC] text-white cursor-default":"border border-slate-200 text-slate-600 hover:bg-slate-50")}>
               {p.current?"Current":p.price===-1?"Contact Sales":"Upgrade"}
             </button>
           </div>
@@ -750,7 +750,7 @@ function PlansView() {
                 <span className={r.over?"text-red-500 font-semibold":""}>{r.used}/{r.max}{r.sfx||""}</span>
               </div>
               <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full",r.over?"bg-red-500":"bg-[#0E6BB8]")}
+                <div className={cn("h-full rounded-full",r.over?"bg-red-500":"bg-[#1B75BC]")}
                   style={{ width:`${Math.min((r.used/r.max)*100,100)}%`}}/>
               </div>
               {r.over && <p className="text-xs text-red-500 mt-1">Over limit — upgrade plan</p>}
@@ -816,7 +816,7 @@ function HealthView() {
         })}
       </div>
       <div className="grid grid-cols-4 gap-4">
-        {[{l:"CPU Usage",v:"24%",b:24,c:"bg-[#0E6BB8]"},{l:"Memory",v:"58%",b:58,c:"bg-[#0E7C66]"},{l:"Disk I/O",v:"12%",b:12,c:"bg-[#E8471F]"},{l:"Network",v:"8 MB/s",b:35,c:"bg-[#2563EB]"}].map(s=>(
+        {[{l:"CPU Usage",v:"24%",b:24,c:"bg-[#1B75BC]"},{l:"Memory",v:"58%",b:58,c:"bg-[#0E7C66]"},{l:"Disk I/O",v:"12%",b:12,c:"bg-[#F15A24]"},{l:"Network",v:"8 MB/s",b:35,c:"bg-[#2563EB]"}].map(s=>(
           <div key={s.l} className="bg-white rounded-xl border border-slate-200 p-4">
             <p className="text-xs text-slate-500 mb-1">{s.l}</p>
             <p className="text-2xl font-black text-slate-800 mb-2" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.v}</p>
@@ -846,8 +846,8 @@ export function SettingsModule() {
               {group.items.map(item=>(
                 <button key={item.id} onClick={()=>setView(item.id)}
                   className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                    view===item.id?"bg-[#0E6BB8]/8 text-[#0E6BB8] font-medium border-r-2 border-[#0E6BB8]":"text-slate-600 hover:bg-slate-50")}>
-                  <item.icon size={15} className={view===item.id?"text-[#0E6BB8]":"text-slate-400"}/>
+                    view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50")}>
+                  <item.icon size={15} className={view===item.id?"text-[#1B75BC]":"text-slate-400"}/>
                   {item.label}
                 </button>
               ))}

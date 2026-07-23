@@ -22,9 +22,9 @@ export function BlogPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-[#0E6BB8] py-14 text-white">
+      <section className="bg-[#1B75BC] py-14 text-white">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Travel Knowledge</div>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Travel Knowledge</div>
           <h1 className="text-3xl font-black mb-2">Travel Insights & Guides</h1>
           <p className="text-white/60 text-sm">Expert tips, Hajj guides, visa advice, and travel inspiration from our team</p>
         </div>
@@ -38,15 +38,15 @@ export function BlogPage() {
               <div className="relative h-[260px] md:h-auto overflow-hidden">
                 <img src={img(featured.image, 800, 500)} alt={featured.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 bg-[#E8471F] text-[#0E6BB8] text-[10px] font-black px-3 py-1 rounded-full">
+                <div className="absolute top-4 left-4 bg-[#F15A24] text-[#1B75BC] text-[10px] font-black px-3 py-1 rounded-full">
                   Featured
                 </div>
               </div>
               <div className="p-8 flex flex-col justify-center">
-                <div className="text-[11px] font-bold text-[#0E6BB8] bg-[#0E6BB8]/10 rounded-full px-3 py-1 inline-block mb-3 w-fit">
+                <div className="text-[11px] font-bold text-[#1B75BC] bg-[#1B75BC]/10 rounded-full px-3 py-1 inline-block mb-3 w-fit">
                   {featured.category}
                 </div>
-                <h2 className="text-xl font-black text-[#111827] group-hover:text-[#0E6BB8] transition-colors mb-3 leading-snug">{featured.title}</h2>
+                <h2 className="text-xl font-black text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-3 leading-snug">{featured.title}</h2>
                 <p className="text-[13px] text-[#6B7280] leading-relaxed mb-5 line-clamp-3">{featured.excerpt}</p>
                 <div className="flex items-center gap-4 text-[11px] text-[#9CA3AF]">
                   <span className="flex items-center gap-1"><User size={11} />{featured.author}</span>
@@ -63,13 +63,13 @@ export function BlogPage() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search articles..."
-                className="w-full pl-9 pr-4 py-2 border border-[#E5E7EB] rounded-[10px] text-[12px] bg-white outline-none focus:border-[#0E6BB8]" />
+                className="w-full pl-9 pr-4 py-2 border border-[#E5E7EB] rounded-[10px] text-[12px] bg-white outline-none focus:border-[#1B75BC]" />
             </div>
             <div className="flex gap-2 flex-wrap">
               {categories.map(c => (
                 <button key={c} onClick={() => setActiveCategory(c)}
                   className={cn("px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer",
-                    activeCategory === c ? "bg-[#0E6BB8] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#0E6BB8]/30"
+                    activeCategory === c ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30"
                   )}>
                   {c}
                 </button>
@@ -85,12 +85,12 @@ export function BlogPage() {
                 <div className="relative h-48 overflow-hidden">
                   <img src={img(b.image, 600, 350)} alt={b.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute top-3 left-3 bg-[#0E6BB8] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                  <div className="absolute top-3 left-3 bg-[#1B75BC] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
                     {b.category}
                   </div>
                 </div>
                 <div className="p-5">
-                  <h3 className="text-[14px] font-bold text-[#111827] group-hover:text-[#0E6BB8] transition-colors mb-2 leading-snug">{b.title}</h3>
+                  <h3 className="text-[14px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-2 leading-snug">{b.title}</h3>
                   <p className="text-[12px] text-[#6B7280] leading-relaxed line-clamp-2 mb-3">{b.excerpt}</p>
                   <div className="flex items-center justify-between text-[10px] text-[#9CA3AF]">
                     <span className="flex items-center gap-1"><User size={10} />{b.author}</span>
@@ -105,7 +105,7 @@ export function BlogPage() {
             <div className="text-center py-16 text-[#9CA3AF]">
               <p className="text-[15px] font-semibold">No articles found</p>
               <button onClick={() => { setSearch(""); setActiveCategory("All"); }}
-                className="mt-3 text-[13px] text-[#0E6BB8] font-bold hover:underline cursor-pointer">
+                className="mt-3 text-[13px] text-[#1B75BC] font-bold hover:underline cursor-pointer">
                 Clear filters
               </button>
             </div>
@@ -126,7 +126,7 @@ export function BlogDetailPage() {
     return (
       <div className="py-32 text-center">
         <p className="text-[#6B7280]">Article not found.</p>
-        <Link to="/blog" className="mt-4 inline-block text-[#0E6BB8] font-bold hover:underline">← Back to Blog</Link>
+        <Link to="/blog" className="mt-4 inline-block text-[#1B75BC] font-bold hover:underline">← Back to Blog</Link>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export function BlogDetailPage() {
       {/* Hero */}
       <section className="relative h-[240px] sm:h-[300px] md:h-[380px] overflow-hidden">
         <img src={img(blog.image, 1920, 700)} alt={blog.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0E6BB8]/90 via-[#0E6BB8]/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1B75BC]/90 via-[#1B75BC]/50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8 max-w-[1100px] mx-auto">
           <div className="flex items-center gap-2 text-white/60 text-[11px] mb-3">
             <Link to="/" className="hover:text-white">Home</Link>
@@ -171,14 +171,14 @@ export function BlogDetailPage() {
                   {/* Meta */}
                   <div className="flex flex-wrap gap-4 items-center mb-6 pb-5 border-b border-[#F3F4F6]">
                     <div className="flex items-center gap-2 text-[12px] text-[#6B7280]">
-                      <div className="w-7 h-7 bg-[#0E6BB8]/10 rounded-full flex items-center justify-center font-bold text-[#0E6BB8] text-[11px]">
+                      <div className="w-7 h-7 bg-[#1B75BC]/10 rounded-full flex items-center justify-center font-bold text-[#1B75BC] text-[11px]">
                         {blog.author[0]}
                       </div>
                       {blog.author}
                     </div>
                     <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Calendar size={11} />{blog.date}</span>
                     <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Clock size={11} />{blog.readTime} read</span>
-                    <span className="bg-[#0E6BB8]/10 text-[#0E6BB8] text-[10px] font-bold px-2.5 py-1 rounded-full">{blog.category}</span>
+                    <span className="bg-[#1B75BC]/10 text-[#1B75BC] text-[10px] font-bold px-2.5 py-1 rounded-full">{blog.category}</span>
                   </div>
 
                   {/* Content */}
@@ -203,10 +203,10 @@ export function BlogDetailPage() {
             {/* Sidebar */}
             <div className="lg:col-span-1 flex flex-col gap-5">
               {/* CTA */}
-              <div className="bg-[#0E6BB8] rounded-2xl p-5 text-white">
+              <div className="bg-[#1B75BC] rounded-2xl p-5 text-white">
                 <h4 className="text-[14px] font-black mb-2">Plan Your Hajj / Umrah</h4>
                 <p className="text-white/60 text-[12px] mb-4">Talk to our specialists today and get a personalized quote.</p>
-                <Link to="/book" className="block text-center py-2.5 bg-[#E8471F] text-[#0E6BB8] font-bold rounded-[10px] text-[12px] hover:bg-[#CC3C17] transition-colors">
+                <Link to="/book" className="block text-center py-2.5 bg-[#F15A24] text-[#1B75BC] font-bold rounded-[10px] text-[12px] hover:bg-[#CC3C17] transition-colors">
                   Get Free Quote
                 </Link>
               </div>
@@ -220,7 +220,7 @@ export function BlogDetailPage() {
                       <img src={img(r.image, 120, 90)} alt={r.title}
                         className="w-16 h-16 rounded-[8px] object-cover flex-shrink-0" />
                       <div>
-                        <h5 className="text-[12px] font-semibold text-[#374151] group-hover:text-[#0E6BB8] transition-colors leading-snug mb-1">{r.title}</h5>
+                        <h5 className="text-[12px] font-semibold text-[#374151] group-hover:text-[#1B75BC] transition-colors leading-snug mb-1">{r.title}</h5>
                         <span className="text-[10px] text-[#9CA3AF]">{r.readTime} read</span>
                       </div>
                     </Link>

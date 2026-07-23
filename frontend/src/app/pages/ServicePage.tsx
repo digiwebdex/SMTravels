@@ -47,7 +47,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="relative py-16 md:py-28 overflow-hidden">
         <img src={img(service.heroImage, 1920, 700)} alt={service.label}
           className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0E6BB8]/92 via-[#0E6BB8]/75 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/92 via-[#1B75BC]/75 to-transparent" />
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 border border-white/20 rounded-full px-3 py-1 mb-4"
@@ -61,7 +61,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
             </h1>
             <p className="text-white/70 text-sm leading-relaxed mb-7">{service.shortDesc}</p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/book" className="inline-flex items-center gap-2 px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#0E6BB8]"
+              <Link to="/book" className="inline-flex items-center gap-2 px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#1B75BC]"
                 style={{ backgroundColor: service.color }}>
                 Book Now <ArrowRight size={14} />
               </Link>
@@ -78,7 +78,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="max-w-3xl">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-3">Overview</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Overview</div>
             <p className="text-[#374151] text-[15px] leading-relaxed">{service.description}</p>
           </div>
         </div>
@@ -88,7 +88,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">What's Included</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">What's Included</div>
             <h2 className="text-2xl font-black text-[#111827]">Why Choose Our {service.label}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
@@ -113,29 +113,29 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">Packages & Pricing</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Packages & Pricing</div>
             <h2 className="text-2xl font-black text-[#111827]">{service.label} Packages</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {service.packages.map((pkg, i) => (
               <div key={pkg.title} className={cn(
                 "rounded-2xl border-2 overflow-hidden relative",
-                i === 1 ? "border-[#E8471F] shadow-xl" : "border-[#E5E7EB]"
+                i === 1 ? "border-[#F15A24] shadow-xl" : "border-[#E5E7EB]"
               )}>
                 {i === 1 && (
-                  <div className="bg-[#E8471F] text-[#0E6BB8] text-center text-[11px] font-black py-1.5 uppercase tracking-wider">
+                  <div className="bg-[#F15A24] text-[#1B75BC] text-center text-[11px] font-black py-1.5 uppercase tracking-wider">
                     Most Popular
                   </div>
                 )}
                 {pkg.badge && i !== 1 && (
-                  <div className="bg-[#0E6BB8] text-white text-center text-[11px] font-bold py-1.5">
+                  <div className="bg-[#1B75BC] text-white text-center text-[11px] font-bold py-1.5">
                     {pkg.badge}
                   </div>
                 )}
                 <div className="p-6 bg-white">
                   <h3 className="text-[16px] font-black text-[#111827] mb-1">{pkg.title}</h3>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-2xl font-black text-[#0E6BB8]">{fmtPrice(pkg.price)}</span>
+                    <span className="text-2xl font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</span>
                     <span className="text-[12px] text-[#9CA3AF]">/ person</span>
                   </div>
                   <div className="flex gap-3 text-[11px] text-[#9CA3AF] mb-4">
@@ -153,8 +153,8 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
                   <Link to="/book" className={cn(
                     "block text-center py-2.5 rounded-[10px] text-[13px] font-bold transition-colors",
                     i === 1
-                      ? "bg-[#E8471F] text-[#0E6BB8] hover:bg-[#CC3C17]"
-                      : "bg-[#0E6BB8] text-white hover:bg-[#0B5794]"
+                      ? "bg-[#F15A24] text-[#1B75BC] hover:bg-[#CC3C17]"
+                      : "bg-[#1B75BC] text-white hover:bg-[#14588F]"
                   )}>
                     Book This Package
                   </Link>
@@ -169,7 +169,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">How It Works</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">How It Works</div>
             <h2 className="text-2xl font-black text-[#111827]">Step-by-Step Process</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
@@ -228,7 +228,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
         <section className="py-10 md:py-16 bg-[#F7F8FA]">
           <div className="max-w-[800px] mx-auto px-4 md:px-6">
             <div className="text-center mb-10">
-              <div className="text-[#C43A15] text-[12px] font-bold uppercase tracking-widest mb-2">FAQ</div>
+              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">FAQ</div>
               <h2 className="text-2xl font-black text-[#111827]">Frequently Asked Questions</h2>
             </div>
             <div className="flex flex-col gap-3">
@@ -241,12 +241,12 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       )}
 
       {/* ── ENQUIRY CTA ── */}
-      <section className="py-10 md:py-16 bg-[#0E6BB8] text-white text-center">
+      <section className="py-10 md:py-16 bg-[#1B75BC] text-white text-center">
         <div className="max-w-lg mx-auto px-4 md:px-6">
           <h2 className="text-2xl font-black mb-3">Ready to Book {service.label}?</h2>
           <p className="text-white/60 text-sm mb-7">Contact us today — our specialists will guide you through the entire process.</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link to="/book" className="px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#0E6BB8]"
+            <Link to="/book" className="px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#1B75BC]"
               style={{ backgroundColor: service.color }}>
               Start Booking
             </Link>

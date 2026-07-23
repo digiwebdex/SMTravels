@@ -105,7 +105,7 @@ const LEAD_STATUS: Record<string,{ label:string; cls:string }> = {
 };
 
 const BOOKING_STATUS: Record<string,{ label:string; cls:string }> = {
-  confirmed: { label:"Confirmed", cls:"bg-[#0E6BB8]/10 text-[#0E6BB8] border-[#0E6BB8]/20" },
+  confirmed: { label:"Confirmed", cls:"bg-[#1B75BC]/10 text-[#1B75BC] border-[#1B75BC]/20" },
   completed: { label:"Completed", cls:"bg-emerald-50 text-emerald-700 border-emerald-200"  },
   pending:   { label:"Pending",   cls:"bg-amber-50 text-amber-600 border-amber-200"        },
   cancelled: { label:"Cancelled", cls:"bg-red-50 text-red-500 border-red-200"              },
@@ -167,7 +167,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
     <PLoad q={q}>
       {d && (
       <div className="space-y-5" data-portal="dashboard">
-        <div className="relative rounded-2xl overflow-hidden" style={{ background:"linear-gradient(135deg,#0E6BB8 0%,#1a4a8a 50%,#E8471F 100%)" }}>
+        <div className="relative rounded-2xl overflow-hidden" style={{ background:"linear-gradient(135deg,#1B75BC 0%,#1a4a8a 50%,#F15A24 100%)" }}>
           <div className="px-6 py-6 text-white relative z-10">
             <div className="flex items-start justify-between">
               <div>
@@ -175,7 +175,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
                 <h2 className="text-2xl font-bold" data-portal-name>Salam, {d.agentName.split(" ")[0]}!</h2>
                 <p className="text-white/70 text-sm mt-1 capitalize">{d.tier.toLowerCase()} Tier</p>
               </div>
-              <div className="flex items-center gap-1.5 bg-[#E8471F] text-white px-3 py-1.5 rounded-xl text-xs font-bold capitalize">
+              <div className="flex items-center gap-1.5 bg-[#F15A24] text-white px-3 py-1.5 rounded-xl text-xs font-bold capitalize">
                 <Star size={12} className="fill-white"/> {d.tier.toLowerCase()}
               </div>
             </div>
@@ -185,7 +185,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
                 { label:"Earned", val:fmtBDT2(d.commissionEarned) },
                 { label:"Pending", val:fmtBDT2(d.commissionPending) },
               ].map(s=>(
-                <div key={s.label} className={cn("rounded-xl p-3", s.hi?"bg-[#E8471F]/20 border border-[#E8471F]/40":"bg-white/10")}>
+                <div key={s.label} className={cn("rounded-xl p-3", s.hi?"bg-[#F15A24]/20 border border-[#F15A24]/40":"bg-white/10")}>
                   <p className="text-lg font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
                   <p className="text-xs text-white/70 mt-0.5">{s.label}</p>
                 </div>
@@ -197,7 +197,7 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
 
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="Leads" value={String(d.counts.leads)} sub="Assigned to me" icon={UserPlus} iconBg="bg-blue-500" />
-          <StatCard label="Bookings" value={String(d.counts.bookings)} sub="Mine" icon={Briefcase} iconBg="bg-[#0E6BB8]" />
+          <StatCard label="Bookings" value={String(d.counts.bookings)} sub="Mine" icon={Briefcase} iconBg="bg-[#1B75BC]" />
           <StatCard label="Customers" value={String(d.counts.customers)} sub="Mine" icon={Users} iconBg="bg-purple-500" />
           <StatCard label="Team" value={String(d.counts.teamSize)} sub="Sub-agents" icon={Building2} iconBg="bg-amber-500" />
         </div>
@@ -215,13 +215,13 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-slate-800">Recent Leads</p>
-            <button onClick={()=>onGo("leads")} className="text-xs text-[#0E6BB8] hover:underline font-medium">View all</button>
+            <button onClick={()=>onGo("leads")} className="text-xs text-[#1B75BC] hover:underline font-medium">View all</button>
           </div>
           <div className="space-y-2.5">
             {d.recentLeads.length === 0 && <p className="text-sm text-slate-400 py-2">No leads yet.</p>}
             {d.recentLeads.map(l=>(
               <div key={l.id} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold flex-shrink-0">{l.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+                <div className="w-8 h-8 rounded-full bg-[#1B75BC]/10 flex items-center justify-center text-[#1B75BC] text-xs font-bold flex-shrink-0">{l.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
                 <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-800 truncate">{l.name}</p><p className="text-xs text-slate-400 truncate">{l.serviceInterest || "—"}</p></div>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 capitalize">{l.stage.toLowerCase()}</span>
               </div>
@@ -268,7 +268,7 @@ function LeadsView() {
           <p className="text-sm text-slate-400 mt-0.5">Track and convert your prospects</p>
         </div>
         <button onClick={()=>setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F]">
           <Plus size={14}/> Add Lead
         </button>
       </div>
@@ -279,7 +279,7 @@ function LeadsView() {
         {Object.entries(LEAD_STATUS).map(([k,v])=>(
           <button key={k} onClick={()=>setFilter(k===filter?"all":k)}
             className={cn("p-2.5 rounded-xl border text-center transition-all",
-              filter===k?"border-[#0E6BB8] bg-[#0E6BB8]/5":"border-slate-200 bg-white hover:border-[#0E6BB8]/30")}>
+              filter===k?"border-[#1B75BC] bg-[#1B75BC]/5":"border-slate-200 bg-white hover:border-[#1B75BC]/30")}>
             <p className="text-lg font-black text-slate-800">{leads.filter(l=>l.stage===k).length}</p>
             <p className="text-xs text-slate-400 mt-0.5 leading-tight">{v.label}</p>
           </button>
@@ -291,7 +291,7 @@ function LeadsView() {
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"/>
         <input value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="Search leads…"
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
       </div>
 
       {/* Leads list */}
@@ -302,7 +302,7 @@ function LeadsView() {
           return (
           <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-sm font-bold flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#1B75BC]/10 flex items-center justify-center text-[#1B75BC] text-sm font-bold flex-shrink-0">
                 {l.name.split(" ").map(n=>n[0]).join("")}
               </div>
               <div className="flex-1 min-w-0">
@@ -325,7 +325,7 @@ function LeadsView() {
               <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
                 <Mail size={12}/> Email
               </button>
-              <button disabled title="Managed by staff" className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg opacity-50 cursor-not-allowed">
+              <button disabled title="Managed by staff" className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#1B75BC] text-white rounded-lg opacity-50 cursor-not-allowed">
                 <Edit2 size={12}/> Update
               </button>
             </div>
@@ -345,7 +345,7 @@ function LeadsView() {
             {([["Full Name","text","name"],["Phone Number","tel","phone"],["Email","email","email"]] as const).map(([l,t,k])=>(
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
-                <input type={t} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
+                <input type={t} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
             ))}
             <div>
@@ -362,7 +362,7 @@ function LeadsView() {
             </div>
             <button onClick={submitLead}
               disabled={createLead.isPending || form.name.trim().length < 2 || form.phone.trim().length < 3}
-              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] disabled:opacity-50 disabled:cursor-not-allowed">
+              className="w-full py-3 bg-[#1B75BC] text-white font-semibold text-sm rounded-xl hover:bg-[#14588F] disabled:opacity-50 disabled:cursor-not-allowed">
               {createLead.isPending ? "Saving…" : "Save Lead"}
             </button>
           </div>
@@ -389,15 +389,15 @@ function CustomersView() {
           <div key={c.id} className="bg-white rounded-2xl border border-slate-200 p-5">
             <div className="flex items-start gap-3 mb-3">
               <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0",
-                c.status==="vip"?"bg-[#E8471F]/20 text-[#C43A15]":"bg-[#0E6BB8]/10 text-[#0E6BB8]")}>
+                c.status==="vip"?"bg-[#F15A24]/20 text-[#D64A12]":"bg-[#1B75BC]/10 text-[#1B75BC]")}>
                 {c.name.split(" ").map(n=>n[0]).join("")}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-slate-800">{c.name}</p>
                   {c.status==="vip" && (
-                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-[#E8471F]/15 text-[#C43A15] rounded-full font-bold">
-                      <Star size={10} className="fill-[#E8471F]"/> VIP
+                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-[#F15A24]/15 text-[#D64A12] rounded-full font-bold">
+                      <Star size={10} className="fill-[#F15A24]"/> VIP
                     </span>
                   )}
                 </div>
@@ -416,7 +416,7 @@ function CustomersView() {
               <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
                 <Eye size={12}/> View History
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                 <Briefcase size={12}/> New Booking
               </button>
             </div>
@@ -442,7 +442,7 @@ function AgentBookings() {
       {/* Commission summary bar */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Total Bookings",    val:String(bookings.length), color:"text-[#0E6BB8]" },
+          { label:"Total Bookings",    val:String(bookings.length), color:"text-[#1B75BC]" },
           { label:"Commission Earned", val:fmtBDT2(commEarned),     color:"text-emerald-600" },
           { label:"Commission Pending",val:fmtBDT2(commPending),    color:"text-amber-600"  },
         ].map(s=>(
@@ -579,7 +579,7 @@ function TeamView() {
     <div className="space-y-5" data-portal="team">
       <h2 className="text-xl font-bold text-slate-800">My Team</h2>
       <PLoad q={q}>
-        <div className="bg-gradient-to-r from-[#0E6BB8] to-[#1a4a8a] rounded-2xl p-5 text-white">
+        <div className="bg-gradient-to-r from-[#1B75BC] to-[#1a4a8a] rounded-2xl p-5 text-white">
           <p className="text-white/70 text-xs mb-3">Your downline (sub-agents you introduced)</p>
           <div className="grid grid-cols-3 gap-3">
             {[["Sub-agents",String(team.length)],["Team Bookings",String(team.reduce((s,t)=>s+t.bookings,0))],["Team Commission",fmtBDT2(teamTotalComm)]].map(([l,v])=>(
@@ -592,7 +592,7 @@ function TeamView() {
           {team.map(m=>(
             <div key={m.id} className="bg-white rounded-2xl border border-slate-200 p-5">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold bg-[#0E6BB8]/10 text-[#0E6BB8] flex-shrink-0">{m.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold bg-[#1B75BC]/10 text-[#1B75BC] flex-shrink-0">{m.name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-slate-800" data-subagent>{m.name}</p>
@@ -629,7 +629,7 @@ function AnalyticsView() {
       {/* Summary tiles */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Conversion Rate" value="58%"  sub="Leads to bookings" icon={Target}     iconBg="bg-purple-500" delta="+8%" deltaUp/>
-        <StatCard label="Avg. Ticket"     value="৳2.4L" sub="Per booking"       icon={Briefcase}  iconBg="bg-[#0E6BB8]"  delta="+12%" deltaUp/>
+        <StatCard label="Avg. Ticket"     value="৳2.4L" sub="Per booking"       icon={Briefcase}  iconBg="bg-[#1B75BC]"  delta="+12%" deltaUp/>
         <StatCard label="Return Clients"  value="62%"  sub="Repeat bookings"   icon={RefreshCw}  iconBg="bg-[#0E7C66]"  delta="+5%" deltaUp/>
         <StatCard label="Response Time"   value="1.4h" sub="Avg. lead response" icon={Zap}        iconBg="bg-amber-500"  delta="-18%" deltaUp/>
       </div>
@@ -644,7 +644,7 @@ function AnalyticsView() {
           {booking.map((v,i)=>(
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full rounded-t-lg transition-all"
-                style={{ height:`${(v/maxB)*100}%`, background: i===months.length-1?"#0E6BB8":"#0E6BB833" }}/>
+                style={{ height:`${(v/maxB)*100}%`, background: i===months.length-1?"#1B75BC":"#1B75BC33" }}/>
               <p className="text-xs text-slate-400">{months[i]}</p>
             </div>
           ))}
@@ -673,9 +673,9 @@ function AnalyticsView() {
         <p className="font-bold text-slate-800 mb-4">Bookings by Service</p>
         <div className="space-y-3">
           {[
-            { label:"Hajj Packages",  pct:42, color:"#0E6BB8" },
+            { label:"Hajj Packages",  pct:42, color:"#1B75BC" },
             { label:"Umrah",          pct:28, color:"#0E7C66" },
-            { label:"Tour Packages",  pct:18, color:"#E8471F" },
+            { label:"Tour Packages",  pct:18, color:"#F15A24" },
             { label:"Visa Services",  pct:12, color:"#7C3AED" },
           ].map(s=>(
             <div key={s.label}>
@@ -717,8 +717,8 @@ function AgentSupport() {
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
         {MSGS.map((m,i)=>(
           <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
-            <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#0E6BB8] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
+            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
+            <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#1B75BC] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
             </div>
@@ -729,7 +729,7 @@ function AgentSupport() {
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16}/></button>
         <input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Type your message…"
           className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none"/>
-        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl"><Send size={16}/></button>
+        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl"><Send size={16}/></button>
       </div>
     </div>
   );
@@ -739,15 +739,15 @@ function AgentSupport() {
       <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl">
+        <button className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl">
           <Plus size={14}/> New Ticket
         </button>
       </div>
-      <div className="bg-[#0E6BB8]/5 border border-[#0E6BB8]/15 rounded-2xl p-4 flex items-center gap-3">
-        <Phone size={16} className="text-[#0E6BB8]"/>
+      <div className="bg-[#1B75BC]/5 border border-[#1B75BC]/15 rounded-2xl p-4 flex items-center gap-3">
+        <Phone size={16} className="text-[#1B75BC]"/>
         <div>
           <p className="text-sm font-semibold text-slate-800">Agent Hotline</p>
-          <p className="text-xs text-slate-500">Priority support: <span className="text-[#0E6BB8] font-bold">+880 31 123 4568</span></p>
+          <p className="text-xs text-slate-500">Priority support: <span className="text-[#1B75BC] font-bold">+880 31 123 4568</span></p>
         </div>
       </div>
       {SUPPORT_TICKETS.map(t=>(
@@ -783,13 +783,13 @@ function AgentProfile() {
       <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
       <PLoad q={q}>
         {me && (<>
-          <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0E4D7A] rounded-2xl p-5 text-white">
+          <div className="bg-gradient-to-br from-[#1B75BC] to-[#0E4D7A] rounded-2xl p-5 text-white">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-white/15 border-2 border-[#E8471F] flex items-center justify-center text-2xl font-black">{initials}</div>
+              <div className="w-16 h-16 rounded-2xl bg-white/15 border-2 border-[#F15A24] flex items-center justify-center text-2xl font-black">{initials}</div>
               <div>
                 <p className="text-xl font-bold" data-portal-name>{me.name}</p>
                 <p className="text-white/70 text-sm mt-0.5 font-mono">{me.agentCode}</p>
-                <div className="flex items-center gap-1 px-2 py-0.5 bg-[#E8471F] rounded-full mt-1.5 w-fit"><Star size={10} className="fill-white text-white"/><span className="text-xs font-bold text-white capitalize">{me.tier.toLowerCase()} Tier</span></div>
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-[#F15A24] rounded-full mt-1.5 w-fit"><Star size={10} className="fill-white text-white"/><span className="text-xs font-bold text-white capitalize">{me.tier.toLowerCase()} Tier</span></div>
               </div>
             </div>
           </div>
@@ -862,22 +862,22 @@ export function AgentPortal() {
           {/* Brand */}
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-9 h-9 rounded-xl bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
               <div>
                 <p className="text-sm font-bold text-slate-800">BDH Travels</p>
-                <p className="text-xs text-[#C43A15] font-semibold">Agent Portal</p>
+                <p className="text-xs text-[#D64A12] font-semibold">Agent Portal</p>
               </div>
             </div>
           </div>
           {/* Agent card */}
           <div className="px-4 py-3 border-b border-slate-100">
-            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#0E6BB8]/5 to-[#E8471F]/5 rounded-2xl border border-[#0E6BB8]/10">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0E6BB8] to-[#E8471F] flex items-center justify-center text-white text-xs font-black">{initials}</div>
+            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-[#1B75BC]/5 to-[#F15A24]/5 rounded-2xl border border-[#1B75BC]/10">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1B75BC] to-[#F15A24] flex items-center justify-center text-white text-xs font-black">{initials}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate" data-portal-name>{name}</p>
                 <div className="flex items-center gap-1">
-                  <Star size={10} className="text-[#C43A15] fill-[#E8471F]"/>
-                  <p className="text-xs text-[#C43A15] font-semibold capitalize">{(me?.tier ?? "").toLowerCase()} Agent</p>
+                  <Star size={10} className="text-[#D64A12] fill-[#F15A24]"/>
+                  <p className="text-xs text-[#D64A12] font-semibold capitalize">{(me?.tier ?? "").toLowerCase()} Agent</p>
                 </div>
               </div>
             </div>
@@ -896,7 +896,7 @@ export function AgentPortal() {
               <button key={item.id} onClick={()=>go(item.id)}
                 className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all",
                   view===item.id
-                    ? "bg-[#0E6BB8] text-white shadow-sm shadow-[#0E6BB8]/25"
+                    ? "bg-[#1B75BC] text-white shadow-sm shadow-[#1B75BC]/25"
                     : "text-slate-600 hover:bg-slate-100")}>
                 <item.icon size={17} className={view===item.id?"text-white":"text-slate-400"}/>
                 <span className="font-medium flex-1 text-left">{item.label}</span>
@@ -927,7 +927,7 @@ export function AgentPortal() {
         {/* Mobile header */}
         <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+            <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
             <div>
               <span className="font-bold text-slate-800 text-sm">Agent Portal</span>
             </div>
@@ -957,9 +957,9 @@ export function AgentPortal() {
               return (
                 <button key={item.id} onClick={()=>go(item.id)}
                   className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active?"text-[#0E6BB8]":"text-slate-400"}/>
-                  <span className={cn("text-xs font-medium",active?"text-[#0E6BB8]":"text-slate-400")}>{item.label}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#0E6BB8]"/>}
+                  <item.icon size={22} className={active?"text-[#1B75BC]":"text-slate-400"}/>
+                  <span className={cn("text-xs font-medium",active?"text-[#1B75BC]":"text-slate-400")}>{item.label}</span>
+                  {active && <div className="w-1 h-1 rounded-full bg-[#1B75BC]"/>}
                 </button>
               );
             })}

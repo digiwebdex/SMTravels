@@ -65,7 +65,7 @@ const BOTTOM_NAV = [
 const fmtBDT = (n: number) => "৳ " + n.toLocaleString("en-BD");
 
 const STATUS_CFG: Record<string,{ label:string; chip:string; dot:string }> = {
-  confirmed: { label:"Confirmed",  chip:"bg-[#0E6BB8]/10 text-[#0E6BB8] border-[#0E6BB8]/20",   dot:"bg-[#0E6BB8]"  },
+  confirmed: { label:"Confirmed",  chip:"bg-[#1B75BC]/10 text-[#1B75BC] border-[#1B75BC]/20",   dot:"bg-[#1B75BC]"  },
   completed: { label:"Completed",  chip:"bg-emerald-50 text-emerald-700 border-emerald-200",      dot:"bg-emerald-500"},
   pending:   { label:"Pending",    chip:"bg-amber-50 text-amber-700 border-amber-200",            dot:"bg-amber-400"  },
   cancelled: { label:"Cancelled",  chip:"bg-red-50 text-red-600 border-red-200",                  dot:"bg-red-500"    },
@@ -99,11 +99,11 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
       <div className="space-y-5" data-portal="dashboard">
         {/* Welcome banner */}
         <div className="relative rounded-2xl overflow-hidden"
-          style={{ background:"linear-gradient(135deg, #0E6BB8 0%, #0E4D7A 60%, #0E7C66 100%)" }}>
+          style={{ background:"linear-gradient(135deg, #1B75BC 0%, #0E4D7A 60%, #0E7C66 100%)" }}>
           <div className="px-6 py-7 text-white relative z-10">
             <p className="text-sm text-white/70 mb-1">Welcome back,</p>
             <h2 className="text-2xl font-bold mb-1">{d.customerName}</h2>
-            <p className="text-white/60 text-sm">{next ? <>Your <span className="text-[#C43A15] font-semibold">{next.serviceType.replace(/_/g, " ").toLowerCase()}</span> booking is active ✈️</> : "No active bookings"}</p>
+            <p className="text-white/60 text-sm">{next ? <>Your <span className="text-[#D64A12] font-semibold">{next.serviceType.replace(/_/g, " ").toLowerCase()}</span> booking is active ✈️</> : "No active bookings"}</p>
             <div className="flex items-center gap-3 mt-5">
               <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
                 <p className="text-xl font-bold" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{d.counts.bookings}</p>
@@ -151,7 +151,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
               <p className="text-xs text-slate-400 mt-0.5">across {d.counts.unpaidInvoices} unpaid invoice(s)</p>
             </div>
             <button onClick={()=>onGo("installments")}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794] transition-colors">
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] transition-colors">
               View Plan <ArrowRight size={14}/>
             </button>
           </div>
@@ -159,7 +159,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-slate-500"><span>{fmtBDT(next.paidAmount)} paid on next booking</span><span>{paidPct}%</span></div>
             <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-[#0E6BB8] to-[#0E7C66] transition-all" style={{ width:`${paidPct}%` }}/>
+              <div className="h-full rounded-full bg-gradient-to-r from-[#1B75BC] to-[#0E7C66] transition-all" style={{ width:`${paidPct}%` }}/>
             </div>
           </div>
           )}
@@ -174,10 +174,10 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
             { icon:Layers,       label:"Installments",   color:"bg-amber-50 text-amber-600",  v:"installments" as PortalView },
           ].map(l=>(
             <button key={l.label} onClick={()=>onGo(l.v)}
-              className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all group text-left">
+              className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#1B75BC]/30 hover:shadow-sm transition-all group text-left">
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", l.color)}><l.icon size={18}/></div>
               <span className="text-sm font-semibold text-slate-700">{l.label}</span>
-              <ChevronRight size={14} className="ml-auto text-slate-300 group-hover:text-[#0E6BB8] transition-colors"/>
+              <ChevronRight size={14} className="ml-auto text-slate-300 group-hover:text-[#1B75BC] transition-colors"/>
             </button>
           ))}
         </div>
@@ -186,13 +186,13 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-semibold text-slate-800">Recent Updates</p>
-            <button onClick={()=>onGo("notifications")} className="text-xs text-[#0E6BB8] hover:underline">See all</button>
+            <button onClick={()=>onGo("notifications")} className="text-xs text-[#1B75BC] hover:underline">See all</button>
           </div>
           <div className="space-y-2.5">
             {d.recentNotifications.length === 0 && <p className="text-sm text-slate-400 py-2">No updates.</p>}
             {d.recentNotifications.map(n=>(
-              <div key={n.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", n.read?"bg-slate-50":"bg-[#0E6BB8]/4")}>
-                <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: n.color || "#0E6BB8" }}/>
+              <div key={n.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", n.read?"bg-slate-50":"bg-[#1B75BC]/4")}>
+                <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: n.color || "#1B75BC" }}/>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-800">{n.title}</p>
                   <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{n.body}</p>
@@ -243,7 +243,7 @@ function BookingsView({ onDetail }: { onDetail: (id: string) => void }) {
               </div>
             </div>
             <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
-              <span className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold">View Details <ChevronRight size={12}/></span>
+              <span className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold">View Details <ChevronRight size={12}/></span>
             </div>
           </div>
         ))}
@@ -279,7 +279,7 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(b.detail).filter(([, v]) => v).map(([label, val])=>(
                 <div key={label} className="flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0 mt-0.5"><Globe size={14} className="text-[#0E6BB8]"/></div>
+                  <div className="w-8 h-8 rounded-lg bg-[#1B75BC]/8 flex items-center justify-center flex-shrink-0 mt-0.5"><Globe size={14} className="text-[#1B75BC]"/></div>
                   <div><p className="text-xs text-slate-400">{label}</p><p className="text-sm font-semibold text-slate-700">{val}</p></div>
                 </div>
               ))}
@@ -295,11 +295,11 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
                 {b.timeline.map((step,i)=>(
                   <div key={i} className="flex items-center gap-4 relative">
                     <div className={cn("w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 z-10",
-                      step.done ? "bg-[#0E6BB8] border-[#0E6BB8]" : "bg-white border-slate-200")}>
+                      step.done ? "bg-[#1B75BC] border-[#1B75BC]" : "bg-white border-slate-200")}>
                       {step.done ? <Check size={14} className="text-white"/> : <Circle size={10} className="text-slate-300"/>}
                     </div>
                     <div className="flex-1"><p className={cn("text-sm font-semibold", step.done?"text-slate-800":"text-slate-400")}>{step.label}</p></div>
-                    <span className={cn("text-xs font-medium", step.done?"text-[#0E6BB8]":"text-slate-400")}>{fmtDate(step.date)}</span>
+                    <span className={cn("text-xs font-medium", step.done?"text-[#1B75BC]":"text-slate-400")}>{fmtDate(step.date)}</span>
                   </div>
                 ))}
               </div>
@@ -381,7 +381,7 @@ function InstallmentsView() {
           const pct = total ? Math.round((paidCount/total)*100) : 0;
           return (
             <div key={plan.id} className="space-y-3">
-              <div className="bg-gradient-to-br from-[#0E6BB8] to-[#0E4D7A] rounded-2xl p-5 text-white">
+              <div className="bg-gradient-to-br from-[#1B75BC] to-[#0E4D7A] rounded-2xl p-5 text-white">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-white/70 text-xs mb-1 font-mono">{plan.bookingNo || "Plan"} · {fmtBDT(plan.total)}</p>
@@ -390,16 +390,16 @@ function InstallmentsView() {
                   </div>
                   <div className="w-14 h-14 rounded-full border-4 border-white/20 flex items-center justify-center"><span className="text-lg font-black">{pct}%</span></div>
                 </div>
-                <div className="h-2.5 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-[#E8471F] rounded-full transition-all" style={{ width:`${pct}%` }}/></div>
+                <div className="h-2.5 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-[#F15A24] rounded-full transition-all" style={{ width:`${pct}%` }}/></div>
               </div>
               <div className="space-y-3">
                 {plan.installments.map((inst)=>{
                   const isPaid = inst.status === "PAID";
                   const isNext = inst.status === "DUE" || inst.status === "OVERDUE";
                   return (
-                    <div key={inst.number} className={cn("bg-white rounded-2xl border p-5 transition-all", isNext?"border-[#0E6BB8]/40 shadow-md shadow-[#0E6BB8]/8":"border-slate-200")}>
+                    <div key={inst.number} className={cn("bg-white rounded-2xl border p-5 transition-all", isNext?"border-[#1B75BC]/40 shadow-md shadow-[#1B75BC]/8":"border-slate-200")}>
                       <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0", isPaid?"border-emerald-500 bg-emerald-50":isNext?"border-[#E8471F] bg-amber-50":"border-slate-200 bg-slate-50")}>
+                        <div className={cn("w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0", isPaid?"border-emerald-500 bg-emerald-50":isNext?"border-[#F15A24] bg-amber-50":"border-slate-200 bg-slate-50")}>
                           {isPaid ? <Check size={16} className="text-emerald-600"/> : <span className="text-xs font-bold text-slate-500">{inst.number}</span>}
                         </div>
                         <div className="flex-1">
@@ -441,12 +441,12 @@ function InvoicePreview({ id, onClose }: { id: string; onClose: () => void }) {
             {inv && (<>
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="w-12 h-10 bg-[#0E6BB8] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">BDH</div>
+                  <div className="w-12 h-10 bg-[#1B75BC] rounded-xl flex items-center justify-center text-white text-xs font-black mb-2">BDH</div>
                   <p className="font-bold text-slate-800">BDH Travels & Tourism</p>
                   <p className="text-xs text-slate-400">Agrabad, Chattogram</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-xl text-[#0E6BB8]">INVOICE</p>
+                  <p className="font-black text-xl text-[#1B75BC]">INVOICE</p>
                   <p className="text-xs text-slate-400 font-mono">{inv.invoiceNo}</p>
                   <p className="text-xs text-slate-400">{fmtDate(inv.issueDate)}</p>
                 </div>
@@ -536,7 +536,7 @@ function DocumentsView() {
             ))}
           </select>
           <button onClick={()=>fileInput.current?.click()} disabled={upload.isPending}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#0E6BB8] text-white text-sm rounded-xl hover:bg-[#0B5794] disabled:opacity-60 cursor-pointer">
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#1B75BC] text-white text-sm rounded-xl hover:bg-[#14588F] disabled:opacity-60 cursor-pointer">
             {upload.isPending ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14}/>}
             {upload.isPending ? "Uploading…" : "Upload"}
           </button>
@@ -593,10 +593,10 @@ function VoucherView() {
         <p className="text-sm text-slate-500 mt-0.5">Your official travel vouchers and confirmation letters</p>
       </div>
       {[
-        { id:"BK-0892", title:"Hajj Economy 2024", type:"Booking Voucher",   ready:true,  bg:"#0E6BB8" },
+        { id:"BK-0892", title:"Hajj Economy 2024", type:"Booking Voucher",   ready:true,  bg:"#1B75BC" },
         { id:"BK-0892", title:"Hajj Economy 2024", type:"Hotel Confirmation", ready:true,  bg:"#0E7C66" },
         { id:"BK-0892", title:"Hajj Economy 2024", type:"Flight Itinerary",  ready:true,  bg:"#2563EB" },
-        { id:"BK-0892", title:"Hajj Economy 2024", type:"Visa Copy",         ready:true,  bg:"#E8471F" },
+        { id:"BK-0892", title:"Hajj Economy 2024", type:"Visa Copy",         ready:true,  bg:"#F15A24" },
         { id:"BK-0892", title:"Hajj Economy 2024", type:"Group Letter",      ready:false, bg:"#7C3AED" },
       ].map((v,i)=>(
         <div key={i} className={cn("rounded-2xl p-5 flex items-center gap-4",
@@ -611,7 +611,7 @@ function VoucherView() {
             <p className="text-xs text-slate-400">{v.title}</p>
           </div>
           {v.ready ? (
-            <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794] transition-colors flex-shrink-0">
+            <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] transition-colors flex-shrink-0">
               <Download size={14}/> Download
             </button>
           ) : (
@@ -649,8 +649,8 @@ function TicketThread({ id, onBack }: { id: string; onBack: () => void }) {
         <PortalState query={q}>
           {(t?.messages ?? []).map((m)=>(
             <div key={m.id} className={cn("flex",m.mine?"justify-end":"justify-start")}>
-              {!m.mine && <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 self-end">BD</div>}
-              <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm", m.mine?"bg-[#0E6BB8] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
+              {!m.mine && <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 self-end">BD</div>}
+              <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm", m.mine?"bg-[#1B75BC] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
                 {m.body}
                 <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{fmtDate(m.createdAt)}</p>
               </div>
@@ -661,7 +661,7 @@ function TicketThread({ id, onBack }: { id: string; onBack: () => void }) {
       <div className="flex items-center gap-2">
         <input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Type your message…"
           className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none"/>
-        <button onClick={send} disabled={add.isPending} className="p-2.5 bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794] disabled:opacity-50">{add.isPending?<Loader2 size={16} className="animate-spin"/>:<Send size={16}/>}</button>
+        <button onClick={send} disabled={add.isPending} className="p-2.5 bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F] disabled:opacity-50">{add.isPending?<Loader2 size={16} className="animate-spin"/>:<Send size={16}/>}</button>
       </div>
     </div>
   );
@@ -687,15 +687,15 @@ function SupportView() {
     <div className="space-y-4" data-portal="support">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
-        <button onClick={()=>setCreating(true)} className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]"><Plus size={14}/> New Ticket</button>
+        <button onClick={()=>setCreating(true)} className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F]"><Plus size={14}/> New Ticket</button>
       </div>
       {creating && (
-        <div className="bg-white rounded-2xl border border-[#0E6BB8]/30 p-4 space-y-3">
-          <input value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Subject" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
+        <div className="bg-white rounded-2xl border border-[#1B75BC]/30 p-4 space-y-3">
+          <input value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Subject" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
           <textarea value={message} onChange={e=>setMessage(e.target.value)} rows={3} placeholder="How can we help?" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none"/>
           <div className="flex gap-2 justify-end">
             <button onClick={()=>setCreating(false)} className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600">Cancel</button>
-            <button onClick={submit} disabled={create.isPending || subject.trim().length<3 || !message.trim()} className="px-4 py-2 text-sm bg-[#0E6BB8] text-white rounded-xl disabled:opacity-50 flex items-center gap-1.5">{create.isPending&&<Loader2 size={13} className="animate-spin"/>}Create</button>
+            <button onClick={submit} disabled={create.isPending || subject.trim().length<3 || !message.trim()} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-xl disabled:opacity-50 flex items-center gap-1.5">{create.isPending&&<Loader2 size={13} className="animate-spin"/>}Create</button>
           </div>
         </div>
       )}
@@ -731,19 +731,19 @@ function NotificationsView() {
     <div className="space-y-4" data-portal="notifications">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Notifications</h2>
-        <button onClick={()=>markAll.mutate()} disabled={markAll.isPending} className="text-sm text-[#0E6BB8] hover:underline font-medium disabled:opacity-50">Mark all read</button>
+        <button onClick={()=>markAll.mutate()} disabled={markAll.isPending} className="text-sm text-[#1B75BC] hover:underline font-medium disabled:opacity-50">Mark all read</button>
       </div>
       <PortalState query={q} empty={rows.length === 0}>
         <div className="space-y-3">
           {rows.map(n=>(
-            <div key={n.id} className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all", n.read?"bg-white border-slate-200":"bg-[#0E6BB8]/4 border-[#0E6BB8]/15")}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: (n.color||"#0E6BB8")+"20" }}>
-                <div className="w-3 h-3 rounded-full" style={{ background: n.color || "#0E6BB8" }}/>
+            <div key={n.id} className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all", n.read?"bg-white border-slate-200":"bg-[#1B75BC]/4 border-[#1B75BC]/15")}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: (n.color||"#1B75BC")+"20" }}>
+                <div className="w-3 h-3 rounded-full" style={{ background: n.color || "#1B75BC" }}/>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-bold text-slate-800">{n.title}</p>
-                  {!n.read && <div className="w-2 h-2 rounded-full bg-[#0E6BB8] flex-shrink-0"/>}
+                  {!n.read && <div className="w-2 h-2 rounded-full bg-[#1B75BC] flex-shrink-0"/>}
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
               </div>
@@ -768,7 +768,7 @@ function ProfileView() {
         {me && (<>
           <div className="bg-white rounded-2xl border border-slate-200 p-5">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white text-2xl font-black">{initials}</div>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white text-2xl font-black">{initials}</div>
               <div>
                 <p className="font-bold text-slate-800 text-lg">{me.name}</p>
                 <p className="text-sm text-slate-400">Customer · Since {new Date(me.memberSince).getFullYear()}</p>
@@ -856,7 +856,7 @@ export function CustomerPortal() {
           {/* Brand */}
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-9 h-9 rounded-xl bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
               <div>
                 <p className="text-sm font-bold text-slate-800">BDH Travels</p>
                 <p className="text-xs text-[#0E7C66] font-medium">My Portal</p>
@@ -866,7 +866,7 @@ export function CustomerPortal() {
           {/* User */}
           <div className="px-4 py-4 border-b border-slate-100">
             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">{initials}</div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">{initials}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-slate-800 truncate" data-portal-name>{name}</p>
                 <p className="text-xs text-slate-400 truncate">My Portal</p>
@@ -879,7 +879,7 @@ export function CustomerPortal() {
               <button key={item.id} onClick={()=>go(item.id)}
                 className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all mb-0.5",
                   view===item.id||view==="booking-detail"&&item.id==="bookings"
-                    ? "bg-[#0E6BB8] text-white shadow-sm shadow-[#0E6BB8]/25"
+                    ? "bg-[#1B75BC] text-white shadow-sm shadow-[#1B75BC]/25"
                     : "text-slate-600 hover:bg-slate-100")}>
                 <item.icon size={17} className={view===item.id?"text-white":"text-slate-400"}/>
                 <span className="font-medium">{item.label}</span>
@@ -910,7 +910,7 @@ export function CustomerPortal() {
         {/* Mobile header */}
         <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+            <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
             <span className="font-bold text-slate-800 text-sm">My Portal</span>
           </div>
           <div className="flex items-center gap-1">
@@ -921,7 +921,7 @@ export function CustomerPortal() {
               )}
             </button>
             <button onClick={()=>go("profile")} className="p-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0E6BB8] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">{initials}</div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">{initials}</div>
             </button>
           </div>
         </div>
@@ -939,9 +939,9 @@ export function CustomerPortal() {
               return (
                 <button key={item.id} onClick={()=>go(item.id)}
                   className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active?"text-[#0E6BB8]":"text-slate-400"}/>
-                  <span className={cn("text-xs font-medium",active?"text-[#0E6BB8]":"text-slate-400")}>{item.label}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#0E6BB8]"/>}
+                  <item.icon size={22} className={active?"text-[#1B75BC]":"text-slate-400"}/>
+                  <span className={cn("text-xs font-medium",active?"text-[#1B75BC]":"text-slate-400")}>{item.label}</span>
+                  {active && <div className="w-1 h-1 rounded-full bg-[#1B75BC]"/>}
                 </button>
               );
             })}

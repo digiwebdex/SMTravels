@@ -52,8 +52,8 @@ interface Package {
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const TYPE_CFG: Record<PkgType, { color: string; bg: string; text: string }> = {
-  Hajj:     { color: "#0E6BB8", bg: "#EEF2FF", text: "text-[#0E6BB8]" },
-  Umrah:    { color: "#E8471F", bg: "#FFF9E6", text: "text-[#C43A15]" },
+  Hajj:     { color: "#1B75BC", bg: "#EEF2FF", text: "text-[#1B75BC]" },
+  Umrah:    { color: "#F15A24", bg: "#FFF9E6", text: "text-[#D64A12]" },
   Tour:     { color: "#EA580C", bg: "#FFF7ED", text: "text-[#EA580C]" },
   Visa:     { color: "#7C3AED", bg: "#F5F3FF", text: "text-[#7C3AED]" },
   Manpower: { color: "#2563EB", bg: "#EFF6FF", text: "text-[#2563EB]" },
@@ -130,7 +130,7 @@ function FormField({ label, required, hint, children }: { label: string; require
   );
 }
 
-const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[9px] text-[13px] text-[#111827] bg-white outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all placeholder:text-[#D1D5DB]";
+const inputCls = "w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[9px] text-[13px] text-[#111827] bg-white outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all placeholder:text-[#D1D5DB]";
 const selectCls = cn(inputCls, "cursor-pointer appearance-none");
 
 function PageBreadcrumb({ items, action }: { items: { label: string; onClick?: () => void }[]; action?: React.ReactNode }) {
@@ -142,7 +142,7 @@ function PageBreadcrumb({ items, action }: { items: { label: string; onClick?: (
             {i > 0 && <ChevronRight size={13} className="text-[#D1D5DB]" />}
             {item.onClick ? (
               <button onClick={item.onClick}
-                className="text-[#0E6BB8] font-semibold hover:underline cursor-pointer">{item.label}</button>
+                className="text-[#1B75BC] font-semibold hover:underline cursor-pointer">{item.label}</button>
             ) : (
               <span className="text-[#374151] font-semibold">{item.label}</span>
             )}
@@ -199,11 +199,11 @@ function PackageListView({
           <p className="text-[12px] text-[#9CA3AF] mt-0.5">{stats.total} total packages · {stats.active} active</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#0E6BB8]/30 transition-colors cursor-pointer">
+          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
             <Download size={13} className="text-[#9CA3AF]" /> Export
           </button>
           <button onClick={onNew}
-            className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0B5794] transition-colors cursor-pointer shadow-sm">
+            className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#14588F] transition-colors cursor-pointer shadow-sm">
             <Plus size={14} /> New Package
           </button>
         </div>
@@ -219,7 +219,7 @@ function PackageListView({
                 className={cn(
                   "h-7 px-3 rounded-full text-[11px] font-bold transition-all cursor-pointer",
                   typeFilter === t
-                    ? t === "All" ? "bg-[#0E6BB8] text-white" : "text-white"
+                    ? t === "All" ? "bg-[#1B75BC] text-white" : "text-white"
                     : "bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E9EAEC]"
                 )}
                 style={typeFilter === t && t !== "All" ? { backgroundColor: TYPE_CFG[t as PkgType].color } : {}}>
@@ -228,7 +228,7 @@ function PackageListView({
             ))}
             <div className="ml-auto flex items-center gap-2">
               <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
-                className="h-7 px-2.5 border border-[#E5E7EB] rounded-[7px] text-[11px] text-[#374151] bg-white outline-none cursor-pointer focus:border-[#0E6BB8]">
+                className="h-7 px-2.5 border border-[#E5E7EB] rounded-[7px] text-[11px] text-[#374151] bg-white outline-none cursor-pointer focus:border-[#1B75BC]">
                 <option value="All">All Status</option>
                 {(["Active","Draft","Archived","Suspended"] as PkgStatus[]).map(s => <option key={s}>{s}</option>)}
               </select>
@@ -240,7 +240,7 @@ function PackageListView({
               <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search packages by name or ID…"
-                className="w-full pl-8 pr-3 h-9 border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#111827] bg-[#F7F8FA] outline-none focus:border-[#0E6BB8] focus:bg-white transition-all" />
+                className="w-full pl-8 pr-3 h-9 border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#111827] bg-[#F7F8FA] outline-none focus:border-[#1B75BC] focus:bg-white transition-all" />
             </div>
             {selected.size > 0 && (
               <div className="flex items-center gap-2 ml-auto text-[12px]">
@@ -267,7 +267,7 @@ function PackageListView({
               <tr>
                 <th className="w-10 py-3 pl-4">
                   <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0}
-                    onChange={toggleAll} className="w-3.5 h-3.5 accent-[#0E6BB8] cursor-pointer" />
+                    onChange={toggleAll} className="w-3.5 h-3.5 accent-[#1B75BC] cursor-pointer" />
                 </th>
                 {["Package", "Type", "Price From", "Availability", "Season", "Bookings", "Status", ""].map(h => (
                   <th key={h} className="text-left py-3 pr-4 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider whitespace-nowrap">{h}</th>
@@ -283,7 +283,7 @@ function PackageListView({
                     className={cn("border-b border-[#F7F8FA] hover:bg-[#FAFBFC] transition-colors group", isSelected && "bg-[#EEF2FF]")}>
                     <td className="pl-4 py-3.5">
                       <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(pkg.id)}
-                        className="w-3.5 h-3.5 accent-[#0E6BB8] cursor-pointer" />
+                        className="w-3.5 h-3.5 accent-[#1B75BC] cursor-pointer" />
                     </td>
                     <td className="py-3.5 pr-4">
                       <div className="flex items-center gap-3">
@@ -294,7 +294,7 @@ function PackageListView({
                         <div>
                           <div className="flex items-center gap-1.5 mb-0.5">
                             <span className="text-[13px] font-bold text-[#111827] leading-tight line-clamp-1 max-w-[200px]">{pkg.name}</span>
-                            {pkg.featured && <Star size={11} fill="#E8471F" className="text-[#C43A15] flex-shrink-0" />}
+                            {pkg.featured && <Star size={11} fill="#F15A24" className="text-[#D64A12] flex-shrink-0" />}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] text-[#9CA3AF]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.code}</span>
@@ -326,7 +326,7 @@ function PackageListView({
                       <div className="text-[13px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{pkg.bookings}</div>
                       {pkg.rating > 0 && (
                         <div className="flex items-center gap-0.5 mt-0.5">
-                          <Star size={9} fill="#E8471F" className="text-[#C43A15]" />
+                          <Star size={9} fill="#F15A24" className="text-[#D64A12]" />
                           <span className="text-[10px] text-[#9CA3AF]">{pkg.rating.toFixed(1)}</span>
                         </div>
                       )}
@@ -334,8 +334,8 @@ function PackageListView({
                     <td className="py-3.5 pr-4"><StatusBadge status={pkg.status} /></td>
                     <td className="py-3.5 pr-3">
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => onView(pkg.id)} title="View" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#0E6BB8] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Eye size={14} /></button>
-                        <button onClick={() => onEdit(pkg.id)} title="Edit" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#0E6BB8] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Edit2 size={14} /></button>
+                        <button onClick={() => onView(pkg.id)} title="View" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Eye size={14} /></button>
+                        <button onClick={() => onEdit(pkg.id)} title="Edit" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Edit2 size={14} /></button>
                         <button title="Duplicate" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><Copy size={14} /></button>
                         <button title="More" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><MoreHorizontal size={14} /></button>
                       </div>
@@ -363,7 +363,7 @@ function PackageListView({
               </button>
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button key={i} onClick={() => setPage(i + 1)} className={cn("h-7 w-7 rounded-[6px] text-[11px] font-medium cursor-pointer transition-colors",
-                  page === i + 1 ? "bg-[#0E6BB8] text-white" : "text-[#374151] hover:bg-[#F7F8FA] border border-[#E5E7EB]")}>
+                  page === i + 1 ? "bg-[#1B75BC] text-white" : "text-[#374151] hover:bg-[#F7F8FA] border border-[#E5E7EB]")}>
                   {i + 1}
                 </button>
               ))}
@@ -433,7 +433,7 @@ function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: 
       <div className="relative">
         {/* Timeline spine */}
         {days.length > 0 && (
-          <div className="absolute left-[22px] top-8 bottom-8 w-0.5 bg-gradient-to-b from-[#0E6BB8]/30 via-[#E8471F]/30 to-[#0E7C66]/30" />
+          <div className="absolute left-[22px] top-8 bottom-8 w-0.5 bg-gradient-to-b from-[#1B75BC]/30 via-[#F15A24]/30 to-[#0E7C66]/30" />
         )}
         <div className="flex flex-col gap-3">
           {days.map((day, idx) => (
@@ -443,7 +443,7 @@ function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: 
                 <div className={cn(
                   "w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 font-black text-[13px] shadow-sm",
                   day.expanded
-                    ? "bg-[#0E6BB8] border-[#0E6BB8] text-white"
+                    ? "bg-[#1B75BC] border-[#1B75BC] text-white"
                     : "bg-white border-[#E5E7EB] text-[#374151]"
                 )}>
                   {day.day}
@@ -454,7 +454,7 @@ function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: 
               <div className="flex-1 mb-1">
                 <div className={cn(
                   "bg-white border rounded-[12px] overflow-hidden transition-all",
-                  day.expanded ? "border-[#0E6BB8]/30 shadow-md" : "border-[#E5E7EB] hover:border-[#0E6BB8]/20"
+                  day.expanded ? "border-[#1B75BC]/30 shadow-md" : "border-[#E5E7EB] hover:border-[#1B75BC]/20"
                 )}>
                   {/* Day header — always visible */}
                   <button
@@ -520,15 +520,15 @@ function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: 
                               onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addActivity(day.id))}
                               className={cn(inputCls, "flex-1")} placeholder="Type activity + Enter" />
                             <button onClick={() => addActivity(day.id)}
-                              className="h-10 px-3 bg-[#0E6BB8] text-white rounded-[9px] text-[12px] font-medium hover:bg-[#0B5794] transition-colors cursor-pointer flex-shrink-0">
+                              className="h-10 px-3 bg-[#1B75BC] text-white rounded-[9px] text-[12px] font-medium hover:bg-[#14588F] transition-colors cursor-pointer flex-shrink-0">
                               <Plus size={14} />
                             </button>
                           </div>
                           <div className="flex flex-wrap gap-1.5">
                             {day.activities.map(act => (
-                              <span key={act} className="flex items-center gap-1 bg-[#EEF2FF] text-[#0E6BB8] text-[10px] font-medium px-2.5 py-1 rounded-full">
+                              <span key={act} className="flex items-center gap-1 bg-[#EEF2FF] text-[#1B75BC] text-[10px] font-medium px-2.5 py-1 rounded-full">
                                 {act}
-                                <button onClick={() => removeActivity(day.id, act)} className="text-[#0E6BB8]/50 hover:text-[#0E6BB8] cursor-pointer"><X size={10} /></button>
+                                <button onClick={() => removeActivity(day.id, act)} className="text-[#1B75BC]/50 hover:text-[#1B75BC] cursor-pointer"><X size={10} /></button>
                               </span>
                             ))}
                           </div>
@@ -543,7 +543,7 @@ function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: 
                             <div className="flex gap-3">
                               {(["breakfast","lunch","dinner"] as const).map(meal => (
                                 <label key={meal} className="flex items-center gap-1.5 cursor-pointer">
-                                  <input type="checkbox" className="w-3.5 h-3.5 accent-[#0E6BB8]"
+                                  <input type="checkbox" className="w-3.5 h-3.5 accent-[#1B75BC]"
                                     checked={day.meals[meal]} onChange={e => update(day.id, { meals: { ...day.meals, [meal]: e.target.checked } })} />
                                   <span className="text-[11px] text-[#374151] capitalize">{meal.charAt(0).toUpperCase()}</span>
                                 </label>
@@ -561,7 +561,7 @@ function ItineraryBuilder({ days, onChange }: { days: ItineraryDay[]; onChange: 
         </div>
       </div>
       <button onClick={addDay}
-        className="mt-4 flex items-center gap-2 h-10 px-4 border-2 border-dashed border-[#D1D5DB] rounded-[10px] text-[12px] font-semibold text-[#9CA3AF] hover:border-[#0E6BB8]/50 hover:text-[#0E6BB8] hover:bg-[#EEF2FF]/50 transition-all cursor-pointer w-full justify-center">
+        className="mt-4 flex items-center gap-2 h-10 px-4 border-2 border-dashed border-[#D1D5DB] rounded-[10px] text-[12px] font-semibold text-[#9CA3AF] hover:border-[#1B75BC]/50 hover:text-[#1B75BC] hover:bg-[#EEF2FF]/50 transition-all cursor-pointer w-full justify-center">
         <Plus size={14} /> Add Day
       </button>
     </div>
@@ -593,16 +593,16 @@ function PricingTierEditor({ tiers, onChange }: { tiers: PricingTier[]; onChange
                 <tr key={tier.id} className="border-t border-[#F3F4F6] group">
                   <td className="py-2.5 px-3">
                     <input value={tier.label} onChange={e => update(tier.id, { label: e.target.value })}
-                      className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-bold text-[#111827] focus:border-[#0E6BB8] outline-none" />
+                      className="w-28 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-bold text-[#111827] focus:border-[#1B75BC] outline-none" />
                   </td>
                   <td className="py-2.5 px-3">
                     <input type="number" value={tier.price} onChange={e => update(tier.id, { price: +e.target.value })}
-                      className="w-32 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#0E6BB8] outline-none" />
+                      className="w-32 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#1B75BC] outline-none" />
                   </td>
                   <td className="py-2.5 px-3">
                     <input type="number" value={tier.originalPrice || ""} onChange={e => update(tier.id, { originalPrice: +e.target.value || undefined })}
                       placeholder="—"
-                      className="w-32 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#6B7280] focus:border-[#0E6BB8] outline-none" />
+                      className="w-32 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#6B7280] focus:border-[#1B75BC] outline-none" />
                   </td>
                   <td className="py-2.5 px-3">
                     {disc > 0
@@ -611,13 +611,13 @@ function PricingTierEditor({ tiers, onChange }: { tiers: PricingTier[]; onChange
                   </td>
                   <td className="py-2.5 px-3">
                     <input type="number" value={tier.seats} onChange={e => update(tier.id, { seats: +e.target.value })}
-                      className="w-16 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#0E6BB8] outline-none" />
+                      className="w-16 px-2 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[12px] font-mono text-[#111827] focus:border-[#1B75BC] outline-none" />
                   </td>
                   <td className="py-2.5 px-3">
                     <div>
                       <span className="text-[12px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{tier.occupied}</span>
                       <div className="w-12 h-1 bg-[#F3F4F6] rounded-full mt-1 overflow-hidden">
-                        <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width: `${(tier.occupied / tier.seats) * 100}%` }} />
+                        <div className="h-full bg-[#1B75BC] rounded-full" style={{ width: `${(tier.occupied / tier.seats) * 100}%` }} />
                       </div>
                     </div>
                   </td>
@@ -646,7 +646,7 @@ function PricingTierEditor({ tiers, onChange }: { tiers: PricingTier[]; onChange
         </table>
       </div>
       <button onClick={addTier}
-        className="flex items-center gap-1.5 h-8 px-3 border border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] hover:border-[#0E6BB8]/50 hover:text-[#0E6BB8] transition-colors cursor-pointer">
+        className="flex items-center gap-1.5 h-8 px-3 border border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] hover:border-[#1B75BC]/50 hover:text-[#1B75BC] transition-colors cursor-pointer">
         <Plus size={12} /> Add Tier
       </button>
     </div>
@@ -760,8 +760,8 @@ function PackageCalendar({ dates, onToggle }: { dates: string[]; onToggle: (d: s
               className={cn(
                 "h-9 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer",
                 selected
-                  ? "bg-[#0E6BB8] text-white font-bold shadow-sm"
-                  : "text-[#374151] hover:bg-[#EEF2FF] hover:text-[#0E6BB8]"
+                  ? "bg-[#1B75BC] text-white font-bold shadow-sm"
+                  : "text-[#374151] hover:bg-[#EEF2FF] hover:text-[#1B75BC]"
               )}>
               {day}
               {selected && <div className="w-1 h-1 bg-white/60 rounded-full mx-auto mt-0.5" />}
@@ -774,9 +774,9 @@ function PackageCalendar({ dates, onToggle }: { dates: string[]; onToggle: (d: s
           <div className="text-[11px] font-bold text-[#374151] mb-2">Selected Departure Dates ({dates.length})</div>
           <div className="flex flex-wrap gap-1.5">
             {dates.map(d => (
-              <span key={d} className="flex items-center gap-1 bg-[#EEF2FF] text-[#0E6BB8] text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              <span key={d} className="flex items-center gap-1 bg-[#EEF2FF] text-[#1B75BC] text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 {d}
-                <button onClick={() => onToggle(d)} className="text-[#0E6BB8]/50 hover:text-[#0E6BB8] cursor-pointer"><X size={9} /></button>
+                <button onClick={() => onToggle(d)} className="text-[#1B75BC]/50 hover:text-[#1B75BC] cursor-pointer"><X size={9} /></button>
               </span>
             ))}
           </div>
@@ -863,7 +863,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
               Cancel
             </button>
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0B5794] transition-colors cursor-pointer disabled:opacity-60 shadow-sm">
+              className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#14588F] transition-colors cursor-pointer disabled:opacity-60 shadow-sm">
               {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> {isEdit ? "Update Package" : "Create Package"}</>}
             </button>
           </div>
@@ -881,7 +881,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-left transition-all cursor-pointer mb-0.5",
                     activeTab === tab.id
-                      ? "bg-[#0E6BB8] text-white shadow-sm"
+                      ? "bg-[#1B75BC] text-white shadow-sm"
                       : "text-[#6B7280] hover:bg-[#F7F8FA] hover:text-[#374151]"
                   )}>
                   <Icon size={14} className="flex-shrink-0" />
@@ -904,7 +904,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <span className="text-[11px] text-[#374151] font-medium">Featured</span>
                   <div onClick={() => setFeatured(f => !f)}
-                    className={cn("w-10 h-5 rounded-full transition-colors cursor-pointer relative", featured ? "bg-[#E8471F]" : "bg-[#D1D5DB]")}>
+                    className={cn("w-10 h-5 rounded-full transition-colors cursor-pointer relative", featured ? "bg-[#F15A24]" : "bg-[#D1D5DB]")}>
                     <div className={cn("absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform", featured ? "left-5" : "left-0.5")} />
                   </div>
                 </label>
@@ -975,7 +975,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                   <h2 className="text-[15px] font-black text-[#111827]">Itinerary Builder</h2>
                   <p className="text-[11px] text-[#9CA3AF]">Day-by-day program. Drag to reorder. Click a day to expand.</p>
                 </div>
-                <span className="text-[11px] font-bold text-[#0E6BB8] bg-[#EEF2FF] px-2.5 py-1 rounded-full">{days.length} days</span>
+                <span className="text-[11px] font-bold text-[#1B75BC] bg-[#EEF2FF] px-2.5 py-1 rounded-full">{days.length} days</span>
               </div>
               <ItineraryBuilder days={days} onChange={setDays} />
             </Card>
@@ -989,7 +989,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                     <h2 className="text-[15px] font-black text-[#111827]">Hotel Configuration</h2>
                     <p className="text-[11px] text-[#9CA3AF]">Add hotels per destination city.</p>
                   </div>
-                  <button onClick={addHotel} className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#0E6BB8] font-bold rounded-[8px] text-[11px] hover:bg-[#0E6BB8] hover:text-white transition-colors cursor-pointer">
+                  <button onClick={addHotel} className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#1B75BC] font-bold rounded-[8px] text-[11px] hover:bg-[#1B75BC] hover:text-white transition-colors cursor-pointer">
                     <Plus size={12} /> Add Hotel
                   </button>
                 </div>
@@ -1031,7 +1031,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                     <h2 className="text-[15px] font-black text-[#111827]">Flight Configuration</h2>
                     <p className="text-[11px] text-[#9CA3AF]">Manual airline & flight entry. No live GDS — for display only.</p>
                   </div>
-                  <button onClick={addFlight} className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#0E6BB8] font-bold rounded-[8px] text-[11px] hover:bg-[#0E6BB8] hover:text-white transition-colors cursor-pointer">
+                  <button onClick={addFlight} className="flex items-center gap-1.5 h-8 px-3 bg-[#EEF2FF] text-[#1B75BC] font-bold rounded-[8px] text-[11px] hover:bg-[#1B75BC] hover:text-white transition-colors cursor-pointer">
                     <Plus size={12} /> Add Flight
                   </button>
                 </div>
@@ -1103,13 +1103,13 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#374151] hover:text-[#DC2626] cursor-pointer"><Trash2 size={13} /></button>
                     </div>
-                    {i === 0 && <span className="absolute top-2 left-2 text-[9px] font-black bg-[#E8471F] text-[#0E6BB8] px-1.5 py-0.5 rounded-full">COVER</span>}
+                    {i === 0 && <span className="absolute top-2 left-2 text-[9px] font-black bg-[#F15A24] text-[#1B75BC] px-1.5 py-0.5 rounded-full">COVER</span>}
                   </div>
                 ))}
                 {/* Upload slot */}
-                <button className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 hover:border-[#0E6BB8]/50 hover:bg-[#EEF2FF]/50 transition-all cursor-pointer group">
-                  <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#0E6BB8] transition-colors" />
-                  <span className="text-[10px] font-medium text-[#9CA3AF] group-hover:text-[#0E6BB8] transition-colors">Upload Image</span>
+                <button className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 hover:border-[#1B75BC]/50 hover:bg-[#EEF2FF]/50 transition-all cursor-pointer group">
+                  <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#1B75BC] transition-colors" />
+                  <span className="text-[10px] font-medium text-[#9CA3AF] group-hover:text-[#1B75BC] transition-colors">Upload Image</span>
                 </button>
               </div>
               <div className="mt-4 p-3 bg-[#F7F8FA] rounded-[8px] text-[11px] text-[#9CA3AF] flex items-center gap-2">
@@ -1132,10 +1132,10 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                     <div className="space-y-2.5">
                       {departureDates.map(d => (
                         <div key={d} className="flex items-center gap-3 p-3 bg-[#F7F8FA] rounded-[9px] border border-[#E5E7EB]">
-                          <div className="text-[11px] font-bold text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d}</div>
+                          <div className="text-[11px] font-bold text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d}</div>
                           <div className="flex-1">
                             <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                              <div className="h-full bg-[#0E6BB8] rounded-full" style={{ width: "54%" }} />
+                              <div className="h-full bg-[#1B75BC] rounded-full" style={{ width: "54%" }} />
                             </div>
                           </div>
                           <span className="text-[10px] text-[#9CA3AF]">27/50 seats</span>
@@ -1181,7 +1181,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
               <ChevronLeft size={14} className="inline" /> Back
             </button>
             <button onClick={onEdit}
-              className="flex items-center gap-1.5 h-9 px-4 bg-[#0E6BB8] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#0B5794] transition-colors cursor-pointer">
+              className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#14588F] transition-colors cursor-pointer">
               <Edit2 size={13} /> Edit Package
             </button>
           </div>
@@ -1190,17 +1190,17 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
 
       {/* Hero */}
       <Card className="overflow-hidden mb-5">
-        <div className="relative h-52 bg-[#0E6BB8]">
+        <div className="relative h-52 bg-[#1B75BC]">
           <img src={`https://images.unsplash.com/${pkg.image}?w=1200&h=420&fit=crop&auto=format`} alt={pkg.name}
             className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0E6BB8]/90 via-[#0E6BB8]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/90 via-[#1B75BC]/60 to-transparent" />
           <div className="absolute bottom-5 left-6 right-6">
             <div className="flex items-center gap-2 mb-2">
               <TypeBadge type={pkg.type} />
               <StatusBadge status={pkg.status} />
               {pkg.featured && (
-                <span className="inline-flex items-center gap-1 text-[#C43A15] text-[10px] font-bold">
-                  <Star size={10} fill="#E8471F" /> Featured
+                <span className="inline-flex items-center gap-1 text-[#D64A12] text-[10px] font-bold">
+                  <Star size={10} fill="#F15A24" /> Featured
                 </span>
               )}
             </div>
@@ -1209,7 +1209,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
               <span className="flex items-center gap-1"><Clock size={12} /> {pkg.duration}</span>
               <span className="flex items-center gap-1"><MapPin size={12} /> {pkg.season}</span>
               <span className="flex items-center gap-1"><Users size={12} /> {pkg.totalSeats} seats total</span>
-              {pkg.rating > 0 && <span className="flex items-center gap-1"><Star size={11} fill="#E8471F" className="text-[#C43A15]" /> {pkg.rating}/5</span>}
+              {pkg.rating > 0 && <span className="flex items-center gap-1"><Star size={11} fill="#F15A24" className="text-[#D64A12]" /> {pkg.rating}/5</span>}
             </div>
           </div>
         </div>
@@ -1237,7 +1237,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
         {DETAIL_TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={cn("h-8 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer",
-              tab === t.id ? "bg-white text-[#0E6BB8] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]")}>
+              tab === t.id ? "bg-white text-[#1B75BC] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]")}>
             {t.label}
           </button>
         ))}
@@ -1299,7 +1299,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
                 {(pkg.availability ?? []).length === 0 && <p className="text-[11px] text-[#9CA3AF]">No departures scheduled.</p>}
                 {(pkg.availability ?? []).map(a => (
                   <div key={a.departureDate} className="flex items-center justify-between p-2.5 bg-[#F7F8FA] rounded-[7px]">
-                    <span className="text-[11px] font-bold text-[#0E6BB8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{a.departureDate}</span>
+                    <span className="text-[11px] font-bold text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{a.departureDate}</span>
                     <span className="text-[10px] text-[#9CA3AF]">{a.availableSeats}/{a.totalSeats} seats</span>
                   </div>
                 ))}
@@ -1322,7 +1322,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
             {pkg.itinerary.map((day, i) => (
               <div key={day.id} className="flex gap-4 mb-5">
                 <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-[#0E6BB8] text-white flex items-center justify-center font-black text-[13px] flex-shrink-0 z-10">{day.day}</div>
+                  <div className="w-10 h-10 rounded-full bg-[#1B75BC] text-white flex items-center justify-center font-black text-[13px] flex-shrink-0 z-10">{day.day}</div>
                   {i < pkg.itinerary.length - 1 && <div className="w-px flex-1 bg-[#E5E7EB] mt-2" />}
                 </div>
                 <div className="flex-1 pb-2">
@@ -1330,7 +1330,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
                   <p className="text-[11px] text-[#6B7280] leading-relaxed mb-2">{day.desc}</p>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {day.activities.map(a => (
-                      <span key={a} className="bg-[#EEF2FF] text-[#0E6BB8] text-[10px] font-medium px-2 py-0.5 rounded-full">{a}</span>
+                      <span key={a} className="bg-[#EEF2FF] text-[#1B75BC] text-[10px] font-medium px-2 py-0.5 rounded-full">{a}</span>
                     ))}
                   </div>
                   <div className="flex items-center gap-4 text-[10px] text-[#9CA3AF]">

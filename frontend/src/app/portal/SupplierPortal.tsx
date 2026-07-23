@@ -174,7 +174,7 @@ function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
             {d.recentRequests.filter(r => r.status === "PENDING").map(r => (
               <div key={r.id} className="flex items-center justify-between py-2.5 border-t border-amber-200 first:border-0">
                 <div><p className="text-sm font-semibold text-slate-800">{r.clientLabel || r.serviceLabel}</p><p className="text-xs text-slate-500">{r.requestNo} · {fmtBDT2(r.amount)}</p></div>
-                <button onClick={() => onGo("requests")} className="px-3 py-1.5 bg-[#0E6BB8] text-white text-xs font-semibold rounded-lg hover:bg-[#0B5794]">Review</button>
+                <button onClick={() => onGo("requests")} className="px-3 py-1.5 bg-[#1B75BC] text-white text-xs font-semibold rounded-lg hover:bg-[#14588F]">Review</button>
               </div>
             ))}
           </div>
@@ -189,12 +189,12 @@ function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
         <div className="grid grid-cols-2 gap-3">
           {[
             { icon: Inbox, label: "Requests", color: "bg-amber-50 text-amber-600", v: "requests" as SupView },
-            { icon: FileText, label: "Invoices", color: "bg-[#0E6BB8]/10 text-[#0E6BB8]", v: "invoices" as SupView },
+            { icon: FileText, label: "Invoices", color: "bg-[#1B75BC]/10 text-[#1B75BC]", v: "invoices" as SupView },
           ].map(l => (
-            <button key={l.label} onClick={() => onGo(l.v)} className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#0E6BB8]/30 hover:shadow-sm transition-all group text-left">
+            <button key={l.label} onClick={() => onGo(l.v)} className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#1B75BC]/30 hover:shadow-sm transition-all group text-left">
               <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", l.color)}><l.icon size={16} /></div>
               <span className="text-sm font-semibold text-slate-700">{l.label}</span>
-              <ChevronRight size={13} className="ml-auto text-slate-300 group-hover:text-[#0E6BB8]" />
+              <ChevronRight size={13} className="ml-auto text-slate-300 group-hover:text-[#1B75BC]" />
             </button>
           ))}
         </div>
@@ -258,7 +258,7 @@ function RequestsView() {
           </button>
           <button onClick={submit} disabled={mut.isPending}
             className={cn("flex-1 py-3 rounded-2xl text-white font-bold text-sm disabled:opacity-60",
-              confirmModal.action === "accept" ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-red-500 hover:bg-red-600")}>
+              confirmModal.action === "accept" ? "bg-[#1B75BC] hover:bg-[#14588F]" : "bg-red-500 hover:bg-red-600")}>
             {confirmModal.action === "accept" ? "Confirm" : "Decline"}
           </button>
         </div>
@@ -318,7 +318,7 @@ function RequestsView() {
             <X size={16} /> Decline
           </button>
           <button onClick={() => setConfirmModal({ id: detailReq.id, requestNo: detailReq.requestNo, action: "accept" })}
-            className="flex-1 py-3.5 bg-[#0E6BB8] text-white font-bold text-sm rounded-2xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
+            className="flex-1 py-3.5 bg-[#1B75BC] text-white font-bold text-sm rounded-2xl hover:bg-[#14588F] flex items-center justify-center gap-2">
             <Check size={16} /> Accept & Confirm
           </button>
         </div>
@@ -337,7 +337,7 @@ function RequestsView() {
         {[["all", "All"], ["pending", "Pending"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"]].map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)}
             className={cn("flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0",
-              filter === k ? "bg-[#0E6BB8] text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:border-[#0E6BB8]/30")}>
+              filter === k ? "bg-[#1B75BC] text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
             {l}
             {k !== "all" && counts[k] ? (
               <span className={cn("w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold",
@@ -395,7 +395,7 @@ function RequestsView() {
                         Decline
                       </button>
                       <button onClick={() => setConfirmModal({ id: r.id, requestNo: r.requestNo, action: "accept" })}
-                        className="py-2 px-3 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+                        className="py-2 px-3 text-xs font-semibold bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                         Accept
                       </button>
                     </>
@@ -427,8 +427,8 @@ function ServicesView() {
           {rows.map(svc => (
             <div key={svc.id} className="bg-white rounded-2xl border border-slate-200 p-5">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0">
-                  <Package size={18} className="text-[#0E6BB8]" />
+                <div className="w-10 h-10 rounded-xl bg-[#1B75BC]/8 flex items-center justify-center flex-shrink-0">
+                  <Package size={18} className="text-[#1B75BC]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
@@ -562,7 +562,7 @@ function ReportsView() {
       <h2 className="text-xl font-bold text-slate-800">Reports</h2>
 
       <div className="grid grid-cols-2 gap-3">
-        <KpiCard label="Total Requests" value="5"  sub="YTD"         icon={Inbox}    accent="bg-[#0E6BB8]"  delta="+40%" up />
+        <KpiCard label="Total Requests" value="5"  sub="YTD"         icon={Inbox}    accent="bg-[#1B75BC]"  delta="+40%" up />
         <KpiCard label="Acceptance Rate"value="80%" sub="Confirmed"  icon={Check}    accent="bg-emerald-600"             />
         <KpiCard label="Avg. Turnaround"value="3.2d"sub="Days to confirm" icon={Clock} accent="bg-amber-500"            />
         <KpiCard label="Client Rating"  value="4.8★"sub="Overall"   icon={Star}     accent="bg-purple-500"              />
@@ -572,13 +572,13 @@ function ReportsView() {
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <p className="font-bold text-slate-800">Revenue by Month</p>
-          <button className="text-xs text-[#0E6BB8] flex items-center gap-1 font-semibold hover:underline"><Download size={12}/> CSV</button>
+          <button className="text-xs text-[#1B75BC] flex items-center gap-1 font-semibold hover:underline"><Download size={12}/> CSV</button>
         </div>
         <div className="flex items-end gap-2 h-32">
           {values.map((v, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div className="w-full rounded-t-lg transition-all"
-                style={{ height: v > 0 ? `${Math.max((v / maxV) * 100, 4)}%` : "4%", background: i === months.length - 1 ? "#0E6BB8" : "#0E6BB833" }} />
+                style={{ height: v > 0 ? `${Math.max((v / maxV) * 100, 4)}%` : "4%", background: i === months.length - 1 ? "#1B75BC" : "#1B75BC33" }} />
               <p className="text-xs text-slate-400">{months[i]}</p>
             </div>
           ))}
@@ -590,9 +590,9 @@ function ReportsView() {
         <p className="font-bold text-slate-800 mb-4">Revenue by Service</p>
         <div className="space-y-3">
           {[
-            { label: "Hotel — Makkah",  pct: 83, val: 2940000, color: "#0E6BB8" },
+            { label: "Hotel — Makkah",  pct: 83, val: 2940000, color: "#1B75BC" },
             { label: "Hotel — Madinah", pct: 12, val: 420000,  color: "#0E7C66" },
-            { label: "Hotel — Malaysia",pct: 2,  val: 64000,   color: "#E8471F" },
+            { label: "Hotel — Malaysia",pct: 2,  val: 64000,   color: "#F15A24" },
             { label: "Visa Processing", pct: 0,  val: 6500,    color: "#7C3AED" },
           ].map(s => (
             <div key={s.label}>
@@ -615,7 +615,7 @@ function ReportsView() {
           {["Annual Summary 2024", "Q2 Report (Apr–Jun)", "Service Performance Report", "Payment Reconciliation"].map(r => (
             <div key={r} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
               <span className="text-sm text-slate-700 font-medium">{r}</span>
-              <button className="flex items-center gap-1.5 text-xs text-[#0E6BB8] font-semibold hover:underline">
+              <button className="flex items-center gap-1.5 text-xs text-[#1B75BC] font-semibold hover:underline">
                 <Download size={12} /> PDF
               </button>
             </div>
@@ -649,10 +649,10 @@ function MessagesView() {
         {thread.thread.map((m, i) => (
           <div key={i} className={cn("flex", m.mine ? "justify-end" : "justify-start")}>
             {!m.mine && (
-              <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>
+              <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>
             )}
             <div className={cn("max-w-xs lg:max-w-sm px-4 py-2.5 rounded-2xl text-sm",
-              m.mine ? "bg-[#0E6BB8] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
+              m.mine ? "bg-[#1B75BC] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1", m.mine ? "text-white/60" : "text-slate-400")}>{m.time}</p>
             </div>
@@ -663,7 +663,7 @@ function MessagesView() {
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16} /></button>
         <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a reply…"
           className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl hover:bg-[#0B5794]"><Send size={16} /></button>
+        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F]"><Send size={16} /></button>
       </div>
     </div>
   );
@@ -676,9 +676,9 @@ function MessagesView() {
         {msgs.map(m => (
           <div key={m.id} onClick={() => { setActive(m.id); setMsgs(ms => ms.map(x => x.id === m.id ? { ...x, unread: false } : x)); }}
             className={cn("bg-white rounded-2xl border p-4 cursor-pointer hover:shadow-sm transition-all",
-              m.unread ? "border-[#0E6BB8]/25 bg-[#0E6BB8]/3" : "border-slate-200")}>
+              m.unread ? "border-[#1B75BC]/25 bg-[#1B75BC]/3" : "border-slate-200")}>
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 BD
               </div>
               <div className="flex-1 min-w-0">
@@ -686,7 +686,7 @@ function MessagesView() {
                   <p className="text-sm font-bold text-slate-800">{m.from}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-400">{m.time}</span>
-                    {m.unread && <div className="w-2 h-2 rounded-full bg-[#0E6BB8]" />}
+                    {m.unread && <div className="w-2 h-2 rounded-full bg-[#1B75BC]" />}
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-slate-600 mt-0.5">{m.subject}</p>
@@ -723,9 +723,9 @@ function SupportView() {
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
         {TMSG.map((m, i) => (
           <div key={i} className={cn("flex", m.mine ? "justify-end" : "justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
+            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
             <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",
-              m.mine ? "bg-[#0E6BB8] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
+              m.mine ? "bg-[#1B75BC] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
               {m.text}
               <p className={cn("text-xs mt-1", m.mine ? "text-white/60" : "text-slate-400")}>{m.time}</p>
             </div>
@@ -735,7 +735,7 @@ function SupportView() {
       <div className="flex items-center gap-2">
         <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16} /></button>
         <input placeholder="Type your message…" className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#0E6BB8] text-white rounded-xl"><Send size={16} /></button>
+        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl"><Send size={16} /></button>
       </div>
     </div>
   );
@@ -745,13 +745,13 @@ function SupportView() {
       <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Support</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
+        <button className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F]">
           <Plus size={14} /> New Ticket
         </button>
       </div>
-      <div className="bg-[#0E6BB8]/5 border border-[#0E6BB8]/15 rounded-2xl p-4">
+      <div className="bg-[#1B75BC]/5 border border-[#1B75BC]/15 rounded-2xl p-4">
         <p className="text-sm font-semibold text-slate-800">Supplier Support Line</p>
-        <p className="text-xs text-slate-500 mt-0.5">Priority: <span className="text-[#0E6BB8] font-bold">+880 31 123 4569</span> · Mon–Sat 9am–6pm</p>
+        <p className="text-xs text-slate-500 mt-0.5">Priority: <span className="text-[#1B75BC] font-bold">+880 31 123 4569</span> · Mon–Sat 9am–6pm</p>
       </div>
       {SUP_TICKETS.map(t => (
         <div key={t.id} onClick={() => setActive(t.id)}
@@ -788,7 +788,7 @@ function ProfileView() {
         {me && (<>
           <div className="bg-white border border-slate-200 rounded-2xl p-5">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xl font-black flex-shrink-0">{initials}</div>
+              <div className="w-16 h-16 rounded-2xl bg-[#1B75BC]/10 flex items-center justify-center text-[#1B75BC] text-xl font-black flex-shrink-0">{initials}</div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-lg font-bold text-slate-800" data-portal-name>{me.name}</p>
@@ -866,7 +866,7 @@ export function SupplierPortal() {
           {/* Brand */}
           <div className="px-5 py-5 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-9 h-9 rounded-xl bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
               <div>
                 <p className="text-sm font-bold text-slate-800">BDH Travels</p>
                 <p className="text-xs text-slate-400 font-medium">Supplier Portal</p>
@@ -877,7 +877,7 @@ export function SupplierPortal() {
           <div className="px-4 py-3.5 border-b border-slate-100">
             <div className="bg-slate-50 rounded-2xl p-3">
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-[#0E6BB8]/12 flex items-center justify-center text-[#0E6BB8] text-xs font-black">{initials}</div>
+                <div className="w-8 h-8 rounded-xl bg-[#1B75BC]/12 flex items-center justify-center text-[#1B75BC] text-xs font-black">{initials}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-slate-800 truncate" data-portal-name>{name}</p>
                   <p className="text-xs text-slate-400 font-mono">{me?.supplierCode ?? ""}</p>
@@ -901,7 +901,7 @@ export function SupplierPortal() {
               <button key={item.id} onClick={() => go(item.id)}
                 className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all",
                   view === item.id
-                    ? "bg-[#0E6BB8] text-white shadow-sm shadow-[#0E6BB8]/25"
+                    ? "bg-[#1B75BC] text-white shadow-sm shadow-[#1B75BC]/25"
                     : "text-slate-600 hover:bg-slate-100")}>
                 <item.icon size={16} className={view === item.id ? "text-white" : "text-slate-400"} />
                 <span className="font-medium flex-1 text-left">{item.label}</span>
@@ -935,7 +935,7 @@ export function SupplierPortal() {
                 <Bell size={17} className="text-slate-500" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full" />
               </button>
-              <div className="w-7 h-7 rounded-full bg-[#0E6BB8]/15 flex items-center justify-center text-[#0E6BB8] text-xs font-bold ml-1">AI</div>
+              <div className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">AI</div>
             </div>
           </div>
           <div className="max-w-2xl mx-auto px-8 py-7">
@@ -949,7 +949,7 @@ export function SupplierPortal() {
         {/* Header */}
         <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0E6BB8] flex items-center justify-center text-white text-xs font-black">BDH</div>
+            <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
             <div>
               <p className="text-sm font-bold text-slate-800">Supplier Portal</p>
             </div>
@@ -982,9 +982,9 @@ export function SupplierPortal() {
               return (
                 <button key={item.id} onClick={() => go(item.id)}
                   className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active ? "text-[#0E6BB8]" : "text-slate-400"} />
-                  <span className={cn("text-xs font-medium", active ? "text-[#0E6BB8]" : "text-slate-400")}>{item.label}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#0E6BB8]" />}
+                  <item.icon size={22} className={active ? "text-[#1B75BC]" : "text-slate-400"} />
+                  <span className={cn("text-xs font-medium", active ? "text-[#1B75BC]" : "text-slate-400")}>{item.label}</span>
+                  {active && <div className="w-1 h-1 rounded-full bg-[#1B75BC]" />}
                 </button>
               );
             })}
