@@ -169,7 +169,6 @@ async function seedStructural() {
     { code: "5200", name: "Salaries & Wages", parent: "5000", cls: "EXPENSE", role: "DETAIL" },
   ];
   const normalBalanceFor = (cls: string) => (cls === "ASSET" || cls === "EXPENSE" ? "DEBIT" : "CREDIT") as "DEBIT" | "CREDIT";
-  const acctIdByCode: Record<string, string> = {};
   for (const a of COA) {
     const row = await prisma.account.upsert({
       where: { code: a.code },
@@ -192,13 +191,21 @@ async function seedStructural() {
 
   // ══════════════════════════════════════════════════════════════════════════
   // REPORT DATA — realistic distribution so the Reports module reconciles and
-  // mixed-currency aggregation (baseAmount) is actually exercised. All amounts
-  // in baseAmount (BDT); non-BDT rows carry a real exchangeRate. Idempotent.
-  // USD→120, SAR→32 exchange rates.
-  // ══════════════════════════════════════════════════════════════════════════
-  const dt = (s: string) => new Date(`${s}T00:00:00.000Z`);
-
   console.log("[seed] structural done.");
+}
+
+// Demo-data date helper (moved to module scope in the structural/demo split).
+// Mixed-currency demo rows carry real exchangeRates (USD→120, SAR→32) so
+// baseAmount aggregation is actually exercised. Idempotent.
+const dt = (s: string) => new Date(`${s}T00:00:00.000Z`);
+
+// CoA code → id map. Filled by seedStructural (section 11); seedDemo's journal
+// section reloads it from the DB if empty (defensive — main() always runs
+// structural first).
+const acctIdByCode: Record<string, string> = {};
+async function ensureAcctMap(): Promise<void> {
+  if (Object.keys(acctIdByCode).length > 0) return;
+  for (const a of await prisma.account.findMany({ select: { id: true, code: true } })) acctIdByCode[a.code] = a.id;
 }
 
 /**
@@ -412,6 +419,7 @@ async function seedDemo() {
   // 18) POSTED journal entries (P&L source). Each entry + its balanced lines are
   //     committed in ONE transaction (the balance trigger is deferred to COMMIT).
   //     je_seed_5 is reversed by je_seed_5r → the pair nets to ZERO in P&L.
+  await ensureAcctMap();
   const upsertJournal = async (o: { id: string; ref: string; branchId: string; date: string; desc: string; reversalOfId?: string; lines: { id: string; code: string; debit?: number; credit?: number }[] }) => {
     await prisma.$transaction(async (tx) => {
       await tx.journalEntry.upsert({
