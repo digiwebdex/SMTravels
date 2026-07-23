@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
-import { CheckCircle, ArrowRight, ArrowLeft, Star, MapPin, Shield, Plane, Briefcase, Hotel, Globe, Phone, User, Mail, Calendar, Users } from "lucide-react";
+import { CheckCircle, ArrowRight, ArrowLeft, Star, MapPin, Shield, Plane, Briefcase, Hotel, Globe, Phone, User, Mail, Calendar, Users, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "../lib/utils";
+import { apiFetch } from "../lib/api";
+import type { ServiceTypeDto } from "@contracts/booking.contract";
 
-const SERVICES = [
-  { id: "hajj", icon: Star, label: "Hajj Package", color: "#E8471F", desc: "Govt-approved pilgrimage packages" },
-  { id: "umrah", icon: MapPin, label: "Umrah Package", color: "#0E6BB8", desc: "Year-round Umrah services" },
-  { id: "visa", icon: Shield, label: "Visa Services", color: "#0E7C66", desc: "50+ countries worldwide" },
-  { id: "air-ticket", icon: Plane, label: "Air Ticket", color: "#2563EB", desc: "Best airfare guaranteed" },
-  { id: "manpower", icon: Briefcase, label: "Manpower", color: "#7C3AED", desc: "International recruitment" },
-  { id: "tour", icon: Globe, label: "Tour Package", color: "#EA580C", desc: "Curated world tours" },
-  { id: "hotel", icon: Hotel, label: "Hotel Booking", color: "#0891B2", desc: "Global accommodations" },
+const SERVICES: { id: string; enum: ServiceTypeDto; icon: React.ElementType; label: string; color: string; desc: string }[] = [
+  { id: "hajj", enum: "HAJJ", icon: Star, label: "Hajj Package", color: "#E8471F", desc: "Govt-approved pilgrimage packages" },
+  { id: "umrah", enum: "UMRAH", icon: MapPin, label: "Umrah Package", color: "#0E6BB8", desc: "Year-round Umrah services" },
+  { id: "visa", enum: "VISA", icon: Shield, label: "Visa Services", color: "#0E7C66", desc: "50+ countries worldwide" },
+  { id: "air-ticket", enum: "AIR_TICKET", icon: Plane, label: "Air Ticket", color: "#2563EB", desc: "Best airfare guaranteed" },
+  { id: "manpower", enum: "MANPOWER", icon: Briefcase, label: "Manpower", color: "#7C3AED", desc: "International recruitment" },
+  { id: "tour", enum: "TOUR", icon: Globe, label: "Tour Package", color: "#EA580C", desc: "Curated world tours" },
+  { id: "hotel", enum: "HOTEL", icon: Hotel, label: "Hotel Booking", color: "#0891B2", desc: "Global accommodations" },
 ];
 
 const STEPS = ["Service", "Trip Details", "Travelers", "Confirm"];
@@ -47,13 +49,51 @@ export function BookingPage() {
   const [step, setStep] = useState(0);
   const [service, setService] = useState("");
   const [trip, setTrip] = useState({ from: "", to: "", depart: "", returnDate: "", pax: "2", notes: "" });
-  const [traveler, setTraveler] = useState({ name: "", email: "", phone: "", dob: "", passport: "" });
+  const [traveler, setTraveler] = useState({ name: "", email: "", phone: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const setT = (k: keyof typeof trip) => (v: string) => setTrip(f => ({ ...f, [k]: v }));
   const setTr = (k: keyof typeof traveler) => (v: string) => setTraveler(f => ({ ...f, [k]: v }));
 
   const selectedService = SERVICES.find(s => s.id === service);
+
+  const submit = async () => {
+    if (submitting) return;
+    if (!traveler.name.trim() || !traveler.phone.trim()) {
+      setSubmitError("Please provide the lead traveler's name and phone number (step 3).");
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await apiFetch<{ ok: boolean }>(
+        "/public/booking-request",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: traveler.name,
+            phone: traveler.phone,
+            email: traveler.email || undefined,
+            serviceInterest: selectedService?.enum ?? "TOUR",
+            travelers: parseInt(trip.pax, 10) || 1,
+            travelingFrom: trip.from || undefined,
+            destination: trip.to || undefined,
+            departDate: trip.depart || undefined,
+            returnDate: trip.returnDate || undefined,
+            notes: trip.notes || undefined,
+          }),
+        },
+        { auth: false },
+      );
+      setSubmitted(true);
+    } catch {
+      setSubmitError("Something went wrong sending your request. Please try again, or reach us on WhatsApp / phone below.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (submitted) {
     return (
@@ -170,10 +210,9 @@ export function BookingPage() {
                 <div className="flex flex-col gap-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
-                      { k: "name", label: "Full Name (as in passport)", placeholder: "Full legal name", icon: User },
-                      { k: "email", label: "Email Address", placeholder: "email@example.com", icon: Mail, type: "email" },
+                      { k: "name", label: "Full Name", placeholder: "Full legal name", icon: User },
                       { k: "phone", label: "Phone / WhatsApp Number", placeholder: "+880 1X XXX XXXXX", icon: Phone, type: "tel" },
-                      { k: "passport", label: "Passport Number", placeholder: "AB1234567", icon: User },
+                      { k: "email", label: "Email Address (optional)", placeholder: "email@example.com", icon: Mail, type: "email" },
                     ].map(f => (
                       <div key={f.k} className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{f.label}</label>
@@ -184,11 +223,9 @@ export function BookingPage() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">Date of Birth</label>
-                    <input type="date" value={traveler.dob} onChange={e => setTr("dob")(e.target.value)}
-                      className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] transition-all" />
-                  </div>
+                  <p className="text-[11px] text-[#9CA3AF]">
+                    Passport details are NOT needed at this stage — our team collects them securely once your booking is confirmed.
+                  </p>
                 </div>
               </div>
             )}
@@ -223,6 +260,12 @@ export function BookingPage() {
                 <p className="text-[11px] text-[#9CA3AF]">
                   By submitting, you agree that our team will contact you to finalize pricing and confirm availability. No payment is required at this stage.
                 </p>
+                {submitError && (
+                  <div className="mt-4 flex items-start gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] p-3">
+                    <AlertCircle size={14} className="text-[#DC2626] flex-shrink-0 mt-0.5" />
+                    <p className="text-[12px] text-[#B91C1C]">{submitError}</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -248,9 +291,10 @@ export function BookingPage() {
                   Next Step <ArrowRight size={14} />
                 </button>
               ) : (
-                <button onClick={() => setSubmitted(true)}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#0E7C66] hover:bg-[#0a6354] text-white font-bold rounded-[10px] text-[13px] transition-all cursor-pointer">
-                  <CheckCircle size={14} /> Submit Booking
+                <button onClick={() => void submit()} disabled={submitting}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#0E7C66] hover:bg-[#0a6354] text-white font-bold rounded-[10px] text-[13px] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                  {submitting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                  {submitting ? "Submitting…" : "Submit Booking"}
                 </button>
               )}
             </div>

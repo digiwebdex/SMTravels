@@ -26,3 +26,7 @@ export const forgotPasswordRateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, l
 
 /** OTP verification attempts. */
 export const otpRateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, ...strict });
+
+/** Public website forms (booking-request / contact) — the only anonymous
+ *  write surface. A human sends a handful; bots get cut off fast. */
+export const publicIntakeRateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 10, ...strict });

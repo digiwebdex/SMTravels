@@ -1,16 +1,52 @@
 import React, { useState } from "react";
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Facebook, Instagram } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Facebook, Instagram, Loader2, AlertCircle } from "lucide-react";
 import { BRANCHES } from "../lib/data";
 import { cn } from "../lib/utils";
+import { apiFetch } from "../lib/api";
+import type { ServiceTypeDto } from "@contracts/booking.contract";
+
+const SERVICE_ENUM: Record<string, ServiceTypeDto> = {
+  "Hajj Package": "HAJJ", "Umrah Package": "UMRAH", "Visa Services": "VISA", "Air Ticket": "AIR_TICKET",
+  "Manpower": "MANPOWER", "Tour Package": "TOUR", "Hotel Booking": "HOTEL",
+};
 
 export function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const set = (k: keyof typeof form) => (v: string) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    if (sending) return;
+    if (!form.name.trim() || !form.phone.trim() || !form.message.trim()) {
+      setError("Name, phone number and a message are required.");
+      return;
+    }
+    setSending(true);
+    setError("");
+    try {
+      await apiFetch<{ ok: boolean }>(
+        "/public/contact",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: form.name,
+            phone: form.phone,
+            email: form.email || undefined,
+            serviceInterest: SERVICE_ENUM[form.service],
+            message: form.message,
+          }),
+        },
+        { auth: false },
+      );
+      setSent(true);
+    } catch {
+      setError("Something went wrong sending your message. Please try again, or call us directly.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const SERVICES = ["Hajj Package", "Umrah Package", "Visa Services", "Air Ticket", "Manpower", "Tour Package", "Hotel Booking", "Other"];
@@ -121,9 +157,16 @@ export function ContactPage() {
                         value={form.message} onChange={e => set("message")(e.target.value)}
                         className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#0E6BB8] focus:ring-2 focus:ring-[#0E6BB8]/10 transition-all resize-none" />
                     </div>
-                    <button type="submit"
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#0E6BB8] hover:bg-[#0B5794] text-white font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer">
-                      <Send size={14} /> Send Message
+                    {error && (
+                      <div className="flex items-start gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] p-3">
+                        <AlertCircle size={14} className="text-[#DC2626] flex-shrink-0 mt-0.5" />
+                        <p className="text-[12px] text-[#B91C1C]">{error}</p>
+                      </div>
+                    )}
+                    <button type="submit" disabled={sending}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#0E6BB8] hover:bg-[#0B5794] text-white font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                      {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                      {sending ? "Sending…" : "Send Message"}
                     </button>
                   </form>
                 )}

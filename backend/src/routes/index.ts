@@ -12,6 +12,7 @@ import { accountsRouter } from "./accounts.route";
 import { invoicesRouter } from "./invoices.route";
 import { reportsRouter } from "./reports.route";
 import { documentRouter } from "./document.route";
+import { publicRouter } from "./public.route";
 import { portalRouter } from "./portal.route";
 import { portalRolesRouter } from "./portal.roles.route";
 
@@ -31,5 +32,6 @@ apiRouter.use(accountsRouter);
 apiRouter.use(invoicesRouter);
 apiRouter.use(reportsRouter);
 apiRouter.use(documentRouter);
+apiRouter.use(publicRouter);
 apiRouter.use(portalRouter);
 apiRouter.use(portalRolesRouter);
