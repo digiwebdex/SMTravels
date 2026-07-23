@@ -29,7 +29,10 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
           muted
           loop
           playsInline
-          preload="metadata"
+          // preload="none": don't fetch a byte of video until the browser is
+          // ready to play it, so it never competes with first paint. The poster
+          // <img> below is the instant visual; the clip streams in after.
+          preload="none"
           poster="/hero-makkah-poster.jpg"
           onError={() => setVideoFailed(true)}
         >
