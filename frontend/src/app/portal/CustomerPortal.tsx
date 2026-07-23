@@ -18,7 +18,8 @@ import {
   usePortalNotifications, useMarkAllNotificationsRead,
   useUploadPortalDocument, downloadPortalDocument,
 } from "../hooks/portal";
-import { DOCUMENT_TYPES, type DocumentTypeDto } from "@contracts/document.contract";
+import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (type-only imports erase; values would drag backend code into the bundle)
+import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { PortalBooking } from "../hooks/portal";
 
 // ── shared query-state wrapper ────────────────────────────────────────────────

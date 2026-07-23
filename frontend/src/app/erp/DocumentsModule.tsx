@@ -10,8 +10,8 @@ import {
 import { cn } from "../lib/utils";
 import { useErpDocuments, useUploadDocument, downloadDocumentFile } from "../hooks/documents";
 import { useCustomers } from "../hooks/crm";
-import { DOCUMENT_TYPES, type DocumentTypeDto } from "@contracts/document.contract";
-import type { DocumentDto } from "@contracts/document.contract";
+import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (no vite alias; bundling backend code is deliberate off-limits)
+import type { DocumentTypeDto, DocumentDto } from "@contracts/document.contract";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type DocView =

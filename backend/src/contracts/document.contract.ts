@@ -9,6 +9,10 @@
 import { z } from "zod";
 
 // ── enums (mirror prisma/schema.prisma) ──────────────────────────────────────
+// ⚠️ KEEP IN SYNC with frontend/src/app/lib/documentTypes.ts — the frontend
+// must import the VALUE from there (no @contracts vite alias; only type-only
+// imports of this file erase safely). Guarded by
+// frontend/scripts/check-contracts-imports.mjs (pre-commit).
 export const DOCUMENT_TYPES = [
   "PASSPORT", "PHOTO", "VISA", "NID", "MEDICAL", "VACCINATION",
   "AIR_TICKET", "HOTEL", "INSURANCE", "CONTRACT", "LICENSE", "MAHRAM_CERT", "OTHER",
