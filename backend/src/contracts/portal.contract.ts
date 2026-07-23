@@ -59,7 +59,7 @@ export interface PortalInstallmentPlan {
   installments: PortalInstallment[];
 }
 
-export interface PortalDocument { id: string; name: string; type: string; status: string; required: boolean; expiryAt: string | null; createdAt: string }
+export interface PortalDocument { id: string; name: string; type: string; status: string; required: boolean; hasFile: boolean; expiryAt: string | null; createdAt: string }
 
 export interface PortalTicket { id: string; ticketNo: string; subject: string; status: string; category: string | null; messageCount: number; lastMessage: string | null; createdAt: string }
 export interface PortalTicketMessage { id: string; fromLabel: string | null; mine: boolean; body: string; createdAt: string }

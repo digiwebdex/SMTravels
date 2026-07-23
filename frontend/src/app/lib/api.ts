@@ -57,7 +57,9 @@ export class ApiError extends Error {
 // ── low-level fetch ───────────────────────────────────────────────────────────
 async function rawFetch(path: string, init: RequestInit, withAuth: boolean): Promise<Response> {
   const headers = new Headers(init.headers);
-  if (init.body != null && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  // FormData bodies carry their own multipart boundary — never override those.
+  if (init.body != null && !(init.body instanceof FormData) && !headers.has("Content-Type"))
+    headers.set("Content-Type", "application/json");
   if (withAuth && accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   return fetch(`${API_BASE_URL}${path}`, { ...init, headers, credentials: "include" });
 }
@@ -121,6 +123,37 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, opts: Fe
   if (!res.ok) throw await toError(res);
   const text = await res.text();
   return (text ? JSON.parse(text) : null) as T;
+}
+
+/** Authenticated binary GET (same refresh-on-401 semantics as apiFetch).
+ *  Used for document downloads — files are never served from a public path. */
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  let res = await rawFetch(path, {}, true);
+  if (res.status === 401) {
+    const refreshed = await refreshOnce();
+    if (refreshed) {
+      res = await rawFetch(path, {}, true);
+    } else {
+      accessToken = null;
+      onSessionExpired?.();
+      throw await toError(res);
+    }
+  }
+  if (!res.ok) throw await toError(res);
+  return res.blob();
+}
+
+/** Fetch an authenticated file and hand it to the browser as a download. */
+export async function downloadViaApi(path: string, filename: string): Promise<void> {
+  const blob = await apiFetchBlob(path);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // ── typed auth endpoints ──────────────────────────────────────────────────────

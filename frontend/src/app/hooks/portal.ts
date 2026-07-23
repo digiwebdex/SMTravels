@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiFetch } from "../lib/api";
+import { apiFetch, downloadViaApi } from "../lib/api";
 import type {
   PortalProfile, PortalBooking, PortalBookingDetail, PortalInvoice, PortalInvoiceDetail,
   PortalPayment, PortalInstallmentPlan, PortalDocument, PortalTicket, PortalTicketDetail,
   PortalNotification, PortalDashboard, TicketCreateInput,
 } from "@contracts/portal.contract";
+import type { DocumentTypeDto } from "@contracts/document.contract";
 
 const err = (e: Error) => toast.error(e.message || "Something went wrong");
 export const portalKeys = {
@@ -35,6 +36,31 @@ export const usePortalDocuments = () => useQuery({ queryKey: portalKeys.document
 export const usePortalTickets = () => useQuery({ queryKey: portalKeys.tickets, queryFn: () => apiFetch<{ data: PortalTicket[] }>("/portal/tickets").then((r) => r.data) });
 export const usePortalTicket = (id: string | null) => useQuery({ queryKey: portalKeys.ticket(id ?? ""), queryFn: () => apiFetch<PortalTicketDetail>(`/portal/tickets/${id}`), enabled: !!id });
 export const usePortalNotifications = () => useQuery({ queryKey: portalKeys.notifications, queryFn: () => apiFetch<{ data: PortalNotification[] }>("/portal/notifications").then((r) => r.data) });
+
+/** Upload one of MY documents (the backend pins ownership to the session). */
+export function useUploadPortalDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { file: File; type: DocumentTypeDto; name?: string; bookingId?: string }) => {
+      const fd = new FormData();
+      fd.append("file", input.file);
+      fd.append("type", input.type);
+      if (input.name) fd.append("name", input.name);
+      if (input.bookingId) fd.append("bookingId", input.bookingId);
+      return apiFetch<PortalDocument>("/portal/documents", { method: "POST", body: fd });
+    },
+    onSuccess: (d) => {
+      toast.success(`"${d.name}" uploaded`);
+      void qc.invalidateQueries({ queryKey: portalKeys.documents });
+      void qc.invalidateQueries({ queryKey: portalKeys.dashboard });
+    },
+    onError: err,
+  });
+}
+
+/** Download one of MY documents via the authenticated endpoint. */
+export const downloadPortalDocument = (d: Pick<PortalDocument, "id" | "name">) =>
+  downloadViaApi(`/portal/documents/${d.id}/file`, d.name).catch(err);
 
 export function useCreateTicket() {
   const qc = useQueryClient();

@@ -5,33 +5,28 @@ import {
   CheckCircle, AlertTriangle, XCircle, Clock, Plus, X, Search,
   Filter, Tag, Star, Lock, Link2, Copy, RotateCcw, ZoomIn,
   ChevronRight, ChevronDown, ChevronLeft, Layers, RefreshCw,
-  Users, UserPlus, Grid, List, FilePlus, FolderOpen,
+  Users, UserPlus, Grid, List, FilePlus, FolderOpen, Loader2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useErpDocuments, useUploadDocument, downloadDocumentFile } from "../hooks/documents";
+import { useCustomers } from "../hooks/crm";
+import { DOCUMENT_TYPES, type DocumentTypeDto } from "@contracts/document.contract";
+import type { DocumentDto } from "@contracts/document.contract";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type DocView =
   | "upload" | "ocr" | "versions" | "signature"
   | "expiry" | "sharing" | "watermark" | "trash";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const DOCS = [
-  { id:"DOC-001", name:"Passport_Abdullah_Al-Mamun.pdf",   type:"Passport",   size:"2.4 MB", status:"verified",  expiry:"2028-06-14", owner:"Md. Abdullah",  tags:["hajj","personal"], shared:true,  starred:true  },
-  { id:"DOC-002", name:"Visa_Application_BK0892.pdf",       type:"Visa",       size:"1.1 MB", status:"pending",   expiry:"2024-12-01", owner:"Rabeya Khatun",  tags:["visa","pending"],  shared:false, starred:false },
-  { id:"DOC-003", name:"Airline_Ticket_GRP-24-07.pdf",      type:"Air Ticket", size:"0.8 MB", status:"verified",  expiry:"2024-08-15", owner:"Ahmed Family",   tags:["travel"],          shared:true,  starred:false },
-  { id:"DOC-004", name:"Hotel_Voucher_DarAlTawhid.pdf",     type:"Hotel",      size:"0.5 MB", status:"expiring",  expiry:"2024-07-25", owner:"BDH Travels",    tags:["hotel","makkah"],  shared:false, starred:true  },
-  { id:"DOC-005", name:"Medical_Certificate_H2024.pdf",     type:"Medical",    size:"1.8 MB", status:"verified",  expiry:"2024-10-31", owner:"Hosne Ara",      tags:["hajj","medical"],  shared:false, starred:false },
-  { id:"DOC-006", name:"Group_Insurance_Policy.pdf",        type:"Insurance",  size:"3.2 MB", status:"expired",   expiry:"2024-07-01", owner:"BDH Travels",    tags:["insurance"],       shared:true,  starred:false },
-  { id:"DOC-007", name:"Manpower_Contract_UAE_2024.pdf",    type:"Contract",   size:"0.9 MB", status:"pending",   expiry:"2025-03-01", owner:"NMT Agency",     tags:["manpower","uae"],  shared:false, starred:false },
-  { id:"DOC-008", name:"Company_Trade_License_2024.pdf",    type:"License",    size:"1.2 MB", status:"verified",  expiry:"2025-01-31", owner:"BDH Travels",    tags:["company"],         shared:false, starred:true  },
-];
-
 const STATUS_CFG: Record<string, { label: string; cls: string; icon: React.ElementType }> = {
   verified:  { label: "Verified",  cls: "bg-emerald-50 text-emerald-700", icon: CheckCircle },
+  uploaded:  { label: "Uploaded",  cls: "bg-blue-50 text-blue-700",       icon: CheckCircle },
   pending:   { label: "Pending",   cls: "bg-amber-50 text-amber-700",     icon: Clock       },
+  missing:   { label: "Missing",   cls: "bg-slate-100 text-slate-500",    icon: Clock       },
   expiring:  { label: "Expiring",  cls: "bg-orange-50 text-orange-700",   icon: AlertTriangle },
   expired:   { label: "Expired",   cls: "bg-red-50 text-red-600",         icon: XCircle     },
-  failed:    { label: "OCR Failed",cls: "bg-red-50 text-red-600",         icon: XCircle     },
+  failed:    { label: "Failed",    cls: "bg-red-50 text-red-600",         icon: XCircle     },
+  not_required: { label: "Not required", cls: "bg-slate-100 text-slate-500", icon: CheckCircle },
 };
 
 const TRASH_DOCS = [
@@ -63,11 +58,16 @@ function StatusChip({ status }: { status: string }) {
   );
 }
 
-// ─── Document Library (shared toolbar + grid) ─────────────────────────────────
-function DocLibrary({ onSelect }: { onSelect?: (id: string) => void }) {
+// ─── Document Library (wired to GET /api/documents; branch-scoped server-side) ─
+const fmtBytes = (n: number | null): string =>
+  n == null ? "—" : n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
+const prettyType = (t: string): string => t.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+
+function DocLibrary() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [search, setSearch] = useState("");
-  const filtered = DOCS.filter(d => d.name.toLowerCase().includes(search.toLowerCase()));
+  const q = useErpDocuments({ q: search || undefined, pageSize: 50 });
+  const rows: DocumentDto[] = q.data?.data ?? [];
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
@@ -76,9 +76,6 @@ function DocLibrary({ onSelect }: { onSelect?: (id: string) => void }) {
           <input placeholder="Search documents…" value={search} onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-          <Filter size={13} /> Filter
-        </button>
         <div className="flex items-center gap-0.5 ml-auto">
           <button onClick={() => setViewMode("list")} className={cn("p-1.5 rounded", viewMode === "list" ? "bg-slate-100 text-slate-800" : "text-slate-400 hover:text-slate-600")}>
             <List size={15} />
@@ -88,51 +85,47 @@ function DocLibrary({ onSelect }: { onSelect?: (id: string) => void }) {
           </button>
         </div>
       </div>
-      {viewMode === "list" ? (
+      {q.isLoading ? (
+        <div className="flex items-center justify-center py-14 text-slate-400 text-sm gap-2"><Loader2 size={15} className="animate-spin" /> Loading documents…</div>
+      ) : rows.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-14 text-slate-400">
+          <FolderOpen size={26} className="mb-2" />
+          <p className="text-sm">{search ? "No documents match your search." : "No documents uploaded yet."}</p>
+        </div>
+      ) : viewMode === "list" ? (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-100">
-              {["","Document Name","Type","Size","Status","Expiry","Owner",""].map((h, i) => (
+              {["Document Name", "Type", "Size", "Status", "Expiry", "Owner", ""].map((h, i) => (
                 <th key={i} className="text-left text-xs font-medium text-slate-500 px-4 py-2.5">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.map(doc => (
-              <tr key={doc.id} onClick={() => onSelect?.(doc.id)}
-                className="border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors">
-                <td className="px-4 py-3 w-8">
-                  {doc.starred && <Star size={13} className="text-amber-400 fill-amber-400" />}
-                </td>
+            {rows.map(doc => (
+              <tr key={doc.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <FileText size={14} className="text-red-500" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">{doc.name}</p>
-                      <div className="flex gap-1 mt-0.5">
-                        {doc.tags.map(t => (
-                          <span key={t} className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0 rounded">{t}</span>
-                        ))}
-                      </div>
-                    </div>
+                    <p className="text-sm font-medium text-slate-700">{doc.name}</p>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-slate-500">{doc.type}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{doc.size}</td>
-                <td className="px-4 py-3"><StatusChip status={doc.status} /></td>
-                <td className={cn("px-4 py-3 text-sm", doc.status === "expired" ? "text-red-600 font-medium" : doc.status === "expiring" ? "text-orange-600 font-medium" : "text-slate-500")}>
-                  {doc.expiry}
+                <td className="px-4 py-3 text-sm text-slate-500">{prettyType(doc.type)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{fmtBytes(doc.sizeBytes)}</td>
+                <td className="px-4 py-3"><StatusChip status={doc.status.toLowerCase()} /></td>
+                <td className={cn("px-4 py-3 text-sm", doc.status === "EXPIRED" ? "text-red-600 font-medium" : doc.status === "EXPIRING" ? "text-orange-600 font-medium" : "text-slate-500")}>
+                  {doc.expiryAt ?? "—"}
                 </td>
-                <td className="px-4 py-3 text-sm text-slate-500">{doc.owner}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{doc.ownerLabel ?? prettyType(doc.ownerType)}</td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    {doc.shared && <Link2 size={12} className="text-blue-400" />}
-                    <button className="p-1 hover:bg-slate-100 rounded"><Eye size={13} className="text-slate-400" /></button>
-                    <button className="p-1 hover:bg-slate-100 rounded"><Download size={13} className="text-slate-400" /></button>
-                    <button className="p-1 hover:bg-slate-100 rounded"><MoreHorizontal size={13} className="text-slate-400" /></button>
-                  </div>
+                  {doc.hasFile && (
+                    <button onClick={() => void downloadDocumentFile(doc)} title="Download"
+                      className="p-1 hover:bg-slate-100 rounded cursor-pointer">
+                      <Download size={13} className="text-slate-400" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -140,15 +133,15 @@ function DocLibrary({ onSelect }: { onSelect?: (id: string) => void }) {
         </table>
       ) : (
         <div className="grid grid-cols-4 gap-3 p-4">
-          {filtered.map(doc => (
-            <div key={doc.id} onClick={() => onSelect?.(doc.id)}
+          {rows.map(doc => (
+            <div key={doc.id} onClick={() => doc.hasFile && void downloadDocumentFile(doc)}
               className="border border-slate-200 rounded-xl p-4 hover:border-[#0E6BB8]/30 hover:bg-slate-50 cursor-pointer transition-all">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mb-3">
                 <FileText size={18} className="text-red-500" />
               </div>
               <p className="text-xs font-medium text-slate-700 leading-tight mb-1 line-clamp-2">{doc.name}</p>
-              <p className="text-xs text-slate-400 mb-2">{doc.size}</p>
-              <StatusChip status={doc.status} />
+              <p className="text-xs text-slate-400 mb-2">{fmtBytes(doc.sizeBytes)}</p>
+              <StatusChip status={doc.status.toLowerCase()} />
             </div>
           ))}
         </div>
@@ -157,21 +150,50 @@ function DocLibrary({ onSelect }: { onSelect?: (id: string) => void }) {
   );
 }
 
-// ─── UPLOAD ───────────────────────────────────────────────────────────────────
+// ─── UPLOAD (wired to POST /api/documents) ────────────────────────────────────
+interface QueueItem { file: File; status: "queued" | "uploading" | "done" | "error" }
+
 function UploadView() {
   const [dragging, setDragging] = useState(false);
-  const [uploads, setUploads] = useState([
-    { name:"Passport_Karim_2024.pdf",   size:"2.1 MB", progress:100, status:"done"       },
-    { name:"Visa_Application_New.pdf",  size:"0.9 MB", progress:72,  status:"uploading"  },
-    { name:"Medical_Certificate.pdf",   size:"1.4 MB", progress:0,   status:"queued"     },
-  ]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [docType, setDocType] = useState<DocumentTypeDto>("PASSPORT");
+  const [customerId, setCustomerId] = useState("");
+  const [expiryAt, setExpiryAt] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+  const upload = useUploadDocument();
+  const customers = useCustomers({ page: 1, pageSize: 100 });
+
+  const addFiles = (files: FileList | null) => {
+    if (!files) return;
+    const fresh = Array.from(files).map<QueueItem>(file => ({ file, status: "queued" }));
+    setQueue(q => [...q, ...fresh]);
+  };
+
+  const startUpload = async () => {
+    if (!customerId || upload.isPending) return;
+    for (const [i, item] of queue.entries()) {
+      if (item.status !== "queued") continue;
+      setQueue(q => q.map((x, j) => (j === i ? { ...x, status: "uploading" } : x)));
+      try {
+        await upload.mutateAsync({
+          file: item.file, type: docType, name: item.file.name,
+          customerId, expiryAt: expiryAt || undefined,
+        });
+        setQueue(q => q.map((x, j) => (j === i ? { ...x, status: "done" } : x)));
+      } catch {
+        setQueue(q => q.map((x, j) => (j === i ? { ...x, status: "error" } : x)));
+      }
+    }
+  };
+
+  const pending = queue.filter(u => u.status === "queued").length;
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Upload Documents</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Supports PDF, JPG, PNG, DOCX — max 20 MB</p>
+          <p className="text-sm text-slate-500 mt-0.5">Supports PDF, JPG, PNG — max 10 MB</p>
         </div>
       </div>
 
@@ -179,11 +201,14 @@ function UploadView() {
       <div
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
-        onDrop={e => { e.preventDefault(); setDragging(false); }}
+        onDrop={e => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}
+        onClick={() => fileInput.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-2xl flex flex-col items-center justify-center py-16 transition-all cursor-pointer",
           dragging ? "border-[#0E6BB8] bg-[#0E6BB8]/5" : "border-slate-300 bg-white hover:border-[#0E6BB8]/40 hover:bg-slate-50"
         )}>
+        <input ref={fileInput} type="file" multiple className="hidden" accept=".pdf,.jpg,.jpeg,.png"
+          onChange={e => { addFiles(e.target.files); e.target.value = ""; }} />
         <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all",
           dragging ? "bg-[#0E6BB8] text-white" : "bg-slate-100 text-slate-400")}>
           <Upload size={28} />
@@ -192,74 +217,81 @@ function UploadView() {
           {dragging ? "Drop files here" : "Drag & drop files here"}
         </p>
         <p className="text-sm text-slate-400 mt-1 mb-4">or click to browse from your computer</p>
-        <button className="px-5 py-2 bg-[#0E6BB8] text-white text-sm rounded-lg hover:bg-[#0B5794]">
+        <span className="px-5 py-2 bg-[#0E6BB8] text-white text-sm rounded-lg hover:bg-[#0B5794]">
           Browse Files
-        </button>
+        </span>
       </div>
 
       <div className="grid grid-cols-3 gap-5">
         {/* Upload queue */}
         <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="font-semibold text-slate-800 mb-4">Upload Queue</h3>
-          <div className="space-y-3">
-            {uploads.map((u, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <FileText size={14} className="text-red-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="text-sm font-medium text-slate-700 truncate">{u.name}</p>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                      <span className="text-xs text-slate-400">{u.size}</span>
-                      {u.status === "done" && <CheckCircle size={14} className="text-emerald-500" />}
-                      {u.status === "uploading" && <span className="text-xs text-[#0E6BB8] font-medium">{u.progress}%</span>}
-                      {u.status === "queued" && <Clock size={14} className="text-slate-400" />}
+          {queue.length === 0 ? (
+            <p className="text-sm text-slate-400">No files selected yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {queue.map((u, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FileText size={14} className="text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-sm font-medium text-slate-700 truncate">{u.file.name}</p>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        <span className="text-xs text-slate-400">{fmtBytes(u.file.size)}</span>
+                        {u.status === "done" && <CheckCircle size={14} className="text-emerald-500" />}
+                        {u.status === "error" && <XCircle size={14} className="text-red-500" />}
+                        {u.status === "uploading" && <Loader2 size={14} className="text-[#0E6BB8] animate-spin" />}
+                        {u.status === "queued" && <Clock size={14} className="text-slate-400" />}
+                      </div>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all",
+                        u.status === "done" ? "bg-emerald-500 w-full" : u.status === "error" ? "bg-red-400 w-full" : u.status === "uploading" ? "bg-[#0E6BB8] w-2/3" : "bg-slate-200 w-0")} />
                     </div>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all",
-                      u.status === "done" ? "bg-emerald-500" : u.status === "uploading" ? "bg-[#0E6BB8]" : "bg-slate-200")}
-                      style={{ width: `${u.progress}%` }} />
-                  </div>
+                  {u.status === "queued" && (
+                    <button onClick={() => setQueue(q => q.filter((_, j) => j !== i))}
+                      className="p-1 hover:bg-slate-100 rounded flex-shrink-0 cursor-pointer">
+                      <X size={14} className="text-slate-400" />
+                    </button>
+                  )}
                 </div>
-                <button className="p-1 hover:bg-slate-100 rounded flex-shrink-0">
-                  <X size={14} className="text-slate-400" />
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Metadata form */}
+        {/* Metadata form — applies to every queued file */}
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="font-semibold text-slate-800 mb-4">Document Metadata</h3>
           <div className="space-y-3">
-            {[
-              { label:"Document Type", type:"select", opts:["Passport","Visa","Air Ticket","Hotel","Medical","Contract","Insurance","License"] },
-              { label:"Related Booking", type:"text", ph:"BK-XXXX or leave blank" },
-              { label:"Customer / Owner", type:"text", ph:"Customer name" },
-              { label:"Tags", type:"text", ph:"hajj, visa, 2024 …" },
-              { label:"Expiry Date", type:"date" },
-            ].map(f => (
-              <div key={f.label}>
-                <label className="block text-xs font-medium text-slate-600 mb-1">{f.label}</label>
-                {f.type === "select" ? (
-                  <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                    {f.opts!.map(o => <option key={o}>{o}</option>)}
-                  </select>
-                ) : (
-                  <input type={f.type} placeholder={f.ph}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
-                )}
-              </div>
-            ))}
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <input type="checkbox" id="ocr" defaultChecked className="accent-[#0E6BB8]" />
-              <label htmlFor="ocr">Run OCR validation after upload</label>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Document Type</label>
+              <select value={docType} onChange={e => setDocType(e.target.value as DocumentTypeDto)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                {DOCUMENT_TYPES.map(t => <option key={t} value={t}>{prettyType(t)}</option>)}
+              </select>
             </div>
-            <button className="w-full py-2 bg-[#0E6BB8] text-white text-sm rounded-lg hover:bg-[#0B5794] mt-1">
-              Apply Metadata
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Customer / Owner</label>
+              <select value={customerId} onChange={e => setCustomerId(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <option value="">Select customer…</option>
+                {(customers.data?.data ?? []).map(c => <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Expiry Date (optional)</label>
+              <input type="date" value={expiryAt} onChange={e => setExpiryAt(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
+            </div>
+            <p className="text-xs text-slate-400">OCR fields are manual entry — review documents after upload.</p>
+            <button onClick={() => void startUpload()} disabled={!customerId || pending === 0}
+              className={cn("w-full py-2 text-sm rounded-lg mt-1",
+                customerId && pending > 0 ? "bg-[#0E6BB8] text-white hover:bg-[#0B5794] cursor-pointer" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>
+              Upload {pending > 0 ? `${pending} file${pending > 1 ? "s" : ""}` : ""}
             </button>
           </div>
         </div>

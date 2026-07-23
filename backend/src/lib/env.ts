@@ -13,6 +13,9 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
   JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
   CORS_ORIGIN: z.string().min(1).default("https://smtravels.digiwebdex.com"),
+  /** Server-volume root for uploaded files (passports/visas — OUTSIDE the web
+   *  root; nginx never serves it). Prod: /var/www/SMTravels/uploads. */
+  UPLOAD_DIR: z.string().min(1).default("uploads"),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

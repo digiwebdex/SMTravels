@@ -579,6 +579,7 @@ model Customer {
   invoices  Invoice[]
   leads     Lead[]
   notes     Note[]
+  documents Document[]
 
   @@index([branchId, createdAt])
   @@index([agentId])
@@ -1127,6 +1128,8 @@ model Document {
 
   booking  Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   traveler Traveler? @relation(fields: [travelerId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  supplier Supplier? @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@index([status, expiryAt])
   @@index([ownerType, bookingId])
@@ -1683,6 +1686,7 @@ model Supplier {
   invoices        SupplierInvoice[]
   payables        SupplierPayable[]
   bookingRequests BookingRequest[]
+  documents       Document[]
 }
 
 model SupplierService {

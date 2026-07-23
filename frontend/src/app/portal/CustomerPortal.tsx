@@ -16,7 +16,9 @@ import {
   usePortalInvoices, usePortalPayments, usePortalInstallments, usePortalDocuments,
   usePortalTickets, usePortalTicket, useCreateTicket, useAddTicketMessage,
   usePortalNotifications, useMarkAllNotificationsRead,
+  useUploadPortalDocument, downloadPortalDocument,
 } from "../hooks/portal";
+import { DOCUMENT_TYPES, type DocumentTypeDto } from "@contracts/document.contract";
 import type { PortalBooking } from "../hooks/portal";
 
 // ── shared query-state wrapper ────────────────────────────────────────────────
@@ -69,6 +71,7 @@ const STATUS_CFG: Record<string,{ label:string; chip:string; dot:string }> = {
 };
 const DOC_STATUS_CFG: Record<string,{ label:string; cls:string; icon:React.ElementType }> = {
   verified: { label:"Verified",  cls:"text-emerald-600 bg-emerald-50 border-emerald-200", icon:CheckCircle  },
+  uploaded: { label:"Uploaded",  cls:"text-blue-600 bg-blue-50 border-blue-200",          icon:CheckCircle  },
   pending:  { label:"Pending",   cls:"text-amber-600 bg-amber-50 border-amber-200",       icon:Clock        },
   missing:  { label:"Missing",   cls:"text-red-500 bg-red-50 border-red-200",             icon:AlertCircle  },
 };
@@ -507,16 +510,42 @@ function InvoicesView() {
 // ─── DOCUMENTS ───────────────────────────────────────────────────────────────
 function DocumentsView() {
   const q = usePortalDocuments();
+  const upload = useUploadPortalDocument();
+  const [docType, setDocType] = useState<DocumentTypeDto>("PASSPORT");
+  const fileInput = React.useRef<HTMLInputElement>(null);
   const rows = q.data ?? [];
+
+  const pick = (file: File | null) => {
+    if (!file || upload.isPending) return;
+    upload.mutate({ file, type: docType, name: file.name });
+  };
+
   return (
     <div className="space-y-4" data-portal="documents">
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">My Documents</h2>
-        <p className="text-sm text-slate-500 mt-0.5">Your uploaded travel documents</p>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">My Documents</h2>
+          <p className="text-sm text-slate-500 mt-0.5">Your uploaded travel documents</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <select value={docType} onChange={e=>setDocType(e.target.value as DocumentTypeDto)}
+            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 focus:outline-none">
+            {DOCUMENT_TYPES.map(t=>(
+              <option key={t} value={t}>{t.replace(/_/g," ").toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}</option>
+            ))}
+          </select>
+          <button onClick={()=>fileInput.current?.click()} disabled={upload.isPending}
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#0E6BB8] text-white text-sm rounded-xl hover:bg-[#0B5794] disabled:opacity-60 cursor-pointer">
+            {upload.isPending ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14}/>}
+            {upload.isPending ? "Uploading…" : "Upload"}
+          </button>
+          <input ref={fileInput} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png"
+            onChange={e=>{ pick(e.target.files?.[0] ?? null); e.target.value=""; }}/>
+        </div>
       </div>
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-2xl">
         <Info size={16} className="text-blue-500 flex-shrink-0 mt-0.5"/>
-        <p className="text-sm text-blue-700">Please ensure all required documents are uploaded at least 30 days before departure. (Uploads via the counter for now.)</p>
+        <p className="text-sm text-blue-700">Please ensure all required documents are uploaded at least 30 days before departure. PDF, JPG or PNG — max 10 MB.</p>
       </div>
       <PortalState query={q} empty={rows.length === 0}>
         <div className="space-y-3">
@@ -537,6 +566,12 @@ function DocumentsView() {
                     </span>
                   </div>
                   <span className="text-xs text-slate-400 capitalize flex-shrink-0">{doc.type.toLowerCase()}</span>
+                  {doc.hasFile && (
+                    <button onClick={()=>void downloadPortalDocument(doc)} title="Download"
+                      className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 cursor-pointer flex-shrink-0">
+                      <Download size={14}/>
+                    </button>
+                  )}
                 </div>
               </div>
             );

@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { cn, fmtPrice } from "../../lib/utils";
 import { ServiceType, SERVICE_CFG } from "./BookingsModule";
 import { useCreateBooking, useSaveDraft, useConfirmBooking, SERVICE_ENUM } from "../../hooks/bookings";
+import { useUploadDocument } from "../../hooks/documents";
+import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { ApiError } from "../../lib/api";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -666,12 +668,46 @@ const DOC_TYPES: Record<ServiceType, string[]> = {
   "Tour":       ["Passport Copy", "NID Copy", "Passport-size Photo", "Travel Insurance (for some destinations)"],
 };
 
-function StepDocuments({ service }: { service: ServiceType | null }) {
+/** Map a checklist label onto the DocumentType enum (manual entry — no OCR). */
+function docTypeFor(label: string): DocumentTypeDto {
+  const l = label.toLowerCase();
+  if (l.includes("passport") && l.includes("photo")) return "PHOTO";
+  if (l.includes("passport")) return "PASSPORT";
+  if (l.includes("nid") || l.includes("birth certificate")) return "NID";
+  if (l.includes("photo")) return "PHOTO";
+  if (l.includes("visa")) return "VISA";
+  if (l.includes("medical") || l.includes("gamca") || l.includes("police")) return "MEDICAL";
+  if (l.includes("vaccin") || l.includes("meningitis")) return "VACCINATION";
+  if (l.includes("insurance")) return "INSURANCE";
+  if (l.includes("ticket")) return "AIR_TICKET";
+  if (l.includes("mahram")) return "MAHRAM_CERT";
+  if (l.includes("license")) return "LICENSE";
+  return "OTHER";
+}
+
+function StepDocuments({ service, bookingId }: { service: ServiceType | null; bookingId: string | null }) {
   const docs = service ? DOC_TYPES[service] : DOC_TYPES["Umrah"];
+  const upload = useUploadDocument();
+  // label -> uploaded state (filename once the POST succeeds; "…" while in flight)
+  const [done, setDone] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const pick = (label: string, file: File | null) => {
+    if (!file || !bookingId || busy) return;
+    setBusy(label);
+    upload.mutate(
+      { file, type: docTypeFor(label), name: label, bookingId },
+      {
+        onSuccess: () => { setDone(d => ({ ...d, [label]: file.name })); setBusy(null); },
+        onError: () => setBusy(null),
+      },
+    );
+  };
+
   return (
     <div>
       <h3 className="text-[15px] font-black text-[#111827] mb-1">Documents & Attachments</h3>
-      <p className="text-[12px] text-[#9CA3AF] mb-6">Upload scanned copies. Accepted formats: PDF, JPG, PNG. Max 5MB each.</p>
+      <p className="text-[12px] text-[#9CA3AF] mb-6">Upload scanned copies. Accepted formats: PDF, JPG, PNG. Max 10MB each.</p>
       <div className="grid grid-cols-2 gap-3">
         {docs.map(doc => (
           <div key={doc} className="border border-[#E5E7EB] rounded-[10px] overflow-hidden">
@@ -680,18 +716,40 @@ function StepDocuments({ service }: { service: ServiceType | null }) {
               <span className="text-[9px] text-[#9CA3AF] bg-white border border-[#E5E7EB] px-1.5 py-0.5 rounded-full">PDF/IMG</span>
             </div>
             <div className="p-3">
-              <label className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-[#E5E7EB] rounded-[8px] cursor-pointer hover:border-[#0E6BB8]/40 hover:bg-[#0E6BB8]/2 transition-colors group">
-                <Upload size={16} className="text-[#D1D5DB] group-hover:text-[#0E6BB8] mb-1 transition-colors" />
-                <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#0E6BB8] transition-colors">Click to upload</span>
-                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" />
-              </label>
+              {done[doc] ? (
+                <div className="flex items-center gap-2 h-20 px-3 border-2 border-[#0E7C66]/30 bg-[#0E7C66]/5 rounded-[8px]">
+                  <CheckCircle2 size={16} className="text-[#0E7C66] flex-shrink-0" />
+                  <span className="text-[10px] text-[#0E7C66] font-semibold truncate">{done[doc]}</span>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center h-20 border-2 border-dashed border-[#E5E7EB] rounded-[8px] transition-colors group",
+                  bookingId && busy !== doc ? "cursor-pointer hover:border-[#0E6BB8]/40 hover:bg-[#0E6BB8]/2" : "opacity-60 cursor-not-allowed",
+                )}>
+                  {busy === doc
+                    ? <Loader2 size={16} className="text-[#0E6BB8] mb-1 animate-spin" />
+                    : <Upload size={16} className="text-[#D1D5DB] group-hover:text-[#0E6BB8] mb-1 transition-colors" />}
+                  <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#0E6BB8] transition-colors">
+                    {busy === doc ? "Uploading…" : "Click to upload"}
+                  </span>
+                  <input
+                    type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png"
+                    disabled={!bookingId || busy === doc}
+                    onChange={e => { pick(doc, e.target.files?.[0] ?? null); e.target.value = ""; }}
+                  />
+                </label>
+              )}
             </div>
           </div>
         ))}
       </div>
       <div className="mt-4 bg-[#EFF6FF] border border-[#BFDBFE] rounded-[10px] p-3 flex items-start gap-2.5">
         <Info size={14} className="text-[#2563EB] flex-shrink-0 mt-0.5" />
-        <p className="text-[11px] text-[#1D4ED8]">Documents can also be uploaded later from the booking detail page. Incomplete documents will trigger a task reminder.</p>
+        <p className="text-[11px] text-[#1D4ED8]">
+          {bookingId
+            ? "Files attach to this draft booking as soon as they upload. Documents can also be added later from the booking detail page."
+            : "Documents can also be uploaded later from the booking detail page. Incomplete documents will trigger a task reminder."}
+        </p>
       </div>
     </div>
   );
@@ -1042,7 +1100,7 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
       {service === "Tour" && <TourDetails detail={form.detail} set={setDetail} />}
     </div> : <div />,
     <StepTravelers service={service} travelers={form.travelers} setTravelers={(t) => setForm(f => ({ ...f, travelers: t }))} />,
-    <StepDocuments service={service} />,
+    <StepDocuments service={service} bookingId={draftId} />,
     <StepPricing pricing={form.pricing} setPricing={(p) => setForm(f => ({ ...f, pricing: p }))} />,
     <StepPayment payment={form.payment} setPayment={(p) => setForm(f => ({ ...f, payment: p }))} total={total} />,
     <StepReview service={service} form={form} total={total} />,

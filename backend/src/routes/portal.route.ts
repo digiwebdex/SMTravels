@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middleware/auth";
+import { uploadSingleFile } from "../lib/uploads";
 import {
   meHandler, dashboardHandler, bookingsHandler, bookingHandler,
   invoicesHandler, invoiceHandler, paymentsHandler, installmentsHandler,
-  documentsHandler, documentHandler, ticketsHandler, ticketHandler,
+  documentsHandler, documentHandler, uploadPortalDocumentHandler, portalDocumentFileHandler,
+  ticketsHandler, ticketHandler,
   createTicketHandler, ticketMessageHandler, notificationsHandler, readAllNotificationsHandler,
 } from "../controllers/portal.controller";
 
@@ -28,7 +30,11 @@ portalRouter.get(`${base}/payments`, requireAuth, asyncHandler(paymentsHandler))
 portalRouter.get(`${base}/installments`, requireAuth, asyncHandler(installmentsHandler));
 
 portalRouter.get(`${base}/documents`, requireAuth, asyncHandler(documentsHandler));
+// NOTE: /documents/:id/file MUST be declared before /documents/:id.
+// Multer runs AFTER requireAuth so anonymous requests never touch disk.
+portalRouter.get(`${base}/documents/:id/file`, requireAuth, asyncHandler(portalDocumentFileHandler));
 portalRouter.get(`${base}/documents/:id`, requireAuth, asyncHandler(documentHandler));
+portalRouter.post(`${base}/documents`, requireAuth, uploadSingleFile, asyncHandler(uploadPortalDocumentHandler));
 
 portalRouter.get(`${base}/tickets`, requireAuth, asyncHandler(ticketsHandler));
 portalRouter.get(`${base}/tickets/:id`, requireAuth, asyncHandler(ticketHandler));

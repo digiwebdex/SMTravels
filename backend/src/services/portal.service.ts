@@ -9,12 +9,14 @@ import { prisma } from "../lib/prisma";
 import { AuthCtx, requireCustomerId } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import { allocateSequence, formatDocNo } from "../lib/sequence";
+import { moveIntoStore, removeQuietly, absoluteStorePath } from "../lib/uploads";
 import type {
   PortalProfile, PortalBooking, PortalBookingDetail, PortalTimelineStep,
   PortalInvoice, PortalInvoiceDetail, PortalPayment, PortalInstallmentPlan,
   PortalDocument, PortalTicket, PortalTicketDetail, PortalNotification, PortalDashboard,
   TicketCreateInput,
 } from "../contracts/portal.contract";
+import type { PortalDocumentUploadInput } from "../contracts/document.contract";
 
 const num = (d: Prisma.Decimal | number | null | undefined): number => (d == null ? 0 : Number(d));
 const dOnly = (d: Date | null | undefined): string | null => (d ? d.toISOString().slice(0, 10) : null);
@@ -134,17 +136,66 @@ export async function listInstallmentPlans(auth: AuthCtx): Promise<PortalInstall
 // ── documents (own — direct or via own booking) ────────────────────────────────
 const docWhere = (customerId: string): Prisma.DocumentWhereInput => ({ deletedAt: null, OR: [{ customerId }, { booking: { customerId } }] });
 
+const toDocument = (d: { id: string; name: string; type: string; status: string; required: boolean; filePath: string | null; expiryAt: Date | null; createdAt: Date }): PortalDocument =>
+  ({ id: d.id, name: d.name, type: d.type, status: d.status, required: d.required, hasFile: !!d.filePath, expiryAt: dOnly(d.expiryAt), createdAt: iso(d.createdAt) });
+
 export async function listDocuments(auth: AuthCtx): Promise<PortalDocument[]> {
   const customerId = await requireCustomerId(auth);
   const rows = await prisma.document.findMany({ where: docWhere(customerId), orderBy: { createdAt: "desc" } });
-  return rows.map((d) => ({ id: d.id, name: d.name, type: d.type, status: d.status, required: d.required, expiryAt: dOnly(d.expiryAt), createdAt: iso(d.createdAt) }));
+  return rows.map(toDocument);
 }
 
 export async function getDocument(auth: AuthCtx, id: string): Promise<PortalDocument> {
   const customerId = await requireCustomerId(auth);
   const d = await prisma.document.findFirst({ where: { id, ...docWhere(customerId) } });
   if (!d) throw new HttpError(404, "NotFound", { detail: "Document not found." });
-  return { id: d.id, name: d.name, type: d.type, status: d.status, required: d.required, expiryAt: dOnly(d.expiryAt), createdAt: iso(d.createdAt) };
+  return toDocument(d);
+}
+
+/** Upload one of the customer's own documents. The owner is ALWAYS the
+ *  session's customer; a bookingId is honoured only if that booking belongs to
+ *  them (else 404 — same shape as a bad id). */
+export async function uploadDocument(
+  auth: AuthCtx,
+  file: Express.Multer.File,
+  input: PortalDocumentUploadInput,
+): Promise<PortalDocument> {
+  try {
+    const customerId = await requireCustomerId(auth);
+    if (input.bookingId) {
+      const b = await prisma.booking.findFirst({ where: { id: input.bookingId, customerId, deletedAt: null }, select: { id: true } });
+      if (!b) throw new HttpError(404, "NotFound", { detail: "Booking not found." });
+    }
+    const filePath = moveIntoStore(file.path, file.mimetype);
+    const d = await prisma.document.create({
+      data: {
+        ownerType: input.bookingId ? "BOOKING" : "CUSTOMER",
+        bookingId: input.bookingId ?? null,
+        customerId: input.bookingId ? null : customerId,
+        type: input.type,
+        name: input.name ?? file.originalname,
+        filePath,
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+        status: "UPLOADED",
+        expiryAt: input.expiryAt ?? null,
+        uploadedById: auth.userId,
+      },
+    });
+    return toDocument(d);
+  } catch (err) {
+    removeQuietly(file.path);
+    throw err;
+  }
+}
+
+/** Stream handle for one of the customer's OWN document files. Non-owned id →
+ *  404 (the ownership filter lives in the WHERE clause). */
+export async function getDocumentFile(auth: AuthCtx, id: string): Promise<{ absPath: string; mimeType: string; name: string }> {
+  const customerId = await requireCustomerId(auth);
+  const d = await prisma.document.findFirst({ where: { id, ...docWhere(customerId) }, select: { filePath: true, mimeType: true, name: true } });
+  if (!d || !d.filePath) throw new HttpError(404, "NotFound", { detail: "Document file not found." });
+  return { absPath: absoluteStorePath(d.filePath), mimeType: d.mimeType ?? "application/octet-stream", name: d.name };
 }
 
 // ── support tickets ─────────────────────────────────────────────────────────────
