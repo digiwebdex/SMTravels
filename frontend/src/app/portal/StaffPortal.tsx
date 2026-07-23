@@ -13,7 +13,11 @@ import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable } from "../lib/responsive";
 import { Loader2 } from "lucide-react";
 import { SampleBadge } from "./SampleBadge";
-import { useStaffMe, useStaffDashboard } from "../hooks/portals";
+import {
+  useStaffMe, useStaffDashboard, useStaffTasks, useStaffBookings, useStaffCustomers,
+  useStaffDocuments, useStaffAnnouncements, useSetTaskStatus, useCreateTask,
+  type StaffTask,
+} from "../hooks/portals";
 
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
@@ -41,45 +45,6 @@ const NAV: { id: StaffView; icon: React.ElementType; label: string; badge?: numb
 ];
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-const TASKS = [
-  { id: 1,  title: "Follow up with Rafiqul Islam re: Hajj package",  priority: "high",   due: "Today 12:00",   done: false, category: "Sales"    },
-  { id: 2,  title: "Prepare group visa documents for BK-0892",       priority: "high",   due: "Today 15:00",   done: false, category: "Visa"     },
-  { id: 3,  title: "Send itinerary to Malaysia tour group",          priority: "medium", due: "Today 17:00",   done: false, category: "Operations"},
-  { id: 4,  title: "Update hotel confirmation for Umrah group",      priority: "medium", due: "Today 18:00",   done: false, category: "Hotel"    },
-  { id: 5,  title: "Collect balance payment from Mr. Karim",         priority: "low",    due: "Tomorrow 10:00",done: false, category: "Finance"  },
-  { id: 6,  title: "Review and file supplier invoices",              priority: "low",    due: "Tomorrow 14:00",done: true,  category: "Finance"  },
-  { id: 7,  title: "Send pre-departure SMS to BK-0892 pilgrims",     priority: "medium", due: "Aug 1",         done: true,  category: "Comm"     },
-];
-
-const BOOKINGS = [
-  { id:"BK-0892", customer:"Md. Karim Ullah",   service:"Hajj Economy 2024",  status:"confirmed", departure:"Aug 5",  assignedTo:"Me",    amount:520000 },
-  { id:"BK-0891", customer:"Nasrin Begum",       service:"Umrah Standard",     status:"processing",departure:"Aug 15", assignedTo:"Me",    amount:185000 },
-  { id:"BK-0889", customer:"Abdul Karim",        service:"Malaysia Tour 5D/4N",status:"confirmed", departure:"Sep 2",  assignedTo:"Me",    amount:215000 },
-  { id:"BK-0882", customer:"Tahmina Khatun",     service:"Saudi Visa Only",    status:"completed", departure:"—",      assignedTo:"Me",    amount:8500   },
-];
-
-const CUSTOMERS_DATA = [
-  { id:"CU-0214", name:"Md. Karim Ullah",  phone:"+880 1711 XXXXXX", lastBooking:"BK-0892", status:"vip",    bookings:3 },
-  { id:"CU-0212", name:"Nasrin Begum",     phone:"+880 1912 XXXXXX", lastBooking:"BK-0891", status:"active", bookings:1 },
-  { id:"CU-0209", name:"Abdul Karim",      phone:"+880 1811 XXXXXX", lastBooking:"BK-0889", status:"active", bookings:2 },
-  { id:"CU-0201", name:"Tahmina Khatun",   phone:"+880 1611 XXXXXX", lastBooking:"BK-0882", status:"active", bookings:1 },
-];
-
-const ANNOUNCEMENTS = [
-  { id:1, title:"Ramadan Office Hours Update",                 body:"Office will operate 9am–3pm during Ramadan. All client meetings to be scheduled accordingly.",      date:"Jul 15", pinned:true,  from:"Management"  },
-  { id:2, title:"New Hajj Package Pricing for 2024 Season",    body:"Updated Hajj economy and premium packages are now live. Please refer to the updated price list.",   date:"Jul 10", pinned:true,  from:"Sales Head"  },
-  { id:3, title:"Mandatory Compliance Training — July 28",     body:"All staff must attend the compliance training session on July 28 at 2pm in the conference room.",   date:"Jul 8",  pinned:false, from:"HR"          },
-  { id:4, title:"System Maintenance — July 20 2–4am",         body:"The ERP system will be offline for scheduled maintenance. Please save all work before 1:55am.",     date:"Jul 7",  pinned:false, from:"IT"          },
-];
-
-const DOCS_DATA = [
-  { id:1, name:"Hajj Package SOP 2024",         type:"PDF",  size:"2.4 MB", date:"Jun 15", category:"Procedures" },
-  { id:2, name:"Visa Application Checklist",     type:"DOCX", size:"340 KB", date:"Jun 10", category:"Visa"       },
-  { id:3, name:"Client Communication Templates", type:"PDF",  size:"1.1 MB", date:"May 28", category:"Templates"  },
-  { id:4, name:"BDH Travel Policy 2024",         type:"PDF",  size:"890 KB", date:"Jan 5",  category:"Policy"     },
-  { id:5, name:"Hotel Rate Agreement — Makkah",  type:"PDF",  size:"560 KB", date:"Mar 20", category:"Contracts"  },
-];
-
 const NOTIFS_DATA = [
   { id:1, title:"New booking assigned to you",          body:"BK-0891 (Nasrin Begum — Umrah Standard) has been assigned to your queue.", time:"2h ago",  read:false, color:"#0E6BB8" },
   { id:2, title:"Task overdue: Collect balance payment", body:"Task #5 was due at 10:00am. Please action immediately.",                    time:"3h ago",  read:false, color:"#EF4444" },
@@ -96,17 +61,18 @@ const SUP_TICKETS = [
 const fmtBDT = (n: number) => "৳" + n.toLocaleString("en-BD");
 
 const PRIORITY_CFG: Record<string, { cls: string; dot: string; label: string }> = {
-  high:   { cls: "text-red-600 bg-red-50 border-red-200",        dot: "bg-red-500",    label: "High"   },
-  medium: { cls: "text-amber-600 bg-amber-50 border-amber-200",  dot: "bg-amber-400",  label: "Medium" },
-  low:    { cls: "text-slate-500 bg-slate-100 border-slate-200", dot: "bg-slate-400",  label: "Low"    },
+  HIGH:   { cls: "text-red-600 bg-red-50 border-red-200",        dot: "bg-red-500",    label: "High"   },
+  MEDIUM: { cls: "text-amber-600 bg-amber-50 border-amber-200",  dot: "bg-amber-400",  label: "Medium" },
+  LOW:    { cls: "text-slate-500 bg-slate-100 border-slate-200", dot: "bg-slate-400",  label: "Low"    },
 };
 
 const BK_STATUS: Record<string, { label: string; cls: string }> = {
-  confirmed:  { label: "Confirmed",  cls: "bg-blue-50 text-blue-700 border-blue-200"       },
-  processing: { label: "Processing", cls: "bg-amber-50 text-amber-700 border-amber-200"    },
-  completed:  { label: "Completed",  cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  cancelled:  { label: "Cancelled",  cls: "bg-red-50 text-red-600 border-red-200"          },
+  CONFIRMED:  { label: "Confirmed",  cls: "bg-blue-50 text-blue-700 border-blue-200"       },
+  PROCESSING: { label: "Processing", cls: "bg-amber-50 text-amber-700 border-amber-200"    },
+  COMPLETED:  { label: "Completed",  cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  CANCELLED:  { label: "Cancelled",  cls: "bg-red-50 text-red-600 border-red-200"          },
 };
+const bkCfg = (s: string) => BK_STATUS[s] ?? { label: s, cls: "bg-slate-100 text-slate-600 border-slate-200" };
 
 function Chip({ label, cls }: { label: string; cls: string }) {
   return <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border", cls)}>{label}</span>;
@@ -177,21 +143,32 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
 
 // ─── DAILY TASKS ─────────────────────────────────────────────────────────────
 function TasksView() {
-  const [tasks, setTasks] = useState(TASKS);
+  const q = useStaffTasks();
+  const tasks = q.data ?? [];
   const [filter, setFilter] = useState<"all"|"pending"|"done">("all");
   const [addModal, setAddModal] = useState(false);
+  const [nTitle, setNTitle] = useState("");
+  const [nPriority, setNPriority] = useState<"HIGH"|"MEDIUM"|"LOW">("MEDIUM");
+  const [nDueAt, setNDueAt] = useState("");
+  const [nCategory, setNCategory] = useState("Sales");
+  const setStatus = useSetTaskStatus();
+  const createTask = useCreateTask();
 
-  const toggle = (id: number) => setTasks(ts => ts.map(t => t.id === id ? { ...t, done: !t.done } : t));
-  const shown = tasks.filter(t => filter === "all" ? true : filter === "pending" ? !t.done : t.done);
+  const isDone = (t: StaffTask) => t.status === "DONE";
+  const toggle = (t: StaffTask) => setStatus.mutate({ id: t.id, status: isDone(t) ? "TODO" : "DONE" });
+  const shown = tasks.filter(t => filter === "all" ? true : filter === "pending" ? !isDone(t) : isDone(t));
+  const save = () => createTask.mutate(
+    { title: nTitle.trim(), priority: nPriority, category: nCategory, dueAt: nDueAt || undefined },
+    { onSuccess: () => { setAddModal(false); setNTitle(""); setNDueAt(""); } },
+  );
 
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Daily Tasks</h2>
           <p className="text-sm text-slate-400 mt-0.5">
-            {tasks.filter(t=>!t.done).length} pending · {tasks.filter(t=>t.done).length} completed
+            {tasks.filter(t=>!isDone(t)).length} pending · {tasks.filter(isDone).length} completed
           </p>
         </div>
         <button onClick={() => setAddModal(true)}
@@ -212,39 +189,42 @@ function TasksView() {
       </div>
 
       {/* Tasks by priority */}
-      {(["high","medium","low"] as const).map(priority => {
-        const group = shown.filter(t => t.priority === priority);
-        if (!group.length) return null;
-        const cfg = PRIORITY_CFG[priority];
-        return (
-          <div key={priority}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className={cn("w-2 h-2 rounded-full", cfg.dot)} />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{cfg.label} Priority</p>
-            </div>
-            <div className="space-y-2">
-              {group.map(t => (
-                <div key={t.id} className={cn("flex items-start gap-3 p-4 bg-white rounded-xl border transition-all",
-                  t.done ? "border-slate-100 opacity-60" : "border-slate-200 hover:border-[#0E6BB8]/20")}>
-                  <button onClick={() => toggle(t.id)}
-                    className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
-                      t.done ? "border-emerald-500 bg-emerald-500" : "border-slate-300 hover:border-[#0E6BB8]")}>
-                    {t.done && <Check size={11} className="text-white" />}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-semibold", t.done ? "line-through text-slate-400" : "text-slate-800")}>{t.title}</p>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="text-xs text-slate-400 flex items-center gap-1"><Clock size={10} />{t.due}</span>
-                      <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{t.category}</span>
+      <PLoad q={q}>
+        {shown.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No tasks.</p>}
+        {(["HIGH","MEDIUM","LOW"] as const).map(priority => {
+          const group = shown.filter(t => t.priority === priority);
+          if (!group.length) return null;
+          const cfg = PRIORITY_CFG[priority];
+          return (
+            <div key={priority}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={cn("w-2 h-2 rounded-full", cfg.dot)} />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{cfg.label} Priority</p>
+              </div>
+              <div className="space-y-2">
+                {group.map(t => (
+                  <div key={t.id} className={cn("flex items-start gap-3 p-4 bg-white rounded-xl border transition-all",
+                    isDone(t) ? "border-slate-100 opacity-60" : "border-slate-200 hover:border-[#0E6BB8]/20")}>
+                    <button onClick={() => toggle(t)}
+                      className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
+                        isDone(t) ? "border-emerald-500 bg-emerald-500" : "border-slate-300 hover:border-[#0E6BB8]")}>
+                      {isDone(t) && <Check size={11} className="text-white" />}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("text-sm font-semibold", isDone(t) ? "line-through text-slate-400" : "text-slate-800")}>{t.title}</p>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <span className="text-xs text-slate-400 flex items-center gap-1"><Clock size={10} />{iso2date(t.dueAt)}</span>
+                        {t.category && <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{t.category}</span>}
+                      </div>
                     </div>
+                    <Chip label={cfg.label} cls={cfg.cls} />
                   </div>
-                  <Chip label={cfg.label} cls={cfg.cls} />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </PLoad>
 
       {addModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -255,29 +235,29 @@ function TasksView() {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Task Description</label>
-              <input className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" placeholder="What needs to be done?" />
+              <input value={nTitle} onChange={e => setNTitle(e.target.value)} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" placeholder="What needs to be done?" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">Priority</label>
-                <select className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
-                  <option>High</option><option>Medium</option><option>Low</option>
+                <select value={nPriority} onChange={e => setNPriority(e.target.value as "HIGH"|"MEDIUM"|"LOW")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                  <option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">Due Date/Time</label>
-                <input type="datetime-local" className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none" />
+                <input type="datetime-local" value={nDueAt} onChange={e => setNDueAt(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Category</label>
-              <select className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
+              <select value={nCategory} onChange={e => setNCategory(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
                 {["Sales","Visa","Operations","Hotel","Finance","Comm","Admin"].map(c=><option key={c}>{c}</option>)}
               </select>
             </div>
-            <button onClick={() => setAddModal(false)}
-              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794]">
-              Save Task
+            <button onClick={save} disabled={createTask.isPending || nTitle.trim().length < 2}
+              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] disabled:opacity-50">
+              {createTask.isPending ? "Saving…" : "Save Task"}
             </button>
           </div>
         </div>
@@ -288,12 +268,14 @@ function TasksView() {
 
 // ─── BOOKINGS ────────────────────────────────────────────────────────────────
 function StaffBookings() {
+  const q = useStaffBookings();
+  const bookings = q.data ?? [];
   const [search, setSearch] = useState("");
-  const shown = BOOKINGS.filter(b => b.customer.toLowerCase().includes(search.toLowerCase()) || b.id.includes(search));
+  const s = search.toLowerCase();
+  const shown = bookings.filter(b => (b.customerName ?? "").toLowerCase().includes(s) || (b.bookingNo ?? "").toLowerCase().includes(s));
 
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Booking Management</h2>
         <div className="relative">
@@ -303,110 +285,115 @@ function StaffBookings() {
         </div>
       </div>
 
-      {/* Stat strip */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label:"Total",     val:BOOKINGS.length,                                color:"text-slate-800" },
-          { label:"Confirmed", val:BOOKINGS.filter(b=>b.status==="confirmed").length, color:"text-blue-600" },
-          { label:"Processing",val:BOOKINGS.filter(b=>b.status==="processing").length,color:"text-amber-600"},
-          { label:"Completed", val:BOOKINGS.filter(b=>b.status==="completed").length, color:"text-emerald-600"},
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-            <p className={cn("text-xl font-black", s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      <PLoad q={q}>
+        {/* Stat strip */}
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label:"Total",     val:bookings.length,                                   color:"text-slate-800" },
+            { label:"Confirmed", val:bookings.filter(b=>b.status==="CONFIRMED").length,  color:"text-blue-600" },
+            { label:"Processing",val:bookings.filter(b=>b.status==="PROCESSING").length, color:"text-amber-600"},
+            { label:"Completed", val:bookings.filter(b=>b.status==="COMPLETED").length,  color:"text-emerald-600"},
+          ].map(st => (
+            <div key={st.label} className="bg-white border border-slate-200 rounded-xl p-3 text-center">
+              <p className={cn("text-xl font-black", st.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{st.val}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{st.label}</p>
+            </div>
+          ))}
+        </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-        <table className="w-full min-w-[640px] md:min-w-0">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["Booking ID","Customer","Service","Departure","Amount","Status",""].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {shown.map(b => (
-              <tr key={b.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3.5 text-xs font-mono text-slate-500">{b.id}</td>
-                <td className="px-4 py-3.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
-                      {b.customer.split(" ").map(n=>n[0]).slice(0,2).join("")}
-                    </div>
-                    <span className="text-sm font-semibold text-slate-800">{b.customer}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3.5 text-sm text-slate-600">{b.service}</td>
-                <td className="px-4 py-3.5 text-sm text-slate-500">{b.departure}</td>
-                <td className="px-4 py-3.5 text-sm font-mono font-bold text-slate-800">{fmtBDT(b.amount)}</td>
-                <td className="px-4 py-3.5"><Chip label={BK_STATUS[b.status].label} cls={BK_STATUS[b.status].cls} /></td>
-                <td className="px-4 py-3.5">
-                  <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
-                </td>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[640px] md:min-w-0">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {["Booking ID","Customer","Service","Departure","Amount","Status",""].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {shown.length === 0 && (
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-400">No bookings.</td></tr>
+              )}
+              {shown.map(b => (
+                <tr key={b.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3.5 text-xs font-mono text-slate-500">{b.bookingNo ?? "—"}</td>
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-xs font-bold">
+                        {(b.customerName ?? "—").split(" ").map(n=>n[0]).slice(0,2).join("")}
+                      </div>
+                      <span className="text-sm font-semibold text-slate-800">{b.customerName ?? "—"}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 text-sm text-slate-600">{b.serviceType}</td>
+                  <td className="px-4 py-3.5 text-sm text-slate-500">{iso2date(b.departureDate)}</td>
+                  <td className="px-4 py-3.5 text-sm font-mono font-bold text-slate-800">{fmtBDT(b.baseAmount)}</td>
+                  <td className="px-4 py-3.5"><Chip label={bkCfg(b.status).label} cls={bkCfg(b.status).cls} /></td>
+                  <td className="px-4 py-3.5">
+                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </PLoad>
     </div>
   );
 }
 
 // ─── CUSTOMERS ───────────────────────────────────────────────────────────────
 function StaffCustomers() {
+  const q = useStaffCustomers();
+  const customers = q.data ?? [];
+  const [search, setSearch] = useState("");
+  const s = search.toLowerCase();
+  const shown = customers.filter(c => c.name.toLowerCase().includes(s) || c.phone.toLowerCase().includes(s));
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Customers</h2>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input placeholder="Search customers…" className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-52" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search customers…" className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-52" />
         </div>
       </div>
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-        <table className="w-full min-w-[640px] md:min-w-0">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["Customer","Contact","Last Booking","Bookings","Status",""].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {CUSTOMERS_DATA.map(c => (
-              <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold",
-                      c.status==="vip"?"bg-[#E8471F]/20 text-[#C43A15]":"bg-[#0E6BB8]/10 text-[#0E6BB8]")}>
-                      {c.name.split(" ").map(n=>n[0]).slice(0,2).join("")}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">{c.name}</p>
-                      <p className="text-xs text-slate-400 font-mono">{c.id}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3.5 text-sm text-slate-500">{c.phone}</td>
-                <td className="px-4 py-3.5 text-xs font-mono text-slate-500">{c.lastBooking}</td>
-                <td className="px-4 py-3.5 text-sm font-bold text-slate-700">{c.bookings}</td>
-                <td className="px-4 py-3.5">
-                  {c.status === "vip"
-                    ? <span className="flex items-center gap-1 text-xs text-[#C43A15] font-bold"><Star size={11} className="fill-[#E8471F]"/>VIP</span>
-                    : <span className="text-xs text-emerald-600 font-semibold">Active</span>}
-                </td>
-                <td className="px-4 py-3.5">
-                  <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
-                </td>
+      <PLoad q={q}>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[640px] md:min-w-0">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {["Customer","Contact","Since","Bookings",""].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {shown.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">No customers.</td></tr>
+              )}
+              {shown.map(c => (
+                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-[#0E6BB8]/10 text-[#0E6BB8]">
+                        {c.name.split(" ").map(n=>n[0]).slice(0,2).join("")}
+                      </div>
+                      <p className="text-sm font-semibold text-slate-800">{c.name}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 text-sm text-slate-500">{c.phone}</td>
+                  <td className="px-4 py-3.5 text-xs text-slate-500">{iso2date(c.createdAt)}</td>
+                  <td className="px-4 py-3.5 text-sm font-bold text-slate-700">{c.bookings}</td>
+                  <td className="px-4 py-3.5">
+                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </PLoad>
     </div>
   );
 }
@@ -483,12 +470,13 @@ function StaffReports() {
 
 // ─── DOCUMENTS ───────────────────────────────────────────────────────────────
 function StaffDocuments() {
+  const q = useStaffDocuments();
+  const docs = q.data ?? [];
   const [search, setSearch] = useState("");
-  const shown = DOCS_DATA.filter(d => d.name.toLowerCase().includes(search.toLowerCase()));
+  const shown = docs.filter(d => d.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">Documents</h2>
         <div className="relative">
@@ -498,82 +486,84 @@ function StaffDocuments() {
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="flex gap-2 flex-wrap">
-        {["All","Procedures","Visa","Templates","Policy","Contracts"].map(c => (
-          <button key={c} className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:border-[#0E6BB8]/30 hover:text-[#0E6BB8] transition-colors">
-            {c}
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-        <table className="w-full min-w-[640px] md:min-w-0">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["Document","Category","Size","Updated",""].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {shown.map(d => (
-              <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-9 bg-red-100 border border-red-200 rounded-lg flex items-center justify-center text-red-600 text-xs font-bold">{d.type}</div>
-                    <p className="text-sm font-semibold text-slate-800">{d.name}</p>
-                  </div>
-                </td>
-                <td className="px-4 py-3.5">
-                  <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">{d.category}</span>
-                </td>
-                <td className="px-4 py-3.5 text-xs text-slate-400 font-mono">{d.size}</td>
-                <td className="px-4 py-3.5 text-xs text-slate-400">{d.date}</td>
-                <td className="px-4 py-3.5">
-                  <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
-                    <Download size={12}/> Download
-                  </button>
-                </td>
+      <PLoad q={q}>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[640px] md:min-w-0">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {["Document","Type","Status","Updated",""].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {shown.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">No documents.</td></tr>
+              )}
+              {shown.map(d => (
+                <tr key={d.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-9 bg-red-100 border border-red-200 rounded-lg flex items-center justify-center text-red-600 text-xs font-bold"><FileText size={14}/></div>
+                      <p className="text-sm font-semibold text-slate-800">{d.name}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">{d.type}</span>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">{d.status}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-xs text-slate-400">{iso2date(d.createdAt)}</td>
+                  <td className="px-4 py-3.5">
+                    <button className="flex items-center gap-1 text-xs text-[#0E6BB8] font-semibold hover:underline">
+                      <Download size={12}/> Download
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </PLoad>
     </div>
   );
 }
 
 // ─── ANNOUNCEMENTS ───────────────────────────────────────────────────────────
 function StaffAnnouncements() {
-  const [expanded, setExpanded] = useState<number|null>(1);
+  const q = useStaffAnnouncements();
+  const announcements = q.data ?? [];
+  const [expanded, setExpanded] = useState<string|null>(null);
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Announcements</h2>
-      <div className="space-y-3">
-        {ANNOUNCEMENTS.map(a => (
-          <div key={a.id} className={cn("bg-white rounded-2xl border overflow-hidden",
-            a.pinned ? "border-[#E8471F]/40" : "border-slate-200")}>
-            <button className="w-full flex items-start gap-3 p-5 text-left" onClick={() => setExpanded(expanded===a.id?null:a.id)}>
-              {a.pinned && <Pin size={14} className="text-[#C43A15] flex-shrink-0 mt-0.5" />}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <p className="font-bold text-slate-800">{a.title}</p>
-                  {a.pinned && <span className="text-xs px-2 py-0.5 bg-[#E8471F]/15 text-[#C43A15] rounded-full font-bold border border-[#E8471F]/30">Pinned</span>}
+      <PLoad q={q}>
+        <div className="space-y-3">
+          {announcements.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No announcements.</p>}
+          {announcements.map(a => (
+            <div key={a.id} className={cn("bg-white rounded-2xl border overflow-hidden",
+              a.pinned ? "border-[#E8471F]/40" : "border-slate-200")}>
+              <button className="w-full flex items-start gap-3 p-5 text-left" onClick={() => setExpanded(expanded===a.id?null:a.id)}>
+                {a.pinned && <Pin size={14} className="text-[#C43A15] flex-shrink-0 mt-0.5" />}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <p className="font-bold text-slate-800">{a.title}</p>
+                    {a.pinned && <span className="text-xs px-2 py-0.5 bg-[#E8471F]/15 text-[#C43A15] rounded-full font-bold border border-[#E8471F]/30">Pinned</span>}
+                  </div>
+                  <p className="text-xs text-slate-400">{iso2date(a.createdAt)}</p>
                 </div>
-                <p className="text-xs text-slate-400">From: {a.from} · {a.date}</p>
-              </div>
-              {expanded===a.id ? <ChevronUp size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronDown size={16} className="text-slate-400 flex-shrink-0" />}
-            </button>
-            {expanded===a.id && (
-              <div className="px-5 pb-5 border-t border-slate-100">
-                <p className="text-sm text-slate-600 mt-3 leading-relaxed">{a.body}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+                {expanded===a.id ? <ChevronUp size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronDown size={16} className="text-slate-400 flex-shrink-0" />}
+              </button>
+              {expanded===a.id && (
+                <div className="px-5 pb-5 border-t border-slate-100">
+                  <p className="text-sm text-slate-600 mt-3 leading-relaxed">{a.body}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </PLoad>
     </div>
   );
 }

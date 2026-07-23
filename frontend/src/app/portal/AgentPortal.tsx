@@ -14,6 +14,7 @@ import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import {
   useAgentMe, useAgentDashboard, useAgentWallet, useAgentTeam, useAgentLeads, useAgentCommissions,
+  useAgentBookings, useCreateLead,
 } from "../hooks/portals";
 import { SampleBadge } from "./SampleBadge";
 
@@ -54,27 +55,11 @@ const BOTTOM_NAV = [
 ];
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-const LEADS = [
-  { id:"LD-0481", name:"Rafiqul Islam",     phone:"+880 1711 XXXXXX", service:"Hajj Economy",    interest:"High",   date:"Jul 18", status:"new",        assigned:"Self" },
-  { id:"LD-0480", name:"Nasrin Begum",      phone:"+880 1912 XXXXXX", service:"Umrah Standard",  interest:"Medium", date:"Jul 17", status:"contacted",   assigned:"Self" },
-  { id:"LD-0479", name:"Abdul Karim",       phone:"+880 1811 XXXXXX", service:"Malaysia Tour",   interest:"High",   date:"Jul 16", status:"follow-up",   assigned:"Amir" },
-  { id:"LD-0478", name:"Tahmina Khatun",    phone:"+880 1611 XXXXXX", service:"Saudi Visa",      interest:"Low",    date:"Jul 15", status:"negotiating", assigned:"Self" },
-  { id:"LD-0477", name:"Mizanur Rahman",    phone:"+880 1711 XXXXXX", service:"Hajj Premium",   interest:"High",   date:"Jul 14", status:"converted",   assigned:"Self" },
-  { id:"LD-0476", name:"Farzana Akter",     phone:"+880 1511 XXXXXX", service:"Dubai Tour",      interest:"Medium", date:"Jul 12", status:"lost",        assigned:"Self" },
-];
-
 const CUSTOMERS = [
   { id:"CU-0214", name:"Mizanur Rahman",  phone:"+880 1711 XXXXXX", bookings:2, totalVal:820000, lastBooking:"Jul 2024",  status:"vip"    },
   { id:"CU-0201", name:"Shahana Parvin",  phone:"+880 1811 XXXXXX", bookings:1, totalVal:215000, lastBooking:"May 2024",  status:"active" },
   { id:"CU-0189", name:"Kamal Hossain",   phone:"+880 1911 XXXXXX", bookings:3, totalVal:980000, lastBooking:"Mar 2024",  status:"vip"    },
   { id:"CU-0177", name:"Rokeyea Sultana", phone:"+880 1611 XXXXXX", bookings:1, totalVal:135000, lastBooking:"Jan 2024",  status:"active" },
-];
-
-const BOOKINGS = [
-  { id:"BK-0892", customer:"Mizanur Rahman",  service:"Hajj Economy 2024",   amount:520000, commission:26000, status:"confirmed", date:"Jun 12" },
-  { id:"BK-0881", customer:"Shahana Parvin",  service:"Malaysia Tour 5D/4N", amount:215000, commission:10750, status:"completed", date:"May 2"  },
-  { id:"BK-0876", customer:"Kamal Hossain",   service:"Umrah Standard",      amount:185000, commission:9250,  status:"confirmed", date:"Apr 18" },
-  { id:"BK-0865", customer:"Rokeyea Sultana", service:"Saudi Visa",          amount:8500,   commission:850,   status:"completed", date:"Mar 5"  },
 ];
 
 const COMMISSION_ROWS = [
@@ -111,12 +96,12 @@ const fmtBDT = (n: number) =>
 const fmtFull = (n: number) => "৳ " + n.toLocaleString("en-BD");
 
 const LEAD_STATUS: Record<string,{ label:string; cls:string }> = {
-  new:         { label:"New",         cls:"bg-blue-50 text-blue-600 border-blue-200"      },
-  contacted:   { label:"Contacted",   cls:"bg-purple-50 text-purple-600 border-purple-200"},
-  "follow-up": { label:"Follow Up",   cls:"bg-amber-50 text-amber-600 border-amber-200"   },
-  negotiating: { label:"Negotiating", cls:"bg-orange-50 text-orange-600 border-orange-200"},
-  converted:   { label:"Converted",   cls:"bg-emerald-50 text-emerald-700 border-emerald-200" },
-  lost:        { label:"Lost",        cls:"bg-red-50 text-red-500 border-red-200"         },
+  NEW:         { label:"New",         cls:"bg-blue-50 text-blue-600 border-blue-200"      },
+  QUALIFIED:   { label:"Qualified",   cls:"bg-purple-50 text-purple-600 border-purple-200"},
+  PROPOSAL:    { label:"Proposal",    cls:"bg-amber-50 text-amber-600 border-amber-200"   },
+  NEGOTIATION: { label:"Negotiation", cls:"bg-orange-50 text-orange-600 border-orange-200"},
+  WON:         { label:"Won",         cls:"bg-emerald-50 text-emerald-700 border-emerald-200" },
+  LOST:        { label:"Lost",        cls:"bg-red-50 text-red-500 border-red-200"         },
 };
 
 const BOOKING_STATUS: Record<string,{ label:string; cls:string }> = {
@@ -127,10 +112,17 @@ const BOOKING_STATUS: Record<string,{ label:string; cls:string }> = {
 };
 
 const INTEREST_CLS: Record<string,string> = {
-  High:   "text-emerald-600 bg-emerald-50",
-  Medium: "text-amber-600 bg-amber-50",
-  Low:    "text-red-500 bg-red-50",
+  HIGH:   "text-emerald-600 bg-emerald-50",
+  MEDIUM: "text-amber-600 bg-amber-50",
+  LOW:    "text-red-500 bg-red-50",
 };
+
+const SERVICE_TYPES = ["HAJJ","UMRAH","VISA","AIR_TICKET","MANPOWER","TOUR","HOTEL"] as const;
+type ServiceType = typeof SERVICE_TYPES[number];
+const SERVICE_LABEL: Record<ServiceType,string> = {
+  HAJJ:"Hajj", UMRAH:"Umrah", VISA:"Visa", AIR_TICKET:"Air Ticket", MANPOWER:"Manpower", TOUR:"Tour", HOTEL:"Hotel",
+};
+const serviceLabel = (s: string | null) => (s ? (SERVICE_LABEL[s as ServiceType] ?? s) : "—");
 
 function Chip({ label, cls }: { label:string; cls:string }) {
   return (
@@ -243,18 +235,33 @@ function AgentDashboard({ onGo }: { onGo:(v:AgentView)=>void }) {
 }
 
 // ─── LEAD MANAGEMENT ─────────────────────────────────────────────────────────
+const EMPTY_LEAD_FORM = { name:"", phone:"", email:"", serviceInterest:"HAJJ" as ServiceType, note:"" };
+
 function LeadsView() {
+  const q = useAgentLeads();
+  const leads = q.data ?? [];
+  const createLead = useCreateLead();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [addModal, setAddModal] = useState(false);
-  const filtered = LEADS.filter(l =>
-    (filter==="all" || l.status===filter) &&
+  const [form, setForm] = useState(EMPTY_LEAD_FORM);
+  const filtered = leads.filter(l =>
+    (filter==="all" || l.stage===filter) &&
     l.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const submitLead = () => {
+    createLead.mutate({
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      ...(form.email.trim() ? { email: form.email.trim() } : {}),
+      serviceInterest: form.serviceInterest,
+      ...(form.note.trim() ? { note: form.note.trim() } : {}),
+    }, { onSuccess: () => { setAddModal(false); setForm(EMPTY_LEAD_FORM); } });
+  };
+
   return (
-    <div className="space-y-4">
-      <SampleBadge />
+    <div className="space-y-4" data-portal="leads">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Lead Management</h2>
@@ -266,13 +273,14 @@ function LeadsView() {
         </button>
       </div>
 
+      <PLoad q={q}>
       {/* Pipeline summary */}
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
         {Object.entries(LEAD_STATUS).map(([k,v])=>(
           <button key={k} onClick={()=>setFilter(k===filter?"all":k)}
             className={cn("p-2.5 rounded-xl border text-center transition-all",
               filter===k?"border-[#0E6BB8] bg-[#0E6BB8]/5":"border-slate-200 bg-white hover:border-[#0E6BB8]/30")}>
-            <p className="text-lg font-black text-slate-800">{LEADS.filter(l=>l.status===k).length}</p>
+            <p className="text-lg font-black text-slate-800">{leads.filter(l=>l.stage===k).length}</p>
             <p className="text-xs text-slate-400 mt-0.5 leading-tight">{v.label}</p>
           </button>
         ))}
@@ -288,7 +296,10 @@ function LeadsView() {
 
       {/* Leads list */}
       <div className="space-y-3">
-        {filtered.map(l=>(
+        {filtered.length === 0 && <p className="text-sm text-slate-400 text-center py-6">No leads yet.</p>}
+        {filtered.map(l=>{
+          const st = LEAD_STATUS[l.stage] ?? { label:l.stage, cls:"bg-slate-100 text-slate-500 border-slate-200" };
+          return (
           <div key={l.id} className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/10 flex items-center justify-center text-[#0E6BB8] text-sm font-bold flex-shrink-0">
@@ -297,30 +308,31 @@ function LeadsView() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="font-bold text-slate-800">{l.name}</p>
-                  <Chip label={LEAD_STATUS[l.status].label} cls={LEAD_STATUS[l.status].cls}/>
+                  <Chip label={st.label} cls={st.cls}/>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">{l.phone}</p>
                 <div className="flex items-center gap-3 mt-2 flex-wrap">
-                  <span className="text-xs text-slate-500 flex items-center gap-1"><Package size={11}/>{l.service}</span>
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",INTEREST_CLS[l.interest])}>{l.interest} Interest</span>
-                  <span className="text-xs text-slate-400">{l.date}</span>
+                  <span className="text-xs text-slate-500 flex items-center gap-1"><Package size={11}/>{serviceLabel(l.serviceInterest)}</span>
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize",INTEREST_CLS[l.interest])}>{l.interest.toLowerCase()} Interest</span>
+                  <span className="text-xs text-slate-400">{iso2date(l.createdAt)}</span>
                 </div>
               </div>
             </div>
             <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
+              <a href={`tel:${l.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
                 <Phone size={12}/> Call
-              </button>
+              </a>
               <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
                 <Mail size={12}/> Email
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+              <button disabled title="Managed by staff" className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg opacity-50 cursor-not-allowed">
                 <Edit2 size={12}/> Update
               </button>
             </div>
           </div>
-        ))}
+        );})}
       </div>
+      </PLoad>
 
       {/* Add Lead modal */}
       {addModal && (
@@ -330,27 +342,28 @@ function LeadsView() {
               <h3 className="font-bold text-slate-800 text-lg">Add New Lead</h3>
               <button onClick={()=>setAddModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18}/></button>
             </div>
-            {[["Full Name","text"],["Phone Number","tel"],["Email","email"]].map(([l,t])=>(
+            {([["Full Name","text","name"],["Phone Number","tel","phone"],["Email","email","email"]] as const).map(([l,t,k])=>(
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
-                <input type={t} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
+                <input type={t} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20"/>
               </div>
             ))}
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Service Interest</label>
-              <select className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
-                {["Hajj Economy","Hajj Premium","Umrah Standard","Malaysia Tour","Dubai Tour","Saudi Visa","Air Ticket"].map(s=>(
-                  <option key={s}>{s}</option>
+              <select value={form.serviceInterest} onChange={e=>setForm(f=>({...f,serviceInterest:e.target.value as ServiceType}))} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                {SERVICE_TYPES.map(s=>(
+                  <option key={s} value={s}>{SERVICE_LABEL[s]}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Notes</label>
-              <textarea rows={2} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none"/>
+              <textarea rows={2} value={form.note} onChange={e=>setForm(f=>({...f,note:e.target.value}))} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none"/>
             </div>
-            <button onClick={()=>setAddModal(false)}
-              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794]">
-              Save Lead
+            <button onClick={submitLead}
+              disabled={createLead.isPending || form.name.trim().length < 2 || form.phone.trim().length < 3}
+              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794] disabled:opacity-50 disabled:cursor-not-allowed">
+              {createLead.isPending ? "Saving…" : "Save Lead"}
             </button>
           </div>
         </div>
@@ -416,16 +429,22 @@ function CustomersView() {
 
 // ─── BOOKINGS ─────────────────────────────────────────────────────────────────
 function AgentBookings() {
+  const q = useAgentBookings();
+  const commQ = useAgentCommissions();
+  const bookings = q.data ?? [];
+  const commRows = commQ.data ?? [];
+  const commEarned = commRows.filter(r=>r.status==="PAID").reduce((s,r)=>s+r.amount,0);
+  const commPending = commRows.filter(r=>r.status!=="PAID").reduce((s,r)=>s+r.amount,0);
   return (
-    <div className="space-y-4">
-      <SampleBadge />
+    <div className="space-y-4" data-portal="bookings">
       <h2 className="text-xl font-bold text-slate-800">My Bookings</h2>
+      <PLoad q={q}>
       {/* Commission summary bar */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Total Bookings",    val:"4",       color:"text-[#0E6BB8]" },
-          { label:"Commission Earned", val:"৳46,850", color:"text-emerald-600" },
-          { label:"Commission Pending",val:"৳26,000", color:"text-amber-600"  },
+          { label:"Total Bookings",    val:String(bookings.length), color:"text-[#0E6BB8]" },
+          { label:"Commission Earned", val:fmtBDT2(commEarned),     color:"text-emerald-600" },
+          { label:"Commission Pending",val:fmtBDT2(commPending),    color:"text-amber-600"  },
         ].map(s=>(
           <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
             <p className={cn("text-base font-black",s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
@@ -433,33 +452,32 @@ function AgentBookings() {
           </div>
         ))}
       </div>
-      {BOOKINGS.map(b=>(
+      {bookings.length === 0 && <p className="text-sm text-slate-400 text-center py-6">No bookings yet.</p>}
+      {bookings.map(b=>{
+        const st = BOOKING_STATUS[b.status.toLowerCase()] ?? { label:b.status, cls:"bg-slate-100 text-slate-500 border-slate-200" };
+        return (
         <div key={b.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-slate-400 font-mono mb-0.5">{b.id}</p>
-                <p className="font-bold text-slate-800">{b.service}</p>
-                <p className="text-xs text-slate-500 mt-0.5">Customer: {b.customer} · {b.date}</p>
+                <p className="text-xs text-slate-400 font-mono mb-0.5">{b.bookingNo || "—"}</p>
+                <p className="font-bold text-slate-800">{serviceLabel(b.serviceType)}</p>
+                <p className="text-xs text-slate-500 mt-0.5">Customer: {b.customerName || "—"} · {iso2date(b.createdAt)}</p>
               </div>
-              <Chip label={BOOKING_STATUS[b.status].label} cls={BOOKING_STATUS[b.status].cls}/>
+              <Chip label={st.label} cls={st.cls}/>
             </div>
           </div>
           <div className="px-5 py-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400">Booking Value</p>
-                <p className="font-bold text-slate-800 text-base" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtFull(b.amount)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-slate-400">Your Commission</p>
-                <p className="font-black text-emerald-600 text-xl" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtFull(b.commission)}</p>
-                <p className="text-xs text-emerald-500">5% rate</p>
+                <p className="font-bold text-slate-800 text-base" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtFull(b.baseAmount)}</p>
               </div>
             </div>
           </div>
         </div>
-      ))}
+      );})}
+      </PLoad>
     </div>
   );
 }

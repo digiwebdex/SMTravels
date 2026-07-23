@@ -4,7 +4,7 @@ import {
   BookOpen, BarChart3, MessageSquare, LifeBuoy, User,
   LogOut, ChevronRight, ChevronDown, ChevronUp, Search,
   Filter, Download, Eye, Check, X, Clock, AlertCircle,
-  CheckCircle, Plus, Send, Paperclip, Bell, Copy, Edit2,
+  CheckCircle, Plus, Send, Paperclip, Bell, Copy,
   ArrowDownLeft, ArrowUpRight, TrendingUp, TrendingDown,
   Calendar, MapPin, Phone, Mail, Globe, Building2, Star,
   MoreHorizontal, Layers, Shield, Info, RefreshCw,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
-import { useSupplierMe, useSupplierDashboard, useSupplierInvoices, useSupplierPayables, useSupplierPayments } from "../hooks/portals";
+import { useSupplierMe, useSupplierDashboard, useSupplierInvoices, useSupplierPayables, useSupplierPayments, useSupplierRequests, useSupplierServices, useSetRequestStatus } from "../hooks/portals";
 import { SampleBadge } from "./SampleBadge";
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
@@ -32,7 +32,7 @@ type SupView =
 // ─── Nav ─────────────────────────────────────────────────────────────────────
 const NAV: { id: SupView; icon: React.ElementType; label: string; badge?: number }[] = [
   { id: "dashboard",  icon: LayoutDashboard, label: "Dashboard"          },
-  { id: "requests",   icon: Inbox,           label: "Booking Requests", badge: 5 },
+  { id: "requests",   icon: Inbox,           label: "Booking Requests"   },
   { id: "services",   icon: Package,         label: "My Services"        },
   { id: "invoices",   icon: FileText,        label: "Invoices"           },
   { id: "payments",   icon: CreditCard,      label: "Payments"           },
@@ -52,64 +52,6 @@ const BOTTOM_NAV: { id: SupView; icon: React.ElementType; label: string }[] = [
 ];
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-const REQUESTS = [
-  {
-    id: "REQ-2024-0841", bdh: "BK-0892", service: "Hotel Accommodation",
-    client: "Hajj Group — 42 Pax", dates: "Aug 5 – Sep 12, 2024",
-    property: "Dar Al-Tawhid, Makkah", rooms: 21, nights: 38,
-    amount: 2940000, status: "pending", received: "Jul 15",
-    deadline: "Jul 22", notes: "Requires adjacent rooms on same floor.",
-  },
-  {
-    id: "REQ-2024-0830", bdh: "BK-0881", service: "Hotel Accommodation",
-    client: "Malaysia Tour — 3 Pax", dates: "May 10–14, 2024",
-    property: "Marriott KL", rooms: 2, nights: 4,
-    amount: 64000, status: "confirmed", received: "Apr 20",
-    deadline: "Apr 27", notes: "",
-  },
-  {
-    id: "REQ-2024-0818", bdh: "BK-0876", service: "Umrah Hotel",
-    client: "Umrah Group — 12 Pax", dates: "Jun 2–9, 2024",
-    property: "Anwar Madinah", rooms: 6, nights: 7,
-    amount: 420000, status: "confirmed", received: "May 12",
-    deadline: "May 19", notes: "Hafiz meal plan required.",
-  },
-  {
-    id: "REQ-2024-0801", bdh: "BK-0865", service: "Visa Processing",
-    client: "Individual — 1 Pax", dates: "—",
-    property: "Saudi e-Visa", rooms: 0, nights: 0,
-    amount: 6500, status: "completed", received: "Mar 1",
-    deadline: "Mar 8", notes: "",
-  },
-  {
-    id: "REQ-2024-0799", bdh: "BK-0861", service: "Hotel Accommodation",
-    client: "Dubai Tour — 5 Pax", dates: "Feb 20–25, 2024",
-    property: "Rove City Centre, Dubai", rooms: 3, nights: 5,
-    amount: 135000, status: "cancelled", received: "Feb 1",
-    deadline: "Feb 8", notes: "Cancelled by client.",
-  },
-];
-
-const SERVICES_LIST = [
-  { id: "SVC-01", name: "Hotel Accommodation — Makkah",  category: "Hotel",   price: "From ৳3,500/night/room", active: true,  bookings: 38, rating: 4.9 },
-  { id: "SVC-02", name: "Hotel Accommodation — Madinah", category: "Hotel",   price: "From ৳2,800/night/room", active: true,  bookings: 22, rating: 4.7 },
-  { id: "SVC-03", name: "Saudi Visa Processing",         category: "Visa",    price: "৳6,500 / pax",           active: true,  bookings: 61, rating: 4.8 },
-  { id: "SVC-04", name: "Malaysia Hotel Package",        category: "Hotel",   price: "From ৳1,200/night/room", active: false, bookings: 14, rating: 4.5 },
-];
-
-const INVOICES = [
-  { id: "INV-SUP-0241", req: "REQ-2024-0830", desc: "Marriott KL · 2 Rooms × 4 Nights",   amount: 64000,   issued: "May 15",  due: "May 30",  status: "paid"    },
-  { id: "INV-SUP-0238", req: "REQ-2024-0818", desc: "Anwar Madinah · 6 Rooms × 7 Nights", amount: 420000,  issued: "Jun 10",  due: "Jun 25",  status: "paid"    },
-  { id: "INV-SUP-0235", req: "REQ-2024-0841", desc: "Dar Al-Tawhid · 21 Rooms × 38 Nights",amount:2940000, issued: "Jul 16",  due: "Aug 1",   status: "pending" },
-  { id: "INV-SUP-0229", req: "REQ-2024-0801", desc: "Saudi e-Visa Processing — 1 Pax",     amount: 6500,   issued: "Mar 10",  due: "Mar 25",  status: "paid"    },
-];
-
-const PAYMENTS = [
-  { id: "PAY-1044", inv: "INV-SUP-0238", desc: "Anwar Madinah settlement", amount: 420000, date: "Jun 27",  method: "Bank Transfer", ref: "DBBL-TXN-XXXXX", status: "completed" },
-  { id: "PAY-1041", inv: "INV-SUP-0230", desc: "Marriott KL settlement",   amount: 64000,  date: "Jun 1",   method: "Bank Transfer", ref: "DBBL-TXN-XXXXX", status: "completed" },
-  { id: "PAY-1038", inv: "INV-SUP-0229", desc: "Saudi e-Visa fee",         amount: 6500,   date: "Mar 26",  method: "bKash",         ref: "BK-XXXXXD",      status: "completed" },
-];
-
 const MESSAGES = [
   {
     id: "MSG-001", from: "BDH Procurement", subject: "Room allocation — REQ-2024-0841",
@@ -264,28 +206,77 @@ function SupDashboard({ onGo }: { onGo: (v: SupView) => void }) {
 
 // ─── BOOKING REQUESTS ─────────────────────────────────────────────────────────
 function RequestsView() {
+  const q = useSupplierRequests();
+  const rows = q.data ?? [];
+  const mut = useSetRequestStatus();
   const [filter, setFilter] = useState("all");
   const [detail, setDetail] = useState<string | null>(null);
-  const [confirmModal, setConfirmModal] = useState<{ id: string; action: "accept" | "reject" } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ id: string; requestNo: string; action: "accept" | "reject" } | null>(null);
+  const [reason, setReason] = useState("");
 
-  const shown = REQUESTS.filter(r => filter === "all" || r.status === filter);
+  const shown = rows.filter(r => filter === "all" || r.status.toLowerCase() === filter);
   const counts: Record<string, number> = {};
-  REQUESTS.forEach(r => { counts[r.status] = (counts[r.status] ?? 0) + 1; });
+  rows.forEach(r => { const k = r.status.toLowerCase(); counts[k] = (counts[k] ?? 0) + 1; });
 
-  const detailReq = REQUESTS.find(r => r.id === detail);
+  const detailReq = rows.find(r => r.id === detail);
+
+  const closeModal = () => { setConfirmModal(null); setReason(""); };
+  const submit = () => {
+    if (!confirmModal || mut.isPending) return;
+    mut.mutate({ id: confirmModal.id, action: confirmModal.action, reason: confirmModal.action === "reject" && reason.trim() ? reason.trim() : undefined });
+    closeModal();
+    setDetail(null);
+  };
+
+  const modal = confirmModal && (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mx-auto",
+          confirmModal.action === "accept" ? "bg-emerald-100" : "bg-red-100")}>
+          {confirmModal.action === "accept"
+            ? <Check size={28} className="text-emerald-600" />
+            : <X size={28} className="text-red-500" />}
+        </div>
+        <div className="text-center">
+          <h3 className="font-bold text-slate-800 text-lg">
+            {confirmModal.action === "accept" ? "Accept Request?" : "Decline Request?"}
+          </h3>
+          <p className="text-sm text-slate-500 mt-1">{confirmModal.requestNo}</p>
+        </div>
+        {confirmModal.action === "reject" && (
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Reason for declining</label>
+            <textarea rows={3} placeholder="e.g., No availability for requested dates…"
+              value={reason} onChange={e => setReason(e.target.value)}
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none" />
+          </div>
+        )}
+        <div className="flex gap-3">
+          <button onClick={closeModal}
+            className="flex-1 py-3 border border-slate-200 rounded-2xl text-slate-600 text-sm font-medium hover:bg-slate-50">
+            Cancel
+          </button>
+          <button onClick={submit} disabled={mut.isPending}
+            className={cn("flex-1 py-3 rounded-2xl text-white font-bold text-sm disabled:opacity-60",
+              confirmModal.action === "accept" ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-red-500 hover:bg-red-600")}>
+            {confirmModal.action === "accept" ? "Confirm" : "Decline"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   if (detailReq) return (
     <div className="space-y-5">
-      <SampleBadge />
       <button onClick={() => setDetail(null)} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
         <ChevronRight size={14} className="rotate-180" /> Back to requests
       </button>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-slate-400 font-mono">{detailReq.id}</p>
-          <h2 className="text-xl font-bold text-slate-800 mt-0.5">{detailReq.service}</h2>
+          <p className="text-xs text-slate-400 font-mono">{detailReq.requestNo}</p>
+          <h2 className="text-xl font-bold text-slate-800 mt-0.5">{detailReq.serviceLabel ?? "Booking Request"}</h2>
         </div>
-        <SChip status={detailReq.status} map={REQ_STATUS as any} />
+        <SChip status={detailReq.status.toLowerCase()} map={REQ_STATUS as any} />
       </div>
 
       {/* Detail grid */}
@@ -293,12 +284,10 @@ function RequestsView() {
         <p className="font-semibold text-slate-700 text-sm">Request Details</p>
         <div className="grid grid-cols-2 gap-4">
           {[
-            { label: "BDH Booking Ref", val: detailReq.bdh           },
-            { label: "Client Group",    val: detailReq.client         },
-            { label: "Property",        val: detailReq.property       },
-            { label: "Dates",           val: detailReq.dates          },
-            { label: "Rooms / Pax",     val: detailReq.rooms > 0 ? `${detailReq.rooms} rooms` : "1 pax" },
-            { label: "Nights",          val: detailReq.nights > 0 ? `${detailReq.nights} nights` : "—"  },
+            { label: "Request No.", val: detailReq.requestNo             },
+            { label: "Client",      val: detailReq.clientLabel ?? "—"    },
+            { label: "Service",     val: detailReq.serviceLabel ?? "—"   },
+            { label: "Received",    val: iso2date(detailReq.createdAt)   },
           ].map(f => (
             <div key={f.label}>
               <p className="text-xs text-slate-400 mb-0.5">{f.label}</p>
@@ -306,12 +295,6 @@ function RequestsView() {
             </div>
           ))}
         </div>
-        {detailReq.notes && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-            <p className="text-xs text-amber-700 font-semibold mb-1">Special Notes</p>
-            <p className="text-sm text-amber-800">{detailReq.notes}</p>
-          </div>
-        )}
       </div>
 
       {/* Amount */}
@@ -323,61 +306,25 @@ function RequestsView() {
           </div>
           <div className="text-right">
             <p className="text-xs text-slate-400">Response Deadline</p>
-            <p className="text-sm font-bold text-red-500">{detailReq.deadline}</p>
+            <p className="text-sm font-bold text-red-500">{iso2date(detailReq.deadline)}</p>
           </div>
         </div>
       </div>
 
-      {detailReq.status === "pending" && (
+      {detailReq.status === "PENDING" && (
         <div className="flex gap-3">
-          <button onClick={() => setConfirmModal({ id: detailReq.id, action: "reject" })}
+          <button onClick={() => setConfirmModal({ id: detailReq.id, requestNo: detailReq.requestNo, action: "reject" })}
             className="flex-1 py-3.5 border-2 border-red-200 text-red-500 font-bold text-sm rounded-2xl hover:bg-red-50 flex items-center justify-center gap-2">
             <X size={16} /> Decline
           </button>
-          <button onClick={() => setConfirmModal({ id: detailReq.id, action: "accept" })}
+          <button onClick={() => setConfirmModal({ id: detailReq.id, requestNo: detailReq.requestNo, action: "accept" })}
             className="flex-1 py-3.5 bg-[#0E6BB8] text-white font-bold text-sm rounded-2xl hover:bg-[#0B5794] flex items-center justify-center gap-2">
             <Check size={16} /> Accept & Confirm
           </button>
         </div>
       )}
 
-      {/* Confirm modal */}
-      {confirmModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mx-auto",
-              confirmModal.action === "accept" ? "bg-emerald-100" : "bg-red-100")}>
-              {confirmModal.action === "accept"
-                ? <Check size={28} className="text-emerald-600" />
-                : <X size={28} className="text-red-500" />}
-            </div>
-            <div className="text-center">
-              <h3 className="font-bold text-slate-800 text-lg">
-                {confirmModal.action === "accept" ? "Accept Request?" : "Decline Request?"}
-              </h3>
-              <p className="text-sm text-slate-500 mt-1">{confirmModal.id}</p>
-            </div>
-            {confirmModal.action === "reject" && (
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Reason for declining</label>
-                <textarea rows={3} placeholder="e.g., No availability for requested dates…"
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none" />
-              </div>
-            )}
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmModal(null)}
-                className="flex-1 py-3 border border-slate-200 rounded-2xl text-slate-600 text-sm font-medium hover:bg-slate-50">
-                Cancel
-              </button>
-              <button onClick={() => { setConfirmModal(null); setDetail(null); }}
-                className={cn("flex-1 py-3 rounded-2xl text-white font-bold text-sm",
-                  confirmModal.action === "accept" ? "bg-[#0E6BB8] hover:bg-[#0B5794]" : "bg-red-500 hover:bg-red-600")}>
-                {confirmModal.action === "accept" ? "Confirm" : "Decline"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {modal}
     </div>
   );
 
@@ -403,149 +350,112 @@ function RequestsView() {
       </div>
 
       {/* Request cards */}
-      <div className="space-y-3">
-        {shown.map(r => (
-          <div key={r.id} className={cn("bg-white rounded-2xl border overflow-hidden transition-all",
-            r.status === "pending" ? "border-amber-300 shadow-sm shadow-amber-100" : "border-slate-200")}>
-            {r.status === "pending" && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200">
-                <Clock size={12} className="text-amber-500" />
-                <p className="text-xs font-semibold text-amber-700">Response needed by {r.deadline}</p>
-              </div>
-            )}
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1 min-w-0 pr-3">
-                  <p className="text-xs text-slate-400 font-mono mb-0.5">{r.id} · {r.bdh}</p>
-                  <p className="font-bold text-slate-800">{r.client}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{r.service} · {r.property}</p>
+      <PLoad q={q}>
+        <div className="space-y-3">
+          {shown.length === 0 && <p className="text-sm text-slate-400 text-center py-4">No requests.</p>}
+          {shown.map(r => (
+            <div key={r.id} className={cn("bg-white rounded-2xl border overflow-hidden transition-all",
+              r.status === "PENDING" ? "border-amber-300 shadow-sm shadow-amber-100" : "border-slate-200")}>
+              {r.status === "PENDING" && r.deadline && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200">
+                  <Clock size={12} className="text-amber-500" />
+                  <p className="text-xs font-semibold text-amber-700">Response needed by {iso2date(r.deadline)}</p>
                 </div>
-                <SChip status={r.status} map={REQ_STATUS as any} />
-              </div>
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                {[
-                  { label: "Dates",   val: r.dates.split("–")[0] + (r.dates.includes("–") ? "–" : "")  },
-                  { label: r.rooms > 0 ? "Rooms" : "Pax", val: r.rooms > 0 ? `${r.rooms} rooms` : "1 pax" },
-                  { label: "Amount",  val: fmtShort(r.amount) },
-                ].map(f => (
-                  <div key={f.label} className="bg-slate-50 rounded-xl p-2.5">
-                    <p className="text-xs text-slate-400">{f.label}</p>
-                    <p className="text-sm font-bold text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{f.val}</p>
+              )}
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0 pr-3">
+                    <p className="text-xs text-slate-400 font-mono mb-0.5">{r.requestNo}</p>
+                    <p className="font-bold text-slate-800">{r.clientLabel || r.serviceLabel || "Booking Request"}</p>
+                    {r.clientLabel && r.serviceLabel && <p className="text-xs text-slate-500 mt-0.5">{r.serviceLabel}</p>}
                   </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setDetail(r.id)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
-                  <Eye size={12} /> View Details
-                </button>
-                {r.status === "pending" && (
-                  <>
-                    <button onClick={() => setConfirmModal({ id: r.id, action: "reject" })}
-                      className="py-2 px-3 text-xs font-semibold border border-red-200 text-red-500 rounded-lg hover:bg-red-50">
-                      Decline
-                    </button>
-                    <button onClick={() => setConfirmModal({ id: r.id, action: "accept" })}
-                      className="py-2 px-3 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
-                      Accept
-                    </button>
-                  </>
-                )}
+                  <SChip status={r.status.toLowerCase()} map={REQ_STATUS as any} />
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {[
+                    { label: "Received", val: iso2date(r.createdAt) },
+                    { label: "Deadline", val: iso2date(r.deadline)  },
+                    { label: "Amount",   val: fmtShort(r.amount)    },
+                  ].map(f => (
+                    <div key={f.label} className="bg-slate-50 rounded-xl p-2.5">
+                      <p className="text-xs text-slate-400">{f.label}</p>
+                      <p className="text-sm font-bold text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{f.val}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setDetail(r.id)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
+                    <Eye size={12} /> View Details
+                  </button>
+                  {r.status === "PENDING" && (
+                    <>
+                      <button onClick={() => setConfirmModal({ id: r.id, requestNo: r.requestNo, action: "reject" })}
+                        className="py-2 px-3 text-xs font-semibold border border-red-200 text-red-500 rounded-lg hover:bg-red-50">
+                        Decline
+                      </button>
+                      <button onClick={() => setConfirmModal({ id: r.id, requestNo: r.requestNo, action: "accept" })}
+                        className="py-2 px-3 text-xs font-semibold bg-[#0E6BB8] text-white rounded-lg hover:bg-[#0B5794]">
+                        Accept
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </PLoad>
+
+      {modal}
     </div>
   );
 }
 
 // ─── MY SERVICES ──────────────────────────────────────────────────────────────
 function ServicesView() {
-  const [addModal, setAddModal] = useState(false);
-  const [toggles, setToggles] = useState<Record<string, boolean>>(
-    Object.fromEntries(SERVICES_LIST.map(s => [s.id, s.active]))
-  );
+  const q = useSupplierServices();
+  const rows = q.data ?? [];
 
   return (
-    <div className="space-y-4">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">My Services</h2>
-        <button onClick={() => setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0E6BB8] text-white text-sm font-semibold rounded-xl hover:bg-[#0B5794]">
-          <Plus size={14} /> Add Service
-        </button>
-      </div>
+    <div className="space-y-4" data-portal="services">
+      <h2 className="text-xl font-bold text-slate-800">My Services</h2>
 
-      <div className="space-y-3">
-        {SERVICES_LIST.map(svc => (
-          <div key={svc.id} className="bg-white rounded-2xl border border-slate-200 p-5">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0">
-                <Package size={18} className="text-[#0E6BB8]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <p className="font-bold text-slate-800 leading-tight">{svc.name}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{svc.id} · {svc.category}</p>
+      <PLoad q={q}>
+        <div className="space-y-3">
+          {rows.length === 0 && <p className="text-sm text-slate-400 text-center py-4">No services.</p>}
+          {rows.map(svc => (
+            <div key={svc.id} className="bg-white rounded-2xl border border-slate-200 p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#0E6BB8]/8 flex items-center justify-center flex-shrink-0">
+                  <Package size={18} className="text-[#0E6BB8]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-800 leading-tight">{svc.name}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{svc.category ?? "—"}</p>
+                    </div>
+                    <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border flex-shrink-0",
+                      svc.active ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200")}>
+                      {svc.active ? "Active" : "Inactive"}
+                    </span>
                   </div>
-                  {/* Toggle */}
-                  <button
-                    onClick={() => setToggles(t => ({ ...t, [svc.id]: !t[svc.id] }))}
-                    className={cn("relative w-11 h-6 rounded-full transition-colors flex-shrink-0",
-                      toggles[svc.id] ? "bg-[#0E7C66]" : "bg-slate-200")}>
-                    <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all",
-                      toggles[svc.id] ? "left-5" : "left-0.5")} />
-                  </button>
-                </div>
-                <div className="flex items-center gap-3 mt-3 flex-wrap">
-                  <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded-lg">{svc.price}</span>
-                  <span className="text-xs text-slate-500">{svc.bookings} bookings</span>
-                  <span className="flex items-center gap-1 text-xs text-amber-500 font-semibold">
-                    <Star size={11} className="fill-amber-400" />{svc.rating}
-                  </span>
+                  <div className="flex items-center gap-3 mt-3 flex-wrap">
+                    <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded-lg">{svc.price != null ? fmtBDT(svc.price) : "—"}</span>
+                    <span className="text-xs text-slate-500">{svc.bookingsCount} bookings</span>
+                    {svc.rating != null && (
+                      <span className="flex items-center gap-1 text-xs text-amber-500 font-semibold">
+                        <Star size={11} className="fill-amber-400" />{svc.rating}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
-                <Edit2 size={12} /> Edit
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
-                <Eye size={12} /> View Bookings
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {addModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-lg">Add New Service</h3>
-              <button onClick={() => setAddModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18} /></button>
-            </div>
-            {[["Service Name", "text"], ["Category", "text"], ["Base Price (BDT)", "number"]].map(([l, t]) => (
-              <div key={l}>
-                <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
-                <input type={t}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0E6BB8]/20" />
-              </div>
-            ))}
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
-              <textarea rows={3} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none" />
-            </div>
-            <button onClick={() => setAddModal(false)}
-              className="w-full py-3 bg-[#0E6BB8] text-white font-semibold text-sm rounded-xl hover:bg-[#0B5794]">
-              Submit for Review
-            </button>
-          </div>
+          ))}
         </div>
-      )}
+      </PLoad>
     </div>
   );
 }
@@ -924,6 +834,8 @@ function ProfileView() {
 export function SupplierPortal() {
   const [view, setView] = useState<SupView>("dashboard");
   const { data: me } = useSupplierMe();
+  const { data: reqs } = useSupplierRequests();
+  const pendingReqs = (reqs ?? []).filter(r => r.status === "PENDING").length;
   const name = me?.name ?? "Supplier";
   const initials = name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   const unread = MESSAGES.filter(m => m.unread).length;
@@ -973,11 +885,11 @@ export function SupplierPortal() {
                 <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
               </div>
               {/* Pending badge */}
-              {REQUESTS.filter(r => r.status === "pending").length > 0 && (
+              {pendingReqs > 0 && (
                 <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
                   <AlertCircle size={12} className="text-amber-500" />
                   <p className="text-xs text-amber-700 font-semibold">
-                    {REQUESTS.filter(r => r.status === "pending").length} pending request{REQUESTS.filter(r => r.status === "pending").length > 1 ? "s" : ""}
+                    {pendingReqs} pending request{pendingReqs > 1 ? "s" : ""}
                   </p>
                 </div>
               )}
@@ -1043,11 +955,11 @@ export function SupplierPortal() {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {REQUESTS.filter(r => r.status === "pending").length > 0 && (
+            {pendingReqs > 0 && (
               <button onClick={() => go("requests")}
                 className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-semibold text-amber-700">
                 <AlertCircle size={11} />
-                {REQUESTS.filter(r => r.status === "pending").length} pending
+                {pendingReqs} pending
               </button>
             )}
             <button onClick={() => go("messages")} className="relative p-2 hover:bg-slate-100 rounded-xl">
