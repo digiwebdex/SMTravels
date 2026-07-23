@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn, img, fmtPrice } from "../lib/utils";
 import { PACKAGES, TESTIMONIALS, SERVICES, BLOGS } from "../lib/data";
+import { HeroBackground } from "../components/HeroBackground";
 
 // ─── Hero Booking Widget ──────────────────────────────────────────────────────
 const SERVICE_TYPES = ["Hajj", "Umrah", "Visa", "Air Ticket", "Tour Package", "Hotel"];
@@ -127,9 +128,7 @@ export function Home() {
     <>
       {/* ── HERO ── */}
       <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center justify-center overflow-hidden">
-        <img src={img("photo-1770786106021-52580470e31e", 1920, 1080)}
-          alt="Kaaba Makkah" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1B75BC]/85 via-[#1B75BC]/70 to-[#1B75BC]/90" />
+        <HeroBackground posterImg={img("photo-1770786106021-52580470e31e", 1920, 1080)} alt="Masjid al-Haram, Makkah" />
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 md:px-6 flex flex-col items-center text-center gap-6 md:gap-8 py-12 md:py-16">
           <div className="inline-flex items-center gap-2 bg-white/95 border border-white rounded-full px-4 py-1.5 text-[#D64A12] text-[12px] font-bold shadow-sm">
