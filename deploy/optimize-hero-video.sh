@@ -26,7 +26,7 @@ ffmpeg -y -i "$RAW" -t "$SECONDS_CAP" \
   "$OUT_MP4"
 
 echo "→ extracting poster $OUT_POSTER (frame @ 1s)…"
-ffmpeg -y -ss 1 -i "$OUT_MP4" -frames:v 1 -q:v 3 "$OUT_POSTER"
+ffmpeg -y -ss 1 -i "$OUT_MP4" -frames:v 1 -update 1 -q:v 3 "$OUT_POSTER"
 
 chown deploy:deploy "$OUT_MP4" "$OUT_POSTER"
 chmod 644 "$OUT_MP4" "$OUT_POSTER"
