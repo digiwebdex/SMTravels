@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /$
+Allow: /about
+Allow: /packages
+Allow: /blog
+Allow: /gallery
+Allow: /faq
+Allow: /contact
+Allow: /book
+# Keep the app/portals out of the index
+Disallow: /erp
+Disallow: /portal
+Disallow: /agent
+Disallow: /supplier
+Disallow: /staff
+Disallow: /accountant
+Disallow: /login
+Disallow: /api
+
+Sitemap: https://smtravelsinternational.com/sitemap.xml

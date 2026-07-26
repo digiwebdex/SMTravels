@@ -12,7 +12,7 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
   JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
-  CORS_ORIGIN: z.string().min(1).default("https://smtravels.digiwebdex.com"),
+  CORS_ORIGIN: z.string().min(1).default("https://smtravelsinternational.com"),
   /** Server-volume root for uploaded files (passports/visas — OUTSIDE the web
    *  root; nginx never serves it). Prod: /var/www/SMTravels/uploads. */
   UPLOAD_DIR: z.string().min(1).default("uploads"),

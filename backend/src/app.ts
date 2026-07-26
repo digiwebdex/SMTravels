@@ -22,8 +22,11 @@ export function createApp(): Express {
   // Credentialed CORS: echo the request Origin only if it is on the allow-list
   // (prod SPA origin + local dev). Never "*", which the spec forbids and which
   // browsers reject together with credentials anyway.
+  // CORS_ORIGIN may be a comma-separated list (e.g. apex + www).
   const allowedOrigins = new Set(
-    [env.CORS_ORIGIN, "http://localhost:5173", "http://localhost:4173"].filter(Boolean),
+    [...env.CORS_ORIGIN.split(","), "http://localhost:5173", "http://localhost:4173"]
+      .map((o) => o.trim())
+      .filter(Boolean),
   );
   app.use(helmet());
   app.use(
