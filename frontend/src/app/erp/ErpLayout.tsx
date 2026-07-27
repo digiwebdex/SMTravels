@@ -12,6 +12,7 @@ import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
 import { BrandLogo } from "../components/BrandLogo";
 import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
+import { useBranches, type BranchOption } from "../hooks/bookings";
 
 // ─── Mobile bottom nav items ──────────────────────────────────────────────────
 const MOBILE_NAV = [
@@ -72,7 +73,7 @@ const NAV_GROUPS = [
   },
 ];
 
-const BRANCHES = ["All Branches", "Dhaka HQ (Main)", "Chittagong", "Sylhet", "Khulna", "Rajshahi"];
+const ALL_BRANCHES = "all";
 
 const typeIcon: Record<string, { icon: React.FC<{ size?: number; className?: string }>, color: string, bg: string }> = {
   booking: { icon: CalendarDays, color: "#1B75BC", bg: "#EEF2FF" },
@@ -233,13 +234,15 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
 // ─── Topbar ───────────────────────────────────────────────────────────────────
 function Topbar({
   sidebarCollapsed, onMobileMenuOpen,
-  selectedBranch, onBranchChange,
+  branches, selectedBranchId, selectedBranchLabel, onBranchChange,
   dateRange, onDateRangeChange,
 }: {
   sidebarCollapsed: boolean;
   onMobileMenuOpen: () => void;
-  selectedBranch: string;
-  onBranchChange: (b: string) => void;
+  branches: BranchOption[];
+  selectedBranchId: string;
+  selectedBranchLabel: string;
+  onBranchChange: (id: string) => void;
   dateRange: string;
   onDateRangeChange: (r: string) => void;
 }) {
@@ -306,19 +309,19 @@ function Topbar({
             className="flex items-center gap-2 h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer"
           >
             <Building2 size={13} className="text-[#1B75BC]" />
-            <span className="max-w-[120px] truncate">{selectedBranch}</span>
+            <span className="max-w-[120px] truncate">{selectedBranchLabel}</span>
             <ChevronDown size={12} className="text-[#9CA3AF]" />
           </button>
           {branchOpen && (
-            <div className="absolute right-0 top-full mt-1.5 bg-white border border-[#E5E7EB] rounded-[10px] shadow-xl py-1.5 min-w-[180px] z-50">
-              {BRANCHES.map(b => (
-                <button key={b} onClick={() => { onBranchChange(b); setBranchOpen(false); }}
+            <div className="absolute right-0 top-full mt-1.5 bg-white border border-[#E5E7EB] rounded-[10px] shadow-xl py-1.5 min-w-[200px] z-50">
+              {[{ id: ALL_BRANCHES, name: "All Branches" }, ...branches].map(b => (
+                <button key={b.id} onClick={() => { onBranchChange(b.id); setBranchOpen(false); }}
                   className={cn(
                     "w-full text-left px-3 py-2 text-[12px] hover:bg-[#F7F8FA] transition-colors cursor-pointer flex items-center justify-between",
-                    selectedBranch === b ? "text-[#1B75BC] font-semibold" : "text-[#374151]"
+                    selectedBranchId === b.id ? "text-[#1B75BC] font-semibold" : "text-[#374151]"
                   )}>
-                  {b}
-                  {selectedBranch === b && <div className="w-1.5 h-1.5 rounded-full bg-[#1B75BC]" />}
+                  {b.name}
+                  {selectedBranchId === b.id && <div className="w-1.5 h-1.5 rounded-full bg-[#1B75BC]" />}
                 </button>
               ))}
             </div>
@@ -475,11 +478,20 @@ function Topbar({
 export function ErpLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState("All Branches");
+  const [selectedBranchId, setSelectedBranchId] = useState(ALL_BRANCHES);
   const [dateRange, setDateRange] = useState("This Month");
 
+  // Real branches for the topbar filter (branch-scoped: a branch user only sees
+  // their own). The selected branch id flows to the dashboard via outlet context.
+  const branchesQ = useBranches();
+  const branches = branchesQ.data ?? [];
+  const branchLabel =
+    selectedBranchId === ALL_BRANCHES
+      ? "All Branches"
+      : branches.find((b) => b.id === selectedBranchId)?.name ?? "All Branches";
+
   // Provide branch/date context to children via outlet context
-  const outletCtx = { selectedBranch, dateRange };
+  const outletCtx = { branchId: selectedBranchId, branchLabel, dateRange };
 
   const location = useLocation();
 
@@ -502,8 +514,10 @@ export function ErpLayout() {
       <Topbar
         sidebarCollapsed={collapsed}
         onMobileMenuOpen={() => setMobileOpen(true)}
-        selectedBranch={selectedBranch}
-        onBranchChange={setSelectedBranch}
+        branches={branches}
+        selectedBranchId={selectedBranchId}
+        selectedBranchLabel={branchLabel}
+        onBranchChange={setSelectedBranchId}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
       />

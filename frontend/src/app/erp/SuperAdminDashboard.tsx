@@ -1,125 +1,64 @@
 import React, { useState } from "react";
-import { useOutletContext } from "react-router";
+import { useOutletContext, useNavigate } from "react-router";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  CalendarDays, Wallet, Users, TrendingUp, Star, Plane,
-  ArrowUpRight, ArrowDownRight, CheckCircle, Clock, AlertTriangle,
-  Plus, FileText, Send, Download, RefreshCw, MoreHorizontal,
-  ChevronRight, Circle, Dot, Briefcase, Receipt, BarChart3,
-  User, Building2, Filter,
+  CalendarDays, Wallet, Users, TrendingUp, Plane, AlertTriangle,
+  Plus, Send, Download, RefreshCw, ChevronRight, Briefcase, Receipt,
+  BarChart3, User, Clock, type LucideIcon,
 } from "lucide-react";
-import { cn, fmtPrice } from "../lib/utils";
+import { cn } from "../lib/utils";
+import { formatAmount, formatAmountShort, EmptyState, SkeletonKpi, ErrorBanner } from "../lib/ds";
+import { useDashboardSummary } from "../hooks/dashboard";
+import { relAge } from "../hooks/notifications";
+import type {
+  DashboardSummary, DashboardKpis, DashboardBooking, DashboardActivity, DashboardTask, FunnelStage,
+} from "@contracts/dashboard.contract";
+import type { MonthlyPoint, ServiceSlice, BranchRow } from "@contracts/report.contract";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface OutletCtx { selectedBranch: string; dateRange: string; }
+// ─── Outlet context from ErpLayout (real branch id + label + date-range label) ──
+interface OutletCtx { branchId: string; branchLabel: string; dateRange: string; }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const REVENUE_DATA = [
-  { month: "Jan", revenue: 3200000, target: 3000000, bookings: 198 },
-  { month: "Feb", revenue: 2850000, target: 3000000, bookings: 171 },
-  { month: "Mar", revenue: 3600000, target: 3200000, bookings: 224 },
-  { month: "Apr", revenue: 4100000, target: 3500000, bookings: 256 },
-  { month: "May", revenue: 5200000, target: 4800000, bookings: 318 },
-  { month: "Jun", revenue: 7800000, target: 7000000, bookings: 487 },
-  { month: "Jul", revenue: 9400000, target: 8500000, bookings: 592 },
-  { month: "Aug", revenue: 4200000, target: 4000000, bookings: 263 },
-  { month: "Sep", revenue: 3800000, target: 3600000, bookings: 241 },
-  { month: "Oct", revenue: 4600000, target: 4200000, bookings: 294 },
-  { month: "Nov", revenue: 5100000, target: 4800000, bookings: 321 },
-  { month: "Dec", revenue: 6300000, target: 5800000, bookings: 397 },
-];
-
-const SERVICE_DATA = [
-  { name: "Hajj",        value: 342,  color: "#1B75BC" },
-  { name: "Umrah",       value: 1124, color: "#F15A24" },
-  { name: "Visa",        value: 487,  color: "#0E7C66" },
-  { name: "Air Ticket",  value: 621,  color: "#2563EB" },
-  { name: "Manpower",    value: 198,  color: "#7C3AED" },
-  { name: "Tour",        value: 75,   color: "#EA580C" },
-];
-
-const BRANCH_DATA = [
-  { branch: "Dhaka HQ",    revenue: 18400000, bookings: 1124, target: 20000000 },
-  { branch: "Chittagong",  revenue: 7200000,  bookings: 432,  target: 8000000  },
-  { branch: "Sylhet",      revenue: 5800000,  bookings: 347,  target: 6000000  },
-  { branch: "Khulna",      revenue: 3100000,  bookings: 186,  target: 4000000  },
-  { branch: "Rajshahi",    revenue: 2300000,  bookings: 138,  target: 3000000  },
-];
-
-const FUNNEL_DATA = [
-  { stage: "New Leads",    count: 847, fill: "#1B75BC" },
-  { stage: "Qualified",    count: 512, fill: "#1e4d9b" },
-  { stage: "Proposal",     count: 298, fill: "#2563EB" },
-  { stage: "Negotiation",  count: 156, fill: "#F15A24" },
-  { stage: "Won",          count: 89,  fill: "#0E7C66" },
-];
-
-const ACTIVITY_FEED = [
-  { id: 1, type: "booking",  actor: "Agent Rahel Ahmed",   action: "created booking", target: "#BK-2847 — Umrah Economy", time: "2m ago",  color: "#1B75BC", bg: "#EEF2FF"  },
-  { id: 2, type: "payment",  actor: "System",              action: "received payment", target: "৳1,20,000 — Invoice INV-0391", time: "15m ago", color: "#0E7C66", bg: "#ECFDF5"  },
-  { id: 3, type: "lead",     actor: "Sales Team (Dhaka)",  action: "added new lead",  target: "MD Electronics Group — Hajj ×24", time: "32m ago", color: "#F15A24", bg: "#FFF9E6"  },
-  { id: 4, type: "visa",     actor: "Visa Exec Tahmina",   action: "submitted docs",  target: "KSA Visa — 3 passports (BK-2841)", time: "1h ago",  color: "#7C3AED", bg: "#F5F3FF"  },
-  { id: 5, type: "booking",  actor: "Customer Portal",     action: "requested quote", target: "Umrah Premium ×6 — Dec 2025", time: "1h ago",  color: "#1B75BC", bg: "#EEF2FF"  },
-  { id: 6, type: "system",   actor: "System",              action: "generated report", target: "Monthly Revenue Report — Nov 2025", time: "2h ago",  color: "#6B7280", bg: "#F3F4F6"  },
-  { id: 7, type: "payment",  actor: "Agent Karim Bros",    action: "paid outstanding", target: "৳84,500 — Agent Balance", time: "3h ago",  color: "#0E7C66", bg: "#ECFDF5"  },
-];
-
-const RECENT_BOOKINGS = [
-  { id: "BK-2847", pilgrim: "Md. Harunur Rashid",  service: "Umrah",  package: "Economy Plus",  agent: "Rahel Travel", departure: "15 Dec 2025", amount: 120000,  status: "Confirmed"  },
-  { id: "BK-2846", pilgrim: "Fatema Begum",         service: "Hajj",   package: "Standard",      agent: "Direct",       departure: "12 May 2026", amount: 580000,  status: "Processing" },
-  { id: "BK-2845", pilgrim: "Khandakar Ali",        service: "Visa",   package: "KSA Business",  agent: "Karim Bros",   departure: "—",           amount: 12500,   status: "Pending"    },
-  { id: "BK-2844", pilgrim: "Nasrin Akter",         service: "Air",    package: "DAC-JED Return", agent: "Direct",       departure: "20 Nov 2025", amount: 45000,   status: "Confirmed"  },
-  { id: "BK-2843", pilgrim: "Jahangir Alam",        service: "Umrah",  package: "Premium VIP",   agent: "Al Madina T.", departure: "5 Jan 2026",  amount: 280000,  status: "Confirmed"  },
-  { id: "BK-2842", pilgrim: "Shirin Sultana",       service: "Tour",   package: "Malaysia 7D",   agent: "Direct",       departure: "28 Nov 2025", amount: 95000,   status: "Cancelled"  },
-  { id: "BK-2841", pilgrim: "Abdul Karim",          service: "Visa",   package: "UAE Visit",     agent: "Rahel Travel", departure: "—",           amount: 8500,    status: "Pending"    },
-];
-
-const TASKS = [
-  { id: 1, title: "Confirm flight seats for BK-2847 group (48 pilgrims)",   due: "Today",      priority: "high",   cat: "Booking",  done: false },
-  { id: 2, title: "Send KSA visa documents to embassy — 3 passports",       due: "Today",      priority: "high",   cat: "Visa",     done: false },
-  { id: 3, title: "Review Q3 agent commission statements (6 agents)",        due: "Tomorrow",   priority: "medium", cat: "Finance",  done: false },
-  { id: 4, title: "Update Umrah package pricing for Feb–Apr 2026",           due: "Overdue",    priority: "high",   cat: "Packages", done: false },
-  { id: 5, title: "Onboard new agent: Al-Madina Travels (Sylhet)",           due: "This Week",  priority: "low",    cat: "CRM",      done: true  },
-  { id: 6, title: "Generate November branch performance report",              due: "Fri, 29 Nov", priority: "medium", cat: "Reports",  done: false },
-];
-
-const QUICK_ACTIONS = [
-  { icon: Plus,       label: "New Booking",    color: "#1B75BC", bg: "#EEF2FF"  },
-  { icon: Users,      label: "Add Lead",        color: "#F15A24", bg: "#FFF9E6"  },
-  { icon: Receipt,    label: "Create Invoice",  color: "#0E7C66", bg: "#ECFDF5"  },
-  { icon: BarChart3,  label: "Run Report",      color: "#2563EB", bg: "#EFF6FF"  },
-  { icon: Send,       label: "Send Bulk SMS",   color: "#7C3AED", bg: "#F5F3FF"  },
-  { icon: Download,   label: "Export Data",     color: "#6B7280", bg: "#F3F4F6"  },
-];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> = {
-  Confirmed:  { label: "Confirmed",  color: "#065F46", bg: "#D1FAE5" },
-  Processing: { label: "Processing", color: "#1D4ED8", bg: "#DBEAFE" },
-  Pending:    { label: "Pending",    color: "#92400E", bg: "#FEF3C7" },
-  Cancelled:  { label: "Cancelled",  color: "#991B1B", bg: "#FEE2E2" },
+// ─── Service + status palettes ─────────────────────────────────────────────────
+const SERVICE_COLOR: Record<string, string> = {
+  HAJJ: "#1B75BC", UMRAH: "#F15A24", VISA: "#0E7C66", AIR_TICKET: "#2563EB",
+  MANPOWER: "#7C3AED", TOUR: "#EA580C", HOTEL: "#0891B2",
+};
+const SERVICE_LABEL: Record<string, string> = {
+  HAJJ: "Hajj", UMRAH: "Umrah", VISA: "Visa", AIR_TICKET: "Air Ticket",
+  MANPOWER: "Manpower", TOUR: "Tour", HOTEL: "Hotel",
 };
 
+const STATUS_CFG: Record<string, { color: string; bg: string }> = {
+  CONFIRMED:  { color: "#065F46", bg: "#D1FAE5" },
+  COMPLETED:  { color: "#0F766E", bg: "#CCFBF1" },
+  PROCESSING: { color: "#1D4ED8", bg: "#DBEAFE" },
+  PENDING:    { color: "#92400E", bg: "#FEF3C7" },
+  ON_HOLD:    { color: "#92400E", bg: "#FEF3C7" },
+  CANCELLED:  { color: "#991B1B", bg: "#FEE2E2" },
+  DRAFT:      { color: "#6B7280", bg: "#F3F4F6" },
+};
+const titleCase = (s: string) => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, " ");
+
 function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CFG[status] || { label: status, color: "#6B7280", bg: "#F3F4F6" };
+  const cfg = STATUS_CFG[status] || { color: "#6B7280", bg: "#F3F4F6" };
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide whitespace-nowrap"
       style={{ color: cfg.color, backgroundColor: cfg.bg }}>
-      {cfg.label}
+      {titleCase(status)}
     </span>
   );
 }
 
 const PRIORITY_CFG: Record<string, { color: string; label: string }> = {
-  high:   { color: "#DC2626", label: "High"   },
-  medium: { color: "#F59E0B", label: "Med"    },
-  low:    { color: "#0E7C66", label: "Low"    },
+  HIGH:   { color: "#DC2626", label: "High" },
+  MEDIUM: { color: "#F59E0B", label: "Med" },
+  LOW:    { color: "#0E7C66", label: "Low" },
 };
 
+// ─── Shared layout bits (kept from the original design) ─────────────────────────
 function SectionHeader({ title, sub, action }: { title: string; sub?: string; action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-4">
@@ -131,89 +70,35 @@ function SectionHeader({ title, sub, action }: { title: string; sub?: string; ac
     </div>
   );
 }
-
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn("bg-white border border-[#E5E7EB] rounded-[14px] p-5", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("bg-white border border-[#E5E7EB] rounded-[14px] p-5", className)}>{children}</div>;
 }
+const viewAll = (
+  <button className="flex items-center gap-1 text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">
+    View all <ChevronRight size={12} />
+  </button>
+);
 
-// ─── KPI Cards ────────────────────────────────────────────────────────────────
-const KPI_CARDS = [
-  {
-    label: "Total Bookings",
-    value: "2,847",
-    delta: "+12.4%",
-    deltaUp: true,
-    sub: "vs last month",
-    icon: CalendarDays,
-    color: "#1B75BC",
-    bg: "#EEF2FF",
-    raw: "2847 confirmed & pending",
-  },
-  {
-    label: "Revenue",
-    value: "৳ 4.21 Cr",
-    delta: "+8.2%",
-    deltaUp: true,
-    sub: "vs last month",
-    icon: Wallet,
-    color: "#0E7C66",
-    bg: "#ECFDF5",
-    raw: "৳ 4,21,40,000 collected",
-  },
-  {
-    label: "Pending Dues",
-    value: "৳ 38.5L",
-    delta: "5 overdue",
-    deltaUp: false,
-    sub: "requires action",
-    icon: AlertTriangle,
-    color: "#DC2626",
-    bg: "#FEF2F2",
-    raw: "Oldest due 42 days ago",
-  },
-  {
-    label: "New Leads",
-    value: "184",
-    delta: "+24.1%",
-    deltaUp: true,
-    sub: "this week",
-    icon: TrendingUp,
-    color: "#F15A24",
-    bg: "#FFF9E6",
-    raw: "89 qualified · 12 won",
-  },
-  {
-    label: "Active Agents",
-    value: "63",
-    delta: "+3 new",
-    deltaUp: true,
-    sub: "this month",
-    icon: Briefcase,
-    color: "#7C3AED",
-    bg: "#F5F3FF",
-    raw: "51 verified · 12 pending",
-  },
-  {
-    label: "Upcoming Departures",
-    value: "12",
-    delta: "Next: 15 Dec",
-    deltaUp: true,
-    sub: "Hajj: 3 · Umrah: 9",
-    icon: Plane,
-    color: "#2563EB",
-    bg: "#EFF6FF",
-    raw: "3,847 pilgrims in pipeline",
-  },
-];
-
-function KpiCards() {
+// ─── KPI cards ──────────────────────────────────────────────────────────────────
+function KpiCards({ kpis, rangeLabel, loading }: { kpis?: DashboardKpis; rangeLabel: string; loading: boolean }) {
+  if (loading || !kpis) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+        {Array.from({ length: 6 }).map((_, i) => <SkeletonKpi key={i} />)}
+      </div>
+    );
+  }
+  const cards = [
+    { label: "Total Bookings", value: kpis.bookings.toLocaleString("en-BD"), icon: CalendarDays, color: "#1B75BC", bg: "#EEF2FF", raw: rangeLabel },
+    { label: "Revenue", value: formatAmountShort(kpis.revenue), icon: Wallet, color: "#0E7C66", bg: "#ECFDF5", raw: formatAmount(kpis.revenue) },
+    { label: "Pending Dues", value: formatAmountShort(kpis.pendingDues), icon: AlertTriangle, color: "#DC2626", bg: "#FEF2F2", raw: kpis.overdueCount > 0 ? `${kpis.overdueCount} overdue` : "none overdue" },
+    { label: "New Leads", value: kpis.newLeads.toLocaleString("en-BD"), icon: TrendingUp, color: "#F15A24", bg: "#FFF9E6", raw: `${kpis.qualifiedLeads} qualified · ${kpis.wonLeads} won` },
+    { label: "Active Agents", value: kpis.activeAgents.toLocaleString("en-BD"), icon: Briefcase, color: "#7C3AED", bg: "#F5F3FF", raw: "currently active" },
+    { label: "Upcoming Departures", value: kpis.upcomingDepartures.toLocaleString("en-BD"), icon: Plane, color: "#2563EB", bg: "#EFF6FF", raw: `${kpis.upcomingPilgrims.toLocaleString("en-BD")} pilgrims` },
+  ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-      {KPI_CARDS.map(k => {
+      {cards.map((k) => {
         const Icon = k.icon;
         return (
           <Card key={k.label} className="p-4 hover:shadow-md transition-shadow cursor-default">
@@ -221,13 +106,6 @@ function KpiCards() {
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center" style={{ backgroundColor: k.bg }}>
                 <Icon size={17} style={{ color: k.color }} />
               </div>
-              <span className={cn(
-                "inline-flex items-center gap-0.5 text-[10px] font-bold",
-                k.deltaUp ? "text-[#0E7C66]" : "text-[#DC2626]"
-              )}>
-                {k.deltaUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                {k.delta}
-              </span>
             </div>
             <div className="font-mono text-[20px] font-bold text-[#111827] leading-tight mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               {k.value}
@@ -241,80 +119,65 @@ function KpiCards() {
   );
 }
 
-// ─── Revenue chart ────────────────────────────────────────────────────────────
-function RevenueChart() {
+// ─── Revenue trend ──────────────────────────────────────────────────────────────
+function RevenueChart({ data, rangeLabel }: { data: MonthlyPoint[]; rangeLabel: string }) {
   const [mode, setMode] = useState<"revenue" | "bookings">("revenue");
-  const fmt = (v: number) => mode === "revenue"
-    ? `৳${(v / 1000000).toFixed(1)}M`
-    : v.toString();
-
+  const total = data.reduce((s, d) => s + d.revenue, 0);
+  const fmt = (v: number) => (mode === "revenue" ? `৳${(v / 1_000_000).toFixed(1)}M` : String(v));
   return (
     <Card>
       <SectionHeader
         title="Revenue Trend"
-        sub="Monthly performance vs target · Jan–Dec 2025"
+        sub={`Monthly performance · ${rangeLabel}`}
         action={
-          <div className="flex items-center gap-1.5">
-            <div className="flex bg-[#F3F4F6] rounded-[8px] p-0.5">
-              {(["revenue", "bookings"] as const).map(m => (
-                <button key={m} onClick={() => setMode(m)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-[6px] text-[11px] font-medium capitalize transition-all cursor-pointer",
-                    mode === m ? "bg-white text-[#1B75BC] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]"
-                  )}>
-                  {m}
-                </button>
-              ))}
-            </div>
-            <button className="p-1.5 text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer">
-              <MoreHorizontal size={14} />
-            </button>
+          <div className="flex bg-[#F3F4F6] rounded-[8px] p-0.5">
+            {(["revenue", "bookings"] as const).map((m) => (
+              <button key={m} onClick={() => setMode(m)}
+                className={cn("px-2.5 py-1 rounded-[6px] text-[11px] font-medium capitalize transition-all cursor-pointer",
+                  mode === m ? "bg-white text-[#1B75BC] shadow-sm" : "text-[#9CA3AF] hover:text-[#374151]")}>
+                {m}
+              </button>
+            ))}
           </div>
         }
       />
-      <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={REVENUE_DATA} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-          <defs>
-            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#1B75BC" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#1B75BC" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="tgtGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F15A24" stopOpacity={0.08} />
-              <stop offset="95%" stopColor="#F15A24" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-          <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-          <YAxis tickFormatter={fmt} tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
-          <Tooltip
-            contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
-            formatter={(v: number) => [mode === "revenue" ? fmtPrice(v) : v, mode === "revenue" ? "Revenue" : "Bookings"]}
-          />
-          <Area type="monotone" dataKey={mode === "revenue" ? "revenue" : "bookings"} stroke="#1B75BC" strokeWidth={2} fill="url(#revGrad)" dot={false} />
-          {mode === "revenue" && (
-            <Area type="monotone" dataKey="target" stroke="#F15A24" strokeWidth={1.5} strokeDasharray="4 3" fill="url(#tgtGrad)" dot={false} />
-          )}
-        </AreaChart>
-      </ResponsiveContainer>
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#F3F4F6]">
-        <div className="flex items-center gap-1.5 text-[10px] text-[#6B7280]">
-          <div className="w-3 h-0.5 bg-[#1B75BC] rounded" /> Actual
-        </div>
-        {mode === "revenue" && (
-          <div className="flex items-center gap-1.5 text-[10px] text-[#6B7280]">
-            <div className="w-3 h-px bg-[#F15A24] rounded border-dashed border-t border-[#F15A24]" /> Target
+      {data.length === 0 ? (
+        <EmptyState variant="no-data" compact title="No revenue yet" desc="Issued invoices and bookings will chart here as they are recorded." />
+      ) : (
+        <>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={data} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+              <defs>
+                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#1B75BC" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#1B75BC" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+              <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+              <YAxis tickFormatter={fmt} tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
+                formatter={(v: number) => [mode === "revenue" ? formatAmount(v) : v, mode === "revenue" ? "Revenue" : "Bookings"]}
+              />
+              <Area type="monotone" dataKey={mode} stroke="#1B75BC" strokeWidth={2} fill="url(#revGrad)" dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#F3F4F6]">
+            <div className="flex items-center gap-1.5 text-[10px] text-[#6B7280]">
+              <div className="w-3 h-0.5 bg-[#1B75BC] rounded" /> Revenue (baseAmount, BDT)
+            </div>
+            <div className="ml-auto text-[10px] text-[#9CA3AF]">
+              {rangeLabel} Revenue: <span className="font-bold text-[#111827]">{formatAmount(total)}</span>
+            </div>
           </div>
-        )}
-        <div className="ml-auto text-[10px] text-[#9CA3AF]">
-          YTD Revenue: <span className="font-bold text-[#111827]">৳ 5.97 Cr</span>
-        </div>
-      </div>
+        </>
+      )}
     </Card>
   );
 }
 
-// ─── Service breakdown donut ───────────────────────────────────────────────────
+// ─── Service breakdown donut ────────────────────────────────────────────────────
 const RADIAN = Math.PI / 180;
 function CustomLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) {
   if (percent < 0.06) return null;
@@ -323,321 +186,279 @@ function CustomLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: an
   const y = cy + r * Math.sin(-midAngle * RADIAN);
   return <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight={700}>{`${(percent * 100).toFixed(0)}%`}</text>;
 }
-
-function ServiceBreakdown() {
-  const total = SERVICE_DATA.reduce((s, d) => s + d.value, 0);
+function ServiceBreakdown({ data }: { data: ServiceSlice[] }) {
+  const total = data.reduce((s, d) => s + d.count, 0);
+  // % is share of BOOKINGS (matches the section title + count-sized slices),
+  // not revenue share — the donut is sized by count.
+  const pctOf = (c: number) => (total > 0 ? (c / total) * 100 : 0);
+  const rows = data.map((d) => ({ ...d, color: SERVICE_COLOR[d.service] ?? "#6B7280" }));
   return (
     <Card>
-      <SectionHeader title="Bookings by Service" sub={`${total.toLocaleString()} total this month`} />
-      <div className="flex items-center justify-center">
-        <ResponsiveContainer width="100%" height={180}>
-          <PieChart>
-            <Pie data={SERVICE_DATA} cx="50%" cy="50%" innerRadius={50} outerRadius={80}
-              dataKey="value" labelLine={false} label={CustomLabel}>
-              {SERVICE_DATA.map((d, i) => <Cell key={i} fill={d.color} />)}
-            </Pie>
-            <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB" }}
-              formatter={(v: number, name: string) => [`${v} bookings (${((v / total) * 100).toFixed(1)}%)`, name]} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="flex flex-col gap-2 mt-1">
-        {SERVICE_DATA.map(d => (
-          <div key={d.name} className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-            <span className="text-[11px] text-[#6B7280] flex-1">{d.name}</span>
-            <span className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d.value}</span>
-            <span className="text-[10px] text-[#9CA3AF] w-8 text-right">{((d.value / total) * 100).toFixed(0)}%</span>
+      <SectionHeader title="Bookings by Service" sub={total > 0 ? `${total.toLocaleString("en-BD")} bookings` : "No bookings yet"} />
+      {total === 0 ? (
+        <EmptyState variant="no-data" compact title="No bookings yet" desc="Confirmed bookings will break down by service here." />
+      ) : (
+        <>
+          <div className="flex items-center justify-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={rows} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="count" labelLine={false} label={CustomLabel}>
+                  {rows.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB" }}
+                  formatter={(v: number, _n, p: any) => [`${v} bookings (${pctOf(v).toFixed(1)}%)`, p?.payload?.label]} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        ))}
-      </div>
+          <div className="flex flex-col gap-2 mt-1">
+            {rows.map((d) => (
+              <div key={d.service} className="flex items-center gap-2.5">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                <span className="text-[11px] text-[#6B7280] flex-1">{d.label}</span>
+                <span className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d.count}</span>
+                <span className="text-[10px] text-[#9CA3AF] w-10 text-right">{pctOf(d.count).toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </Card>
   );
 }
 
-// ─── Branch performance ───────────────────────────────────────────────────────
-function BranchPerformance() {
-  const fmtM = (v: number) => `৳${(v / 1000000).toFixed(1)}M`;
+// ─── Branch performance (relative to the strongest branch — no fabricated target) ─
+const BAR_COLORS = ["#1B75BC", "#2563EB", "#0E7C66", "#F15A24", "#7C3AED"];
+function BranchPerformance({ data }: { data: BranchRow[] }) {
+  const max = data.reduce((m, b) => Math.max(m, b.revenue), 0) || 1;
   return (
     <Card>
-      <SectionHeader title="Branch Performance"
-        sub="Revenue vs target · Current period"
-        action={
-          <button className="flex items-center gap-1 text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">
-            View all <ChevronRight size={12} />
-          </button>
-        }
-      />
-      <div className="flex flex-col gap-3">
-        {BRANCH_DATA.map((b, i) => {
-          const pct = Math.round((b.revenue / b.target) * 100);
-          return (
-            <div key={b.branch} className="flex items-center gap-3">
-              <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 text-[9px] font-black text-white"
-                style={{ backgroundColor: i === 0 ? "#1B75BC" : i === 1 ? "#2563EB" : i === 2 ? "#0E7C66" : i === 3 ? "#F15A24" : "#7C3AED" }}>
-                {i + 1}
-              </div>
-              <div className="w-24 flex-shrink-0">
-                <div className="text-[11px] font-medium text-[#374151] truncate">{b.branch}</div>
-                <div className="text-[10px] text-[#9CA3AF]">{b.bookings} bkgs</div>
-              </div>
-              <div className="flex-1">
-                <div className="h-2 bg-[#F3F4F6] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${Math.min(pct, 100)}%`,
-                      backgroundColor: i === 0 ? "#1B75BC" : i === 1 ? "#2563EB" : i === 2 ? "#0E7C66" : i === 3 ? "#F15A24" : "#7C3AED"
-                    }}
-                  />
+      <SectionHeader title="Branch Performance" sub="Revenue by branch · applied period" action={viewAll} />
+      {data.length === 0 ? (
+        <EmptyState variant="no-data" compact title="No branch activity" desc="Branch revenue appears here once bookings are placed." />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {data.map((b, i) => {
+            const pct = Math.round((b.revenue / max) * 100);
+            const color = BAR_COLORS[i % BAR_COLORS.length];
+            return (
+              <div key={b.branchId} className="flex items-center gap-3">
+                <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 text-[9px] font-black text-white" style={{ backgroundColor: color }}>
+                  {i + 1}
+                </div>
+                <div className="w-24 flex-shrink-0">
+                  <div className="text-[11px] font-medium text-[#374151] truncate">{b.branchName}</div>
+                  <div className="text-[10px] text-[#9CA3AF]">{b.bookings} bkgs</div>
+                </div>
+                <div className="flex-1">
+                  <div className="h-2 bg-[#F3F4F6] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
+                  </div>
+                </div>
+                <div className="w-16 text-right flex-shrink-0">
+                  <div className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{formatAmountShort(b.revenue)}</div>
                 </div>
               </div>
-              <div className="w-16 text-right flex-shrink-0">
-                <div className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtM(b.revenue)}</div>
-                <div className={cn("text-[9px] font-bold", pct >= 100 ? "text-[#0E7C66]" : pct >= 80 ? "text-[#D64A12]" : "text-[#DC2626]")}>
-                  {pct}% target
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </Card>
   );
 }
 
-// ─── Lead Funnel ──────────────────────────────────────────────────────────────
-function LeadFunnel() {
+// ─── Lead funnel ─────────────────────────────────────────────────────────────────
+const FUNNEL_FILL = ["#1B75BC", "#1e4d9b", "#2563EB", "#F15A24", "#0E7C66"];
+function LeadFunnel({ data }: { data: FunnelStage[] }) {
+  const totalLeads = data.reduce((s, d) => s + d.count, 0);
+  const won = data.find((d) => d.stage === "WON")?.count ?? 0;
+  const conv = totalLeads > 0 ? (won / totalLeads) * 100 : 0;
+  const chartData = data.map((d, i) => ({ ...d, fill: FUNNEL_FILL[i % FUNNEL_FILL.length] }));
   return (
     <Card>
-      <SectionHeader title="Lead Funnel" sub="Sales pipeline · Active leads" />
-      <ResponsiveContainer width="100%" height={160}>
-        <BarChart data={FUNNEL_DATA} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
-          <XAxis type="number" hide />
-          <YAxis type="category" dataKey="stage" tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} width={75} />
-          <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB" }}
-            formatter={(v: number) => [v, "Leads"]} />
-          <Bar dataKey="count" radius={[0, 6, 6, 0]} maxBarSize={18}>
-            {FUNNEL_DATA.map((d, i) => <Cell key={i} fill={d.fill} />)}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="grid grid-cols-5 gap-1 mt-3 pt-3 border-t border-[#F3F4F6]">
-        {FUNNEL_DATA.map(d => (
-          <div key={d.stage} className="text-center">
-            <div className="text-[14px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d.count}</div>
-            <div className="text-[8px] text-[#9CA3AF] leading-tight">{d.stage.split(" ")[0]}</div>
+      <SectionHeader title="Lead Funnel" sub="Sales pipeline · current leads by stage" />
+      {totalLeads === 0 ? (
+        <EmptyState variant="no-data" compact title="No leads yet" desc="New leads and their pipeline stages will show here." />
+      ) : (
+        <>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="label" tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} width={75} />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB" }} formatter={(v: number) => [v, "Leads"]} />
+              <Bar dataKey="count" radius={[0, 6, 6, 0]} maxBarSize={18}>
+                {chartData.map((d, i) => <Cell key={i} fill={d.fill} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="grid grid-cols-5 gap-1 mt-3 pt-3 border-t border-[#F3F4F6]">
+            {data.map((d) => (
+              <div key={d.stage} className="text-center">
+                <div className="text-[14px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{d.count}</div>
+                <div className="text-[8px] text-[#9CA3AF] leading-tight">{d.label.split(" ")[0]}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="mt-3 pt-3 border-t border-[#F3F4F6] flex items-center justify-between text-[10px] text-[#9CA3AF]">
-        <span>Conversion rate</span>
-        <span className="font-bold text-[#0E7C66]">10.5% lead-to-won</span>
-      </div>
+          <div className="mt-3 pt-3 border-t border-[#F3F4F6] flex items-center justify-between text-[10px] text-[#9CA3AF]">
+            <span>Won share of pipeline</span>
+            <span className="font-bold text-[#0E7C66]">{conv.toFixed(1)}%</span>
+          </div>
+        </>
+      )}
     </Card>
   );
 }
 
-// ─── Activity Feed ────────────────────────────────────────────────────────────
-function ActivityFeed() {
-  const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> = {
-    booking: CalendarDays, payment: Wallet, lead: TrendingUp,
-    visa: User, system: RefreshCw,
-  };
-  const COLOR_MAP: Record<string, { color: string; bg: string }> = {
-    booking: { color: "#1B75BC", bg: "#EEF2FF" },
-    payment: { color: "#0E7C66", bg: "#ECFDF5" },
-    lead:    { color: "#F15A24", bg: "#FFF9E6" },
-    visa:    { color: "#7C3AED", bg: "#F5F3FF" },
-    system:  { color: "#6B7280", bg: "#F3F4F6" },
-  };
-
+// ─── Activity feed ───────────────────────────────────────────────────────────────
+const MODULE_ICON: Record<string, LucideIcon> = {
+  bookings: CalendarDays, invoices: Wallet, crm: TrendingUp, documents: User,
+};
+const MODULE_COLOR: Record<string, { color: string; bg: string }> = {
+  bookings: { color: "#1B75BC", bg: "#EEF2FF" },
+  invoices: { color: "#0E7C66", bg: "#ECFDF5" },
+  crm:      { color: "#F15A24", bg: "#FFF9E6" },
+  documents:{ color: "#7C3AED", bg: "#F5F3FF" },
+};
+function ActivityFeed({ data }: { data: DashboardActivity[] }) {
   return (
     <Card className="flex flex-col h-full">
-      <SectionHeader title="Activity Feed" sub="Real-time system events"
-        action={
-          <button className="flex items-center gap-1 text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">
-            View all <ChevronRight size={12} />
-          </button>
-        }
-      />
-      <div className="flex flex-col gap-0 relative">
-        <div className="absolute left-4 top-4 bottom-0 w-px bg-[#F3F4F6]" />
-        {ACTIVITY_FEED.map((item, i) => {
-          const Icon = ICON_MAP[item.type] || RefreshCw;
-          const cfg = COLOR_MAP[item.type] || COLOR_MAP.system;
-          return (
-            <div key={item.id} className="flex gap-3 pb-4 relative">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 ring-2 ring-white"
-                style={{ backgroundColor: cfg.bg }}>
-                <Icon size={13} style={{ color: cfg.color }} />
+      <SectionHeader title="Activity Feed" sub="Recent system events" action={data.length > 0 ? viewAll : undefined} />
+      {data.length === 0 ? (
+        <EmptyState variant="no-data" compact title="No activity yet" desc="Actions across the ERP will stream here." />
+      ) : (
+        <div className="flex flex-col gap-0 relative">
+          <div className="absolute left-4 top-4 bottom-0 w-px bg-[#F3F4F6]" />
+          {data.map((item) => {
+            const Icon = (item.module && MODULE_ICON[item.module]) || RefreshCw;
+            const cfg = (item.module && MODULE_COLOR[item.module]) || { color: "#6B7280", bg: "#F3F4F6" };
+            return (
+              <div key={item.id} className="flex gap-3 pb-4 relative">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 ring-2 ring-white" style={{ backgroundColor: cfg.bg }}>
+                  <Icon size={13} style={{ color: cfg.color }} />
+                </div>
+                <div className="flex-1 pt-1 min-w-0">
+                  <p className="text-[11px] text-[#374151] leading-snug">
+                    {item.actor && <span className="font-semibold">{item.actor} </span>}
+                    <span className="text-[#9CA3AF]">{item.action.toLowerCase().replace(/_/g, " ")}</span>
+                    {item.target && <span className="font-medium text-[#111827]"> · {item.target}</span>}
+                  </p>
+                  <p className="text-[9px] text-[#9CA3AF] mt-0.5">{relAge(item.createdAt)} ago</p>
+                </div>
               </div>
-              <div className="flex-1 pt-1 min-w-0">
-                <p className="text-[11px] text-[#374151] leading-snug">
-                  <span className="font-semibold">{item.actor}</span>{" "}
-                  <span className="text-[#9CA3AF]">{item.action}</span>{" "}
-                  <span className="font-medium text-[#111827]">{item.target}</span>
-                </p>
-                <p className="text-[9px] text-[#9CA3AF] mt-0.5">{item.time}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </Card>
   );
 }
 
-// ─── Bookings Table ───────────────────────────────────────────────────────────
-function BookingsTable() {
-  const [sortField, setSortField] = useState<string | null>(null);
-
-  const SERVICE_COLOR: Record<string, string> = {
-    Umrah: "#F15A24", Hajj: "#1B75BC", Visa: "#7C3AED",
-    Air: "#2563EB", Tour: "#EA580C",
-  };
-
+// ─── Bookings table ──────────────────────────────────────────────────────────────
+function BookingsTable({ data }: { data: DashboardBooking[] }) {
   return (
     <Card>
-      <SectionHeader
-        title="Latest Bookings"
-        sub={`${RECENT_BOOKINGS.length} most recent · All branches`}
-        action={
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 text-[11px] text-[#374151] font-medium px-2.5 py-1.5 border border-[#E5E7EB] rounded-[7px] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
-              <Filter size={12} /> Filter
-            </button>
-            <button className="flex items-center gap-1 text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">
-              View all <ChevronRight size={12} />
-            </button>
-          </div>
-        }
-      />
-      <div className="overflow-x-auto -mx-5 px-5">
-        <table className="w-full min-w-[680px]">
-          <thead>
-            <tr className="border-b border-[#F3F4F6]">
-              {["Booking ID", "Pilgrim", "Service", "Package", "Agent", "Departure", "Amount", "Status"].map(h => (
-                <th key={h} className="text-left pb-2 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider pr-4 cursor-pointer hover:text-[#374151] transition-colors"
-                  onClick={() => setSortField(h)}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {RECENT_BOOKINGS.map((b, i) => (
-              <tr key={b.id} className="border-b border-[#F7F8FA] hover:bg-[#F7F8FA] transition-colors group cursor-pointer">
-                <td className="py-3 pr-4">
-                  <span className="text-[11px] font-bold text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.id}</span>
-                </td>
-                <td className="py-3 pr-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#1B75BC]/10 flex items-center justify-center text-[9px] font-black text-[#1B75BC]">
-                      {b.pilgrim[0]}
-                    </div>
-                    <span className="text-[11px] font-medium text-[#111827] whitespace-nowrap">{b.pilgrim}</span>
-                  </div>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: SERVICE_COLOR[b.service] || "#6B7280" }}>
-                    {b.service}
-                  </span>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-[11px] text-[#6B7280] whitespace-nowrap">{b.package}</span>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-[11px] text-[#6B7280] whitespace-nowrap">{b.agent}</span>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-[11px] text-[#374151]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.departure}</span>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtPrice(b.amount)}</span>
-                </td>
-                <td className="py-3">
-                  <StatusBadge status={b.status} />
-                </td>
+      <SectionHeader title="Latest Bookings" sub={`${data.length} most recent`} action={data.length > 0 ? viewAll : undefined} />
+      {data.length === 0 ? (
+        <EmptyState variant="no-data" title="No bookings yet" desc="New bookings will appear here as your team creates them." />
+      ) : (
+        <div className="overflow-x-auto -mx-5 px-5">
+          <table className="w-full min-w-[720px]">
+            <thead>
+              <tr className="border-b border-[#F3F4F6]">
+                {["Booking", "Customer", "Service", "Package", "Agent", "Departure", "Amount", "Status"].map((h) => (
+                  <th key={h} className="text-left pb-2 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider pr-4">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.map((b) => (
+                <tr key={b.id} className="border-b border-[#F7F8FA] hover:bg-[#F7F8FA] transition-colors group">
+                  <td className="py-3 pr-4">
+                    <span className="text-[11px] font-bold text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.bookingNo ?? "—"}</span>
+                  </td>
+                  <td className="py-3 pr-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#1B75BC]/10 flex items-center justify-center text-[9px] font-black text-[#1B75BC]">
+                        {(b.customerName ?? "?")[0]}
+                      </div>
+                      <span className="text-[11px] font-medium text-[#111827] whitespace-nowrap">{b.customerName ?? "—"}</span>
+                    </div>
+                  </td>
+                  <td className="py-3 pr-4">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white whitespace-nowrap" style={{ backgroundColor: SERVICE_COLOR[b.serviceType] || "#6B7280" }}>
+                      {SERVICE_LABEL[b.serviceType] ?? b.serviceType}
+                    </span>
+                  </td>
+                  <td className="py-3 pr-4"><span className="text-[11px] text-[#6B7280] whitespace-nowrap">{b.packageName ?? "—"}</span></td>
+                  <td className="py-3 pr-4"><span className="text-[11px] text-[#6B7280] whitespace-nowrap">{b.agentName ?? "Direct"}</span></td>
+                  <td className="py-3 pr-4"><span className="text-[11px] text-[#374151]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.departureDate ?? "—"}</span></td>
+                  <td className="py-3 pr-4"><span className="text-[11px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{formatAmount(b.amount, b.currency as "BDT")}</span></td>
+                  <td className="py-3"><StatusBadge status={b.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Card>
   );
 }
 
-// ─── Tasks ────────────────────────────────────────────────────────────────────
-function TasksPanel() {
-  const [tasks, setTasks] = useState(TASKS);
-  const toggle = (id: number) => setTasks(ts => ts.map(t => t.id === id ? { ...t, done: !t.done } : t));
-  const pending = tasks.filter(t => !t.done).length;
-
+// ─── My tasks (read-only in Phase 1 — task management lives in CRM/Ops) ──────────
+function TasksPanel({ data }: { data: DashboardTask[] }) {
   return (
     <Card>
-      <SectionHeader
-        title="Tasks & Reminders"
-        sub={`${pending} pending · ${tasks.length - pending} done`}
-        action={
-          <button className="flex items-center gap-1 text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">
-            <Plus size={12} /> Add task
-          </button>
-        }
-      />
-      <div className="flex flex-col gap-2">
-        {tasks.map(t => {
-          const pr = PRIORITY_CFG[t.priority];
-          return (
-            <div key={t.id}
-              className={cn("flex items-start gap-2.5 p-2.5 rounded-[8px] transition-colors group cursor-pointer",
-                t.done ? "opacity-50" : "hover:bg-[#F7F8FA]"
-              )}>
-              <button onClick={() => toggle(t.id)} className="mt-0.5 flex-shrink-0 cursor-pointer">
-                <div className={cn(
-                  "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
-                  t.done ? "bg-[#0E7C66] border-[#0E7C66]" : "border-[#D1D5DB] hover:border-[#1B75BC]"
-                )}>
-                  {t.done && <CheckCircle size={11} className="text-white" />}
-                </div>
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className={cn("text-[11px] leading-snug", t.done ? "line-through text-[#9CA3AF]" : "text-[#374151]")}>{t.title}</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-                    style={{ backgroundColor: `${pr.color}15`, color: pr.color }}>
-                    {pr.label}
-                  </span>
-                  <span className="text-[9px] px-1.5 py-0.5 bg-[#F3F4F6] rounded-full text-[#6B7280]">{t.cat}</span>
-                  <span className={cn("text-[9px] font-medium ml-auto flex items-center gap-0.5",
-                    t.due === "Overdue" ? "text-[#DC2626]" : t.due === "Today" ? "text-[#D64A12]" : "text-[#9CA3AF]"
-                  )}>
-                    <Clock size={9} /> {t.due}
-                  </span>
+      <SectionHeader title="My Tasks" sub={`${data.length} open`} />
+      {data.length === 0 ? (
+        <EmptyState variant="no-data" compact title="No open tasks" desc="Tasks assigned to you will appear here." />
+      ) : (
+        <div className="flex flex-col gap-2">
+          {data.map((t) => {
+            const pr = PRIORITY_CFG[t.priority] ?? PRIORITY_CFG.MEDIUM;
+            return (
+              <div key={t.id} className="flex items-start gap-2.5 p-2.5 rounded-[8px] hover:bg-[#F7F8FA] transition-colors">
+                <div className="mt-0.5 w-4 h-4 rounded border-2 border-[#D1D5DB] flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] leading-snug text-[#374151]">{t.title}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${pr.color}15`, color: pr.color }}>{pr.label}</span>
+                    {t.category && <span className="text-[9px] px-1.5 py-0.5 bg-[#F3F4F6] rounded-full text-[#6B7280]">{t.category}</span>}
+                    {t.dueAt && (
+                      <span className="text-[9px] font-medium ml-auto flex items-center gap-0.5 text-[#9CA3AF]">
+                        <Clock size={9} /> {t.dueAt.slice(0, 10)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </Card>
   );
 }
 
-// ─── Quick Actions ────────────────────────────────────────────────────────────
+// ─── Quick actions (navigation shortcuts) ────────────────────────────────────────
 function QuickActions() {
+  const navigate = useNavigate();
+  const actions = [
+    { icon: Plus, label: "New Booking", color: "#1B75BC", bg: "#EEF2FF", to: "/erp/bookings" },
+    { icon: Users, label: "Add Lead", color: "#F15A24", bg: "#FFF9E6", to: "/erp/crm" },
+    { icon: Receipt, label: "Create Invoice", color: "#0E7C66", bg: "#ECFDF5", to: "/erp/invoices" },
+    { icon: BarChart3, label: "Run Report", color: "#2563EB", bg: "#EFF6FF", to: "/erp/reports" },
+    { icon: Send, label: "Communications", color: "#7C3AED", bg: "#F5F3FF", to: "/erp/communications" },
+    { icon: Download, label: "Documents", color: "#6B7280", bg: "#F3F4F6", to: "/erp/documents" },
+  ];
   return (
     <Card>
       <SectionHeader title="Quick Actions" />
       <div className="grid grid-cols-2 gap-2">
-        {QUICK_ACTIONS.map(a => {
+        {actions.map((a) => {
           const Icon = a.icon;
           return (
-            <button key={a.label}
+            <button key={a.label} onClick={() => navigate(a.to)}
               className="flex flex-col items-center gap-2 p-3 rounded-[10px] border border-[#E5E7EB] hover:border-[#1B75BC]/30 hover:shadow-sm transition-all cursor-pointer group">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center transition-colors"
-                style={{ backgroundColor: a.bg }}>
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center" style={{ backgroundColor: a.bg }}>
                 <Icon size={17} style={{ color: a.color }} />
               </div>
               <span className="text-[10px] font-semibold text-[#374151] group-hover:text-[#1B75BC] transition-colors text-center leading-tight">{a.label}</span>
@@ -649,28 +470,35 @@ function QuickActions() {
   );
 }
 
-// ─── Page Header ──────────────────────────────────────────────────────────────
-function PageHeader({ branch, dateRange }: { branch: string; dateRange: string }) {
+// ─── Page header ─────────────────────────────────────────────────────────────────
+function PageHeader({
+  branchLabel, rangeLabel, updatedAt, onRefresh, refreshing,
+}: { branchLabel: string; rangeLabel: string; updatedAt?: number; onRefresh: () => void; refreshing: boolean }) {
+  const navigate = useNavigate();
   return (
     <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 className="text-[20px] font-black text-[#111827] leading-tight">Super Admin Dashboard</h1>
+        <h1 className="text-[20px] font-black text-[#111827] leading-tight">Dashboard</h1>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[11px] text-[#9CA3AF]">
-            {branch === "All Branches" ? "All 5 branches" : branch}
-          </span>
+          <span className="text-[11px] text-[#9CA3AF]">{branchLabel}</span>
           <span className="text-[#E5E7EB]">·</span>
-          <span className="text-[11px] text-[#9CA3AF]">{dateRange}</span>
-          <span className="text-[#E5E7EB]">·</span>
-          <span className="text-[11px] text-[#9CA3AF]">Last updated: just now</span>
-          <div className="w-1.5 h-1.5 rounded-full bg-[#0E7C66] animate-pulse" />
+          <span className="text-[11px] text-[#9CA3AF]">{rangeLabel}</span>
+          {updatedAt && (
+            <>
+              <span className="text-[#E5E7EB]">·</span>
+              <span className="text-[11px] text-[#9CA3AF]">Updated {relAge(new Date(updatedAt).toISOString())} ago</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#0E7C66]" />
+            </>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
-          <Download size={13} className="text-[#9CA3AF]" /> Export
+        <button onClick={onRefresh} disabled={refreshing}
+          className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer disabled:opacity-50">
+          <RefreshCw size={13} className={cn("text-[#9CA3AF]", refreshing && "animate-spin")} /> Refresh
         </button>
-        <button className="flex items-center gap-1.5 h-9 px-3 bg-[#1B75BC] rounded-[8px] text-[12px] font-semibold text-white hover:bg-[#14588F] transition-colors cursor-pointer">
+        <button onClick={() => navigate("/erp/bookings")}
+          className="flex items-center gap-1.5 h-9 px-3 bg-[#1B75BC] rounded-[8px] text-[12px] font-semibold text-white hover:bg-[#14588F] transition-colors cursor-pointer">
           <Plus size={13} /> New Booking
         </button>
       </div>
@@ -678,42 +506,59 @@ function PageHeader({ branch, dateRange }: { branch: string; dateRange: string }
   );
 }
 
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
+// ─── Main dashboard ──────────────────────────────────────────────────────────────
 export function SuperAdminDashboard() {
-  const { selectedBranch, dateRange } = useOutletContext<OutletCtx>();
+  const { branchId, branchLabel, dateRange } = useOutletContext<OutletCtx>();
+  const q = useDashboardSummary({ branchId, dateRange });
+  const data: DashboardSummary | undefined = q.data;
+  const rangeLabel = data?.applied.label ?? dateRange;
 
   return (
     <div className="p-5 md:p-7 min-h-screen">
-      <PageHeader branch={selectedBranch} dateRange={dateRange} />
+      <PageHeader
+        branchLabel={branchLabel}
+        rangeLabel={rangeLabel}
+        updatedAt={q.dataUpdatedAt || undefined}
+        onRefresh={() => q.refetch()}
+        refreshing={q.isFetching}
+      />
 
-      {/* KPI row */}
-      <KpiCards />
-
-      {/* Charts row 1: Revenue trend (2/3) + Service breakdown (1/3) */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
-        <div className="xl:col-span-2">
-          <RevenueChart />
+      {q.isError && (
+        <div className="mb-4">
+          <ErrorBanner message={q.error instanceof Error ? q.error.message : "Failed to load the dashboard."} onRetry={() => q.refetch()} />
         </div>
-        <ServiceBreakdown />
-      </div>
+      )}
 
-      {/* Charts row 2: Branch performance (1/2) + Lead funnel (1/2) */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-        <BranchPerformance />
-        <LeadFunnel />
-      </div>
+      <KpiCards kpis={data?.kpis} rangeLabel={rangeLabel} loading={q.isLoading} />
 
-      {/* Bottom row: Bookings table (full width) */}
-      <div className="mb-4">
-        <BookingsTable />
-      </div>
+      {data && (
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+            <div className="xl:col-span-2"><RevenueChart data={data.revenueTrend} rangeLabel={rangeLabel} /></div>
+            <ServiceBreakdown data={data.serviceBreakdown} />
+          </div>
 
-      {/* Bottom row: Activity (1/3) + Tasks (1/3) + Quick Actions (1/3) */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <ActivityFeed />
-        <TasksPanel />
-        <QuickActions />
-      </div>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+            <BranchPerformance data={data.branchPerformance} />
+            <LeadFunnel data={data.leadFunnel} />
+          </div>
+
+          <div className="mb-4"><BookingsTable data={data.recentBookings} /></div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <ActivityFeed data={data.activity} />
+            <TasksPanel data={data.myTasks} />
+            <QuickActions />
+          </div>
+        </>
+      )}
+
+      {q.isLoading && !data && (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="xl:col-span-2 h-64 bg-white border border-[#E5E7EB] rounded-[14px] animate-pulse" />
+          <div className="h-64 bg-white border border-[#E5E7EB] rounded-[14px] animate-pulse" />
+        </div>
+      )}
     </div>
   );
 }
