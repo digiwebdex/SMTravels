@@ -1,0 +1,54 @@
+{
+  "hero": {
+    "eyebrow": "Get in Touch",
+    "title": "Contact Us",
+    "subtitle": "We're here to help. Reach us via form, phone, or WhatsApp — 6 days a week."
+  },
+  "branches": {
+    "eyebrow": "Our Offices",
+    "title": "Branch Offices",
+    "headOffice": "Head Office"
+  },
+  "map": {
+    "label": "Interactive Map",
+    "caption": "32 Motijheel C/A, Dhaka — Head Office"
+  },
+  "form": {
+    "title": "Send Us a Message",
+    "subtitle": "We typically respond within 2 business hours.",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Your full name",
+    "email": "Email Address",
+    "emailPlaceholder": "email@example.com",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+880 1X XXX XXXXX",
+    "serviceNeeded": "Service Needed",
+    "selectService": "Select service",
+    "serviceOther": "Other",
+    "message": "Your Message",
+    "messagePlaceholder": "Tell us about your travel plans, preferred dates, number of travelers, any special requirements...",
+    "sending": "Sending…",
+    "send": "Send Message",
+    "errorRequired": "Name, phone number and a message are required.",
+    "errorFailed": "Something went wrong sending your message. Please try again, or call us directly."
+  },
+  "success": {
+    "title": "Message Sent!",
+    "text": "Thank you for reaching out. Our team will contact you within 2 business hours."
+  },
+  "quick": {
+    "title": "Quick Contact",
+    "hotline": "Hotline",
+    "whatsapp": "WhatsApp",
+    "email": "Email",
+    "officeHours": "Office Hours",
+    "officeDays": "Sunday – Thursday",
+    "officeTime": "9:00 AM – 6:00 PM",
+    "social": "Social Media"
+  },
+  "whatsappCard": {
+    "title": "Chat on WhatsApp",
+    "text": "Get instant help — average response under 5 minutes",
+    "cta": "Start Chat Now"
+  }
+}

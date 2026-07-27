@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import {
   CheckCircle, XCircle, ChevronDown, ChevronUp, ArrowRight,
   Star, MapPin, Clock, Phone, Shield, Plane, Hotel, Briefcase, Globe, Heart,
@@ -33,11 +34,12 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export function ServicePage({ serviceId }: { serviceId: string }) {
+  const { t } = useTranslation("servicesPage");
   const service = SERVICES.find(s => s.id === serviceId);
 
   if (!service) {
     return (
-      <div className="py-32 text-center text-[#6B7280]">Service not found.</div>
+      <div className="py-32 text-center text-[#6B7280]">{t("notFound")}</div>
     );
   }
 
@@ -63,11 +65,11 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
             <div className="flex flex-wrap gap-3">
               <Link to="/book" className="inline-flex items-center gap-2 px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#1B75BC]"
                 style={{ backgroundColor: service.color }}>
-                Book Now <ArrowRight size={14} />
+                {t("common:actions.bookNow")} <ArrowRight size={14} />
               </Link>
               <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/30 text-white font-bold rounded-[10px] text-sm hover:bg-white/20 transition-colors">
-                <Phone size={14} /> WhatsApp
+                <Phone size={14} /> {t("hero.whatsapp")}
               </a>
             </div>
           </div>
@@ -78,7 +80,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="max-w-3xl">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Overview</div>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("overview.eyebrow")}</div>
             <p className="text-[#374151] text-[15px] leading-relaxed">{service.description}</p>
           </div>
         </div>
@@ -88,8 +90,8 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">What's Included</div>
-            <h2 className="text-2xl font-black text-[#111827]">Why Choose Our {service.label}</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("features.eyebrow")}</div>
+            <h2 className="text-2xl font-black text-[#111827]">{t("features.heading", { service: service.label })}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {service.features.map(f => {
@@ -113,8 +115,8 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Packages & Pricing</div>
-            <h2 className="text-2xl font-black text-[#111827]">{service.label} Packages</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("packages.eyebrow")}</div>
+            <h2 className="text-2xl font-black text-[#111827]">{t("packages.heading", { service: service.label })}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {service.packages.map((pkg, i) => (
@@ -124,7 +126,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
               )}>
                 {i === 1 && (
                   <div className="bg-[#F15A24] text-[#1B75BC] text-center text-[11px] font-black py-1.5 uppercase tracking-wider">
-                    Most Popular
+                    {t("packages.mostPopular")}
                   </div>
                 )}
                 {pkg.badge && i !== 1 && (
@@ -136,7 +138,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
                   <h3 className="text-[16px] font-black text-[#111827] mb-1">{pkg.title}</h3>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-2xl font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</span>
-                    <span className="text-[12px] text-[#9CA3AF]">/ person</span>
+                    <span className="text-[12px] text-[#9CA3AF]">{t("packages.perPerson")}</span>
                   </div>
                   <div className="flex gap-3 text-[11px] text-[#9CA3AF] mb-4">
                     <span><Clock size={10} className="inline mr-0.5" />{pkg.duration}</span>
@@ -156,7 +158,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
                       ? "bg-[#F15A24] text-[#1B75BC] hover:bg-[#CC3C17]"
                       : "bg-[#1B75BC] text-white hover:bg-[#14588F]"
                   )}>
-                    Book This Package
+                    {t("packages.bookThis")}
                   </Link>
                 </div>
               </div>
@@ -169,8 +171,8 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       <section className="py-10 md:py-16 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">How It Works</div>
-            <h2 className="text-2xl font-black text-[#111827]">Step-by-Step Process</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("process.eyebrow")}</div>
+            <h2 className="text-2xl font-black text-[#111827]">{t("process.heading")}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {service.process.map(step => (
@@ -195,7 +197,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <div>
               <h3 className="text-[18px] font-black text-[#111827] mb-5 flex items-center gap-2">
-                <CheckCircle size={20} className="text-[#0E7C66]" /> What's Included
+                <CheckCircle size={20} className="text-[#0E7C66]" /> {t("includes.included")}
               </h3>
               <ul className="flex flex-col gap-2.5">
                 {service.includes.map(i => (
@@ -208,7 +210,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
             </div>
             <div>
               <h3 className="text-[18px] font-black text-[#111827] mb-5 flex items-center gap-2">
-                <XCircle size={20} className="text-[#DC2626]" /> What's Excluded
+                <XCircle size={20} className="text-[#DC2626]" /> {t("includes.excluded")}
               </h3>
               <ul className="flex flex-col gap-2.5">
                 {service.excludes.map(e => (
@@ -228,8 +230,8 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
         <section className="py-10 md:py-16 bg-[#F7F8FA]">
           <div className="max-w-[800px] mx-auto px-4 md:px-6">
             <div className="text-center mb-10">
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">FAQ</div>
-              <h2 className="text-2xl font-black text-[#111827]">Frequently Asked Questions</h2>
+              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("faq.eyebrow")}</div>
+              <h2 className="text-2xl font-black text-[#111827]">{t("faq.heading")}</h2>
             </div>
             <div className="flex flex-col gap-3">
               {service.faqs.map(f => (
@@ -243,19 +245,19 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
       {/* ── ENQUIRY CTA ── */}
       <section className="py-10 md:py-16 bg-[#1B75BC] text-white text-center">
         <div className="max-w-lg mx-auto px-4 md:px-6">
-          <h2 className="text-2xl font-black mb-3">Ready to Book {service.label}?</h2>
-          <p className="text-white/60 text-sm mb-7">Contact us today — our specialists will guide you through the entire process.</p>
+          <h2 className="text-2xl font-black mb-3">{t("cta.heading", { service: service.label })}</h2>
+          <p className="text-white/60 text-sm mb-7">{t("cta.subtitle")}</p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link to="/book" className="px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#1B75BC]"
               style={{ backgroundColor: service.color }}>
-              Start Booking
+              {t("cta.startBooking")}
             </Link>
             <Link to="/contact" className="px-6 py-3 border-2 border-white/30 text-white font-bold rounded-[10px] text-sm hover:border-white/60 transition-colors">
-              Make Enquiry
+              {t("cta.makeEnquiry")}
             </Link>
             <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
               className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-[10px] text-sm hover:bg-[#1da855] transition-colors">
-              WhatsApp Us
+              {t("common:actions.whatsapp")}
             </a>
           </div>
         </div>

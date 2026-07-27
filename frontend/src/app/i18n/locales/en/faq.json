@@ -1,0 +1,27 @@
+{
+  "hero": {
+    "eyebrow": "Help Center",
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to the most common questions about our services.",
+    "searchPlaceholder": "Search questions..."
+  },
+  "categories": {
+    "Hajj & Umrah": "Hajj & Umrah",
+    "Visa Services": "Visa Services",
+    "Packages & Booking": "Packages & Booking",
+    "Payment & Finance": "Payment & Finance",
+    "General": "General"
+  },
+  "results": {
+    "found_one": "Found <c>{{count}}</c> result for \"<q>{{query}}</q>\"",
+    "found_other": "Found <c>{{count}}</c> results for \"<q>{{query}}</q>\"",
+    "noneTitle": "No results found for \"{{query}}\"",
+    "noneHint": "Try different keywords or contact our support team"
+  },
+  "cta": {
+    "title": "Still have questions?",
+    "text": "Our team is available 6 days a week to help you.",
+    "contact": "Contact Us",
+    "callHotline": "Call Hotline"
+  }
+}

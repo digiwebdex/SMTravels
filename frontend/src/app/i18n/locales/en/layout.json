@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "ourServices": "Our Services"
+  },
+  "serviceNav": {
+    "hajj":      { "label": "Hajj Management", "desc": "Govt-approved Hajj packages" },
+    "umrah":     { "label": "Umrah Packages",  "desc": "Year-round Umrah services" },
+    "visa":      { "label": "Visa Services",   "desc": "50+ countries worldwide" },
+    "airTicket": { "label": "Air Tickets",     "desc": "Best fares guaranteed" },
+    "manpower":  { "label": "Manpower",        "desc": "International recruitment" },
+    "tour":      { "label": "Tour Packages",   "desc": "Curated world tours" },
+    "hotel":     { "label": "Hotel Booking",   "desc": "Premium accommodations" }
+  },
+  "services": {
+    "viewAllPackages": "View All Packages",
+    "viewAllSub": "Hajj, Umrah, Tour & more"
+  },
+  "aria": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "whatsapp": "Chat on WhatsApp"
+  },
+  "mobile": {
+    "customerLogin": "Customer Login"
+  },
+  "drawer": {
+    "hotline": "Hotline",
+    "hours": "Sun–Thu 9AM–6PM"
+  },
+  "whatsapp": {
+    "tooltip": "💬 Chat on WhatsApp",
+    "label": "WhatsApp"
+  },
+  "footer": {
+    "tagline": "Your Trusted Travel Partner Since 1998",
+    "about": "Bangladesh's most trusted Hajj, Umrah & travel management company. Government-approved, ATAB licensed.",
+    "badges": { "atab": "ATAB Member", "govt": "Govt. Approved", "iso": "ISO Certified" },
+    "quickLinks": "Quick Links",
+    "links": {
+      "aboutUs": "About Us",
+      "allPackages": "All Packages",
+      "contactUs": "Contact Us",
+      "bookOnline": "Book Online"
+    },
+    "address": "32 Motijheel C/A, Dhaka-1000",
+    "hours": "Sun–Thu: 9AM – 6PM",
+    "newsletter": { "heading": "Get Travel Updates", "placeholder": "your@email.com" },
+    "copyright": "© 2025 SMTravel International Ltd. All rights reserved.",
+    "legal": { "privacy": "Privacy Policy", "terms": "Terms", "refund": "Refund Policy" },
+    "sitemap": "Sitemap",
+    "designSystem": "Design System",
+    "license": "ATAB License No. 0123 | Civil Aviation Approved"
+  }
+}

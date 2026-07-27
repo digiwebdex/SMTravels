@@ -5,8 +5,10 @@ import {
   Briefcase, Hotel, Phone, Mail, Facebook, Instagram, Youtube,
   Twitter, ChevronRight, Clock, MessageCircle, ArrowRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
+import { useLang } from "../i18n/useLang";
 
 // ─── WhatsApp Icon ────────────────────────────────────────────────────────────
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
@@ -18,24 +20,26 @@ function WhatsAppIcon({ size = 24 }: { size?: number }) {
   );
 }
 
+// `labelKey`/`descKey` resolve in the "layout" namespace; `label` kept as a
+// stable lookup id (see desktop nav) — display text always comes from t().
 const SERVICE_NAV = [
-  { label: "Hajj Management",  path: "/hajj",          icon: Star,     desc: "Govt-approved Hajj packages", color: "#F15A24" },
-  { label: "Umrah Packages",   path: "/umrah",         icon: MapPin,   desc: "Year-round Umrah services",   color: "#1B75BC" },
-  { label: "Visa Services",    path: "/visa",          icon: Shield,   desc: "50+ countries worldwide",      color: "#0E7C66" },
-  { label: "Air Tickets",      path: "/air-ticket",    icon: Plane,    desc: "Best fares guaranteed",        color: "#2563EB" },
-  { label: "Manpower",         path: "/manpower",      icon: Briefcase,desc: "International recruitment",   color: "#7C3AED" },
-  { label: "Tour Packages",    path: "/tour-packages", icon: Globe,    desc: "Curated world tours",          color: "#EA580C" },
-  { label: "Hotel Booking",    path: "/hotel-booking", icon: Hotel,    desc: "Premium accommodations",       color: "#0891B2" },
+  { label: "Hajj Management",  labelKey: "serviceNav.hajj.label",      descKey: "serviceNav.hajj.desc",      path: "/hajj",          icon: Star,     color: "#F15A24" },
+  { label: "Umrah Packages",   labelKey: "serviceNav.umrah.label",     descKey: "serviceNav.umrah.desc",     path: "/umrah",         icon: MapPin,   color: "#1B75BC" },
+  { label: "Visa Services",    labelKey: "serviceNav.visa.label",      descKey: "serviceNav.visa.desc",      path: "/visa",          icon: Shield,   color: "#0E7C66" },
+  { label: "Air Tickets",      labelKey: "serviceNav.airTicket.label", descKey: "serviceNav.airTicket.desc", path: "/air-ticket",    icon: Plane,    color: "#2563EB" },
+  { label: "Manpower",         labelKey: "serviceNav.manpower.label",  descKey: "serviceNav.manpower.desc",  path: "/manpower",      icon: Briefcase,color: "#7C3AED" },
+  { label: "Tour Packages",    labelKey: "serviceNav.tour.label",      descKey: "serviceNav.tour.desc",      path: "/tour-packages", icon: Globe,    color: "#EA580C" },
+  { label: "Hotel Booking",    labelKey: "serviceNav.hotel.label",     descKey: "serviceNav.hotel.desc",     path: "/hotel-booking", icon: Hotel,    color: "#0891B2" },
 ];
 
 const MAIN_NAV = [
-  { label: "Home",     path: "/" },
-  { label: "About",    path: "/about" },
-  { label: "Packages", path: "/packages" },
-  { label: "Blog",     path: "/blog" },
-  { label: "Gallery",  path: "/gallery" },
-  { label: "FAQ",      path: "/faq" },
-  { label: "Contact",  path: "/contact" },
+  { label: "Home",     i18nKey: "common:nav.home",     path: "/" },
+  { label: "About",    i18nKey: "common:nav.about",    path: "/about" },
+  { label: "Packages", i18nKey: "common:nav.packages", path: "/packages" },
+  { label: "Blog",     i18nKey: "common:nav.blog",     path: "/blog" },
+  { label: "Gallery",  i18nKey: "common:nav.gallery",  path: "/gallery" },
+  { label: "FAQ",      i18nKey: "common:nav.faq",      path: "/faq" },
+  { label: "Contact",  i18nKey: "common:nav.contact",  path: "/contact" },
 ];
 
 // ─── HEADER ──────────────────────────────────────────────────────────────────
@@ -44,7 +48,8 @@ export function Header() {
   const [servicesOpen,  setServicesOpen]  = useState(false);
   const [drawerOpen,    setDrawerOpen]    = useState(false);
   const [servicesExpanded, setServicesExpanded] = useState(false);
-  const [lang,          setLang]          = useState("EN");
+  const { t } = useTranslation("layout");
+  const { lang, toggle } = useLang();
   const location = useLocation();
 
   /* scroll shadow */
@@ -93,7 +98,7 @@ export function Header() {
                   className={cn("px-3 py-2 rounded-[8px] text-[13px] font-medium transition-colors",
                     isActive(item.path) ? "text-[#1B75BC] bg-[#1B75BC]/8 font-semibold" : "text-[#374151] hover:text-[#1B75BC] hover:bg-[#F3F4F6]"
                   )}>
-                  {label}
+                  {t(item.i18nKey)}
                 </Link>
               );
             })}
@@ -104,7 +109,7 @@ export function Header() {
                 "flex items-center gap-1 px-3 py-2 rounded-[8px] text-[13px] font-medium transition-colors cursor-pointer",
                 isServiceActive ? "text-[#1B75BC] bg-[#1B75BC]/8 font-semibold" : "text-[#374151] hover:text-[#1B75BC] hover:bg-[#F3F4F6]"
               )}>
-                Services <ChevronDown size={13} className={cn("transition-transform duration-200", servicesOpen && "rotate-180")} />
+                {t("common:nav.services")} <ChevronDown size={13} className={cn("transition-transform duration-200", servicesOpen && "rotate-180")} />
               </button>
               {servicesOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[560px] bg-white rounded-[16px] shadow-2xl border border-[#E5E7EB] p-4 z-50">
@@ -118,8 +123,8 @@ export function Header() {
                             <Icon size={17} style={{ color: s.color }} />
                           </div>
                           <div>
-                            <div className="text-[13px] font-semibold text-[#111827] group-hover:text-[#1B75BC] transition-colors">{s.label}</div>
-                            <div className="text-[11px] text-[#9CA3AF]">{s.desc}</div>
+                            <div className="text-[13px] font-semibold text-[#111827] group-hover:text-[#1B75BC] transition-colors">{t(s.labelKey)}</div>
+                            <div className="text-[11px] text-[#9CA3AF]">{t(s.descKey)}</div>
                           </div>
                         </Link>
                       );
@@ -128,8 +133,8 @@ export function Header() {
                   <div className="mt-3 pt-3 border-t border-[#F3F4F6]">
                     <Link to="/packages" className="flex items-center justify-between p-3 bg-[#1B75BC] rounded-[10px] hover:bg-[#14588F] transition-colors">
                       <div>
-                        <div className="text-[13px] font-bold text-white">View All Packages</div>
-                        <div className="text-[11px] text-white/60">Hajj, Umrah, Tour & more</div>
+                        <div className="text-[13px] font-bold text-white">{t("services.viewAllPackages")}</div>
+                        <div className="text-[11px] text-white/60">{t("services.viewAllSub")}</div>
                       </div>
                       <ArrowRight size={16} className="text-[#D64A12]" />
                     </Link>
@@ -143,7 +148,7 @@ export function Header() {
                 className={cn("px-3 py-2 rounded-[8px] text-[13px] font-medium transition-colors",
                   isActive(item.path) ? "text-[#1B75BC] bg-[#1B75BC]/8 font-semibold" : "text-[#374151] hover:text-[#1B75BC] hover:bg-[#F3F4F6]"
                 )}>
-                {item.label}
+                {t(item.i18nKey)}
               </Link>
             ))}
           </nav>
@@ -151,34 +156,34 @@ export function Header() {
           {/* Right actions */}
           <div className="flex items-center gap-1.5 md:gap-2 ml-auto lg:ml-0">
             {/* Language — tablet+ */}
-            <button onClick={() => setLang(l => l === "EN" ? "বাং" : "EN")}
+            <button onClick={toggle}
               className="hidden md:flex items-center gap-1.5 px-2.5 py-2 border border-[#E5E7EB] rounded-[8px] text-[12px] font-semibold text-[#374151] hover:border-[#1B75BC] transition-all cursor-pointer min-h-[40px]">
-              <Globe size={13} className="text-[#9CA3AF]" /> {lang}
+              <Globe size={13} className="text-[#9CA3AF]" /> {lang === "bn" ? "বাংলা" : "EN"}
             </button>
 
             {/* Login — desktop only */}
             <Link to="/login"
               className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] text-[12px] font-bold rounded-[8px] hover:bg-[#1B75BC]/5 transition-all min-h-[40px]">
-              Login
+              {t("common:actions.login")}
             </Link>
 
             {/* Agent Register — tablet+ */}
             <Link to="/register"
               className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F15A24] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#CC3C17] transition-all min-h-[40px]">
-              Agent Register
+              {t("common:actions.agentRegister")}
             </Link>
 
             {/* Book Now — desktop */}
             <Link to="/book"
               className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#14588F] transition-all min-h-[40px]">
-              Book Now
+              {t("common:actions.bookNow")}
             </Link>
 
             {/* Hamburger — visible below lg */}
             <button
               onClick={() => setDrawerOpen(v => !v)}
               className="lg:hidden flex items-center justify-center w-11 h-11 rounded-[8px] text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer flex-shrink-0"
-              aria-label={drawerOpen ? "Close menu" : "Open menu"}
+              aria-label={drawerOpen ? t("aria.closeMenu") : t("aria.openMenu")}
             >
               {drawerOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -225,7 +230,7 @@ export function Header() {
                     "flex items-center gap-3 px-4 py-3.5 rounded-[10px] text-[14px] font-medium transition-colors min-h-[48px]",
                     isActive(item.path) ? "bg-[#1B75BC] text-white font-semibold" : "text-[#374151] hover:bg-[#F3F4F6]"
                   )}>
-                  {item.label}
+                  {t(item.i18nKey)}
                 </Link>
               ))}
             </div>
@@ -236,7 +241,7 @@ export function Header() {
                 onClick={() => setServicesExpanded(v => !v)}
                 className="w-full flex items-center justify-between px-4 py-3 text-[13px] font-bold text-[#9CA3AF] uppercase tracking-widest cursor-pointer"
               >
-                Our Services
+                {t("nav.ourServices")}
                 <ChevronDown size={14} className={cn("transition-transform text-[#9CA3AF]", servicesExpanded && "rotate-180")} />
               </button>
               {servicesExpanded && (
@@ -248,8 +253,8 @@ export function Header() {
                         <s.icon size={15} style={{ color: s.color }} />
                       </div>
                       <div>
-                        <div className="font-semibold">{s.label}</div>
-                        <div className="text-[11px] text-[#9CA3AF]">{s.desc}</div>
+                        <div className="font-semibold">{t(s.labelKey)}</div>
+                        <div className="text-[11px] text-[#9CA3AF]">{t(s.descKey)}</div>
                       </div>
                     </Link>
                   ))}
@@ -261,17 +266,17 @@ export function Header() {
             <div className="border-t border-[#F3F4F6] pt-3 flex flex-col gap-2 px-1">
               <Link to="/login"
                 className="flex items-center justify-center min-h-[48px] border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-[14px] hover:bg-[#1B75BC]/5 transition-colors">
-                Customer Login
+                {t("mobile.customerLogin")}
               </Link>
               <Link to="/register"
                 className="flex items-center justify-center min-h-[48px] bg-[#F15A24] text-white font-bold rounded-[10px] text-[14px] hover:bg-[#CC3C17] transition-colors">
-                Agent Register
+                {t("common:actions.agentRegister")}
               </Link>
               <button
-                onClick={() => setLang(l => l === "EN" ? "বাং" : "EN")}
+                onClick={toggle}
                 className="flex items-center justify-center gap-2 min-h-[44px] border border-[#E5E7EB] text-[#374151] font-semibold rounded-[10px] text-[13px] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
                 <Globe size={14} className="text-[#9CA3AF]" />
-                {lang === "EN" ? "Switch to বাংলা" : "Switch to English"}
+                {lang === "en" ? t("common:lang.switchToBn") : t("common:lang.switchToEn")}
               </button>
             </div>
           </div>
@@ -280,8 +285,8 @@ export function Header() {
         {/* Drawer footer */}
         <div className="border-t border-[#F3F4F6] px-4 py-3 flex-shrink-0 bg-[#F7F8FA]">
           <div className="text-[10px] text-[#9CA3AF] text-center">
-            Hotline: <a href="tel:+88029553421" className="text-[#1B75BC] font-bold">+880 2 9553421</a>
-            {" · "}Sun–Thu 9AM–6PM
+            {t("drawer.hotline")}: <a href="tel:+88029553421" className="text-[#1B75BC] font-bold">+880 2 9553421</a>
+            {" · "}{t("drawer.hours")}
           </div>
         </div>
       </div>
@@ -294,6 +299,7 @@ export function Header() {
 
 // ─── FOOTER ──────────────────────────────────────────────────────────────────
 export function Footer() {
+  const { t } = useTranslation("layout");
   const [email, setEmail] = useState("");
 
   return (
@@ -306,15 +312,15 @@ export function Footer() {
             <div className="flex items-center gap-3 mb-5">
               <BrandLogo variant="tile" className="w-11 h-11" />
               <div>
-                <div className="text-[17px] font-black leading-tight">SM Travels International</div>
-                <div className="text-[11px] text-white/50 tracking-wide">Your Trusted Travel Partner Since 1998</div>
+                <div className="text-[17px] font-black leading-tight">{t("common:brand.name")}</div>
+                <div className="text-[11px] text-white/50 tracking-wide">{t("footer.tagline")}</div>
               </div>
             </div>
             <p className="text-[13px] text-white/60 leading-relaxed mb-5 max-w-xs">
-              Bangladesh's most trusted Hajj, Umrah & travel management company. Government-approved, ATAB licensed.
+              {t("footer.about")}
             </p>
             <div className="flex flex-wrap gap-2 mb-5">
-              {["ATAB Member", "Govt. Approved", "ISO Certified"].map(b => (
+              {[t("footer.badges.atab"), t("footer.badges.govt"), t("footer.badges.iso")].map(b => (
                 <span key={b} className="text-[10px] font-bold px-2.5 py-1 bg-white/10 rounded-full text-white/70 border border-white/15">{b}</span>
               ))}
             </div>
@@ -329,21 +335,21 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">Quick Links</h4>
+            <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">{t("footer.quickLinks")}</h4>
             <ul className="flex flex-col gap-2.5">
               {[
-                { label: "Home",          path: "/" },
-                { label: "About Us",      path: "/about" },
-                { label: "All Packages",  path: "/packages" },
-                { label: "Blog",          path: "/blog" },
-                { label: "Gallery",       path: "/gallery" },
-                { label: "FAQ",           path: "/faq" },
-                { label: "Contact Us",    path: "/contact" },
-                { label: "Book Online",   path: "/book" },
+                { i18nKey: "common:nav.home",          path: "/" },
+                { i18nKey: "footer.links.aboutUs",     path: "/about" },
+                { i18nKey: "footer.links.allPackages", path: "/packages" },
+                { i18nKey: "common:nav.blog",          path: "/blog" },
+                { i18nKey: "common:nav.gallery",       path: "/gallery" },
+                { i18nKey: "common:nav.faq",           path: "/faq" },
+                { i18nKey: "footer.links.contactUs",   path: "/contact" },
+                { i18nKey: "footer.links.bookOnline",  path: "/book" },
               ].map(l => (
                 <li key={l.path}>
                   <Link to={l.path} className="text-[13px] text-white/60 hover:text-[#D64A12] transition-colors flex items-center gap-1.5">
-                    <ChevronRight size={11} className="text-white/30" /> {l.label}
+                    <ChevronRight size={11} className="text-white/30" /> {t(l.i18nKey)}
                   </Link>
                 </li>
               ))}
@@ -352,12 +358,12 @@ export function Footer() {
 
           {/* Services */}
           <div>
-            <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">Services</h4>
+            <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">{t("common:nav.services")}</h4>
             <ul className="flex flex-col gap-2.5">
               {SERVICE_NAV.map(s => (
                 <li key={s.path}>
                   <Link to={s.path} className="text-[13px] text-white/60 hover:text-[#D64A12] transition-colors flex items-center gap-1.5">
-                    <ChevronRight size={11} className="text-white/30" /> {s.label}
+                    <ChevronRight size={11} className="text-white/30" /> {t(s.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -366,11 +372,11 @@ export function Footer() {
 
           {/* Contact & Newsletter */}
           <div>
-            <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">Contact</h4>
+            <h4 className="text-[12px] font-bold uppercase tracking-widest text-white/40 mb-4">{t("common:nav.contact")}</h4>
             <ul className="flex flex-col gap-3 mb-5">
               <li className="flex items-start gap-2 text-[13px] text-white/60">
                 <MapPin size={13} className="text-[#D64A12] flex-shrink-0 mt-0.5" />
-                32 Motijheel C/A, Dhaka-1000
+                {t("footer.address")}
               </li>
               <li><a href="tel:+88029553421" className="flex items-center gap-2 text-[13px] text-white/60 hover:text-white transition-colors">
                 <Phone size={13} className="text-[#D64A12]" /> +880 2 9553421
@@ -379,15 +385,15 @@ export function Footer() {
                 <Mail size={13} className="text-[#D64A12]" /> info@smtravel.com.bd
               </a></li>
               <li className="flex items-center gap-2 text-[13px] text-white/60">
-                <Clock size={13} className="text-[#D64A12]" /> Sun–Thu: 9AM – 6PM
+                <Clock size={13} className="text-[#D64A12]" /> {t("footer.hours")}
               </li>
             </ul>
             {/* Newsletter */}
             <div>
-              <div className="text-[12px] font-bold text-white/70 mb-2">Get Travel Updates</div>
+              <div className="text-[12px] font-bold text-white/70 mb-2">{t("footer.newsletter.heading")}</div>
               <div className="flex gap-2">
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder={t("footer.newsletter.placeholder")}
                   className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-[8px] text-[12px] text-white placeholder-white/30 outline-none focus:border-[#F15A24] transition-all" />
                 <button onClick={() => setEmail("")}
                   className="w-9 h-9 flex-shrink-0 bg-[#F15A24] hover:bg-[#CC3C17] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
@@ -402,15 +408,15 @@ export function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-[11px] text-white/40">© 2025 SMTravel International Ltd. All rights reserved.</div>
+          <div className="text-[11px] text-white/40">{t("footer.copyright")}</div>
           <div className="flex items-center gap-3 md:gap-4 flex-wrap">
-            {["Privacy Policy","Terms","Refund Policy"].map(l => (
+            {[t("footer.legal.privacy"), t("footer.legal.terms"), t("footer.legal.refund")].map(l => (
               <a key={l} href="#" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{l}</a>
             ))}
-            <Link to="/sitemap" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">Sitemap</Link>
-            <Link to="/ds" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">Design System</Link>
+            <Link to="/sitemap" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.sitemap")}</Link>
+            <Link to="/ds" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.designSystem")}</Link>
           </div>
-          <div className="text-[10px] text-white/30 w-full md:w-auto">ATAB License No. 0123 | Civil Aviation Approved</div>
+          <div className="text-[10px] text-white/30 w-full md:w-auto">{t("footer.license")}</div>
         </div>
       </div>
     </footer>
@@ -419,19 +425,20 @@ export function Footer() {
 
 // ─── WHATSAPP FLOAT (desktop/tablet only — mobile uses bottom bar) ────────────
 function WhatsAppFloat() {
+  const { t } = useTranslation("layout");
   const [tip, setTip] = useState(false);
   return (
     <div className="hidden md:flex fixed bottom-6 right-6 z-40 flex-col items-end gap-2">
       {tip && (
         <div className="bg-white rounded-[12px] shadow-xl border border-[#E5E7EB] px-3 py-2 text-[12px] font-medium text-[#374151] whitespace-nowrap">
-          💬 Chat on WhatsApp
+          {t("whatsapp.tooltip")}
         </div>
       )}
       <a href="https://wa.me/8801712345678?text=Hello%20SMTravel"
         target="_blank" rel="noopener noreferrer"
         onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}
         className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all"
-        aria-label="Chat on WhatsApp">
+        aria-label={t("aria.whatsapp")}>
         <WhatsAppIcon size={26} />
       </a>
     </div>
@@ -440,6 +447,7 @@ function WhatsAppFloat() {
 
 // ─── MOBILE STICKY BOTTOM BAR ─────────────────────────────────────────────────
 function MobileBottomBar() {
+  const { t } = useTranslation("layout");
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E5E7EB] px-4 py-3 safe-area-inset-bottom">
       <div className="flex gap-3">
@@ -448,12 +456,12 @@ function MobileBottomBar() {
           target="_blank" rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#25D366] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#1da855] transition-colors">
           <WhatsAppIcon size={18} />
-          WhatsApp
+          {t("whatsapp.label")}
         </a>
         {/* Book Now */}
         <Link to="/book"
           className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#1B75BC] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#14588F] transition-colors">
-          Book Now
+          {t("common:actions.bookNow")}
         </Link>
       </div>
     </div>

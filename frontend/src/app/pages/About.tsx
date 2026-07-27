@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import { CheckCircle, Award, Users, Globe, Shield, Target, Heart, ArrowRight, Star } from "lucide-react";
 import { img } from "../lib/utils";
 
@@ -31,6 +32,7 @@ const CERTS = [
 ];
 
 export function About() {
+  const { t } = useTranslation("about");
   return (
     <>
       {/* ── HERO ── */}
@@ -40,10 +42,10 @@ export function About() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/95 to-[#1B75BC]/70" />
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="max-w-xl">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Company Profile</div>
-            <h1 className="text-4xl font-black text-white mb-4">About SMTravel International</h1>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("hero.eyebrow")}</div>
+            <h1 className="text-4xl font-black text-white mb-4">{t("hero.heading")}</h1>
             <p className="text-white/70 leading-relaxed text-sm">
-              Bangladesh's most trusted Hajj, Umrah & travel management company — serving pilgrims and travelers with integrity since 1998.
+              {t("hero.subtitle")}
             </p>
           </div>
         </div>
@@ -53,8 +55,8 @@ export function About() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Our Story</div>
-            <h2 className="text-3xl font-black text-[#111827] mb-5">A Legacy Built on Trust</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("story.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827] mb-5">{t("story.heading")}</h2>
             <div className="flex flex-col gap-4 text-[13px] text-[#374151] leading-relaxed">
               <p>
                 SMTravel International was founded in 1998 in Dhaka's Motijheel commercial district with a single mission: to make the sacred Hajj pilgrimage accessible, affordable, and stress-free for every Bangladeshi Muslim.
@@ -69,10 +71,10 @@ export function About() {
 
             <div className="flex gap-6 mt-8">
               {[
-                { n: "25+", l: "Years" },
-                { n: "10K+", l: "Pilgrims" },
-                { n: "50+", l: "Countries" },
-                { n: "4", l: "Branches" },
+                { n: "25+", l: t("stats.years") },
+                { n: "10K+", l: t("stats.pilgrims") },
+                { n: "50+", l: t("stats.countries") },
+                { n: "4", l: t("stats.branches") },
               ].map(i => (
                 <div key={i.l} className="text-center">
                   <div className="text-2xl font-black text-[#1B75BC]">{i.n}</div>
@@ -93,28 +95,28 @@ export function About() {
       <section className="py-12 md:py-20 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Foundation</div>
-            <h2 className="text-3xl font-black text-[#111827]">Mission, Vision & Values</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("foundation.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827]">{t("foundation.heading")}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 icon: Target,
-                title: "Our Mission",
+                title: t("mission.title"),
                 color: "#1B75BC",
                 bg: "#EEF2FF",
                 text: "To provide the highest quality Hajj, Umrah and travel services that honor the sacred trust our clients place in us — with transparency, professionalism, and genuine care for every pilgrim's journey.",
               },
               {
                 icon: Globe,
-                title: "Our Vision",
+                title: t("vision.title"),
                 color: "#0E7C66",
                 bg: "#ECFDF5",
                 text: "To be South Asia's most respected Islamic travel management company — setting the benchmark for pilgrimage services, traveler safety, and community trust by 2030.",
               },
               {
                 icon: Heart,
-                title: "Our Values",
+                title: t("values.title"),
                 color: "#DC2626",
                 bg: "#FEF2F2",
                 text: "Integrity, Compassion, Excellence, Accountability. We treat every pilgrim as family, every journey as sacred, and every promise as a covenant.",
@@ -136,8 +138,8 @@ export function About() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[900px] mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Journey</div>
-            <h2 className="text-3xl font-black text-[#111827]">25 Years of Milestones</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("milestones.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827]">{t("milestones.heading")}</h2>
           </div>
           <div className="relative">
             <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-[#E5E7EB] -translate-x-1/2" />
@@ -165,8 +167,8 @@ export function About() {
       <section className="py-12 md:py-20 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Certifications & Accreditations</div>
-            <h2 className="text-3xl font-black text-[#111827]">Licensed & Trusted</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("certs.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827]">{t("certs.heading")}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {CERTS.map(c => (
@@ -183,8 +185,8 @@ export function About() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Our Leadership</div>
-            <h2 className="text-3xl font-black text-[#111827]">Meet the Team</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("team.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827]">{t("team.heading")}</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {TEAM.map(t => (
@@ -205,14 +207,14 @@ export function About() {
       <section className="py-10 md:py-16 bg-[#1B75BC] text-white text-center">
         <div className="max-w-xl mx-auto px-4 md:px-6">
           <Star size={32} className="text-[#D64A12] mx-auto mb-4" fill="currentColor" />
-          <h2 className="text-2xl font-black mb-3">Ready to Begin Your Journey?</h2>
-          <p className="text-white/60 text-sm mb-7">Speak with our travel experts today. No obligation, just honest advice.</p>
+          <h2 className="text-2xl font-black mb-3">{t("cta.heading")}</h2>
+          <p className="text-white/60 text-sm mb-7">{t("cta.subtitle")}</p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link to="/contact" className="px-6 py-3 bg-[#F15A24] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#CC3C17] transition-colors">
-              Contact Us
+              {t("cta.contact")}
             </Link>
             <Link to="/packages" className="px-6 py-3 border-2 border-white/30 text-white font-bold rounded-[10px] text-sm hover:border-white/50 transition-colors">
-              View Packages <ArrowRight size={14} className="inline ml-1" />
+              {t("cta.viewPackages")} <ArrowRight size={14} className="inline ml-1" />
             </Link>
           </div>
         </div>

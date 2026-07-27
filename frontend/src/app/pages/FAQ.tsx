@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
+import { useTranslation, Trans } from "react-i18next";
 import { ChevronDown, ChevronUp, Search, MessageCircle, Phone } from "lucide-react";
 import { FAQS } from "../lib/data";
 import { cn } from "../lib/utils";
@@ -28,6 +29,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export function FAQPage() {
+  const { t } = useTranslation("faq");
   const [search, setSearch] = useState("");
   const [active, setActive] = useState(0);
   const categories = FAQ_ARRAY.map(c => c.category);
@@ -44,16 +46,16 @@ export function FAQPage() {
       {/* Hero */}
       <section className="bg-[#1B75BC] py-16 text-center text-white">
         <div className="max-w-[700px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Help Center</div>
-          <h1 className="text-3xl font-black mb-3">Frequently Asked Questions</h1>
-          <p className="text-white/60 text-sm mb-7">Find answers to the most common questions about our services.</p>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
+          <h1 className="text-3xl font-black mb-3">{t("hero.title")}</h1>
+          <p className="text-white/60 text-sm mb-7">{t("hero.subtitle")}</p>
           <div className="relative max-w-lg mx-auto">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search questions..."
+              placeholder={t("hero.searchPlaceholder")}
               className="w-full pl-10 pr-4 py-3 bg-white rounded-[12px] text-[13px] text-[#111827] outline-none placeholder-[#D1D5DB] border border-white/10"
             />
           </div>
@@ -70,7 +72,7 @@ export function FAQPage() {
                   className={cn("flex-shrink-0 px-4 py-2.5 rounded-full text-[12px] font-bold transition-all cursor-pointer min-h-[44px]",
                     active === i ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30 hover:text-[#1B75BC]"
                   )}>
-                  {cat}
+                  {t(`categories.${cat}`, { defaultValue: cat })}
                 </button>
               ))}
             </div>
@@ -78,7 +80,16 @@ export function FAQPage() {
 
           {search && (
             <div className="mb-4 text-[13px] text-[#6B7280]">
-              Found <strong className="text-[#111827]">{allFiltered.length}</strong> result{allFiltered.length !== 1 ? "s" : ""} for "<strong className="text-[#1B75BC]">{search}</strong>"
+              <Trans
+                t={t}
+                i18nKey="results.found"
+                count={allFiltered.length}
+                values={{ query: search }}
+                components={{
+                  c: <strong className="text-[#111827]" />,
+                  q: <strong className="text-[#1B75BC]" />,
+                }}
+              />
             </div>
           )}
 
@@ -87,8 +98,8 @@ export function FAQPage() {
               ? allFiltered.map((item, i) => <FAQItem key={i} q={item.q} a={item.a} />)
               : (
                 <div className="text-center py-12 text-[#9CA3AF]">
-                  <p className="text-[14px]">No results found for "{search}"</p>
-                  <p className="text-[12px] mt-1">Try different keywords or contact our support team</p>
+                  <p className="text-[14px]">{t("results.noneTitle", { query: search })}</p>
+                  <p className="text-[12px] mt-1">{t("results.noneHint")}</p>
                 </div>
               )
             }
@@ -96,14 +107,14 @@ export function FAQPage() {
 
           {/* Contact CTA */}
           <div className="mt-12 bg-white rounded-2xl border border-[#E5E7EB] p-7 text-center">
-            <h3 className="text-[17px] font-black text-[#111827] mb-2">Still have questions?</h3>
-            <p className="text-[13px] text-[#6B7280] mb-5">Our team is available 6 days a week to help you.</p>
+            <h3 className="text-[17px] font-black text-[#111827] mb-2">{t("cta.title")}</h3>
+            <p className="text-[13px] text-[#6B7280] mb-5">{t("cta.text")}</p>
             <div className="flex flex-wrap gap-3 justify-center">
               <Link to="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1B75BC] text-white font-bold rounded-[10px] text-sm hover:bg-[#14588F] transition-colors">
-                <MessageCircle size={14} /> Contact Us
+                <MessageCircle size={14} /> {t("cta.contact")}
               </Link>
               <a href="tel:+88029553421" className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#1B75BC]/5 transition-colors">
-                <Phone size={14} /> Call Hotline
+                <Phone size={14} /> {t("cta.callHotline")}
               </a>
             </div>
           </div>

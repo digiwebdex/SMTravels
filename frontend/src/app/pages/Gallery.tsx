@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import { GALLERY_IMAGES } from "../lib/data";
 import { img, cn } from "../lib/utils";
@@ -6,6 +7,7 @@ import { img, cn } from "../lib/utils";
 const CATEGORIES = ["All", ...Array.from(new Set(GALLERY_IMAGES.map(g => g.category)))];
 
 export function GalleryPage() {
+  const { t } = useTranslation("gallery");
   const [active, setActive] = useState("All");
   const [lightbox, setLightbox] = useState<number | null>(null);
 
@@ -26,9 +28,9 @@ export function GalleryPage() {
       {/* Hero */}
       <section className="bg-[#1B75BC] py-14 text-white">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Visual Journey</div>
-          <h1 className="text-3xl font-black mb-2">Photo Gallery</h1>
-          <p className="text-white/60 text-sm">Moments from our Hajj, Umrah & tour experiences around the world</p>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
+          <h1 className="text-3xl font-black mb-2">{t("hero.title")}</h1>
+          <p className="text-white/60 text-sm">{t("hero.subtitle")}</p>
         </div>
       </section>
 
@@ -41,7 +43,7 @@ export function GalleryPage() {
                 className={cn("px-4 py-2 rounded-full text-[12px] font-bold transition-all cursor-pointer",
                   active === c ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30"
                 )}>
-                {c}
+                {c === "All" ? t("filters.all") : c}
               </button>
             ))}
           </div>

@@ -1,0 +1,113 @@
+{
+  "booking": {
+    "tabs": {
+      "hajj": "Hajj",
+      "umrah": "Umrah",
+      "visa": "Visa",
+      "airTicket": "Air Ticket",
+      "tour": "Tour Package",
+      "hotel": "Hotel"
+    },
+    "from": "From",
+    "fromPlaceholder": "Dhaka (DAC)",
+    "to": "To / Service",
+    "toPlaceholder": "Jeddah / Makkah",
+    "departure": "Departure",
+    "travelers": "Travelers",
+    "travelerOptions": {
+      "one": "1 Traveler",
+      "two": "2 Travelers",
+      "three": "3 Travelers",
+      "fourPlus": "4+ Travelers"
+    },
+    "searchBook": "Search & Book Now"
+  },
+  "hero": {
+    "badge": "Bangladesh's Most Trusted Hajj & Travel Partner",
+    "title": "Your Journey to the<br/><hl>Holy Land</hl> Starts Here",
+    "subtitle": "Government-approved Hajj & Umrah packages, visa services, air tickets, and world tours — all under one trusted roof since 1998.",
+    "badges": {
+      "atab": "ATAB Member",
+      "govt": "Govt. Approved",
+      "pilgrims": "10,000+ Pilgrims",
+      "years": "25+ Years"
+    },
+    "reassurance": "No hidden fees · 24/7 WhatsApp support · Easy cancellation · Trusted by 10,000+ families"
+  },
+  "trustStrip": {
+    "license": "📋 ATAB License: 0123",
+    "aviation": "✈️ Civil Aviation Auth. Approved",
+    "ministry": "🕌 Ministry of Religious Affairs Enrolled",
+    "years": "🏆 25+ Years of Excellence",
+    "pilgrims": "👥 10,000+ Happy Pilgrims"
+  },
+  "services": {
+    "eyebrow": "What We Offer",
+    "heading": "Comprehensive Travel Services",
+    "subheading": "From sacred Hajj journeys to international tours, we handle every detail with expertise and care.",
+    "items": {
+      "hajj":      { "label": "Hajj Management", "desc": "Govt-approved packages, 25+ years experience" },
+      "umrah":     { "label": "Umrah Packages", "desc": "Year-round, fully inclusive packages" },
+      "visa":      { "label": "Visa Services", "desc": "50+ countries, fast processing" },
+      "airTicket": { "label": "Air Tickets", "desc": "Best fares, all major airlines" },
+      "manpower":  { "label": "Manpower", "desc": "International recruitment & BMET clearance" },
+      "tour":      { "label": "Tour Packages", "desc": "Curated world tours, group & private" },
+      "hotel":     { "label": "Hotel Booking", "desc": "Premium hotels, Makkah to worldwide" }
+    }
+  },
+  "packages": {
+    "eyebrow": "Popular Packages",
+    "heading": "Featured Travel Packages",
+    "startingFrom": "Starting from",
+    "seatsLeft": "{{count}} seats left",
+    "departing": "Departing {{val}}",
+    "viewAllPackages": "View All Packages"
+  },
+  "why": {
+    "eyebrow": "Why Choose Us",
+    "headingLine1": "25 Years of Trust,",
+    "headingLine2": "10,000+ Happy Families",
+    "body": "SMTravel International is Bangladesh's premier travel management company, specializing in Hajj, Umrah, and international travel. Government-approved, ATAB-licensed, and ISO-certified, we have helped tens of thousands of pilgrims fulfill their dreams since 1998.",
+    "features": {
+      "govt":    { "title": "Govt. Approved", "desc": "Ministry of Religious Affairs & Civil Aviation licensed" },
+      "support": { "title": "24/7 Support", "desc": "Round-the-clock assistance in Bangla & English" },
+      "trusted": { "title": "Trusted Service", "desc": "25+ years, 10,000+ families served with care" },
+      "value":   { "title": "Best Value", "desc": "Competitive prices with no hidden charges" }
+    },
+    "learnStory": "Learn Our Story",
+    "badge": { "excellence": "Years of Excellence", "pilgrims": "Pilgrims Served" }
+  },
+  "stats": {
+    "pilgrims": "Happy Pilgrims",
+    "years": "Years of Service",
+    "countries": "Countries Served",
+    "branches": "Branch Offices"
+  },
+  "testimonials": {
+    "eyebrow": "Testimonials",
+    "heading": "What Our Pilgrims Say"
+  },
+  "blog": {
+    "eyebrow": "Latest Articles",
+    "heading": "Travel Insights & Guides",
+    "allArticles": "All Articles",
+    "readTime": "{{time}} read"
+  },
+  "partners": {
+    "heading": "Our Airline Partners"
+  },
+  "newsletter": {
+    "eyebrow": "Stay Updated",
+    "heading": "Get Exclusive Offers & Hajj News",
+    "subheading": "Subscribe for package updates, Hajj lottery results, and travel tips directly to your inbox.",
+    "placeholder": "Enter your email address",
+    "subscribe": "Subscribe Now",
+    "disclaimer": "No spam, unsubscribe anytime."
+  },
+  "contact": {
+    "hotline": "Hotline",
+    "officeHours": "Office Hours:",
+    "hoursValue": "Sunday – Thursday, 9:00 AM – 6:00 PM",
+    "branches": "Branch Offices"
+  }
+}

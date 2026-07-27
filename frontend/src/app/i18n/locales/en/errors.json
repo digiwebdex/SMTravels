@@ -1,0 +1,8 @@
+{
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "Oops! This page seems to have taken an unexpected detour. Let us help you get back on course.",
+    "backHome": "Back to Home",
+    "contactSupport": "Contact Support"
+  }
+}

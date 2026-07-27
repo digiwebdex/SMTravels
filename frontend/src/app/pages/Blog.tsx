@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Link, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import { Search, Clock, User, Tag, ArrowRight, Calendar, ChevronRight } from "lucide-react";
 import { BLOGS } from "../lib/data";
 import { img, cn } from "../lib/utils";
 
 // ─── BLOG LIST ─────────────────────────────────────────────────────────────────
 export function BlogPage() {
+  const { t } = useTranslation("blog");
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -24,9 +26,9 @@ export function BlogPage() {
       {/* Hero */}
       <section className="bg-[#1B75BC] py-14 text-white">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Travel Knowledge</div>
-          <h1 className="text-3xl font-black mb-2">Travel Insights & Guides</h1>
-          <p className="text-white/60 text-sm">Expert tips, Hajj guides, visa advice, and travel inspiration from our team</p>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
+          <h1 className="text-3xl font-black mb-2">{t("hero.title")}</h1>
+          <p className="text-white/60 text-sm">{t("hero.subtitle")}</p>
         </div>
       </section>
 
@@ -39,7 +41,7 @@ export function BlogPage() {
                 <img src={img(featured.image, 800, 500)} alt={featured.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-4 left-4 bg-[#F15A24] text-[#1B75BC] text-[10px] font-black px-3 py-1 rounded-full">
-                  Featured
+                  {t("featured")}
                 </div>
               </div>
               <div className="p-8 flex flex-col justify-center">
@@ -51,7 +53,7 @@ export function BlogPage() {
                 <div className="flex items-center gap-4 text-[11px] text-[#9CA3AF]">
                   <span className="flex items-center gap-1"><User size={11} />{featured.author}</span>
                   <span className="flex items-center gap-1"><Calendar size={11} />{featured.date}</span>
-                  <span className="flex items-center gap-1"><Clock size={11} />{featured.readTime} read</span>
+                  <span className="flex items-center gap-1"><Clock size={11} />{featured.readTime} {t("meta.read")}</span>
                 </div>
               </div>
             </div>
@@ -62,7 +64,7 @@ export function BlogPage() {
             <div className="relative flex-1 min-w-[180px] max-w-xs">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
               <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search articles..."
+                placeholder={t("filters.searchPlaceholder")}
                 className="w-full pl-9 pr-4 py-2 border border-[#E5E7EB] rounded-[10px] text-[12px] bg-white outline-none focus:border-[#1B75BC]" />
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -71,7 +73,7 @@ export function BlogPage() {
                   className={cn("px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer",
                     activeCategory === c ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30"
                   )}>
-                  {c}
+                  {c === "All" ? t("filters.all") : c}
                 </button>
               ))}
             </div>
@@ -94,7 +96,7 @@ export function BlogPage() {
                   <p className="text-[12px] text-[#6B7280] leading-relaxed line-clamp-2 mb-3">{b.excerpt}</p>
                   <div className="flex items-center justify-between text-[10px] text-[#9CA3AF]">
                     <span className="flex items-center gap-1"><User size={10} />{b.author}</span>
-                    <span className="flex items-center gap-1"><Clock size={10} />{b.readTime} read</span>
+                    <span className="flex items-center gap-1"><Clock size={10} />{b.readTime} {t("meta.read")}</span>
                   </div>
                 </div>
               </Link>
@@ -103,10 +105,10 @@ export function BlogPage() {
 
           {filtered.length === 0 && (
             <div className="text-center py-16 text-[#9CA3AF]">
-              <p className="text-[15px] font-semibold">No articles found</p>
+              <p className="text-[15px] font-semibold">{t("empty.title")}</p>
               <button onClick={() => { setSearch(""); setActiveCategory("All"); }}
                 className="mt-3 text-[13px] text-[#1B75BC] font-bold hover:underline cursor-pointer">
-                Clear filters
+                {t("filters.clear")}
               </button>
             </div>
           )}
@@ -118,6 +120,7 @@ export function BlogPage() {
 
 // ─── BLOG DETAIL ──────────────────────────────────────────────────────────────
 export function BlogDetailPage() {
+  const { t } = useTranslation("blog");
   const { id } = useParams();
   const blog = BLOGS.find(b => String(b.id) === id);
   const related = BLOGS.filter(b => String(b.id) !== id).slice(0, 3);
@@ -125,8 +128,8 @@ export function BlogDetailPage() {
   if (!blog) {
     return (
       <div className="py-32 text-center">
-        <p className="text-[#6B7280]">Article not found.</p>
-        <Link to="/blog" className="mt-4 inline-block text-[#1B75BC] font-bold hover:underline">← Back to Blog</Link>
+        <p className="text-[#6B7280]">{t("detail.notFound")}</p>
+        <Link to="/blog" className="mt-4 inline-block text-[#1B75BC] font-bold hover:underline">{t("detail.backToBlog")}</Link>
       </div>
     );
   }
@@ -151,9 +154,9 @@ export function BlogDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#1B75BC]/90 via-[#1B75BC]/50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8 max-w-[1100px] mx-auto">
           <div className="flex items-center gap-2 text-white/60 text-[11px] mb-3">
-            <Link to="/" className="hover:text-white">Home</Link>
+            <Link to="/" className="hover:text-white">{t("common:nav.home")}</Link>
             <ChevronRight size={11} />
-            <Link to="/blog" className="hover:text-white">Blog</Link>
+            <Link to="/blog" className="hover:text-white">{t("common:nav.blog")}</Link>
             <ChevronRight size={11} />
             <span className="text-white/80 truncate">{blog.category}</span>
           </div>
@@ -177,7 +180,7 @@ export function BlogDetailPage() {
                       {blog.author}
                     </div>
                     <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Calendar size={11} />{blog.date}</span>
-                    <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Clock size={11} />{blog.readTime} read</span>
+                    <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Clock size={11} />{blog.readTime} {t("meta.read")}</span>
                     <span className="bg-[#1B75BC]/10 text-[#1B75BC] text-[10px] font-bold px-2.5 py-1 rounded-full">{blog.category}</span>
                   </div>
 
@@ -204,16 +207,16 @@ export function BlogDetailPage() {
             <div className="lg:col-span-1 flex flex-col gap-5">
               {/* CTA */}
               <div className="bg-[#1B75BC] rounded-2xl p-5 text-white">
-                <h4 className="text-[14px] font-black mb-2">Plan Your Hajj / Umrah</h4>
-                <p className="text-white/60 text-[12px] mb-4">Talk to our specialists today and get a personalized quote.</p>
+                <h4 className="text-[14px] font-black mb-2">{t("detail.ctaTitle")}</h4>
+                <p className="text-white/60 text-[12px] mb-4">{t("detail.ctaText")}</p>
                 <Link to="/book" className="block text-center py-2.5 bg-[#F15A24] text-[#1B75BC] font-bold rounded-[10px] text-[12px] hover:bg-[#CC3C17] transition-colors">
-                  Get Free Quote
+                  {t("detail.getFreeQuote")}
                 </Link>
               </div>
 
               {/* Related */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5">
-                <h4 className="text-[14px] font-black text-[#111827] mb-4">Related Articles</h4>
+                <h4 className="text-[14px] font-black text-[#111827] mb-4">{t("detail.related")}</h4>
                 <div className="flex flex-col gap-4">
                   {related.map(r => (
                     <Link key={r.id} to={`/blog/${r.id}`} className="flex gap-3 group">
@@ -221,7 +224,7 @@ export function BlogDetailPage() {
                         className="w-16 h-16 rounded-[8px] object-cover flex-shrink-0" />
                       <div>
                         <h5 className="text-[12px] font-semibold text-[#374151] group-hover:text-[#1B75BC] transition-colors leading-snug mb-1">{r.title}</h5>
-                        <span className="text-[10px] text-[#9CA3AF]">{r.readTime} read</span>
+                        <span className="text-[10px] text-[#9CA3AF]">{r.readTime} {t("meta.read")}</span>
                       </div>
                     </Link>
                   ))}

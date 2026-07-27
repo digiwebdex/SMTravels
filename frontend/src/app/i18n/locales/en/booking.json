@@ -1,0 +1,86 @@
+{
+  "hero": {
+    "eyebrow": "Online Booking",
+    "title": "Book Your Travel",
+    "subtitle": "Complete the form below and our team will confirm your booking"
+  },
+  "steps": {
+    "service": "Service",
+    "tripDetails": "Trip Details",
+    "travelers": "Travelers",
+    "confirm": "Confirm"
+  },
+  "services": {
+    "hajj": { "desc": "Govt-approved pilgrimage packages" },
+    "umrah": { "desc": "Year-round Umrah services" },
+    "visa": { "desc": "50+ countries worldwide" },
+    "airTicket": { "desc": "Best airfare guaranteed" },
+    "manpower": { "desc": "International recruitment" },
+    "tour": { "desc": "Curated world tours" },
+    "hotel": { "desc": "Global accommodations" }
+  },
+  "step0": {
+    "title": "Select a Service",
+    "subtitle": "Which service would you like to book?"
+  },
+  "step1": {
+    "title": "Trip Details",
+    "subtitle": "Tell us about your travel plans",
+    "fromLabel": "Traveling From",
+    "fromPlaceholder": "e.g. Dhaka, Bangladesh",
+    "toLabel": "Destination / Service Location",
+    "toPlaceholder": "e.g. Makkah, Saudi Arabia",
+    "departLabel": "Departure / Start Date",
+    "returnLabel": "Return Date (if applicable)",
+    "travelersLabel": "Number of Travelers",
+    "notesLabel": "Special Requirements / Notes",
+    "notesPlaceholder": "Wheelchair access, dietary restrictions, specific package preferences..."
+  },
+  "step2": {
+    "title": "Primary Traveler Info",
+    "subtitle": "Contact details for the lead traveler",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "Full legal name",
+    "phoneLabel": "Phone / WhatsApp Number",
+    "phonePlaceholder": "+880 1X XXX XXXXX",
+    "emailLabel": "Email Address (optional)",
+    "emailPlaceholder": "email@example.com",
+    "passportNote": "Passport details are NOT needed at this stage — our team collects them securely once your booking is confirmed."
+  },
+  "step3": {
+    "title": "Review & Confirm",
+    "subtitle": "Please review your booking request before submitting",
+    "agree": "By submitting, you agree that our team will contact you to finalize pricing and confirm availability. No payment is required at this stage."
+  },
+  "summary": {
+    "service": "Service",
+    "from": "From",
+    "destination": "Destination",
+    "departure": "Departure",
+    "return": "Return",
+    "travelers": "Travelers",
+    "leadTraveler": "Lead Traveler",
+    "contact": "Contact",
+    "persons": "person(s)",
+    "notesLabel": "Notes: "
+  },
+  "nav": {
+    "nextStep": "Next Step",
+    "submitting": "Submitting…",
+    "submitBooking": "Submit Booking"
+  },
+  "errors": {
+    "leadRequired": "Please provide the lead traveler's name and phone number (step 3).",
+    "submitFailed": "Something went wrong sending your request. Please try again, or reach us on WhatsApp / phone below."
+  },
+  "success": {
+    "title": "Booking Request Submitted!",
+    "thanks": "Thank you, <b>{{name}}</b>. Our team will contact you within 2 business hours to confirm your {{service}} booking.",
+    "fallbackName": "valued customer",
+    "fallbackService": "travel",
+    "backHome": "Back to Home"
+  },
+  "help": {
+    "chatWhatsapp": "Chat on WhatsApp"
+  }
+}

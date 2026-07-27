@@ -137,6 +137,12 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Latin uses Inter; Bangla glyphs fall through to Noto Sans Bengali
+       (per-glyph fallback) so conjuncts (যুক্তাক্ষর) always render correctly. */
+    font-family: "Inter", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+  }
+  :lang(bn) {
+    font-family: "Noto Sans Bengali", "Inter", ui-sans-serif, system-ui, sans-serif;
   }
 
   /**

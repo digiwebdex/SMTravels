@@ -1,0 +1,52 @@
+{
+  "brand": { "name": "SM Travels International", "tagline": "Your Trusted Travel Partner" },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "packages": "Packages",
+    "blog": "Blog",
+    "gallery": "Gallery",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "actions": {
+    "login": "Login",
+    "logout": "Logout",
+    "agentRegister": "Agent Register",
+    "register": "Register",
+    "bookNow": "Book Now",
+    "getQuote": "Get Quote",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "viewDetails": "View Details",
+    "submit": "Submit",
+    "send": "Send",
+    "next": "Next",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "search": "Search",
+    "download": "Download",
+    "close": "Close",
+    "callNow": "Call Now",
+    "whatsapp": "WhatsApp Us"
+  },
+  "services": {
+    "hajj": "Hajj Package",
+    "umrah": "Umrah Package",
+    "visa": "Visa Services",
+    "airTicket": "Air Ticket",
+    "manpower": "Manpower",
+    "tour": "Tour Packages",
+    "hotel": "Hotel Booking"
+  },
+  "lang": { "switchToBn": "Switch to বাংলা", "switchToEn": "Switch to English" },
+  "misc": {
+    "loading": "Loading…",
+    "readMore": "Read More",
+    "needHelp": "Need help?",
+    "orCall": "or call",
+    "since": "Since 1998"
+  }
+}

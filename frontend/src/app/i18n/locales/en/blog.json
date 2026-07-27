@@ -1,0 +1,27 @@
+{
+  "hero": {
+    "eyebrow": "Travel Knowledge",
+    "title": "Travel Insights & Guides",
+    "subtitle": "Expert tips, Hajj guides, visa advice, and travel inspiration from our team"
+  },
+  "featured": "Featured",
+  "meta": {
+    "read": "read"
+  },
+  "filters": {
+    "all": "All",
+    "searchPlaceholder": "Search articles...",
+    "clear": "Clear filters"
+  },
+  "empty": {
+    "title": "No articles found"
+  },
+  "detail": {
+    "notFound": "Article not found.",
+    "backToBlog": "← Back to Blog",
+    "ctaTitle": "Plan Your Hajj / Umrah",
+    "ctaText": "Talk to our specialists today and get a personalized quote.",
+    "getFreeQuote": "Get Free Quote",
+    "related": "Related Articles"
+  }
+}

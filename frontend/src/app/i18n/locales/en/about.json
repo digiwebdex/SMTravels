@@ -1,0 +1,42 @@
+{
+  "hero": {
+    "eyebrow": "Company Profile",
+    "heading": "About SMTravel International",
+    "subtitle": "Bangladesh's most trusted Hajj, Umrah & travel management company — serving pilgrims and travelers with integrity since 1998."
+  },
+  "story": {
+    "eyebrow": "Our Story",
+    "heading": "A Legacy Built on Trust"
+  },
+  "stats": {
+    "years": "Years",
+    "pilgrims": "Pilgrims",
+    "countries": "Countries",
+    "branches": "Branches"
+  },
+  "foundation": {
+    "eyebrow": "Our Foundation",
+    "heading": "Mission, Vision & Values"
+  },
+  "mission": { "title": "Our Mission" },
+  "vision": { "title": "Our Vision" },
+  "values": { "title": "Our Values" },
+  "milestones": {
+    "eyebrow": "Our Journey",
+    "heading": "25 Years of Milestones"
+  },
+  "certs": {
+    "eyebrow": "Certifications & Accreditations",
+    "heading": "Licensed & Trusted"
+  },
+  "team": {
+    "eyebrow": "Our Leadership",
+    "heading": "Meet the Team"
+  },
+  "cta": {
+    "heading": "Ready to Begin Your Journey?",
+    "subtitle": "Speak with our travel experts today. No obligation, just honest advice.",
+    "contact": "Contact Us",
+    "viewPackages": "View Packages"
+  }
+}

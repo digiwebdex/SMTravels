@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Star, MapPin, Shield, Plane, Briefcase, Hotel, Globe,
   ChevronRight, ArrowRight, CheckCircle, Users, Award, Calendar,
@@ -10,25 +11,41 @@ import { PACKAGES, TESTIMONIALS, SERVICES, BLOGS } from "../lib/data";
 import { HeroBackground } from "../components/HeroBackground";
 
 // ─── Hero Booking Widget ──────────────────────────────────────────────────────
-const SERVICE_TYPES = ["Hajj", "Umrah", "Visa", "Air Ticket", "Tour Package", "Hotel"];
+// `id` is the stable value; the display label comes from t(labelKey).
+const SERVICE_TYPES = [
+  { id: "Hajj",         labelKey: "booking.tabs.hajj" },
+  { id: "Umrah",        labelKey: "booking.tabs.umrah" },
+  { id: "Visa",         labelKey: "booking.tabs.visa" },
+  { id: "Air Ticket",   labelKey: "booking.tabs.airTicket" },
+  { id: "Tour Package", labelKey: "booking.tabs.tour" },
+  { id: "Hotel",        labelKey: "booking.tabs.hotel" },
+];
+
+const TRAVELER_OPTIONS = [
+  { id: "1 Traveler",   labelKey: "booking.travelerOptions.one" },
+  { id: "2 Travelers",  labelKey: "booking.travelerOptions.two" },
+  { id: "3 Travelers",  labelKey: "booking.travelerOptions.three" },
+  { id: "4+ Travelers", labelKey: "booking.travelerOptions.fourPlus" },
+];
 
 function BookingWidget() {
-  const [service, setService] = useState(SERVICE_TYPES[0]);
+  const { t } = useTranslation("home");
+  const [service, setService] = useState(SERVICE_TYPES[0].id);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [date, setDate] = useState("");
-  const [pax, setPax] = useState("1 Traveler");
+  const [pax, setPax] = useState(TRAVELER_OPTIONS[0].id);
 
   return (
     <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-full max-w-3xl mx-auto">
       {/* Service Tabs — horizontally scrollable on mobile */}
       <div className="flex gap-1 mb-4 md:mb-5 bg-[#F3F4F6] rounded-[10px] p-1 overflow-x-auto no-scrollbar -mx-1 px-1">
-        {SERVICE_TYPES.map(t => (
-          <button key={t} onClick={() => setService(t)}
+        {SERVICE_TYPES.map(opt => (
+          <button key={opt.id} onClick={() => setService(opt.id)}
             className={cn("flex-shrink-0 px-3 md:px-4 py-2 rounded-[8px] text-[11px] md:text-[12px] font-semibold transition-all cursor-pointer min-h-[36px]",
-              service === t ? "bg-[#1B75BC] text-white shadow" : "text-[#6B7280] hover:text-[#374151]"
+              service === opt.id ? "bg-[#1B75BC] text-white shadow" : "text-[#6B7280] hover:text-[#374151]"
             )}>
-            {t}
+            {t(opt.labelKey)}
           </button>
         ))}
       </div>
@@ -36,37 +53,37 @@ function BookingWidget() {
       {/* Fields — 1 col on mobile, 2 on sm, 4 on md */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">From</label>
+          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.from")}</label>
           <input value={from} onChange={e => setFrom(e.target.value)}
-            placeholder="Dhaka (DAC)"
+            placeholder={t("booking.fromPlaceholder")}
             className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">To / Service</label>
+          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.to")}</label>
           <input value={to} onChange={e => setTo(e.target.value)}
-            placeholder="Jeddah / Makkah"
+            placeholder={t("booking.toPlaceholder")}
             className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">Departure</label>
+          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.departure")}</label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)}
             className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">Travelers</label>
+          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.travelers")}</label>
           <select value={pax} onChange={e => setPax(e.target.value)}
             className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all bg-white cursor-pointer min-h-[48px]">
-            {["1 Traveler","2 Travelers","3 Travelers","4+ Travelers"].map(o => <option key={o}>{o}</option>)}
+            {TRAVELER_OPTIONS.map(o => <option key={o.id} value={o.id}>{t(o.labelKey)}</option>)}
           </select>
         </div>
       </div>
 
       <div className="flex gap-3 mt-4">
         <Link to="/book" className="flex-1 py-3.5 md:py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold rounded-[10px] text-[14px] transition-colors text-center min-h-[48px] flex items-center justify-center">
-          Search & Book Now
+          {t("booking.searchBook")}
         </Link>
         <Link to="/contact" className="px-4 md:px-5 py-3.5 md:py-3 border-2 border-[#F15A24] text-[#D64A12] font-bold rounded-[10px] text-[13px] hover:bg-[#F15A24]/5 transition-colors flex items-center min-h-[48px]">
-          Get Quote
+          {t("common:actions.getQuote")}
         </Link>
       </div>
     </div>
@@ -109,14 +126,15 @@ function Counter({ end, suffix = "", label }: { end: number; suffix?: string; la
 
 // ─── HOME PAGE ───────────────────────────────────────────────────────────────
 export function Home() {
+  const { t } = useTranslation("home");
   const services = [
-    { id: "hajj", icon: Star, label: "Hajj Management", color: "#F15A24", bg: "#FFF9E6", desc: "Govt-approved packages, 25+ years experience" },
-    { id: "umrah", icon: MapPin, label: "Umrah Packages", color: "#1B75BC", bg: "#EEF2FF", desc: "Year-round, fully inclusive packages" },
-    { id: "visa", icon: Shield, label: "Visa Services", color: "#0E7C66", bg: "#ECFDF5", desc: "50+ countries, fast processing" },
-    { id: "air-ticket", icon: Plane, label: "Air Tickets", color: "#2563EB", bg: "#EFF6FF", desc: "Best fares, all major airlines" },
-    { id: "manpower", icon: Briefcase, label: "Manpower", color: "#7C3AED", bg: "#F5F3FF", desc: "International recruitment & BMET clearance" },
-    { id: "tour-packages", icon: Globe, label: "Tour Packages", color: "#EA580C", bg: "#FFF7ED", desc: "Curated world tours, group & private" },
-    { id: "hotel-booking", icon: Hotel, label: "Hotel Booking", color: "#0891B2", bg: "#F0F9FF", desc: "Premium hotels, Makkah to worldwide" },
+    { id: "hajj", i18n: "hajj", icon: Star, color: "#F15A24", bg: "#FFF9E6" },
+    { id: "umrah", i18n: "umrah", icon: MapPin, color: "#1B75BC", bg: "#EEF2FF" },
+    { id: "visa", i18n: "visa", icon: Shield, color: "#0E7C66", bg: "#ECFDF5" },
+    { id: "air-ticket", i18n: "airTicket", icon: Plane, color: "#2563EB", bg: "#EFF6FF" },
+    { id: "manpower", i18n: "manpower", icon: Briefcase, color: "#7C3AED", bg: "#F5F3FF" },
+    { id: "tour-packages", i18n: "tour", icon: Globe, color: "#EA580C", bg: "#FFF7ED" },
+    { id: "hotel-booking", i18n: "hotel", icon: Hotel, color: "#0891B2", bg: "#F0F9FF" },
   ];
 
   const partners = [
@@ -133,26 +151,29 @@ export function Home() {
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 md:px-6 flex flex-col items-center text-center gap-6 md:gap-8 py-12 md:py-16">
           <div className="inline-flex items-center gap-2 bg-white/95 border border-white rounded-full px-4 py-1.5 text-[#D64A12] text-[12px] font-bold shadow-sm">
             <Star size={13} fill="currentColor" className="text-[#F15A24]" />
-            Bangladesh's Most Trusted Hajj & Travel Partner
+            {t("hero.badge")}
           </div>
 
           <div className="max-w-3xl">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-3 md:mb-4">
-              Your Journey to the<br />
-              <span className="text-[#D64A12]">Holy Land</span> Starts Here
+              <Trans
+                t={t}
+                i18nKey="hero.title"
+                components={{ hl: <span className="text-[#D64A12]" />, br: <br /> }}
+              />
             </h1>
             <p className="text-base md:text-lg text-white/70 max-w-xl mx-auto">
-              Government-approved Hajj & Umrah packages, visa services, air tickets, and world tours — all under one trusted roof since 1998.
+              {t("hero.subtitle")}
             </p>
           </div>
 
           {/* Trust Badges — 2×2 on mobile, row on larger */}
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 md:gap-3 w-full max-w-lg sm:max-w-none mx-auto">
             {[
-              { icon: Award, text: "ATAB Member" },
-              { icon: CheckCircle, text: "Govt. Approved" },
-              { icon: Users, text: "10,000+ Pilgrims" },
-              { icon: Calendar, text: "25+ Years" },
+              { icon: Award, text: t("hero.badges.atab") },
+              { icon: CheckCircle, text: t("hero.badges.govt") },
+              { icon: Users, text: t("hero.badges.pilgrims") },
+              { icon: Calendar, text: t("hero.badges.years") },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3 md:px-4 py-2 text-white text-[11px] md:text-[12px] font-medium">
                 <Icon size={12} className="text-[#D64A12]" />
@@ -164,7 +185,7 @@ export function Home() {
           <BookingWidget />
 
           <p className="text-white/40 text-[11px]">
-            No hidden fees · 24/7 WhatsApp support · Easy cancellation · Trusted by 10,000+ families
+            {t("hero.reassurance")}
           </p>
         </div>
       </section>
@@ -173,13 +194,13 @@ export function Home() {
       <section className="bg-[#1B75BC] py-4">
         <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap items-center justify-center gap-6">
           {[
-            "📋 ATAB License: 0123",
-            "✈️ Civil Aviation Auth. Approved",
-            "🕌 Ministry of Religious Affairs Enrolled",
-            "🏆 25+ Years of Excellence",
-            "👥 10,000+ Happy Pilgrims",
-          ].map(t => (
-            <span key={t} className="text-white/70 text-[12px] font-medium">{t}</span>
+            t("trustStrip.license"),
+            t("trustStrip.aviation"),
+            t("trustStrip.ministry"),
+            t("trustStrip.years"),
+            t("trustStrip.pilgrims"),
+          ].map(item => (
+            <span key={item} className="text-white/70 text-[12px] font-medium">{item}</span>
           ))}
         </div>
       </section>
@@ -188,9 +209,9 @@ export function Home() {
       <section className="py-12 md:py-20 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">What We Offer</div>
-            <h2 className="text-3xl font-black text-[#111827] mb-3">Comprehensive Travel Services</h2>
-            <p className="text-[#6B7280] max-w-xl mx-auto text-sm">From sacred Hajj journeys to international tours, we handle every detail with expertise and care.</p>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("services.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827] mb-3">{t("services.heading")}</h2>
+            <p className="text-[#6B7280] max-w-xl mx-auto text-sm">{t("services.subheading")}</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 md:gap-4">
@@ -200,8 +221,8 @@ export function Home() {
                 <div className="w-12 h-12 rounded-[12px] flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: s.bg }}>
                   <s.icon size={22} style={{ color: s.color }} />
                 </div>
-                <div className="text-[13px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-1">{s.label}</div>
-                <div className="text-[10px] text-[#9CA3AF] leading-snug">{s.desc}</div>
+                <div className="text-[13px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-1">{t(`services.items.${s.i18n}.label`)}</div>
+                <div className="text-[10px] text-[#9CA3AF] leading-snug">{t(`services.items.${s.i18n}.desc`)}</div>
               </Link>
             ))}
           </div>
@@ -213,11 +234,11 @@ export function Home() {
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Popular Packages</div>
-              <h2 className="text-3xl font-black text-[#111827]">Featured Travel Packages</h2>
+              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("packages.eyebrow")}</div>
+              <h2 className="text-3xl font-black text-[#111827]">{t("packages.heading")}</h2>
             </div>
             <Link to="/packages" className="hidden md:flex items-center gap-1.5 text-[#1B75BC] text-[13px] font-semibold hover:gap-3 transition-all">
-              View All <ArrowRight size={14} />
+              {t("common:actions.viewAll")} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -244,14 +265,14 @@ export function Home() {
                   <div className="flex items-center gap-2 text-[11px] text-[#6B7280] mb-3">
                     <Clock size={11} /> {pkg.duration}
                     <span className="mx-1 text-[#E5E7EB]">·</span>
-                    <MapPin size={11} /> Departing {pkg.departure}
+                    <MapPin size={11} /> {t("packages.departing", { val: pkg.departure })}
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-[#F3F4F6]">
                     <div>
-                      <div className="text-[10px] text-[#9CA3AF]">Starting from</div>
+                      <div className="text-[10px] text-[#9CA3AF]">{t("packages.startingFrom")}</div>
                       <div className="text-[18px] font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</div>
                     </div>
-                    <div className="text-[11px] text-[#9CA3AF]">{pkg.seats} seats left</div>
+                    <div className="text-[11px] text-[#9CA3AF]">{t("packages.seatsLeft", { count: pkg.seats })}</div>
                   </div>
                 </div>
               </Link>
@@ -260,7 +281,7 @@ export function Home() {
 
           <div className="text-center mt-8 md:hidden">
             <Link to="/packages" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#1B75BC]/5 transition-colors">
-              View All Packages <ArrowRight size={14} />
+              {t("packages.viewAllPackages")} <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -271,20 +292,20 @@ export function Home() {
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Why Choose Us</div>
+              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("why.eyebrow")}</div>
               <h2 className="text-3xl font-black text-[#111827] mb-5">
-                25 Years of Trust,<br />10,000+ Happy Families
+                {t("why.headingLine1")}<br />{t("why.headingLine2")}
               </h2>
               <p className="text-[#6B7280] text-sm leading-relaxed mb-8">
-                SMTravel International is Bangladesh's premier travel management company, specializing in Hajj, Umrah, and international travel. Government-approved, ATAB-licensed, and ISO-certified, we have helped tens of thousands of pilgrims fulfill their dreams since 1998.
+                {t("why.body")}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 {[
-                  { icon: CheckCircle, title: "Govt. Approved", desc: "Ministry of Religious Affairs & Civil Aviation licensed", color: "#0E7C66" },
-                  { icon: Headphones, title: "24/7 Support", desc: "Round-the-clock assistance in Bangla & English", color: "#1B75BC" },
-                  { icon: Heart, title: "Trusted Service", desc: "25+ years, 10,000+ families served with care", color: "#DC2626" },
-                  { icon: TrendingUp, title: "Best Value", desc: "Competitive prices with no hidden charges", color: "#F15A24" },
+                  { icon: CheckCircle, title: t("why.features.govt.title"), desc: t("why.features.govt.desc"), color: "#0E7C66" },
+                  { icon: Headphones, title: t("why.features.support.title"), desc: t("why.features.support.desc"), color: "#1B75BC" },
+                  { icon: Heart, title: t("why.features.trusted.title"), desc: t("why.features.trusted.desc"), color: "#DC2626" },
+                  { icon: TrendingUp, title: t("why.features.value.title"), desc: t("why.features.value.desc"), color: "#F15A24" },
                 ].map(i => (
                   <div key={i.title} className="bg-white rounded-[12px] p-4 border border-[#E5E7EB]">
                     <div className="w-9 h-9 rounded-[8px] flex items-center justify-center mb-3" style={{ backgroundColor: `${i.color}15` }}>
@@ -297,7 +318,7 @@ export function Home() {
               </div>
 
               <Link to="/about" className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-[#1B75BC] text-white font-bold rounded-[10px] text-sm hover:bg-[#14588F] transition-colors">
-                Learn Our Story <ArrowRight size={14} />
+                {t("why.learnStory")} <ArrowRight size={14} />
               </Link>
             </div>
 
@@ -307,11 +328,11 @@ export function Home() {
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-5 border border-[#E5E7EB]">
                 <div className="text-3xl font-black text-[#1B75BC] mb-1">25+</div>
-                <div className="text-[12px] text-[#6B7280]">Years of Excellence</div>
+                <div className="text-[12px] text-[#6B7280]">{t("why.badge.excellence")}</div>
               </div>
               <div className="absolute -top-4 -right-4 bg-[#F15A24] text-[#1B75BC] rounded-2xl px-4 py-3 shadow-xl">
                 <div className="text-2xl font-black mb-0.5">10K+</div>
-                <div className="text-[11px] font-bold">Pilgrims Served</div>
+                <div className="text-[11px] font-bold">{t("why.badge.pilgrims")}</div>
               </div>
             </div>
           </div>
@@ -322,10 +343,10 @@ export function Home() {
       <section className="py-12 md:py-20 bg-[#1B75BC]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
-            <Counter end={10000} suffix="+" label="Happy Pilgrims" />
-            <Counter end={25} suffix="+" label="Years of Service" />
-            <Counter end={50} suffix="+" label="Countries Served" />
-            <Counter end={4} suffix="" label="Branch Offices" />
+            <Counter end={10000} suffix="+" label={t("stats.pilgrims")} />
+            <Counter end={25} suffix="+" label={t("stats.years")} />
+            <Counter end={50} suffix="+" label={t("stats.countries")} />
+            <Counter end={4} suffix="" label={t("stats.branches")} />
           </div>
         </div>
       </section>
@@ -334,8 +355,8 @@ export function Home() {
       <section className="py-12 md:py-20 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Testimonials</div>
-            <h2 className="text-3xl font-black text-[#111827]">What Our Pilgrims Say</h2>
+            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("testimonials.eyebrow")}</div>
+            <h2 className="text-3xl font-black text-[#111827]">{t("testimonials.heading")}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -368,11 +389,11 @@ export function Home() {
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Latest Articles</div>
-              <h2 className="text-3xl font-black text-[#111827]">Travel Insights & Guides</h2>
+              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("blog.eyebrow")}</div>
+              <h2 className="text-3xl font-black text-[#111827]">{t("blog.heading")}</h2>
             </div>
             <Link to="/blog" className="hidden md:flex items-center gap-1.5 text-[#1B75BC] text-[13px] font-semibold hover:gap-3 transition-all">
-              All Articles <ArrowRight size={14} />
+              {t("blog.allArticles")} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -388,7 +409,7 @@ export function Home() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <div className="text-[10px] text-[#9CA3AF] mb-1.5">{b.date} · {b.readTime} read</div>
+                  <div className="text-[10px] text-[#9CA3AF] mb-1.5">{b.date} · {t("blog.readTime", { time: b.readTime })}</div>
                   <h3 className="text-[14px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors leading-snug mb-2">{b.title}</h3>
                   <p className="text-[12px] text-[#6B7280] leading-relaxed line-clamp-2">{b.excerpt}</p>
                 </div>
@@ -402,7 +423,7 @@ export function Home() {
       <section className="py-12 bg-white border-t border-[#E5E7EB]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="text-center mb-6">
-            <div className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-widest">Our Airline Partners</div>
+            <div className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-widest">{t("partners.heading")}</div>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4">
             {partners.map(p => (
@@ -417,18 +438,18 @@ export function Home() {
       {/* ── NEWSLETTER ── */}
       <section className="py-10 md:py-16 bg-[#1B75BC]">
         <div className="max-w-[700px] mx-auto px-6 text-center">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">Stay Updated</div>
-          <h2 className="text-2xl font-black text-white mb-2">Get Exclusive Offers & Hajj News</h2>
-          <p className="text-white/60 text-sm mb-7">Subscribe for package updates, Hajj lottery results, and travel tips directly to your inbox.</p>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("newsletter.eyebrow")}</div>
+          <h2 className="text-2xl font-black text-white mb-2">{t("newsletter.heading")}</h2>
+          <p className="text-white/60 text-sm mb-7">{t("newsletter.subheading")}</p>
           <form className="flex flex-col sm:flex-row gap-3" onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder="Enter your email address"
+            <input type="email" placeholder={t("newsletter.placeholder")}
               className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-[10px] text-white text-[13px] placeholder-white/40 outline-none focus:border-[#F15A24] focus:ring-1 focus:ring-[#F15A24] transition-all" />
             <button type="submit"
               className="px-6 py-3 bg-[#F15A24] hover:bg-[#CC3C17] text-[#1B75BC] font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer flex-shrink-0">
-              Subscribe Now
+              {t("newsletter.subscribe")}
             </button>
           </form>
-          <p className="text-white/30 text-[10px] mt-3">No spam, unsubscribe anytime.</p>
+          <p className="text-white/30 text-[10px] mt-3">{t("newsletter.disclaimer")}</p>
         </div>
       </section>
 
@@ -440,17 +461,17 @@ export function Home() {
               <Phone size={17} className="text-[#1B75BC]" />
             </div>
             <div>
-              <div className="text-[10px] text-[#9CA3AF] font-bold uppercase tracking-wider">Hotline</div>
+              <div className="text-[10px] text-[#9CA3AF] font-bold uppercase tracking-wider">{t("contact.hotline")}</div>
               <a href="tel:+88029553421" className="font-bold text-[#1B75BC] hover:underline">+880 2 9553421</a>
             </div>
           </div>
           <div className="text-[#E5E7EB] text-2xl hidden md:block">|</div>
           <div className="text-sm text-[#6B7280]">
-            <span className="font-semibold text-[#374151]">Office Hours:</span> Sunday – Thursday, 9:00 AM – 6:00 PM
+            <span className="font-semibold text-[#374151]">{t("contact.officeHours")}</span> {t("contact.hoursValue")}
           </div>
           <div className="text-[#E5E7EB] text-2xl hidden md:block">|</div>
           <Link to="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-[13px] hover:bg-[#1B75BC]/5 transition-colors">
-            <MapPin size={14} /> Branch Offices
+            <MapPin size={14} /> {t("contact.branches")}
           </Link>
         </div>
       </section>

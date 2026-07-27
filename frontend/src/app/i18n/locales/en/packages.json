@@ -1,0 +1,63 @@
+{
+  "hero": {
+    "eyebrow": "All Packages",
+    "heading": "Travel Packages",
+    "subtitle": "Curated Hajj, Umrah & tour packages for every budget"
+  },
+  "filters": {
+    "label": "Filters",
+    "type": {
+      "all": "All",
+      "hajj": "Hajj",
+      "umrah": "Umrah",
+      "tour": "Tour",
+      "combined": "Combined"
+    }
+  },
+  "list": {
+    "searchPlaceholder": "Search packages...",
+    "emptyTitle": "No packages found",
+    "clearFilters": "Clear filters",
+    "startingFrom": "Starting from",
+    "fromDeparture": "From {{departure}}",
+    "seatsLeft": "{{seats}} seats left"
+  },
+  "detail": {
+    "notFound": "Package not found.",
+    "backToPackages": "Back to Packages",
+    "reviewsLabel": "reviews",
+    "seatsRemaining": "{{seats}} seats remaining",
+    "perPerson": "/ person",
+    "onlySeatsLeft": "🔥 Only {{seats}} seats left!",
+    "tabs": {
+      "overview": "Overview",
+      "itinerary": "Itinerary",
+      "inclusions": "Inclusions"
+    },
+    "overview": {
+      "highlights": "Package Highlights",
+      "details": "Package Details"
+    },
+    "fields": {
+      "duration": "Duration",
+      "hotel": "Hotel",
+      "flight": "Flight",
+      "departure": "Departure"
+    },
+    "itinerary": { "heading": "Day-by-Day Itinerary" },
+    "inclusions": {
+      "included": "Included",
+      "excluded": "Excluded"
+    },
+    "form": {
+      "name": "Full Name",
+      "namePlaceholder": "Your name",
+      "phone": "Phone Number",
+      "date": "Departure Date",
+      "travelers": "No. of Travelers",
+      "submit": "Book This Package",
+      "whatsapp": "WhatsApp Enquiry",
+      "reassurance": "No booking fees · Free cancellation within 48hrs"
+    }
+  }
+}

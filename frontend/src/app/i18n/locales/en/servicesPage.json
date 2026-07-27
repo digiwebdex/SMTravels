@@ -1,0 +1,34 @@
+{
+  "notFound": "Service not found.",
+  "hero": { "whatsapp": "WhatsApp" },
+  "overview": { "eyebrow": "Overview" },
+  "features": {
+    "eyebrow": "What's Included",
+    "heading": "Why Choose Our {{service}}"
+  },
+  "packages": {
+    "eyebrow": "Packages & Pricing",
+    "heading": "{{service}} Packages",
+    "mostPopular": "Most Popular",
+    "perPerson": "/ person",
+    "bookThis": "Book This Package"
+  },
+  "process": {
+    "eyebrow": "How It Works",
+    "heading": "Step-by-Step Process"
+  },
+  "includes": {
+    "included": "What's Included",
+    "excluded": "What's Excluded"
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "heading": "Frequently Asked Questions"
+  },
+  "cta": {
+    "heading": "Ready to Book {{service}}?",
+    "subtitle": "Contact us today — our specialists will guide you through the entire process.",
+    "startBooking": "Start Booking",
+    "makeEnquiry": "Make Enquiry"
+  }
+}

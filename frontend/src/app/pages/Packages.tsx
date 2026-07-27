@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import {
   Star, Clock, MapPin, ChevronRight, Filter, Search, ArrowRight,
   CheckCircle, XCircle, Users, Hotel, Plane, Calendar, Phone, X,
@@ -13,6 +14,7 @@ const DURATIONS = ["All", "1–7 Days", "8–15 Days", "16–30 Days", "30+ Days
 const PRICE_RANGES = ["All", "Under ৳1L", "৳1L–3L", "৳3L–5L", "Above ৳5L"];
 
 export function PackagesPage() {
+  const { t } = useTranslation("packages");
   const [type, setType] = useState("All");
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -28,9 +30,9 @@ export function PackagesPage() {
       {/* Hero */}
       <section className="bg-[#1B75BC] py-10 md:py-14 text-white">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">All Packages</div>
-          <h1 className="text-2xl md:text-3xl font-black mb-2">Travel Packages</h1>
-          <p className="text-white/60 text-sm">Curated Hajj, Umrah & tour packages for every budget</p>
+          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
+          <h1 className="text-2xl md:text-3xl font-black mb-2">{t("hero.heading")}</h1>
+          <p className="text-white/60 text-sm">{t("hero.subtitle")}</p>
         </div>
       </section>
 
@@ -41,7 +43,7 @@ export function PackagesPage() {
             <div className="relative flex-1">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
               <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search packages..."
+                placeholder={t("list.searchPlaceholder")}
                 className="w-full pl-9 pr-4 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] text-[#111827] bg-white outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 min-h-[48px]" />
             </div>
             {/* Mobile filter toggle */}
@@ -51,7 +53,7 @@ export function PackagesPage() {
                 "md:hidden flex items-center gap-2 px-4 min-h-[48px] rounded-[10px] border text-[13px] font-bold transition-all cursor-pointer flex-shrink-0",
                 filtersOpen ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "bg-white text-[#374151] border-[#E5E7EB]"
               )}>
-              <Filter size={15} /> Filters
+              <Filter size={15} /> {t("filters.label")}
               {type !== "All" && <span className="w-4 h-4 bg-[#F15A24] text-[#1B75BC] rounded-full text-[9px] font-black flex items-center justify-center">1</span>}
             </button>
           </div>
@@ -59,12 +61,12 @@ export function PackagesPage() {
           {/* Type pills — desktop always visible, mobile collapsible */}
           <div className={cn("mb-6 md:mb-8", !filtersOpen && "hidden md:block")}>
             <div className="flex gap-2 flex-wrap">
-              {TYPES.map(t => (
-                <button key={t} onClick={() => { setType(t); setFiltersOpen(false); }}
+              {TYPES.map(tp => (
+                <button key={tp} onClick={() => { setType(tp); setFiltersOpen(false); }}
                   className={cn("px-4 py-2.5 rounded-full text-[12px] font-bold transition-all cursor-pointer min-h-[44px]",
-                    type === t ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30"
+                    type === tp ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30"
                   )}>
-                  {t}
+                  {t(`filters.type.${tp.toLowerCase()}`)}
                 </button>
               ))}
             </div>
@@ -73,9 +75,9 @@ export function PackagesPage() {
           {/* Results */}
           {filtered.length === 0 ? (
             <div className="text-center py-16 text-[#9CA3AF]">
-              <p className="text-[15px] font-semibold">No packages found</p>
+              <p className="text-[15px] font-semibold">{t("list.emptyTitle")}</p>
               <button onClick={() => { setType("All"); setSearch(""); }} className="mt-3 text-[13px] text-[#1B75BC] font-bold hover:underline cursor-pointer">
-                Clear filters
+                {t("list.clearFilters")}
               </button>
             </div>
           ) : (
@@ -105,7 +107,7 @@ export function PackagesPage() {
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#6B7280] mb-3">
                       <span className="flex items-center gap-1"><Clock size={10} />{pkg.duration}</span>
                       <span className="flex items-center gap-1"><Hotel size={10} />{pkg.hotel}</span>
-                      <span className="flex items-center gap-1"><Calendar size={10} />From {pkg.departure}</span>
+                      <span className="flex items-center gap-1"><Calendar size={10} />{t("list.fromDeparture", { departure: pkg.departure })}</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {pkg.highlights.slice(0, 3).map(h => (
@@ -114,11 +116,11 @@ export function PackagesPage() {
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-[#F3F4F6]">
                       <div>
-                        <div className="text-[10px] text-[#9CA3AF]">Starting from</div>
+                        <div className="text-[10px] text-[#9CA3AF]">{t("list.startingFrom")}</div>
                         <div className="text-[19px] font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</div>
                       </div>
                       <div className="text-[11px] text-[#DC2626] font-semibold">
-                        {pkg.seats} seats left
+                        {t("list.seatsLeft", { seats: pkg.seats })}
                       </div>
                     </div>
                   </div>
@@ -134,6 +136,7 @@ export function PackagesPage() {
 
 // ─── PACKAGE DETAIL ───────────────────────────────────────────────────────────
 export function PackageDetailPage() {
+  const { t } = useTranslation("packages");
   const { id } = useParams();
   const pkg = PACKAGES.find(p => String(p.id) === id);
   const [tab, setTab] = useState<"overview" | "itinerary" | "inclusions">("overview");
@@ -142,8 +145,8 @@ export function PackageDetailPage() {
   if (!pkg) {
     return (
       <div className="py-32 text-center">
-        <p className="text-[#6B7280]">Package not found.</p>
-        <Link to="/packages" className="mt-4 inline-block text-[#1B75BC] font-bold hover:underline">← Back to Packages</Link>
+        <p className="text-[#6B7280]">{t("detail.notFound")}</p>
+        <Link to="/packages" className="mt-4 inline-block text-[#1B75BC] font-bold hover:underline">← {t("detail.backToPackages")}</Link>
       </div>
     );
   }
@@ -156,9 +159,9 @@ export function PackageDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#1B75BC]/90 via-[#1B75BC]/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8 max-w-[1400px] mx-auto">
           <div className="flex items-center gap-2 text-white/60 text-[12px] mb-2">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <Link to="/" className="hover:text-white transition-colors">{t("common:nav.home")}</Link>
             <ChevronRight size={12} />
-            <Link to="/packages" className="hover:text-white transition-colors">Packages</Link>
+            <Link to="/packages" className="hover:text-white transition-colors">{t("common:nav.packages")}</Link>
             <ChevronRight size={12} />
             <span className="text-white/80">{pkg.title}</span>
           </div>
@@ -166,8 +169,8 @@ export function PackageDetailPage() {
           <div className="flex flex-wrap gap-4 text-sm text-white/70">
             <span className="flex items-center gap-1.5"><Clock size={13} />{pkg.duration}</span>
             <span className="flex items-center gap-1.5"><Hotel size={13} />{pkg.hotel}</span>
-            <span className="flex items-center gap-1.5"><Star size={13} fill="#F59E0B" className="text-[#F59E0B]" />{pkg.rating} ({pkg.reviews} reviews)</span>
-            <span className="flex items-center gap-1.5"><Users size={13} />{pkg.seats} seats remaining</span>
+            <span className="flex items-center gap-1.5"><Star size={13} fill="#F59E0B" className="text-[#F59E0B]" />{pkg.rating} ({pkg.reviews} {t("detail.reviewsLabel")})</span>
+            <span className="flex items-center gap-1.5"><Users size={13} />{t("detail.seatsRemaining", { seats: pkg.seats })}</span>
           </div>
         </div>
       </section>
@@ -179,12 +182,12 @@ export function PackageDetailPage() {
             <div className="lg:col-span-2">
               {/* Tabs */}
               <div className="flex gap-1 bg-white rounded-[12px] p-1 border border-[#E5E7EB] mb-6 w-fit">
-                {(["overview", "itinerary", "inclusions"] as const).map(t => (
-                  <button key={t} onClick={() => setTab(t)}
+                {(["overview", "itinerary", "inclusions"] as const).map(tb => (
+                  <button key={tb} onClick={() => setTab(tb)}
                     className={cn("px-5 py-2 rounded-[8px] text-[12px] font-bold capitalize transition-all cursor-pointer",
-                      tab === t ? "bg-[#1B75BC] text-white shadow" : "text-[#9CA3AF] hover:text-[#374151]"
+                      tab === tb ? "bg-[#1B75BC] text-white shadow" : "text-[#9CA3AF] hover:text-[#374151]"
                     )}>
-                    {t}
+                    {t(`detail.tabs.${tb}`)}
                   </button>
                 ))}
               </div>
@@ -192,7 +195,7 @@ export function PackageDetailPage() {
               {tab === "overview" && (
                 <div className="flex flex-col gap-5">
                   <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                    <h3 className="text-[16px] font-black text-[#111827] mb-3">Package Highlights</h3>
+                    <h3 className="text-[16px] font-black text-[#111827] mb-3">{t("detail.overview.highlights")}</h3>
                     <div className="grid sm:grid-cols-2 gap-2">
                       {pkg.highlights.map(h => (
                         <div key={h} className="flex items-center gap-2 text-[13px] text-[#374151]">
@@ -204,13 +207,13 @@ export function PackageDetailPage() {
                   </div>
 
                   <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                    <h3 className="text-[16px] font-black text-[#111827] mb-3">Package Details</h3>
+                    <h3 className="text-[16px] font-black text-[#111827] mb-3">{t("detail.overview.details")}</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {[
-                        { label: "Duration", val: pkg.duration, icon: Clock },
-                        { label: "Hotel", val: pkg.hotel, icon: Hotel },
-                        { label: "Flight", val: pkg.flight, icon: Plane },
-                        { label: "Departure", val: `From ${pkg.departure}`, icon: MapPin },
+                        { label: t("detail.fields.duration"), val: pkg.duration, icon: Clock },
+                        { label: t("detail.fields.hotel"), val: pkg.hotel, icon: Hotel },
+                        { label: t("detail.fields.flight"), val: pkg.flight, icon: Plane },
+                        { label: t("detail.fields.departure"), val: t("list.fromDeparture", { departure: pkg.departure }), icon: MapPin },
                       ].map(d => (
                         <div key={d.label} className="flex flex-col gap-1 bg-[#F7F8FA] rounded-[10px] p-3">
                           <d.icon size={15} className="text-[#1B75BC]" />
@@ -225,7 +228,7 @@ export function PackageDetailPage() {
 
               {tab === "itinerary" && (
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                  <h3 className="text-[16px] font-black text-[#111827] mb-5">Day-by-Day Itinerary</h3>
+                  <h3 className="text-[16px] font-black text-[#111827] mb-5">{t("detail.itinerary.heading")}</h3>
                   <div className="flex flex-col gap-4 relative">
                     <div className="absolute left-4 top-0 bottom-0 w-px bg-[#E5E7EB]" />
                     {pkg.itinerary.map((day, i) => (
@@ -247,7 +250,7 @@ export function PackageDetailPage() {
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
                     <h3 className="flex items-center gap-2 text-[15px] font-black text-[#111827] mb-4">
-                      <CheckCircle size={17} className="text-[#0E7C66]" /> Included
+                      <CheckCircle size={17} className="text-[#0E7C66]" /> {t("detail.inclusions.included")}
                     </h3>
                     <ul className="flex flex-col gap-2">
                       {pkg.includes.map(i => (
@@ -259,7 +262,7 @@ export function PackageDetailPage() {
                   </div>
                   <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
                     <h3 className="flex items-center gap-2 text-[15px] font-black text-[#111827] mb-4">
-                      <XCircle size={17} className="text-[#DC2626]" /> Excluded
+                      <XCircle size={17} className="text-[#DC2626]" /> {t("detail.inclusions.excluded")}
                     </h3>
                     <ul className="flex flex-col gap-2">
                       {pkg.excludes.map(e => (
@@ -278,51 +281,51 @@ export function PackageDetailPage() {
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 sticky top-24 shadow-lg">
                 <div className="flex items-baseline gap-1 mb-1">
                   <div className="text-[28px] font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</div>
-                  <div className="text-[12px] text-[#9CA3AF]">/ person</div>
+                  <div className="text-[12px] text-[#9CA3AF]">{t("detail.perPerson")}</div>
                 </div>
                 {pkg.originalPrice && (
                   <div className="text-[12px] text-[#9CA3AF] line-through mb-3">{fmtPrice(pkg.originalPrice)}</div>
                 )}
 
                 <div className="inline-flex items-center gap-1 bg-[#FEF9C3] text-[#B45309] text-[10px] font-bold px-2.5 py-1 rounded-full mb-4">
-                  🔥 Only {pkg.seats} seats left!
+                  {t("detail.onlySeatsLeft", { seats: pkg.seats })}
                 </div>
 
                 <form className="flex flex-col gap-3" onSubmit={e => e.preventDefault()}>
                   <div>
-                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">Full Name</label>
-                    <input placeholder="Your name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">{t("detail.form.name")}</label>
+                    <input placeholder={t("detail.form.namePlaceholder")} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                       className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">Phone Number</label>
+                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">{t("detail.form.phone")}</label>
                     <input placeholder="+880 1X XXX XXXXX" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                       className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">Departure Date</label>
+                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">{t("detail.form.date")}</label>
                     <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
                       className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">No. of Travelers</label>
+                    <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">{t("detail.form.travelers")}</label>
                     <select value={form.pax} onChange={e => setForm(f => ({ ...f, pax: e.target.value }))}
                       className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none focus:border-[#1B75BC] bg-white cursor-pointer">
                       {["1","2","3","4","5","6+"].map(n => <option key={n}>{n}</option>)}
                     </select>
                   </div>
                   <button type="submit" className="w-full py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-black rounded-[10px] text-[13px] transition-colors cursor-pointer mt-1">
-                    Book This Package
+                    {t("detail.form.submit")}
                   </button>
                   <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
                     className="w-full py-3 bg-[#25D366] hover:bg-[#1da855] text-white font-bold rounded-[10px] text-[13px] transition-colors flex items-center justify-center gap-2">
-                    <Phone size={14} /> WhatsApp Enquiry
+                    <Phone size={14} /> {t("detail.form.whatsapp")}
                   </a>
                 </form>
 
                 <div className="mt-4 pt-4 border-t border-[#F3F4F6] flex items-center gap-2 text-[11px] text-[#9CA3AF]">
                   <CheckCircle size={13} className="text-[#0E7C66]" />
-                  No booking fees · Free cancellation within 48hrs
+                  {t("detail.form.reassurance")}
                 </div>
               </div>
             </div>

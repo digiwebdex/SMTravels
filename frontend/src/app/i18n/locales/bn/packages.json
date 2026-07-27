@@ -1,0 +1,63 @@
+{
+  "hero": {
+    "eyebrow": "সকল প্যাকেজ",
+    "heading": "ভ্রমণ প্যাকেজ",
+    "subtitle": "প্রতিটি বাজেটের জন্য বাছাইকৃত হজ্জ, ওমরাহ ও ট্যুর প্যাকেজ"
+  },
+  "filters": {
+    "label": "ফিল্টার",
+    "type": {
+      "all": "সব",
+      "hajj": "হজ্জ",
+      "umrah": "ওমরাহ",
+      "tour": "ট্যুর",
+      "combined": "সম্মিলিত"
+    }
+  },
+  "list": {
+    "searchPlaceholder": "প্যাকেজ খুঁজুন...",
+    "emptyTitle": "কোনো প্যাকেজ পাওয়া যায়নি",
+    "clearFilters": "ফিল্টার মুছুন",
+    "startingFrom": "শুরু মূল্য",
+    "fromDeparture": "{{departure}} থেকে",
+    "seatsLeft": "{{seats}}টি সিট বাকি"
+  },
+  "detail": {
+    "notFound": "প্যাকেজটি খুঁজে পাওয়া যায়নি।",
+    "backToPackages": "প্যাকেজে ফিরে যান",
+    "reviewsLabel": "রিভিউ",
+    "seatsRemaining": "{{seats}}টি সিট অবশিষ্ট",
+    "perPerson": "/ জনপ্রতি",
+    "onlySeatsLeft": "🔥 মাত্র {{seats}}টি সিট বাকি!",
+    "tabs": {
+      "overview": "বিবরণ",
+      "itinerary": "ভ্রমণসূচি",
+      "inclusions": "অন্তর্ভুক্তি"
+    },
+    "overview": {
+      "highlights": "প্যাকেজের বৈশিষ্ট্য",
+      "details": "প্যাকেজের বিবরণ"
+    },
+    "fields": {
+      "duration": "সময়কাল",
+      "hotel": "হোটেল",
+      "flight": "ফ্লাইট",
+      "departure": "প্রস্থান"
+    },
+    "itinerary": { "heading": "দিনভিত্তিক ভ্রমণসূচি" },
+    "inclusions": {
+      "included": "অন্তর্ভুক্ত",
+      "excluded": "অন্তর্ভুক্ত নয়"
+    },
+    "form": {
+      "name": "পুরো নাম",
+      "namePlaceholder": "আপনার নাম",
+      "phone": "ফোন নম্বর",
+      "date": "যাত্রার তারিখ",
+      "travelers": "যাত্রীর সংখ্যা",
+      "submit": "এই প্যাকেজটি বুক করুন",
+      "whatsapp": "হোয়াটসঅ্যাপে জিজ্ঞাসা",
+      "reassurance": "কোনো বুকিং ফি নেই · 48 ঘণ্টার মধ্যে বিনামূল্যে বাতিল"
+    }
+  }
+}
