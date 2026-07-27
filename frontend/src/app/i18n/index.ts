@@ -56,6 +56,8 @@ import enErpCommon from "./locales/en/erpCommon.json";
 import bnErpCommon from "./locales/bn/erpCommon.json";
 import enErpHajjOps from "./locales/en/erpHajjOps.json";
 import bnErpHajjOps from "./locales/bn/erpHajjOps.json";
+import enErpBookings from "./locales/en/erpBookings.json";
+import bnErpBookings from "./locales/bn/erpBookings.json";
 
 export const resources = {
   en: {
@@ -65,7 +67,7 @@ export const resources = {
     auth: enAuth, portalCommon: enPortalCommon, portalCustomer: enPortalCustomer,
     portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
     portalAccountant: enPortalAccountant,
-    erpCommon: enErpCommon, erpHajjOps: enErpHajjOps,
+    erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings,
   },
   bn: {
     common: bnCommon, layout: bnLayout, home: bnHome, about: bnAbout,
@@ -74,7 +76,7 @@ export const resources = {
     auth: bnAuth, portalCommon: bnPortalCommon, portalCustomer: bnPortalCustomer,
     portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
     portalAccountant: bnPortalAccountant,
-    erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps,
+    erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings,
   },
 } as const;
 
@@ -86,7 +88,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });

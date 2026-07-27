@@ -1,0 +1,29 @@
+{
+  "comp": {
+    "sectionHajj": "Hajj Package Components",
+    "sectionUmrah": "Umrah Package Components",
+    "haramMakkah": "Haram Distance — Makkah",
+    "haramMadinah": "Haram Distance — Madinah",
+    "tentCategory": "Mina Tent Category",
+    "maktab": "Maktab No.",
+    "maktabPh": "e.g. Maktab 12",
+    "qurbani": "Qurbani (sacrifice) included",
+    "visaWindow": "Umrah Visa Window",
+    "visaIssued": "Visa Issued Date",
+    "visaExpiry": "Visa Expiry Date",
+    "select": "Select…",
+    "haramBand": {
+      "b1": "≤ 100m (Haram-facing)",
+      "b2": "100–300m",
+      "b3": "300–500m",
+      "b4": "500m–1km",
+      "b5": "> 1km (shuttle)"
+    },
+    "tent": {
+      "a": "Category A (VIP)",
+      "b": "Category B (Standard Plus)",
+      "c": "Category C (Standard)",
+      "muassasa": "Muassasa (Govt allotment)"
+    }
+  }
+}

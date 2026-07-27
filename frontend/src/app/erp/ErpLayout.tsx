@@ -77,7 +77,7 @@ const NAV_GROUPS = [
 
 const ALL_BRANCHES = "all";
 
-const typeIcon: Record<string, { icon: React.FC<{ size?: number; className?: string }>, color: string, bg: string }> = {
+const typeIcon: Record<string, { icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>, color: string, bg: string }> = {
   booking: { icon: CalendarDays, color: "#1B75BC", bg: "#EEF2FF" },
   payment: { icon: Wallet,        color: "#0E7C66", bg: "#ECFDF5" },
   alert:   { icon: AlertTriangle, color: "#DC2626", bg: "#FEF2F2" },

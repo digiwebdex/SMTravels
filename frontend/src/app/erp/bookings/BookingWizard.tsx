@@ -5,6 +5,7 @@ import {
   Smartphone, Building2, CheckCircle2, Info, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { cn, fmtPrice } from "../../lib/utils";
 import { ServiceType, SERVICE_CFG } from "./BookingsModule";
 import { useCreateBooking, useSaveDraft, useConfirmBooking, SERVICE_ENUM } from "../../hooks/bookings";
@@ -41,8 +42,8 @@ interface WizardForm {
 // Sensible per-service defaults so a click-through yields mostly-valid data.
 function initialDetail(service: ServiceType): Detail {
   switch (service) {
-    case "Hajj": return { packageTier: "", season: "Hajj 1447 (May–Jun 2026)", groupAssign: "", departureDate: "", returnDate: "", roomType: "Quad (4/room)", transport: "Saudi Public Bus", hotelMakkah: "Makkah Towers Hotel", hotelMadinah: "Al Salam Hotel Madinah", daysMakkah: "", daysMadinah: "", specialRequests: "" };
-    case "Umrah": return { packageTier: "", season: "Ramadan 2026", departureDate: "", returnDate: "", roomType: "Quad (4/room)", transport: "Saudi Public Bus", hotelMakkah: "Makkah Towers Hotel", hotelMadinah: "Al Salam Hotel Madinah", daysMakkah: "", daysMadinah: "", specialRequests: "" };
+    case "Hajj": return { packageTier: "", season: "Hajj 1447 (May–Jun 2026)", groupAssign: "", departureDate: "", returnDate: "", roomType: "Quad (4/room)", transport: "Saudi Public Bus", hotelMakkah: "Makkah Towers Hotel", hotelMadinah: "Al Salam Hotel Madinah", daysMakkah: "", daysMadinah: "", haramDistanceMakkah: "100–300m", haramDistanceMadinah: "100–300m", tentCategory: "Category C (Standard)", maktabNo: "", qurbani: false, specialRequests: "" };
+    case "Umrah": return { packageTier: "", season: "Ramadan 2026", departureDate: "", returnDate: "", roomType: "Quad (4/room)", transport: "Saudi Public Bus", hotelMakkah: "Makkah Towers Hotel", hotelMadinah: "Al Salam Hotel Madinah", daysMakkah: "", daysMadinah: "", haramDistanceMakkah: "100–300m", haramDistanceMadinah: "100–300m", visaIssuedAt: "", visaExpiry: "", specialRequests: "" };
     case "Visa": return { destinationCountry: "Saudi Arabia", visaType: "Tourist", processingSpeed: "Normal (15 working days)", passportCount: 1, purpose: "", notes: "" };
     case "Air Ticket": return { airline: "Saudi Arabian Airlines", pnr: "", journeyType: "Return", origin: "", destination: "", cabinClass: "Economy", departAt: "", returnAt: "", baseFare: "", taxAmount: "", agentMarkup: "", fareType: "Net Fare (SMT)", baggage: "" };
     case "Hotel": return { city: "", hotelName: "", starRating: "", checkIn: "", checkOut: "", roomType: "Standard", rooms: 1, guests: 2, boardBasis: "Bed & Breakfast", confirmationNo: "", distanceFromHaram: "", specialRequests: "" };
@@ -102,7 +103,7 @@ function Grid3({ children }: { children: React.ReactNode }) {
 }
 
 // value/onChange binder over the detail object
-type DetailProps = { detail: Detail; set: (k: string, v: string | number) => void };
+type DetailProps = { detail: Detail; set: (k: string, v: string | number | boolean) => void };
 const val = (d: Detail, k: string) => (d[k] === undefined || d[k] === null ? "" : String(d[k]));
 
 // ─── Step 1: Choose service ────────────────────────────────────────────────────
@@ -155,6 +156,9 @@ function StepService({ selected, onSelect }: { selected: ServiceType | null; onS
 
 // ─── Step 2: Service-specific details ─────────────────────────────────────────
 function HajjUmrahDetails({ service, detail, set }: { service: ServiceType } & DetailProps) {
+  const { t: tb } = useTranslation("erpBookings");
+  const HARAM_BANDS = [tb("comp.haramBand.b1"), tb("comp.haramBand.b2"), tb("comp.haramBand.b3"), tb("comp.haramBand.b4"), tb("comp.haramBand.b5")];
+  const TENT_CATS = [tb("comp.tent.a"), tb("comp.tent.b"), tb("comp.tent.c"), tb("comp.tent.muassasa")];
   const packages = service === "Hajj"
     ? ["Economy (40D — Quad)", "Standard (40D — Triple)", "Premium (40D — Double)", "VIP Elite (40D — Single)"]
     : ["Economy (10D/7N)", "Standard (14D/12N)", "Premium (21D/19N)", "VIP (21D/19N — 5★)", "Custom Duration"];
@@ -223,6 +227,54 @@ function HajjUmrahDetails({ service, detail, set }: { service: ServiceType } & D
           <input type="number" className={inputCls} placeholder="Days in Madinah (e.g. 8)" value={val(detail, "daysMadinah")} onChange={e => set("daysMadinah", e.target.value)} />
         </Grid2>
       </Field>
+
+      {/* ── Package components (Phase 3) — the fields that define the package ── */}
+      <div className="pt-1 border-t border-[#F3F4F6]" />
+      <p className="text-[12px] font-black text-[#374151] -mb-1">{service === "Hajj" ? tb("comp.sectionHajj") : tb("comp.sectionUmrah")}</p>
+      <Grid2>
+        <Field label={tb("comp.haramMakkah")} required>
+          <select className={selectCls} value={val(detail, "haramDistanceMakkah")} onChange={e => set("haramDistanceMakkah", e.target.value)}>
+            <option value="">{tb("comp.select")}</option>
+            {HARAM_BANDS.map(o => <option key={o}>{o}</option>)}
+          </select>
+        </Field>
+        <Field label={tb("comp.haramMadinah")} required>
+          <select className={selectCls} value={val(detail, "haramDistanceMadinah")} onChange={e => set("haramDistanceMadinah", e.target.value)}>
+            <option value="">{tb("comp.select")}</option>
+            {HARAM_BANDS.map(o => <option key={o}>{o}</option>)}
+          </select>
+        </Field>
+      </Grid2>
+      {service === "Hajj" && (
+        <>
+          <Grid2>
+            <Field label={tb("comp.tentCategory")} required>
+              <select className={selectCls} value={val(detail, "tentCategory")} onChange={e => set("tentCategory", e.target.value)}>
+                <option value="">{tb("comp.select")}</option>
+                {TENT_CATS.map(o => <option key={o}>{o}</option>)}
+              </select>
+            </Field>
+            <Field label={tb("comp.maktab")} required>
+              <input className={inputCls} placeholder={tb("comp.maktabPh")} value={val(detail, "maktabNo")} onChange={e => set("maktabNo", e.target.value)} />
+            </Field>
+          </Grid2>
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" className="w-4 h-4 accent-[#1B75BC]" checked={detail.qurbani === true} onChange={e => set("qurbani", e.target.checked)} />
+            <span className="text-[13px] text-[#374151]">{tb("comp.qurbani")}</span>
+          </label>
+        </>
+      )}
+      {service === "Umrah" && (
+        <Grid2>
+          <Field label={tb("comp.visaIssued")}>
+            <input type="date" className={inputCls} value={val(detail, "visaIssuedAt")} onChange={e => set("visaIssuedAt", e.target.value)} />
+          </Field>
+          <Field label={tb("comp.visaExpiry")} required>
+            <input type="date" className={inputCls} value={val(detail, "visaExpiry")} onChange={e => set("visaExpiry", e.target.value)} />
+          </Field>
+        </Grid2>
+      )}
+
       <Field label="Special Requests / Notes">
         <textarea className={cn(inputCls, "resize-none")} rows={3} placeholder="Wheelchair, dietary requirements, adjoining rooms, etc." value={val(detail, "specialRequests")} onChange={e => set("specialRequests", e.target.value)} />
       </Field>
@@ -1087,7 +1139,7 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
     }
   };
 
-  const setDetail = (k: string, v: string | number) => setForm(f => ({ ...f, detail: { ...f.detail, [k]: v } }));
+  const setDetail = (k: string, v: string | number | boolean) => setForm(f => ({ ...f, detail: { ...f.detail, [k]: v } }));
 
   const stepContent = [
     <StepService selected={service} onSelect={selectService} />,

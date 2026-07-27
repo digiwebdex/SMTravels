@@ -5,7 +5,7 @@ import {
   Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
 import {
-  LayoutDashboard, Plane, Hotel, TrendingUp, DollarSign, Users,
+  LayoutDashboard, Plane, Hotel, TrendingUp, TrendingDown, DollarSign, Users,
   BarChart3, Star, Activity, Zap, Target, Award, RefreshCw,
   Download, Printer, Filter, Calendar, Building2, Search,
   ChevronRight, Plus, X, GripVertical, Eye, Check,

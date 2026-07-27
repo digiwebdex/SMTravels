@@ -38,22 +38,24 @@ export const hajjDetailSchema = z.object({
   hotelMadinah: z.string().min(1),
   daysMakkah: z.coerce.number().int().nonnegative().optional(),
   daysMadinah: z.coerce.number().int().nonnegative().optional(),
-  // package components (Phase 2)
-  haramDistanceMakkah: z.string().optional(),
-  haramDistanceMadinah: z.string().optional(),
-  tentCategory: z.string().optional(),
-  maktabNo: z.string().optional(),
-  qurbani: z.boolean().optional(),
+  // package components (Phase 2 columns; required in the wizard from Phase 3).
+  // These define the Hajj package, so a valid Hajj booking must carry them.
+  haramDistanceMakkah: z.string().min(1),
+  haramDistanceMadinah: z.string().min(1),
+  tentCategory: z.string().min(1),   // Mina tent category — Hajj only
+  maktabNo: z.string().min(1),       // Maktab number — Hajj only
+  qurbani: z.boolean().optional(),   // yes/no toggle, defaults false
   mahramRequired: z.boolean().optional(),
   specialRequests: z.string().optional(),
 });
 
-// Umrah: no Hajj-only Mina/Maktab/Qurbani fields, but a visa window instead.
+// Umrah: no Hajj-only Mina/Maktab/Qurbani fields, but a required visa window
+// (Haram distance stays required — it's part of the base schema below).
 export const umrahDetailSchema = hajjDetailSchema
   .omit({ groupAssign: true, tentCategory: true, maktabNo: true, qurbani: true })
   .extend({
     visaIssuedAt: dateStr.optional(),
-    visaExpiry: dateStr.optional(),
+    visaExpiry: dateStr,             // visa expiry required for a valid Umrah booking
   });
 
 export const visaDetailSchema = z.object({

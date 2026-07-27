@@ -67,6 +67,13 @@ function buildServiceDetails(service: ServiceTypeDto, d: Record<string, unknown>
       put("Package", g("packageTier")); put("Season", g("season")); put("Group", g("groupAssign"));
       put("Room Type", g("roomType")); put("Transport", g("transport"));
       put("Hotel Makkah", g("hotelMakkah")); put("Hotel Madinah", g("hotelMadinah"));
+      put("Haram — Makkah", g("haramDistanceMakkah")); put("Haram — Madinah", g("haramDistanceMadinah"));
+      if (service === "HAJJ") {
+        put("Tent Category", g("tentCategory")); put("Maktab", g("maktabNo"));
+        put("Qurbani", g("qurbani") ? "Yes" : "No");
+      } else {
+        put("Visa Issued", g("visaIssuedAt")); put("Visa Expiry", g("visaExpiry"));
+      }
       put("Mahram", g("mahramRequired") ? "Yes" : "No"); break;
     case "VISA":
       put("Country", g("destinationCountry")); put("Visa Type", g("visaType"));
