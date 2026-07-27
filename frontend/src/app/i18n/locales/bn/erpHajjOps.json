@@ -1,0 +1,131 @@
+{
+  "page": {
+    "title": "Hajj / Umrah Operations",
+    "subtitle": "Government quota, group-departure batches, pilgrim registration & passport compliance"
+  },
+  "tab": {
+    "quota": "Quota",
+    "batches": "Departure Batches",
+    "registrations": "Pilgrim Registration",
+    "alerts": "Passport Alerts"
+  },
+  "quota": {
+    "title": "Government Quota",
+    "subtitle": "Allotment vs reserved, per season",
+    "new": "New quota",
+    "companyWide": "company-wide",
+    "form": {
+      "label": "Label",
+      "labelPh": "Govt Hajj 2027",
+      "seasonPh": "2027",
+      "allotted": "Allotted",
+      "allottedPh": "1000"
+    },
+    "col": {
+      "label": "Label",
+      "allotted": "Allotted",
+      "filled": "Filled",
+      "remaining": "Remaining",
+      "utilisation": "Utilisation"
+    },
+    "empty": {
+      "title": "No quota set",
+      "desc": "Add a government/private quota allotment for a season."
+    },
+    "error": "Failed to load quotas"
+  },
+  "batches": {
+    "title": "Group-Departure Batches",
+    "subtitle": "Seat inventory · Muallim & Maktab",
+    "new": "New batch",
+    "form": {
+      "name": "Batch name",
+      "namePh": "Hajj Group 07",
+      "seasonPh": "2027",
+      "totalSeats": "Total seats",
+      "totalSeatsPh": "40",
+      "muallim": "Muallim",
+      "muallimPh": "Sh. Abdullah",
+      "maktab": "Maktab",
+      "maktabPh": "Maktab 12",
+      "departure": "Departure",
+      "create": "Create batch"
+    },
+    "col": {
+      "code": "Code",
+      "departure": "Departure",
+      "muallim": "Muallim",
+      "maktab": "Maktab",
+      "seats": "Seats"
+    },
+    "status": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "DEPARTED": "Departed",
+      "CANCELLED": "Cancelled"
+    },
+    "empty": {
+      "title": "No departure batches",
+      "desc": "Create a group-departure batch with a seat count and Muallim."
+    },
+    "error": "Failed to load batches"
+  },
+  "reg": {
+    "title": "Pilgrim Government Registration",
+    "subtitle": "Pre-registration serial · PID · tracking no. (encrypted, searchable)",
+    "new": "Register pilgrim",
+    "searchPh": "Search by serial / PID / tracking no. or name",
+    "form": {
+      "pilgrimName": "Pilgrim name",
+      "seasonPh": "2027",
+      "preRegSerial": "Pre-reg serial",
+      "pid": "PID",
+      "trackingNo": "Tracking no.",
+      "submit": "Register"
+    },
+    "col": {
+      "pilgrim": "Pilgrim",
+      "preRegSerial": "Pre-reg serial",
+      "pid": "PID",
+      "tracking": "Tracking",
+      "booking": "Booking"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "PRE_REGISTERED": "Pre-registered",
+      "REGISTERED": "Registered",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled"
+    },
+    "empty": {
+      "noResultsTitle": "No matches",
+      "noResultsDesc": "No pilgrim matches that identifier.",
+      "noDataTitle": "No registrations yet",
+      "noDataDesc": "Register a pilgrim's government pre-registration details."
+    },
+    "error": "Failed to load registrations"
+  },
+  "alerts": {
+    "title": "Passport Expiry Alerts",
+    "subtitle": "A passport must be valid ≥ 6 months beyond the departure date",
+    "col": {
+      "pilgrim": "Pilgrim",
+      "booking": "Booking",
+      "departure": "Departure",
+      "expiry": "Passport expiry",
+      "validAtDeparture": "Valid at departure",
+      "alert": "Alert"
+    },
+    "months": "{{n}} mo",
+    "severity": {
+      "expired": "Expired",
+      "critical": "Invalid at departure",
+      "warning": "Expiring soon"
+    },
+    "empty": {
+      "title": "No passport alerts",
+      "desc": "No pilgrim's passport falls within 6 months of their departure."
+    },
+    "error": "Failed to load alerts"
+  }
+}

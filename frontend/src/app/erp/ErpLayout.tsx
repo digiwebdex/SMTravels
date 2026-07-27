@@ -12,6 +12,7 @@ import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
 import { BrandLogo } from "../components/BrandLogo";
 import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
+import { useLang } from "../i18n/useLang";
 import { useBranches, type BranchOption } from "../hooks/bookings";
 
 // ─── Mobile bottom nav items ──────────────────────────────────────────────────
@@ -267,6 +268,7 @@ function Topbar({
   const notifications = notifQ.data ?? [];
   const markAllRead = useMarkAllNotificationsRead();
   const unreadCount = notifications.filter(n => !n.read).length;
+  const { lang, toggle } = useLang();
 
   const DATE_RANGES = ["Today", "Yesterday", "This Week", "Last Week", "This Month", "Last Month", "Last 3 Months", "This Year", "Custom Range"];
 
@@ -354,6 +356,17 @@ function Topbar({
             </div>
           )}
         </div>
+
+        {/* Language toggle (bn/en) — ERP i18n. Values are English until the
+            Bangla sweep; the toggle proves the framework is wired end to end. */}
+        <button
+          onClick={toggle}
+          title={lang === "en" ? "বাংলা" : "English"}
+          className="h-9 px-2.5 flex items-center gap-1.5 text-[12px] font-semibold text-[#374151] hover:bg-[#F7F8FA] rounded-[8px] transition-colors cursor-pointer"
+        >
+          <Globe size={15} className="text-[#0E6BB8]" />
+          {lang === "en" ? "EN" : "বাং"}
+        </button>
 
         {/* Refresh */}
         <button className="h-9 w-9 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F7F8FA] rounded-[8px] transition-colors cursor-pointer hidden md:flex">

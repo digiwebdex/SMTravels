@@ -1,0 +1,40 @@
+{
+  "service": {
+    "HAJJ": "Hajj",
+    "UMRAH": "Umrah",
+    "VISA": "Visa",
+    "AIR_TICKET": "Air Ticket",
+    "MANPOWER": "Manpower",
+    "TOUR": "Tour",
+    "HOTEL": "Hotel"
+  },
+  "quotaType": {
+    "GOVT": "Government",
+    "PRIVATE": "Private",
+    "GOVT_short": "Govt",
+    "PRIVATE_short": "Private"
+  },
+  "action": {
+    "add": "Add",
+    "search": "Search",
+    "clear": "Clear",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "viewAll": "View all"
+  },
+  "field": {
+    "service": "Service",
+    "season": "Season",
+    "type": "Type",
+    "status": "Status",
+    "name": "Name",
+    "branch": "Branch",
+    "actions": "Actions"
+  },
+  "empty": {
+    "failed": "Something went wrong",
+    "nothing": "Nothing here yet"
+  }
+}
