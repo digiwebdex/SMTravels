@@ -12,6 +12,7 @@ import {
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable } from "../lib/responsive";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SampleBadge } from "./SampleBadge";
 import {
   useStaffMe, useStaffDashboard, useStaffTasks, useStaffBookings, useStaffCustomers,
@@ -21,8 +22,9 @@ import {
 
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
+  const { t } = useTranslation("portalStaff");
   if (q.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
-  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || "Failed to load."}</div>;
+  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || t("portalCommon:empty.failed")}</div>;
   return <>{children}</>;
 }
 
@@ -32,16 +34,16 @@ type StaffView =
   | "notifications" | "profile";
 
 const NAV: { id: StaffView; icon: React.ElementType; label: string; badge?: number }[] = [
-  { id: "dashboard",     icon: LayoutDashboard, label: "Dashboard"           },
-  { id: "tasks",         icon: CheckSquare,     label: "Daily Tasks",  badge: 4 },
-  { id: "bookings",      icon: Briefcase,       label: "Bookings"            },
-  { id: "customers",     icon: Users,           label: "Customers"           },
-  { id: "reports",       icon: BarChart3,       label: "My Reports"          },
-  { id: "documents",     icon: FolderOpen,      label: "Documents"           },
-  { id: "announcements", icon: Megaphone,       label: "Announcements"       },
-  { id: "support",       icon: LifeBuoy,        label: "Support"             },
-  { id: "notifications", icon: Bell,            label: "Notifications", badge:3 },
-  { id: "profile",       icon: User,            label: "Profile"             },
+  { id: "dashboard",     icon: LayoutDashboard, label: "portalCommon:nav.dashboard"      },
+  { id: "tasks",         icon: CheckSquare,     label: "portalStaff:nav.dailyTasks",  badge: 4 },
+  { id: "bookings",      icon: Briefcase,       label: "portalCommon:nav.bookings"       },
+  { id: "customers",     icon: Users,           label: "portalCommon:nav.customers"      },
+  { id: "reports",       icon: BarChart3,       label: "portalStaff:nav.myReports"       },
+  { id: "documents",     icon: FolderOpen,      label: "portalCommon:nav.documents"      },
+  { id: "announcements", icon: Megaphone,       label: "portalCommon:nav.announcements"  },
+  { id: "support",       icon: LifeBuoy,        label: "portalCommon:nav.support"        },
+  { id: "notifications", icon: Bell,            label: "portalCommon:nav.notifications", badge:3 },
+  { id: "profile",       icon: User,            label: "portalCommon:nav.profile"        },
 ];
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -80,6 +82,7 @@ function Chip({ label, cls }: { label: string; cls: string }) {
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffDashboard();
   const d = q.data;
   return (
@@ -88,18 +91,18 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
       <div className="space-y-5" data-portal="dashboard">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Staff Dashboard</p>
-            <h1 className="text-2xl font-bold text-slate-900 mt-0.5" data-portal-name>Good day, {d.staffName.split(" ")[0]}!</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Branch: {d.branchName ?? "—"}</p>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">{t("dashboard.eyebrow")}</p>
+            <h1 className="text-2xl font-bold text-slate-900 mt-0.5" data-portal-name>{t("dashboard.greeting", { name: d.staffName.split(" ")[0] })}</h1>
+            <p className="text-sm text-slate-500 mt-0.5">{t("dashboard.branch")}: {d.branchName ?? "—"}</p>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white font-bold">{d.staffName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase()}</div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label:"Open Tasks", val: d.counts.openTasks, color:"bg-amber-500", Icon:CheckSquare },
-            { label:"My Bookings", val: d.counts.assignedBookings, color:"bg-[#1B75BC]", Icon:Briefcase },
-            { label:"Branch Customers", val: d.counts.branchCustomers, color:"bg-[#0E7C66]", Icon:Users },
+            { label:t("dashboard.kpi.openTasks"), val: d.counts.openTasks, color:"bg-amber-500", Icon:CheckSquare },
+            { label:t("dashboard.kpi.myBookings"), val: d.counts.assignedBookings, color:"bg-[#1B75BC]", Icon:Briefcase },
+            { label:t("dashboard.kpi.branchCustomers"), val: d.counts.branchCustomers, color:"bg-[#0E7C66]", Icon:Users },
           ].map(k => (
             <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white mb-2", k.color)}><k.Icon size={15} /></div>
@@ -110,23 +113,23 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
-          <p className="font-bold text-slate-800 mb-4">My Tasks by Status</p>
+          <p className="font-bold text-slate-800 mb-4">{t("dashboard.tasksByStatus")}</p>
           <div className="space-y-2">
-            {d.tasksByStatus.length === 0 && <p className="text-sm text-slate-400">No tasks assigned.</p>}
+            {d.tasksByStatus.length === 0 && <p className="text-sm text-slate-400">{t("portalCommon:empty.nothing")}</p>}
             {d.tasksByStatus.map(s => (
-              <div key={s.status} className="flex items-center justify-between"><span className="text-sm text-slate-600 capitalize">{s.status.toLowerCase().replace("_"," ")}</span><span className="font-bold text-slate-800">{s.count}</span></div>
+              <div key={s.status} className="flex items-center justify-between"><span className="text-sm text-slate-600 capitalize">{t(`taskStatus.${s.status.toLowerCase()}`, { defaultValue: s.status.toLowerCase().replace("_"," ") })}</span><span className="font-bold text-slate-800">{s.count}</span></div>
             ))}
           </div>
-          <button onClick={() => onGo("tasks")} className="w-full mt-3 py-2 text-sm text-[#1B75BC] font-semibold hover:underline">View all tasks</button>
+          <button onClick={() => onGo("tasks")} className="w-full mt-3 py-2 text-sm text-[#1B75BC] font-semibold hover:underline">{t("dashboard.viewAllTasks")}</button>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <div className="flex items-center gap-2"><Pin size={14} className="text-[#D64A12]" /><p className="font-bold text-slate-800">Pinned Announcements</p></div>
-            <button onClick={() => onGo("announcements")} className="text-xs text-[#1B75BC] font-semibold hover:underline">All</button>
+            <div className="flex items-center gap-2"><Pin size={14} className="text-[#D64A12]" /><p className="font-bold text-slate-800">{t("dashboard.pinnedAnnouncements")}</p></div>
+            <button onClick={() => onGo("announcements")} className="text-xs text-[#1B75BC] font-semibold hover:underline">{t("filters.all")}</button>
           </div>
           <div className="divide-y divide-slate-100">
-            {d.pinnedAnnouncements.length === 0 && <p className="px-5 py-4 text-sm text-slate-400">No announcements.</p>}
+            {d.pinnedAnnouncements.length === 0 && <p className="px-5 py-4 text-sm text-slate-400">{t("portalCommon:empty.nothing")}</p>}
             {d.pinnedAnnouncements.map(a => (
               <div key={a.id} className="px-5 py-3.5">
                 <div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-slate-800">{a.title}</p><span className="text-xs text-slate-400 whitespace-nowrap">{iso2date(a.createdAt)}</span></div>
@@ -143,6 +146,7 @@ function StaffDashboard({ onGo }: { onGo: (v: StaffView) => void }) {
 
 // ─── DAILY TASKS ─────────────────────────────────────────────────────────────
 function TasksView() {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffTasks();
   const tasks = q.data ?? [];
   const [filter, setFilter] = useState<"all"|"pending"|"done">("all");
@@ -166,22 +170,22 @@ function TasksView() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Daily Tasks</h2>
+          <h2 className="text-xl font-bold text-slate-800">{t("nav.dailyTasks")}</h2>
           <p className="text-sm text-slate-400 mt-0.5">
-            {tasks.filter(t=>!isDone(t)).length} pending · {tasks.filter(isDone).length} completed
+            {t("tasks.summary", { pending: tasks.filter(x=>!isDone(x)).length, completed: tasks.filter(isDone).length })}
           </p>
         </div>
         <button onClick={() => setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F]">
-          <Plus size={14} /> Add Task
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] whitespace-nowrap">
+          <Plus size={14} /> {t("tasks.addTask")}
         </button>
       </div>
 
       {/* Filter pills */}
       <div className="flex gap-2">
-        {([["all","All"],["pending","Pending"],["done","Done"]] as const).map(([k,l]) => (
+        {([["all",t("filters.all")],["pending",t("portalCommon:status.pending")],["done",t("tasks.done")]] as const).map(([k,l]) => (
           <button key={k} onClick={() => setFilter(k)}
-            className={cn("px-4 py-2 rounded-xl text-sm font-semibold transition-all",
+            className={cn("px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap",
               filter === k ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
             {l}
           </button>
@@ -190,34 +194,35 @@ function TasksView() {
 
       {/* Tasks by priority */}
       <PLoad q={q}>
-        {shown.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No tasks.</p>}
+        {shown.length === 0 && <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.nothing")}</p>}
         {(["HIGH","MEDIUM","LOW"] as const).map(priority => {
-          const group = shown.filter(t => t.priority === priority);
+          const group = shown.filter(x => x.priority === priority);
           if (!group.length) return null;
           const cfg = PRIORITY_CFG[priority];
+          const pLabel = t(`priority.${priority.toLowerCase()}`);
           return (
             <div key={priority}>
               <div className="flex items-center gap-2 mb-2">
                 <div className={cn("w-2 h-2 rounded-full", cfg.dot)} />
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{cfg.label} Priority</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{pLabel} {t("tasks.priority")}</p>
               </div>
               <div className="space-y-2">
-                {group.map(t => (
-                  <div key={t.id} className={cn("flex items-start gap-3 p-4 bg-white rounded-xl border transition-all",
-                    isDone(t) ? "border-slate-100 opacity-60" : "border-slate-200 hover:border-[#1B75BC]/20")}>
-                    <button onClick={() => toggle(t)}
+                {group.map(task => (
+                  <div key={task.id} className={cn("flex items-start gap-3 p-4 bg-white rounded-xl border transition-all",
+                    isDone(task) ? "border-slate-100 opacity-60" : "border-slate-200 hover:border-[#1B75BC]/20")}>
+                    <button onClick={() => toggle(task)}
                       className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors",
-                        isDone(t) ? "border-emerald-500 bg-emerald-500" : "border-slate-300 hover:border-[#1B75BC]")}>
-                      {isDone(t) && <Check size={11} className="text-white" />}
+                        isDone(task) ? "border-emerald-500 bg-emerald-500" : "border-slate-300 hover:border-[#1B75BC]")}>
+                      {isDone(task) && <Check size={11} className="text-white" />}
                     </button>
                     <div className="flex-1 min-w-0">
-                      <p className={cn("text-sm font-semibold", isDone(t) ? "line-through text-slate-400" : "text-slate-800")}>{t.title}</p>
+                      <p className={cn("text-sm font-semibold", isDone(task) ? "line-through text-slate-400" : "text-slate-800")}>{task.title}</p>
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span className="text-xs text-slate-400 flex items-center gap-1"><Clock size={10} />{iso2date(t.dueAt)}</span>
-                        {t.category && <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{t.category}</span>}
+                        <span className="text-xs text-slate-400 flex items-center gap-1"><Clock size={10} />{iso2date(task.dueAt)}</span>
+                        {task.category && <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{task.category}</span>}
                       </div>
                     </div>
-                    <Chip label={cfg.label} cls={cfg.cls} />
+                    <Chip label={pLabel} cls={cfg.cls} />
                   </div>
                 ))}
               </div>
@@ -230,34 +235,34 @@ function TasksView() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-lg">Add Task</h3>
+              <h3 className="font-bold text-slate-800 text-lg">{t("tasks.addTask")}</h3>
               <button onClick={() => setAddModal(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18} /></button>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Task Description</label>
-              <input value={nTitle} onChange={e => setNTitle(e.target.value)} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" placeholder="What needs to be done?" />
+              <label className="block text-xs font-medium text-slate-500 mb-1">{t("tasks.description")}</label>
+              <input value={nTitle} onChange={e => setNTitle(e.target.value)} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" placeholder={t("tasks.descriptionPlaceholder")} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Priority</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">{t("tasks.priority")}</label>
                 <select value={nPriority} onChange={e => setNPriority(e.target.value as "HIGH"|"MEDIUM"|"LOW")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
-                  <option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option>
+                  <option value="HIGH">{t("priority.high")}</option><option value="MEDIUM">{t("priority.medium")}</option><option value="LOW">{t("priority.low")}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Due Date/Time</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">{t("tasks.dueDateTime")}</label>
                 <input type="datetime-local" value={nDueAt} onChange={e => setNDueAt(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Category</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">{t("tasks.category")}</label>
               <select value={nCategory} onChange={e => setNCategory(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none">
                 {["Sales","Visa","Operations","Hotel","Finance","Comm","Admin"].map(c=><option key={c}>{c}</option>)}
               </select>
             </div>
             <button onClick={save} disabled={createTask.isPending || nTitle.trim().length < 2}
               className="w-full py-3 bg-[#1B75BC] text-white font-semibold text-sm rounded-xl hover:bg-[#14588F] disabled:opacity-50">
-              {createTask.isPending ? "Saving…" : "Save Task"}
+              {createTask.isPending ? t("tasks.saving") : t("tasks.save")}
             </button>
           </div>
         </div>
@@ -268,6 +273,7 @@ function TasksView() {
 
 // ─── BOOKINGS ────────────────────────────────────────────────────────────────
 function StaffBookings() {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffBookings();
   const bookings = q.data ?? [];
   const [search, setSearch] = useState("");
@@ -277,10 +283,10 @@ function StaffBookings() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Booking Management</h2>
+        <h2 className="text-xl font-bold text-slate-800">{t("bookings.title")}</h2>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("placeholders.search")}
             className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-48" />
         </div>
       </div>
@@ -289,10 +295,10 @@ function StaffBookings() {
         {/* Stat strip */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label:"Total",     val:bookings.length,                                   color:"text-slate-800" },
-            { label:"Confirmed", val:bookings.filter(b=>b.status==="CONFIRMED").length,  color:"text-blue-600" },
-            { label:"Processing",val:bookings.filter(b=>b.status==="PROCESSING").length, color:"text-amber-600"},
-            { label:"Completed", val:bookings.filter(b=>b.status==="COMPLETED").length,  color:"text-emerald-600"},
+            { label:t("portalCommon:labels.total"),     val:bookings.length,                                   color:"text-slate-800" },
+            { label:t("portalCommon:status.confirmed"), val:bookings.filter(b=>b.status==="CONFIRMED").length,  color:"text-blue-600" },
+            { label:t("portalCommon:status.processing"),val:bookings.filter(b=>b.status==="PROCESSING").length, color:"text-amber-600"},
+            { label:t("portalCommon:status.completed"), val:bookings.filter(b=>b.status==="COMPLETED").length,  color:"text-emerald-600"},
           ].map(st => (
             <div key={st.label} className="bg-white border border-slate-200 rounded-xl p-3 text-center">
               <p className={cn("text-xl font-black", st.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{st.val}</p>
@@ -305,14 +311,14 @@ function StaffBookings() {
           <table className="w-full min-w-[640px] md:min-w-0">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                {["Booking ID","Customer","Service","Departure","Amount","Status",""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                {["portalStaff:bookings.cols.bookingId","portalStaff:bookings.cols.customer","portalStaff:bookings.cols.service","portalStaff:bookings.cols.departure","portalCommon:labels.amount","portalCommon:labels.status",""].map((h,hi) => (
+                  <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {shown.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-400">No bookings.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-400">{t("portalCommon:empty.nothing")}</td></tr>
               )}
               {shown.map(b => (
                 <tr key={b.id} className="hover:bg-slate-50 transition-colors">
@@ -328,7 +334,7 @@ function StaffBookings() {
                   <td className="px-4 py-3.5 text-sm text-slate-600">{b.serviceType}</td>
                   <td className="px-4 py-3.5 text-sm text-slate-500">{iso2date(b.departureDate)}</td>
                   <td className="px-4 py-3.5 text-sm font-mono font-bold text-slate-800">{fmtBDT(b.baseAmount)}</td>
-                  <td className="px-4 py-3.5"><Chip label={bkCfg(b.status).label} cls={bkCfg(b.status).cls} /></td>
+                  <td className="px-4 py-3.5"><Chip label={t(`portalCommon:status.${b.status.toLowerCase()}`, { defaultValue: bkCfg(b.status).label })} cls={bkCfg(b.status).cls} /></td>
                   <td className="px-4 py-3.5">
                     <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
                   </td>
@@ -344,6 +350,7 @@ function StaffBookings() {
 
 // ─── CUSTOMERS ───────────────────────────────────────────────────────────────
 function StaffCustomers() {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffCustomers();
   const customers = q.data ?? [];
   const [search, setSearch] = useState("");
@@ -352,10 +359,10 @@ function StaffCustomers() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Customers</h2>
+        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.customers")}</h2>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search customers…" className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-52" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("placeholders.searchCustomers")} className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-52" />
         </div>
       </div>
       <PLoad q={q}>
@@ -363,14 +370,14 @@ function StaffCustomers() {
           <table className="w-full min-w-[640px] md:min-w-0">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                {["Customer","Contact","Since","Bookings",""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                {["portalStaff:customers.cols.customer","portalStaff:customers.cols.contact","portalStaff:customers.cols.since","portalCommon:nav.bookings",""].map((h,hi) => (
+                  <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {shown.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">No customers.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">{t("portalCommon:empty.nothing")}</td></tr>
               )}
               {shown.map(c => (
                 <tr key={c.id} className="hover:bg-slate-50 transition-colors">
@@ -400,6 +407,7 @@ function StaffCustomers() {
 
 // ─── REPORTS ─────────────────────────────────────────────────────────────────
 function StaffReports() {
+  const { t } = useTranslation("portalStaff");
   const months = ["Feb","Mar","Apr","May","Jun","Jul"];
   const vals = [3,5,4,6,5,4];
   const max = Math.max(...vals);
@@ -407,13 +415,13 @@ function StaffReports() {
   return (
     <div className="space-y-5">
       <SampleBadge />
-      <h2 className="text-xl font-bold text-slate-800">My Reports</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("nav.myReports")}</h2>
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Bookings (Jul)",  val:"4",    delta:"+1", up:true  },
-          { label:"Tasks Done",      val:"7",    delta:"+3", up:true  },
-          { label:"Customers Served",val:"12",   delta:"+2", up:true  },
+          { label:t("reports.kpi.bookings"),  val:"4",    delta:"+1", up:true  },
+          { label:t("reports.kpi.tasksDone"),      val:"7",    delta:"+3", up:true  },
+          { label:t("reports.kpi.customersServed"),val:"12",   delta:"+2", up:true  },
         ].map(s => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-1">
@@ -429,7 +437,7 @@ function StaffReports() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <p className="font-bold text-slate-800 mb-4">Bookings Closed per Month</p>
+        <p className="font-bold text-slate-800 mb-4">{t("reports.bookingsClosed")}</p>
         <div className="flex items-end gap-2 h-28">
           {vals.map((v,i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -442,16 +450,16 @@ function StaffReports() {
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-slate-800">Performance Summary</p>
-          <button className="flex items-center gap-1.5 text-xs text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-lg hover:bg-[#1B75BC]/5">
-            <Download size={12}/> Export
+          <p className="font-bold text-slate-800">{t("reports.performanceSummary")}</p>
+          <button className="flex items-center gap-1.5 text-xs text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-lg hover:bg-[#1B75BC]/5 whitespace-nowrap">
+            <Download size={12}/> {t("reports.export")}
           </button>
         </div>
         {[
-          { label:"Task Completion Rate", val:"78%",   bar:78,  color:"#1B75BC" },
-          { label:"Booking Close Rate",   val:"64%",   bar:64,  color:"#0E7C66" },
-          { label:"Customer Satisfaction",val:"4.7★",  bar:94,  color:"#F15A24" },
-          { label:"Response Time (avg)",  val:"1.8h",  bar:75,  color:"#7C3AED" },
+          { label:t("reports.rows.taskCompletion"), val:"78%",   bar:78,  color:"#1B75BC" },
+          { label:t("reports.rows.bookingClose"),   val:"64%",   bar:64,  color:"#0E7C66" },
+          { label:t("reports.rows.customerSatisfaction"),val:"4.7★",  bar:94,  color:"#F15A24" },
+          { label:t("reports.rows.responseTime"),  val:"1.8h",  bar:75,  color:"#7C3AED" },
         ].map(r => (
           <div key={r.label} className="mb-3 last:mb-0">
             <div className="flex justify-between text-xs mb-1">
@@ -470,6 +478,7 @@ function StaffReports() {
 
 // ─── DOCUMENTS ───────────────────────────────────────────────────────────────
 function StaffDocuments() {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffDocuments();
   const docs = q.data ?? [];
   const [search, setSearch] = useState("");
@@ -478,10 +487,10 @@ function StaffDocuments() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Documents</h2>
+        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.documents")}</h2>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search docs…"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("placeholders.searchDocs")}
             className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-44" />
         </div>
       </div>
@@ -491,14 +500,14 @@ function StaffDocuments() {
           <table className="w-full min-w-[640px] md:min-w-0">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                {["Document","Type","Status","Updated",""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                {["portalStaff:documents.cols.document","portalCommon:labels.type","portalCommon:labels.status","portalStaff:documents.cols.updated",""].map((h,hi) => (
+                  <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {shown.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">No documents.</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-400">{t("portalCommon:empty.nothing")}</td></tr>
               )}
               {shown.map(d => (
                 <tr key={d.id} className="hover:bg-slate-50 transition-colors">
@@ -516,8 +525,8 @@ function StaffDocuments() {
                   </td>
                   <td className="px-4 py-3.5 text-xs text-slate-400">{iso2date(d.createdAt)}</td>
                   <td className="px-4 py-3.5">
-                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline">
-                      <Download size={12}/> Download
+                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">
+                      <Download size={12}/> {t("common:actions.download")}
                     </button>
                   </td>
                 </tr>
@@ -532,15 +541,16 @@ function StaffDocuments() {
 
 // ─── ANNOUNCEMENTS ───────────────────────────────────────────────────────────
 function StaffAnnouncements() {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffAnnouncements();
   const announcements = q.data ?? [];
   const [expanded, setExpanded] = useState<string|null>(null);
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-slate-800">Announcements</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.announcements")}</h2>
       <PLoad q={q}>
         <div className="space-y-3">
-          {announcements.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No announcements.</p>}
+          {announcements.length === 0 && <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.nothing")}</p>}
           {announcements.map(a => (
             <div key={a.id} className={cn("bg-white rounded-2xl border overflow-hidden",
               a.pinned ? "border-[#F15A24]/40" : "border-slate-200")}>
@@ -549,7 +559,7 @@ function StaffAnnouncements() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <p className="font-bold text-slate-800">{a.title}</p>
-                    {a.pinned && <span className="text-xs px-2 py-0.5 bg-[#F15A24]/15 text-[#D64A12] rounded-full font-bold border border-[#F15A24]/30">Pinned</span>}
+                    {a.pinned && <span className="text-xs px-2 py-0.5 bg-[#F15A24]/15 text-[#D64A12] rounded-full font-bold border border-[#F15A24]/30">{t("announcements.pinned")}</span>}
                   </div>
                   <p className="text-xs text-slate-400">{iso2date(a.createdAt)}</p>
                 </div>
@@ -570,6 +580,7 @@ function StaffAnnouncements() {
 
 // ─── SUPPORT ─────────────────────────────────────────────────────────────────
 function StaffSupport() {
+  const { t } = useTranslation("portalStaff");
   const [active, setActive] = useState<string|null>(null);
   const MSGS = [
     { from:"Me",         text:"I cannot access the visa processing module. Getting a 403 error.", time:"Jul 15 09:00", mine:true  },
@@ -583,8 +594,8 @@ function StaffSupport() {
           <ChevronRight size={16} className="rotate-180" />
         </button>
         <div>
-          <p className="font-bold text-slate-800">{SUP_TICKETS.find(t=>t.id===active)?.subject}</p>
-          <p className="text-xs text-slate-400">{active} · Open</p>
+          <p className="font-bold text-slate-800">{SUP_TICKETS.find(tk=>tk.id===active)?.subject}</p>
+          <p className="text-xs text-slate-400">{active} · {t("support.status.open")}</p>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
@@ -599,7 +610,7 @@ function StaffSupport() {
         ))}
       </div>
       <div className="flex items-center gap-2">
-        <input placeholder="Type reply…" className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
+        <input placeholder={t("support.replyPlaceholder")} className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
         <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl"><Send size={16} /></button>
       </div>
     </div>
@@ -609,27 +620,27 @@ function StaffSupport() {
     <div className="space-y-4">
       <SampleBadge />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Support Tickets</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F]">
-          <Plus size={14}/> New Ticket
+        <h2 className="text-xl font-bold text-slate-800">{t("support.title")}</h2>
+        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] whitespace-nowrap">
+          <Plus size={14}/> {t("support.newTicket")}
         </button>
       </div>
-      {SUP_TICKETS.map(t => (
-        <div key={t.id} onClick={() => setActive(t.id)}
+      {SUP_TICKETS.map(tk => (
+        <div key={tk.id} onClick={() => setActive(tk.id)}
           className="bg-white rounded-2xl border border-slate-200 p-5 cursor-pointer hover:shadow-sm transition-all">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 pr-3">
-              <p className="text-xs font-mono text-slate-400 mb-1">{t.id}</p>
-              <p className="font-semibold text-slate-800">{t.subject}</p>
+              <p className="text-xs font-mono text-slate-400 mb-1">{tk.id}</p>
+              <p className="font-semibold text-slate-800">{tk.subject}</p>
             </div>
             <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border flex-shrink-0",
-              t.status==="open"?"bg-blue-50 text-blue-600 border-blue-200":"bg-emerald-50 text-emerald-600 border-emerald-200")}>
-              {t.status}
+              tk.status==="open"?"bg-blue-50 text-blue-600 border-blue-200":"bg-emerald-50 text-emerald-600 border-emerald-200")}>
+              {t(`support.status.${tk.status}`, { defaultValue: tk.status })}
             </span>
           </div>
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1"><MessageSquare size={11}/>{t.msgs} messages</span>
-            <span>{t.date}</span>
+            <span className="flex items-center gap-1"><MessageSquare size={11}/>{t("support.messagesCount", { count: tk.msgs })}</span>
+            <span>{tk.date}</span>
           </div>
         </div>
       ))}
@@ -639,14 +650,15 @@ function StaffSupport() {
 
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
 function StaffNotifications() {
+  const { t } = useTranslation("portalStaff");
   const [list, setList] = useState(NOTIFS_DATA);
   return (
     <div className="space-y-4">
       <SampleBadge />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Notifications</h2>
+        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.notifications")}</h2>
         <button onClick={() => setList(n => n.map(x => ({ ...x, read:true })))}
-          className="text-sm text-[#1B75BC] font-semibold hover:underline">Mark all read</button>
+          className="text-sm text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">{t("notifications.markAllRead")}</button>
       </div>
       <div className="space-y-2.5">
         {list.map(n => (
@@ -673,27 +685,28 @@ function StaffNotifications() {
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 function StaffProfile() {
+  const { t } = useTranslation("portalStaff");
   const q = useStaffMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
     <div className="space-y-5" data-portal="profile">
-      <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("profile.title")}</h2>
       <PLoad q={q}>
         {me && (<>
           <div className="bg-gradient-to-br from-[#1B75BC] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black flex-shrink-0">{initials}</div>
             <div>
               <p className="text-xl font-bold" data-portal-name>{me.name}</p>
-              <p className="text-white/70 text-sm mt-0.5">{me.department ?? "Staff"} · {me.branchName ?? "—"}</p>
+              <p className="text-white/70 text-sm mt-0.5">{me.department ?? t("roles.staff")} · {me.branchName ?? "—"}</p>
               <p className="text-white/60 text-xs mt-1 font-mono">{me.employeeId ?? ""}</p>
             </div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
+            <p className="font-semibold text-slate-700 text-sm">{t("profile.personalInfo")}</p>
             {[
-              ["Full Name",me.name],["Employee ID",me.employeeId ?? "—"],["Department",me.department ?? "—"],
-              ["Branch",me.branchName ?? "—"],["Phone",me.phone ?? "—"],["Email",me.email],["NID Number",me.nid ?? "—"],
+              [t("profile.fullName"),me.name],[t("profile.employeeId"),me.employeeId ?? "—"],[t("profile.department"),me.department ?? "—"],
+              [t("profile.branch"),me.branchName ?? "—"],[t("portalCommon:labels.phone"),me.phone ?? "—"],[t("portalCommon:labels.email"),me.email],[t("profile.nid"),me.nid ?? "—"],
             ].map(([l,v]) => (
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
@@ -701,7 +714,7 @@ function StaffProfile() {
               </div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> Sign Out</button>
+          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -710,17 +723,18 @@ function StaffProfile() {
 
 // ─── Sidebar inner component (shared desktop + drawer) ───────────────────────
 function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void }) {
+  const { t } = useTranslation("portalStaff");
   const { data: me } = useStaffMe();
-  const sName = me?.name ?? "Staff";
+  const sName = me?.name ?? t("roles.staff");
   const sInit = sName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
     <aside className="w-56 bg-[#17456B] flex flex-col h-full">
       <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-black">BDH</div>
+          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-black">SM</div>
           <div>
-            <p className="text-white text-sm font-bold leading-tight">BDH Travels</p>
-            <p className="text-white/50 text-xs">Staff Portal</p>
+            <p className="text-white text-sm font-bold leading-tight">SM Travels International</p>
+            <p className="text-white/50 text-xs">{t("brand.portal")}</p>
           </div>
         </div>
         {onClose && (
@@ -732,7 +746,7 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
           <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{sInit}</div>
           <div className="min-w-0">
             <p className="text-white text-xs font-semibold truncate" data-portal-name>{sName}</p>
-            <p className="text-white/50 text-xs truncate">{me?.department ?? "Staff"}</p>
+            <p className="text-white/50 text-xs truncate">{me?.department ?? t("roles.staff")}</p>
           </div>
         </div>
       </div>
@@ -745,7 +759,7 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
                 : "text-white/60 hover:text-white hover:bg-white/8")}
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
-            <span className="flex-1 text-left">{item.label}</span>
+            <span className="flex-1 text-left">{t(item.label)}</span>
             {item.badge ? (
               <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
             ) : null}
@@ -755,7 +769,7 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
       <div className="p-3 border-t border-white/10">
         <button className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
           style={{ minHeight: 44 }}>
-          <LogOut size={14}/> Sign Out
+          <LogOut size={14}/> {t("portalCommon:nav.logout")}
         </button>
       </div>
     </aside>
@@ -764,15 +778,16 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
 
 // Mobile bottom nav items
 const STAFF_BOTTOM_NAV = [
-  { id: "dashboard"     as StaffView, icon: LayoutDashboard, label: "Home"     },
-  { id: "tasks"         as StaffView, icon: CheckSquare,     label: "Tasks",  badge: 4 },
-  { id: "bookings"      as StaffView, icon: Briefcase,       label: "Bookings" },
-  { id: "notifications" as StaffView, icon: Bell,            label: "Alerts", badge: 3 },
-  { id: "profile"       as StaffView, icon: User,            label: "Profile"  },
+  { id: "dashboard"     as StaffView, icon: LayoutDashboard, label: "portalStaff:bottomNav.home" },
+  { id: "tasks"         as StaffView, icon: CheckSquare,     label: "portalCommon:nav.tasks",  badge: 4 },
+  { id: "bookings"      as StaffView, icon: Briefcase,       label: "portalCommon:nav.bookings" },
+  { id: "notifications" as StaffView, icon: Bell,            label: "portalStaff:bottomNav.alerts", badge: 3 },
+  { id: "profile"       as StaffView, icon: User,            label: "portalCommon:nav.profile"  },
 ];
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
 export function StaffPortal() {
+  const { t } = useTranslation("portalStaff");
   const [view, setView] = useState<StaffView>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const go = (v: StaffView) => setView(v);
@@ -793,7 +808,7 @@ export function StaffPortal() {
   };
 
   const unreadNotif = NOTIFS_DATA.filter(n => !n.read).length;
-  const currentLabel = NAV.find(n => n.id === view)?.label ?? "";
+  const currentLabel = t(NAV.find(n => n.id === view)?.label ?? "");
 
   return (
     <div className="min-h-screen bg-[#F0F2F5]">
@@ -838,7 +853,7 @@ export function StaffPortal() {
               className="w-9 h-9 flex items-center justify-center rounded-xl"
               style={{ minWidth: 44 }}
             >
-              <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">SM</div>
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight">{currentLabel}</p>
@@ -868,7 +883,7 @@ export function StaffPortal() {
 
         {/* Mobile bottom nav */}
         <MobileBottomNav
-          items={STAFF_BOTTOM_NAV}
+          items={STAFF_BOTTOM_NAV.map(i => ({ ...i, label: t(i.label) }))}
           active={view}
           onChange={go}
         />

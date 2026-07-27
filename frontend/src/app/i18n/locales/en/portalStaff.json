@@ -1,0 +1,103 @@
+{
+  "brand": { "portal": "Staff Portal" },
+  "nav": {
+    "dailyTasks": "Daily Tasks",
+    "myReports": "My Reports"
+  },
+  "bottomNav": { "home": "Home", "alerts": "Alerts" },
+  "roles": { "staff": "Staff" },
+  "filters": { "all": "All" },
+  "taskStatus": {
+    "todo": "To do",
+    "in_progress": "In progress",
+    "done": "Done"
+  },
+  "priority": { "high": "High", "medium": "Medium", "low": "Low" },
+  "placeholders": {
+    "search": "Search…",
+    "searchCustomers": "Search customers…",
+    "searchDocs": "Search docs…"
+  },
+  "dashboard": {
+    "eyebrow": "Staff Dashboard",
+    "greeting": "Good day, {{name}}!",
+    "branch": "Branch",
+    "tasksByStatus": "My Tasks by Status",
+    "viewAllTasks": "View all tasks",
+    "pinnedAnnouncements": "Pinned Announcements",
+    "kpi": {
+      "openTasks": "Open Tasks",
+      "myBookings": "My Bookings",
+      "branchCustomers": "Branch Customers"
+    }
+  },
+  "tasks": {
+    "summary": "{{pending}} pending · {{completed}} completed",
+    "addTask": "Add Task",
+    "done": "Done",
+    "priority": "Priority",
+    "description": "Task Description",
+    "descriptionPlaceholder": "What needs to be done?",
+    "dueDateTime": "Due Date/Time",
+    "category": "Category",
+    "saving": "Saving…",
+    "save": "Save Task"
+  },
+  "bookings": {
+    "title": "Booking Management",
+    "cols": {
+      "bookingId": "Booking ID",
+      "customer": "Customer",
+      "service": "Service",
+      "departure": "Departure"
+    }
+  },
+  "customers": {
+    "cols": {
+      "customer": "Customer",
+      "contact": "Contact",
+      "since": "Since"
+    }
+  },
+  "reports": {
+    "bookingsClosed": "Bookings Closed per Month",
+    "performanceSummary": "Performance Summary",
+    "export": "Export",
+    "kpi": {
+      "bookings": "Bookings (Jul)",
+      "tasksDone": "Tasks Done",
+      "customersServed": "Customers Served"
+    },
+    "rows": {
+      "taskCompletion": "Task Completion Rate",
+      "bookingClose": "Booking Close Rate",
+      "customerSatisfaction": "Customer Satisfaction",
+      "responseTime": "Response Time (avg)"
+    }
+  },
+  "documents": {
+    "cols": {
+      "document": "Document",
+      "updated": "Updated"
+    }
+  },
+  "announcements": { "pinned": "Pinned" },
+  "support": {
+    "title": "Support Tickets",
+    "newTicket": "New Ticket",
+    "replyPlaceholder": "Type reply…",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "status": { "open": "Open", "resolved": "Resolved" }
+  },
+  "notifications": { "markAllRead": "Mark all read" },
+  "profile": {
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
+    "employeeId": "Employee ID",
+    "department": "Department",
+    "branch": "Branch",
+    "nid": "NID Number"
+  }
+}

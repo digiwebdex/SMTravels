@@ -34,17 +34,38 @@ import enBooking from "./locales/en/booking.json";
 import bnBooking from "./locales/bn/booking.json";
 import enErrors from "./locales/en/errors.json";
 import bnErrors from "./locales/bn/errors.json";
+// Pass 2 — auth + portals
+import enAuth from "./locales/en/auth.json";
+import bnAuth from "./locales/bn/auth.json";
+import enPortalCommon from "./locales/en/portalCommon.json";
+import bnPortalCommon from "./locales/bn/portalCommon.json";
+import enPortalCustomer from "./locales/en/portalCustomer.json";
+import bnPortalCustomer from "./locales/bn/portalCustomer.json";
+import enPortalAgent from "./locales/en/portalAgent.json";
+import bnPortalAgent from "./locales/bn/portalAgent.json";
+import enPortalSupplier from "./locales/en/portalSupplier.json";
+import bnPortalSupplier from "./locales/bn/portalSupplier.json";
+import enPortalStaff from "./locales/en/portalStaff.json";
+import bnPortalStaff from "./locales/bn/portalStaff.json";
+import enPortalAccountant from "./locales/en/portalAccountant.json";
+import bnPortalAccountant from "./locales/bn/portalAccountant.json";
 
 export const resources = {
   en: {
     common: enCommon, layout: enLayout, home: enHome, about: enAbout,
     servicesPage: enServicesPage, packages: enPackages, contact: enContact,
     faq: enFaq, blog: enBlog, gallery: enGallery, booking: enBooking, errors: enErrors,
+    auth: enAuth, portalCommon: enPortalCommon, portalCustomer: enPortalCustomer,
+    portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
+    portalAccountant: enPortalAccountant,
   },
   bn: {
     common: bnCommon, layout: bnLayout, home: bnHome, about: bnAbout,
     servicesPage: bnServicesPage, packages: bnPackages, contact: bnContact,
     faq: bnFaq, blog: bnBlog, gallery: bnGallery, booking: bnBooking, errors: bnErrors,
+    auth: bnAuth, portalCommon: bnPortalCommon, portalCustomer: bnPortalCustomer,
+    portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
+    portalAccountant: bnPortalAccountant,
   },
 } as const;
 
@@ -56,7 +77,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });

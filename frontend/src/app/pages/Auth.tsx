@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
+import { useTranslation, Trans } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import { dashboardFor } from "../auth/roles";
 import { authApi, type ApiError } from "../lib/api";
@@ -66,14 +67,16 @@ function FieldGroup({ label, required, children }: { label: string; required?: b
 const inputCls = "w-full px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] text-[#111827] bg-white outline-none transition-all min-h-[48px] focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]";
 const inputErrCls = "border-[#DC2626] focus:border-[#DC2626] focus:ring-[#DC2626]/10";
 
-function PasswordField({ value, onChange, placeholder = "Enter password", error }: {
+function PasswordField({ value, onChange, placeholder, error }: {
   value: string; onChange: (v: string) => void; placeholder?: string; error?: boolean;
 }) {
+  const { t } = useTranslation("auth");
   const [show, setShow] = useState(false);
+  const ph = placeholder ?? t("fields.passwordPlaceholder");
   return (
     <div className="relative">
       <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-      <input type={show ? "text" : "password"} placeholder={placeholder} value={value}
+      <input type={show ? "text" : "password"} placeholder={ph} value={value}
         onChange={e => onChange(e.target.value)}
         className={cn(inputCls, "pl-9 pr-10", error && inputErrCls)} />
       <button type="button" onClick={() => setShow(v => !v)}
@@ -85,15 +88,16 @@ function PasswordField({ value, onChange, placeholder = "Enter password", error 
 }
 
 function PasswordStrength({ password }: { password: string }) {
+  const { t } = useTranslation("auth");
   const checks = [/[A-Z]/, /[a-z]/, /\d/, /[^A-Za-z0-9]/];
   const score = checks.filter(r => r.test(password)).length + (password.length >= 8 ? 1 : 0);
   const score5 = Math.min(score, 4);
   const cfg = [
     { label: "", color: "bg-[#E5E7EB]" },
-    { label: "Weak",   color: "bg-[#DC2626]" },
-    { label: "Fair",   color: "bg-[#F59E0B]" },
-    { label: "Good",   color: "bg-[#3B82F6]" },
-    { label: "Strong", color: "bg-[#0E7C66]" },
+    { label: t("strength.weak"),   color: "bg-[#DC2626]" },
+    { label: t("strength.fair"),   color: "bg-[#F59E0B]" },
+    { label: t("strength.good"),   color: "bg-[#3B82F6]" },
+    { label: t("strength.strong"), color: "bg-[#0E7C66]" },
   ];
   if (!password) return null;
   return (
@@ -170,21 +174,24 @@ function OTPInput({ value, onChange }: { value: string; onChange: (v: string) =>
 }
 
 function ResendTimer({ onResend }: { onResend: () => void }) {
+  const { t } = useTranslation("auth");
   const [secs, setSecs] = useState(59);
   useEffect(() => {
     if (secs <= 0) return;
-    const t = setTimeout(() => setSecs(s => s - 1), 1000);
-    return () => clearTimeout(t);
+    const id = setTimeout(() => setSecs(s => s - 1), 1000);
+    return () => clearTimeout(id);
   }, [secs]);
   if (secs > 0) return (
-    <span className="text-[12px] text-[#9CA3AF]">
-      Resend in <span className="font-bold text-[#374151]">0:{String(secs).padStart(2, "0")}</span>
+    <span className="text-[12px] text-[#9CA3AF] whitespace-nowrap">
+      <Trans t={t} i18nKey="resend.in"
+        values={{ time: `0:${String(secs).padStart(2, "0")}` }}
+        components={{ b: <span className="font-bold text-[#374151]" /> }} />
     </span>
   );
   return (
     <button onClick={() => { onResend(); setSecs(59); }}
-      className="text-[12px] font-bold text-[#1B75BC] hover:underline flex items-center gap-1 cursor-pointer">
-      <RefreshCw size={12} /> Resend code
+      className="text-[12px] font-bold text-[#1B75BC] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap">
+      <RefreshCw size={12} /> {t("resend.code")}
     </button>
   );
 }
@@ -232,23 +239,17 @@ function SuccessBanner({ msg }: { msg: string }) {
 }
 
 // ─── Brand Panel ──────────────────────────────────────────────────────────────
-const BRAND_COPY: Partial<Record<AuthView, { headline: string; sub: string }>> = {
-  "login":             { headline: "Welcome back.", sub: "Sign in to manage your Hajj, Umrah & travel operations." },
-  "register-select":   { headline: "Join SMTravel.", sub: "Create your account and start your journey today." },
-  "register-customer": { headline: "Book your journey.", sub: "Create a customer account to track your bookings." },
-  "register-agent":    { headline: "Grow with us.", sub: "Partner with SMTravel and earn commissions on every booking." },
-  "forgot":            { headline: "Recover access.", sub: "We'll send a secure code to your registered contact." },
-  "otp-verify":        { headline: "Verify your identity.", sub: "Enter the one-time code we sent to your device." },
-  "reset-password":    { headline: "Set a new password.", sub: "Choose something secure and memorable." },
-  "two-factor":        { headline: "Extra security.", sub: "Two-factor authentication keeps your account safe." },
-  "role-select":       { headline: "Your workspaces.", sub: "You have access to multiple portals — choose where to continue." },
-  "success":           { headline: "All done!", sub: "Your action was completed successfully." },
-  "locked":            { headline: "Account locked.", sub: "Too many failed attempts. Please contact support." },
-};
+// Views that have dedicated brand-panel copy (keys live in the "auth" namespace).
+const BRAND_VIEWS: AuthView[] = [
+  "login", "register-select", "register-customer", "register-agent", "forgot",
+  "otp-verify", "reset-password", "two-factor", "role-select", "success", "locked",
+];
 
 function BrandPanel({ view }: { view: AuthView }) {
-  const copy = BRAND_COPY[view] || BRAND_COPY["login"]!;
-  const trustItems = ["ATAB Licensed", "Govt. Approved", "25+ Years", "10,000+ Pilgrims", "ISO 9001:2015"];
+  const { t } = useTranslation("auth");
+  const key = BRAND_VIEWS.includes(view) ? view : "login";
+  const copy = { headline: t(`brandPanel.${key}.headline`), sub: t(`brandPanel.${key}.sub`) };
+  const trustItems = ["0", "1", "2", "3", "4"].map(i => t(`brandPanel.trust.${i}`));
   return (
     <div className="relative hidden md:flex flex-col w-[42%] flex-shrink-0 overflow-hidden">
       {/* Background image */}
@@ -268,8 +269,8 @@ function BrandPanel({ view }: { view: AuthView }) {
         <Link to="/" className="flex items-center gap-3 mb-auto">
           <BrandLogo variant="tile" className="w-11 h-11 rounded-[12px]" />
           <div>
-            <div className="text-white font-black text-[17px] leading-tight">SM Travels International</div>
-            <div className="text-white/40 text-[11px] tracking-wide">Your Trusted Travel Partner</div>
+            <div className="text-white font-black text-[17px] leading-tight">{t("common:brand.name")}</div>
+            <div className="text-white/40 text-[11px] tracking-wide">{t("common:brand.tagline")}</div>
           </div>
         </Link>
 
@@ -290,13 +291,13 @@ function BrandPanel({ view }: { view: AuthView }) {
           {/* Testimonial */}
           <div className="mt-8 bg-white/8 border border-white/12 rounded-[16px] p-5">
             <p className="text-white/70 text-[12px] leading-relaxed italic mb-3">
-              "SMTravel made our Hajj experience flawless — from registration to return. Their system is professional and their team truly cares."
+              &ldquo;{t("brandPanel.testimonial.quote")}&rdquo;
             </p>
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-full bg-[#F15A24]/30 flex items-center justify-center text-[#D64A12] font-black text-[11px]">M</div>
               <div>
-                <div className="text-white/80 text-[11px] font-bold">Md. Harunur Rashid</div>
-                <div className="text-white/40 text-[10px]">Hajj Pilgrim 2024 · Dhaka</div>
+                <div className="text-white/80 text-[11px] font-bold">{t("brandPanel.testimonial.name")}</div>
+                <div className="text-white/40 text-[10px]">{t("brandPanel.testimonial.meta")}</div>
               </div>
               <div className="ml-auto flex gap-0.5">
                 {[1,2,3,4,5].map(i => <Star key={i} size={10} fill="#F15A24" className="text-[#D64A12]" />)}
@@ -307,10 +308,10 @@ function BrandPanel({ view }: { view: AuthView }) {
 
         {/* Footer */}
         <div className="mt-auto pt-8 border-t border-white/10 flex items-center justify-between">
-          <div className="text-white/30 text-[10px]">© 2025 SMTravel International</div>
+          <div className="text-white/30 text-[10px]">{t("brandPanel.footer.copyright")}</div>
           <div className="flex gap-3">
-            {["Privacy", "Terms", "Support"].map(l => (
-              <a key={l} href="#" className="text-white/30 text-[10px] hover:text-white/60 transition-colors">{l}</a>
+            {(["privacy", "terms", "support"] as const).map(l => (
+              <a key={l} href="#" className="text-white/30 text-[10px] hover:text-white/60 transition-colors">{t(`brandPanel.footer.${l}`)}</a>
             ))}
           </div>
         </div>
@@ -321,18 +322,20 @@ function BrandPanel({ view }: { view: AuthView }) {
 
 // ─── Mobile brand strip ───────────────────────────────────────────────────────
 function MobileBrandStrip({ view }: { view: AuthView }) {
+  const { t } = useTranslation("auth");
+  void view;
   return (
     <div className="md:hidden bg-[#1B75BC] px-5 py-4 flex items-center justify-between flex-shrink-0">
       <Link to="/" className="flex items-center gap-2.5">
         <BrandLogo variant="tile" className="w-9 h-9" />
         <div>
-          <div className="text-white font-black text-[14px] leading-tight">SM Travels</div>
-          <div className="text-white/40 text-[9px]">International</div>
+          <div className="text-white font-black text-[14px] leading-tight">{t("brandPanel.mobileBrand.line1")}</div>
+          <div className="text-white/40 text-[9px]">{t("brandPanel.mobileBrand.line2")}</div>
         </div>
       </Link>
       <div className="flex gap-1.5">
-        {["ATAB", "Govt. Approved"].map(t => (
-          <span key={t} className="text-[9px] font-bold text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{t}</span>
+        {["0", "1"].map(i => (
+          <span key={i} className="text-[9px] font-bold text-white/60 bg-white/10 px-2 py-0.5 rounded-full whitespace-nowrap">{t(`brandPanel.trustMobile.${i}`)}</span>
         ))}
       </div>
     </div>
@@ -340,12 +343,13 @@ function MobileBrandStrip({ view }: { view: AuthView }) {
 }
 
 // ─── Back button ──────────────────────────────────────────────────────────────
-function BackLink({ onClick, label = "Back" }: { onClick: () => void; label?: string }) {
+function BackLink({ onClick, label }: { onClick: () => void; label?: string }) {
+  const { t } = useTranslation("auth");
   return (
     <button onClick={onClick}
-      className="flex items-center gap-1.5 text-[12px] font-bold text-[#9CA3AF] hover:text-[#374151] mb-5 cursor-pointer transition-colors group">
+      className="flex items-center gap-1.5 text-[12px] font-bold text-[#9CA3AF] hover:text-[#374151] mb-5 cursor-pointer transition-colors group whitespace-nowrap">
       <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
-      {label}
+      {label ?? t("common:actions.back")}
     </button>
   );
 }
@@ -385,6 +389,7 @@ const ROLE_ROUTES: Record<string, string> = {
 function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation("auth");
   const [resetToken, setResetToken] = useState("");
   const [state, setState] = useState<AuthState>({
     view: initialView,
@@ -392,8 +397,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
     error: null,
     identifier: "",
     otpContext: "forgot",
-    successMsg: "You're all set!",
-    successSub: "Redirecting you to your dashboard...",
+    successMsg: t("success.defaultTitle"),
+    successSub: t("success.defaultSub"),
     successRedirect: "/",
   });
   const [otp, setOtp] = useState("");
@@ -419,7 +424,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
   const [remember, setRemember] = useState(false);
 
   const handleLogin = async () => {
-    if (!loginId || !loginPass) { set({ error: "Please fill in all fields." }); return; }
+    if (!loginId || !loginPass) { set({ error: t("errors.fillAll") }); return; }
     set({ loading: true, error: null });
     try {
       const user = await login(loginId.trim(), loginPass);
@@ -429,9 +434,9 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
       if (err.status === 423) { go("locked"); return; }
       set({
         loading: false,
-        error: err.status === 401 ? "Invalid email or password."
-             : err.status === 403 ? "This account is not active. Contact your administrator."
-             : (err.message || "Sign in failed. Please try again."),
+        error: err.status === 401 ? t("errors.invalidCreds")
+             : err.status === 403 ? t("errors.notActive")
+             : (err.message || t("errors.signInFailed")),
       });
     }
   };
@@ -439,7 +444,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
   // ── OTP verify ─────────────────────────────────────────────────────────────
   const handleOTPVerify = async () => {
     const code = otp.replace(/\s/g, "");
-    if (code.length < 6) { set({ error: "Please enter the complete 6-digit code." }); return; }
+    if (code.length < 6) { set({ error: t("errors.otpIncomplete") }); return; }
     if (state.otpContext === "forgot") {
       set({ loading: true, error: null });
       try {
@@ -448,14 +453,14 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
         go("reset-password");
       } catch (e) {
         const err = e as ApiError;
-        set({ loading: false, error: err.status === 400 ? "Invalid or expired code." : (err.message || "Verification failed.") });
+        set({ loading: false, error: err.status === 400 ? t("errors.otpInvalid") : (err.message || t("errors.verifyFailed")) });
       }
       return;
     }
     // 2FA / email-verification screens have no backend endpoint yet — left as-is.
     simulateLoad(() => {
       if (state.otpContext === "2fa") go("role-select");
-      else go("success", { successMsg: "Email verified!", successSub: "Your account is now active. Welcome to SMTravel!", successRedirect: "/login" });
+      else go("success", { successMsg: t("success.emailVerifiedTitle"), successSub: t("success.emailVerifiedSub"), successRedirect: "/login" });
     });
   };
 
@@ -483,8 +488,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {/* ── LOGIN ── */}
             {v === "login" && (
               <div>
-                <FormHeader icon={LogIn} title="Sign in to your account"
-                  sub="Access the SMTravel management portal" />
+                <FormHeader icon={LogIn} title={t("login.title")}
+                  sub={t("login.sub")} />
 
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
 
@@ -492,63 +497,63 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 <div className="flex bg-[#F3F4F6] rounded-[10px] p-1 mb-5">
                   {(["email", "phone"] as const).map(m => (
                     <button key={m} onClick={() => setLoginMode(m)}
-                      className={cn("flex-1 py-2 rounded-[8px] text-[12px] font-bold transition-all capitalize cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]",
+                      className={cn("flex-1 py-2 rounded-[8px] text-[12px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px] whitespace-nowrap",
                         loginMode === m ? "bg-white text-[#1B75BC] shadow" : "text-[#9CA3AF] hover:text-[#374151]"
                       )}>
                       {m === "email" ? <Mail size={13} /> : <Phone size={13} />}
-                      {m === "email" ? "Email" : "Phone"}
+                      {m === "email" ? t("login.tabEmail") : t("login.tabPhone")}
                     </button>
                   ))}
                 </div>
 
                 <div className="flex flex-col gap-4 mb-5">
-                  <FieldGroup label={loginMode === "email" ? "Email Address" : "Phone Number"} required>
+                  <FieldGroup label={loginMode === "email" ? t("fields.emailAddress") : t("fields.phoneNumber")} required>
                     <div className="relative">
                       {loginMode === "email"
                         ? <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
                         : <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />}
                       <input type={loginMode === "email" ? "email" : "tel"}
-                        placeholder={loginMode === "email" ? "you@example.com" : "+880 1X XXX XXXXX"}
+                        placeholder={loginMode === "email" ? t("login.emailPlaceholder") : t("fields.phonePlaceholder")}
                         value={loginId} onChange={e => setLoginId(e.target.value)}
                         className={cn(inputCls, "pl-9")} />
                     </div>
                   </FieldGroup>
 
-                  <FieldGroup label="Password" required>
+                  <FieldGroup label={t("fields.password")} required>
                     <PasswordField value={loginPass} onChange={setLoginPass} />
                   </FieldGroup>
                 </div>
 
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between gap-3 mb-5">
                   <label className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                      className="w-4 h-4 accent-[#1B75BC]" />
-                    <span className="text-[12px] text-[#6B7280]">Remember me for 30 days</span>
+                      className="w-4 h-4 accent-[#1B75BC] flex-shrink-0" />
+                    <span className="text-[12px] text-[#6B7280]">{t("login.remember")}</span>
                   </label>
                   <button onClick={() => go("forgot")}
-                    className="text-[12px] font-bold text-[#1B75BC] hover:underline cursor-pointer min-h-[44px] flex items-center">
-                    Forgot password?
+                    className="text-[12px] font-bold text-[#1B75BC] hover:underline cursor-pointer min-h-[44px] flex items-center whitespace-nowrap">
+                    {t("login.forgot")}
                   </button>
                 </div>
 
                 <PrimaryButton loading={state.loading} onClick={handleLogin}>
-                  Sign In <ArrowRight size={15} />
+                  {t("login.signIn")} <ArrowRight size={15} />
                 </PrimaryButton>
 
                 <div className="flex items-center gap-3 my-5">
                   <div className="flex-1 h-px bg-[#E5E7EB]" />
-                  <span className="text-[11px] text-[#9CA3AF] font-medium">New to SMTravel?</span>
+                  <span className="text-[11px] text-[#9CA3AF] font-medium whitespace-nowrap">{t("login.newTo")}</span>
                   <div className="flex-1 h-px bg-[#E5E7EB]" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => go("register-customer")}
-                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#1B75BC]/20 text-[#1B75BC] font-bold rounded-[10px] text-[12px] hover:border-[#1B75BC]/50 hover:bg-[#1B75BC]/3 transition-all cursor-pointer">
-                    <User size={13} /> Customer
+                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#1B75BC]/20 text-[#1B75BC] font-bold rounded-[10px] text-[12px] hover:border-[#1B75BC]/50 hover:bg-[#1B75BC]/3 transition-all cursor-pointer whitespace-nowrap">
+                    <User size={13} /> {t("login.customer")}
                   </button>
                   <button onClick={() => go("register-agent")}
-                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#F15A24]/40 text-[#D64A12] font-bold rounded-[10px] text-[12px] hover:border-[#F15A24] hover:bg-[#F15A24]/5 transition-all cursor-pointer">
-                    <Briefcase size={13} /> Agent
+                    className="min-h-[48px] flex items-center justify-center gap-1.5 border-2 border-[#F15A24]/40 text-[#D64A12] font-bold rounded-[10px] text-[12px] hover:border-[#F15A24] hover:bg-[#F15A24]/5 transition-all cursor-pointer whitespace-nowrap">
+                    <Briefcase size={13} /> {t("login.agent")}
                   </button>
                 </div>
 
@@ -556,7 +561,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     credential pattern on the production login page. */}
                 {import.meta.env.DEV && (
                   <div className="mt-5 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] p-3 text-[11px] text-[#9CA3AF] text-center">
-                    Demo: <span className="font-bold text-[#374151]">super_admin@smtravel.com.bd</span> · <span className="font-bold text-[#374151]">Password123!</span>
+                    {t("login.demoLabel")} <span className="font-bold text-[#374151]">super_admin@smtravel.com.bd</span> · <span className="font-bold text-[#374151]">Password123!</span>
                   </div>
                 )}
               </div>
@@ -565,34 +570,34 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {/* ── REGISTER SELECT ── */}
             {v === "register-select" && (
               <div>
-                <BackLink onClick={() => go("login")} label="Back to sign in" />
-                <FormHeader icon={UserPlus} title="Create your account" sub="Choose the account type that fits your role" />
+                <BackLink onClick={() => go("login")} label={t("registerSelect.back")} />
+                <FormHeader icon={UserPlus} title={t("registerSelect.title")} sub={t("registerSelect.sub")} />
                 <div className="flex flex-col gap-4">
                   {[
-                    { id: "register-customer", icon: User, label: "Customer Account", desc: "Book Hajj, Umrah & travel packages. Track your bookings, upload documents, and communicate with our team.", color: "#1B75BC", bg: "#EEF2FF", cta: "Register as Customer" },
-                    { id: "register-agent", icon: Briefcase, label: "Travel Agent Account", desc: "B2B partner portal. Access wholesale rates, manage client bookings, and earn commissions.", color: "#F15A24", bg: "#FFF9E6", cta: "Register as Agent" },
-                  ].map(t => (
-                    <button key={t.id} onClick={() => go(t.id as AuthView)}
+                    { id: "register-customer", tk: "customer", icon: User, color: "#1B75BC", bg: "#EEF2FF" },
+                    { id: "register-agent", tk: "agent", icon: Briefcase, color: "#F15A24", bg: "#FFF9E6" },
+                  ].map(opt => (
+                    <button key={opt.id} onClick={() => go(opt.id as AuthView)}
                       className="w-full text-left p-5 bg-white border-2 border-[#E5E7EB] hover:border-[#1B75BC]/30 hover:shadow-md rounded-[16px] transition-all group cursor-pointer">
                       <div className="flex items-start gap-4">
-                        <div className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.bg }}>
-                          <t.icon size={20} style={{ color: t.color }} />
+                        <div className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: opt.bg }}>
+                          <opt.icon size={20} style={{ color: opt.color }} />
                         </div>
                         <div className="flex-1">
-                          <div className="text-[14px] font-black text-[#111827] mb-1 group-hover:text-[#1B75BC] transition-colors">{t.label}</div>
-                          <div className="text-[12px] text-[#6B7280] leading-relaxed">{t.desc}</div>
+                          <div className="text-[14px] font-black text-[#111827] mb-1 group-hover:text-[#1B75BC] transition-colors">{t(`registerSelect.${opt.tk}.label`)}</div>
+                          <div className="text-[12px] text-[#6B7280] leading-relaxed">{t(`registerSelect.${opt.tk}.desc`)}</div>
                         </div>
                         <ChevronRight size={16} className="text-[#D1D5DB] group-hover:text-[#1B75BC] mt-1 transition-colors" />
                       </div>
-                      <div className="mt-4 pt-3 border-t border-[#F3F4F6] text-[12px] font-bold flex items-center gap-1.5" style={{ color: t.color }}>
-                        {t.cta} <ArrowRight size={12} />
+                      <div className="mt-4 pt-3 border-t border-[#F3F4F6] text-[12px] font-bold flex items-center gap-1.5" style={{ color: opt.color }}>
+                        {t(`registerSelect.${opt.tk}.cta`)} <ArrowRight size={12} />
                       </div>
                     </button>
                   ))}
                 </div>
                 <p className="text-center text-[12px] text-[#9CA3AF] mt-6">
-                  Already have an account?{" "}
-                  <button onClick={() => go("login")} className="text-[#1B75BC] font-bold hover:underline cursor-pointer">Sign in</button>
+                  {t("registerSelect.haveAccount")}{" "}
+                  <button onClick={() => go("login")} className="text-[#1B75BC] font-bold hover:underline cursor-pointer">{t("signInLink")}</button>
                 </p>
               </div>
             )}
@@ -601,44 +606,50 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {v === "register-customer" && (
               <div>
                 <BackLink onClick={() => go("register-select")} />
-                <FormHeader icon={User} title="Customer Registration" sub="Create your free account to book and manage travel" />
+                <FormHeader icon={User} title={t("registerCustomer.title")} sub={t("registerCustomer.sub")} />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
                 <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); simulateLoad(() => go("otp-verify", { identifier: custForm.email, otpContext: "register-email" })); }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FieldGroup label="Full Name" required>
+                    <FieldGroup label={t("fields.fullName")} required>
                       <div className="relative"><User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                        <input className={cn(inputCls, "pl-9")} placeholder="Your full name" value={custForm.name} onChange={e => setCustForm(f => ({ ...f, name: e.target.value }))} /></div>
+                        <input className={cn(inputCls, "pl-9")} placeholder={t("fields.fullNamePlaceholder")} value={custForm.name} onChange={e => setCustForm(f => ({ ...f, name: e.target.value }))} /></div>
                     </FieldGroup>
-                    <FieldGroup label="City" required>
+                    <FieldGroup label={t("fields.city")} required>
                       <select className={cn(inputCls, "cursor-pointer")} value={custForm.city} onChange={e => setCustForm(f => ({ ...f, city: e.target.value }))}>
-                        <option value="">Select city</option>
-                        {["Dhaka","Chittagong","Sylhet","Khulna","Rajshahi"].map(c => <option key={c}>{c}</option>)}
+                        <option value="">{t("fields.selectCity")}</option>
+                        {["Dhaka","Chittagong","Sylhet","Khulna","Rajshahi"].map(c => <option key={c} value={c}>{t(`cities.${c}`)}</option>)}
                       </select>
                     </FieldGroup>
                   </div>
-                  <FieldGroup label="Email Address" required>
+                  <FieldGroup label={t("fields.emailAddress")} required>
                     <div className="relative"><Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                      <input type="email" className={cn(inputCls, "pl-9")} placeholder="email@example.com" value={custForm.email} onChange={e => setCustForm(f => ({ ...f, email: e.target.value }))} /></div>
+                      <input type="email" className={cn(inputCls, "pl-9")} placeholder={t("fields.emailPlaceholder")} value={custForm.email} onChange={e => setCustForm(f => ({ ...f, email: e.target.value }))} /></div>
                   </FieldGroup>
-                  <FieldGroup label="Phone / WhatsApp" required>
+                  <FieldGroup label={t("fields.phoneWhatsapp")} required>
                     <div className="relative"><Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                      <input type="tel" className={cn(inputCls, "pl-9")} placeholder="+880 1X XXX XXXXX" value={custForm.phone} onChange={e => setCustForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                      <input type="tel" className={cn(inputCls, "pl-9")} placeholder={t("fields.phonePlaceholder")} value={custForm.phone} onChange={e => setCustForm(f => ({ ...f, phone: e.target.value }))} /></div>
                   </FieldGroup>
-                  <FieldGroup label="Password" required>
+                  <FieldGroup label={t("fields.password")} required>
                     <PasswordField value={custForm.pass} onChange={v => setCustForm(f => ({ ...f, pass: v }))} />
                     <PasswordStrength password={custForm.pass} />
                   </FieldGroup>
-                  <FieldGroup label="Confirm Password" required>
-                    <PasswordField value={custForm.confirm} onChange={v => setCustForm(f => ({ ...f, confirm: v }))} placeholder="Repeat password" />
+                  <FieldGroup label={t("fields.confirmPassword")} required>
+                    <PasswordField value={custForm.confirm} onChange={v => setCustForm(f => ({ ...f, confirm: v }))} placeholder={t("fields.repeatPassword")} />
                   </FieldGroup>
                   <label className="flex items-start gap-2.5 cursor-pointer">
                     <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#1B75BC]" />
-                    <span className="text-[12px] text-[#6B7280]">I agree to the <a href="#" className="text-[#1B75BC] font-semibold hover:underline">Terms of Service</a> and <a href="#" className="text-[#1B75BC] font-semibold hover:underline">Privacy Policy</a></span>
+                    <span className="text-[12px] text-[#6B7280]">
+                      <Trans t={t} i18nKey="registerCustomer.terms"
+                        components={{
+                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          privacy: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                        }} />
+                    </span>
                   </label>
-                  <PrimaryButton type="submit" loading={state.loading}>Create Account <ArrowRight size={14} /></PrimaryButton>
+                  <PrimaryButton type="submit" loading={state.loading}>{t("registerCustomer.createAccount")} <ArrowRight size={14} /></PrimaryButton>
                 </form>
                 <p className="text-center text-[12px] text-[#9CA3AF] mt-4">
-                  Already have an account? <button onClick={() => go("login")} className="text-[#1B75BC] font-bold hover:underline cursor-pointer">Sign in</button>
+                  {t("registerCustomer.haveAccount")} <button onClick={() => go("login")} className="text-[#1B75BC] font-bold hover:underline cursor-pointer">{t("signInLink")}</button>
                 </p>
               </div>
             )}
@@ -647,58 +658,64 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {v === "register-agent" && (
               <div>
                 <BackLink onClick={() => go("register-select")} />
-                <FormHeader icon={Briefcase} iconColor="#F15A24" iconBg="#FFF9E6" title="Agent Registration" sub="Join our B2B partner network — approval within 24 hours" />
+                <FormHeader icon={Briefcase} iconColor="#F15A24" iconBg="#FFF9E6" title={t("registerAgent.title")} sub={t("registerAgent.sub")} />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
-                <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); simulateLoad(() => go("success", { successMsg: "Application submitted!", successSub: "We'll review your agent application within 24 business hours and contact you by email.", successRedirect: "/login" })); }}>
+                <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); simulateLoad(() => go("success", { successMsg: t("success.agentSubmittedTitle"), successSub: t("success.agentSubmittedSub"), successRedirect: "/login" })); }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FieldGroup label="Full Name" required>
+                    <FieldGroup label={t("fields.fullName")} required>
                       <div className="relative"><User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                        <input className={cn(inputCls, "pl-9")} placeholder="Your full name" value={agentForm.name} onChange={e => setAgentForm(f => ({ ...f, name: e.target.value }))} /></div>
+                        <input className={cn(inputCls, "pl-9")} placeholder={t("fields.fullNamePlaceholder")} value={agentForm.name} onChange={e => setAgentForm(f => ({ ...f, name: e.target.value }))} /></div>
                     </FieldGroup>
-                    <FieldGroup label="Agency / Business Name" required>
+                    <FieldGroup label={t("registerAgent.agencyName")} required>
                       <div className="relative"><Building size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                        <input className={cn(inputCls, "pl-9")} placeholder="Agency name" value={agentForm.agency} onChange={e => setAgentForm(f => ({ ...f, agency: e.target.value }))} /></div>
+                        <input className={cn(inputCls, "pl-9")} placeholder={t("registerAgent.agencyPlaceholder")} value={agentForm.agency} onChange={e => setAgentForm(f => ({ ...f, agency: e.target.value }))} /></div>
                     </FieldGroup>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FieldGroup label="Email Address" required>
+                    <FieldGroup label={t("fields.emailAddress")} required>
                       <div className="relative"><Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                        <input type="email" className={cn(inputCls, "pl-9")} placeholder="email@agency.com" value={agentForm.email} onChange={e => setAgentForm(f => ({ ...f, email: e.target.value }))} /></div>
+                        <input type="email" className={cn(inputCls, "pl-9")} placeholder={t("registerAgent.emailPlaceholder")} value={agentForm.email} onChange={e => setAgentForm(f => ({ ...f, email: e.target.value }))} /></div>
                     </FieldGroup>
-                    <FieldGroup label="Phone / WhatsApp" required>
+                    <FieldGroup label={t("fields.phoneWhatsapp")} required>
                       <div className="relative"><Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                        <input type="tel" className={cn(inputCls, "pl-9")} placeholder="+880 1X XXX XXXXX" value={agentForm.phone} onChange={e => setAgentForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                        <input type="tel" className={cn(inputCls, "pl-9")} placeholder={t("fields.phonePlaceholder")} value={agentForm.phone} onChange={e => setAgentForm(f => ({ ...f, phone: e.target.value }))} /></div>
                     </FieldGroup>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FieldGroup label="Agent Type" required>
+                    <FieldGroup label={t("registerAgent.agentType")} required>
                       <select className={cn(inputCls, "cursor-pointer")} value={agentForm.type} onChange={e => setAgentForm(f => ({ ...f, type: e.target.value }))}>
-                        <option value="">Select type</option>
-                        {["Individual Agent","Travel Agency","Sub-Agent","Corporate Partner"].map(t => <option key={t}>{t}</option>)}
+                        <option value="">{t("registerAgent.selectType")}</option>
+                        {["Individual Agent","Travel Agency","Sub-Agent","Corporate Partner"].map(ty => <option key={ty} value={ty}>{t(`agentTypes.${ty}`)}</option>)}
                       </select>
                     </FieldGroup>
-                    <FieldGroup label="City" required>
+                    <FieldGroup label={t("fields.city")} required>
                       <select className={cn(inputCls, "cursor-pointer")} value={agentForm.city} onChange={e => setAgentForm(f => ({ ...f, city: e.target.value }))}>
-                        <option value="">Select city</option>
-                        {["Dhaka","Chittagong","Sylhet","Khulna"].map(c => <option key={c}>{c}</option>)}
+                        <option value="">{t("fields.selectCity")}</option>
+                        {["Dhaka","Chittagong","Sylhet","Khulna"].map(c => <option key={c} value={c}>{t(`cities.${c}`)}</option>)}
                       </select>
                     </FieldGroup>
                   </div>
-                  <FieldGroup label="ATAB / License No. (optional)">
-                    <input className={inputCls} placeholder="e.g. ATAB-01234" value={agentForm.atab} onChange={e => setAgentForm(f => ({ ...f, atab: e.target.value }))} />
+                  <FieldGroup label={t("registerAgent.atab")}>
+                    <input className={inputCls} placeholder={t("registerAgent.atabPlaceholder")} value={agentForm.atab} onChange={e => setAgentForm(f => ({ ...f, atab: e.target.value }))} />
                   </FieldGroup>
-                  <FieldGroup label="Password" required>
+                  <FieldGroup label={t("fields.password")} required>
                     <PasswordField value={agentForm.pass} onChange={v => setAgentForm(f => ({ ...f, pass: v }))} />
                     <PasswordStrength password={agentForm.pass} />
                   </FieldGroup>
-                  <FieldGroup label="Confirm Password" required>
-                    <PasswordField value={agentForm.confirm} onChange={v => setAgentForm(f => ({ ...f, confirm: v }))} placeholder="Repeat password" />
+                  <FieldGroup label={t("fields.confirmPassword")} required>
+                    <PasswordField value={agentForm.confirm} onChange={v => setAgentForm(f => ({ ...f, confirm: v }))} placeholder={t("fields.repeatPassword")} />
                   </FieldGroup>
                   <label className="flex items-start gap-2.5 cursor-pointer">
                     <input type="checkbox" className="mt-0.5 w-4 h-4 accent-[#1B75BC]" />
-                    <span className="text-[12px] text-[#6B7280]">I agree to the <a href="#" className="text-[#1B75BC] font-semibold hover:underline">Agent Agreement</a> and <a href="#" className="text-[#1B75BC] font-semibold hover:underline">Terms of Service</a></span>
+                    <span className="text-[12px] text-[#6B7280]">
+                      <Trans t={t} i18nKey="registerAgent.terms"
+                        components={{
+                          agreement: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                        }} />
+                    </span>
                   </label>
-                  <PrimaryButton type="submit" loading={state.loading} variant="gold">Submit Application <ArrowRight size={14} /></PrimaryButton>
+                  <PrimaryButton type="submit" loading={state.loading} variant="gold">{t("registerAgent.submit")} <ArrowRight size={14} /></PrimaryButton>
                 </form>
               </div>
             )}
@@ -706,13 +723,13 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {/* ── FORGOT PASSWORD ── */}
             {v === "forgot" && (
               <div>
-                <BackLink onClick={() => go("login")} label="Back to sign in" />
-                <FormHeader icon={Key} title="Forgot your password?" sub="Enter your email or phone and we'll send a 6-digit reset code." />
+                <BackLink onClick={() => go("login")} label={t("forgot.back")} />
+                <FormHeader icon={Key} title={t("forgot.title")} sub={t("forgot.sub")} />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
-                <FieldGroup label="Email or Phone Number" required>
+                <FieldGroup label={t("forgot.label")} required>
                   <div className="relative">
                     <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                    <input type="text" placeholder="email@example.com or +880 1X..." value={forgotId} onChange={e => setForgotId(e.target.value)}
+                    <input type="text" placeholder={t("forgot.placeholder")} value={forgotId} onChange={e => setForgotId(e.target.value)}
                       className={cn(inputCls, "pl-9")} />
                   </div>
                 </FieldGroup>
@@ -720,17 +737,17 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   <PrimaryButton loading={state.loading}
                     onClick={async () => {
                       const id = forgotId.trim();
-                      if (!id) { set({ error: "Enter your email address." }); return; }
+                      if (!id) { set({ error: t("errors.enterEmail") }); return; }
                       set({ loading: true, error: null });
                       try {
                         const r = await authApi.forgotPassword(id);
                         if (r.devOtp) setOtp(r.devOtp); // dev only: backend returns the code so the flow is testable
                         go("otp-verify", { identifier: id, otpContext: "forgot" });
                       } catch (e) {
-                        set({ loading: false, error: (e as ApiError).message || "Could not send a reset code." });
+                        set({ loading: false, error: (e as ApiError).message || t("errors.sendFailed") });
                       }
                     }}>
-                    Send Reset Code <ArrowRight size={14} />
+                    {t("forgot.send")} <ArrowRight size={14} />
                   </PrimaryButton>
                 </div>
               </div>
@@ -741,19 +758,19 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
               <div>
                 <BackLink onClick={() => go(state.otpContext === "forgot" ? "forgot" : "register-customer")} />
                 <FormHeader icon={Shield} iconColor="#0E7C66" iconBg="#ECFDF5"
-                  title="Enter verification code"
-                  sub={`We sent a 6-digit code to ${state.identifier || "your email/phone"}. Check your inbox or SMS.`} />
+                  title={t("otp.title")}
+                  sub={t("otp.sub", { contact: state.identifier || t("otp.contactFallback") })} />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
                 <OTPInput value={otp} onChange={setOtp} />
                 <div className="flex items-center justify-center mt-4 mb-6">
                   <ResendTimer onResend={() => setOtp("")} />
                 </div>
                 <PrimaryButton loading={state.loading} onClick={handleOTPVerify}>
-                  Verify Code <ArrowRight size={14} />
+                  {t("otp.verify")} <ArrowRight size={14} />
                 </PrimaryButton>
                 <div className="mt-4 bg-[#FFF9E6] border border-[#F15A24]/30 rounded-[10px] p-3 text-[11px] text-[#78590F] flex items-center gap-2">
                   <AlertTriangle size={13} className="text-[#D64A12] flex-shrink-0" />
-                  Code expires in 10 minutes. Do not share this code with anyone.
+                  {t("otp.expiry")}
                 </div>
               </div>
             )}
@@ -761,25 +778,28 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {/* ── TWO-FACTOR ── */}
             {v === "two-factor" && (
               <div>
-                <BackLink onClick={() => go("login")} label="Use a different account" />
+                <BackLink onClick={() => go("login")} label={t("twoFactor.back")} />
                 <FormHeader icon={Shield} iconColor="#7C3AED" iconBg="#F5F3FF"
-                  title="Two-factor authentication"
-                  sub={`A 6-digit code was sent to the device ending in •••${state.identifier.slice(-4) || "5678"}`} />
+                  title={t("twoFactor.title")}
+                  sub={t("twoFactor.sub", { last4: state.identifier.slice(-4) || "5678" })} />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
                 <OTPInput value={otp} onChange={setOtp} />
-                <div className="flex items-center justify-between mt-4 mb-6">
+                <div className="flex items-center justify-between gap-3 mt-4 mb-6">
                   <ResendTimer onResend={() => setOtp("")} />
-                  <button className="text-[12px] text-[#9CA3AF] hover:text-[#374151] cursor-pointer hover:underline">
-                    Use backup code
+                  <button className="text-[12px] text-[#9CA3AF] hover:text-[#374151] cursor-pointer hover:underline whitespace-nowrap">
+                    {t("twoFactor.backupCode")}
                   </button>
                 </div>
                 <PrimaryButton loading={state.loading}
                   onClick={() => simulateLoad(() => go("role-select"))}>
-                  Verify & Sign In <ArrowRight size={14} />
+                  {t("twoFactor.verify")} <ArrowRight size={14} />
                 </PrimaryButton>
                 <div className="mt-3 flex items-center gap-2 p-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px]">
                   <HelpCircle size={13} className="text-[#9CA3AF] flex-shrink-0" />
-                  <span className="text-[11px] text-[#9CA3AF]">Lost access to your device? <a href="#" className="text-[#1B75BC] font-bold hover:underline">Contact support</a></span>
+                  <span className="text-[11px] text-[#9CA3AF]">
+                    <Trans t={t} i18nKey="twoFactor.lostAccess"
+                      components={{ a: <a href="#" className="text-[#1B75BC] font-bold hover:underline" /> }} />
+                  </span>
                 </div>
               </div>
             )}
@@ -787,39 +807,39 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {/* ── RESET PASSWORD ── */}
             {v === "reset-password" && (
               <div>
-                <FormHeader icon={Lock} title="Set new password" sub="Choose a strong password that you haven't used before." />
+                <FormHeader icon={Lock} title={t("reset.title")} sub={t("reset.sub")} />
                 {state.error && <div className="mb-4"><ErrorBanner msg={state.error} onDismiss={() => set({ error: null })} /></div>}
                 <form className="flex flex-col gap-4" onSubmit={async e => {
                   e.preventDefault();
-                  if (resetPass.pass !== resetPass.confirm) { set({ error: "Passwords don't match." }); return; }
-                  if (resetPass.pass.length < 8) { set({ error: "Password must be at least 8 characters." }); return; }
+                  if (resetPass.pass !== resetPass.confirm) { set({ error: t("errors.passMismatch") }); return; }
+                  if (resetPass.pass.length < 8) { set({ error: t("errors.passTooShort") }); return; }
                   set({ loading: true, error: null });
                   try {
                     await authApi.resetPassword(resetToken, resetPass.pass);
-                    go("success", { successMsg: "Password updated!", successSub: "Your password has been changed. Sign in with your new credentials.", successRedirect: "/login" });
+                    go("success", { successMsg: t("success.passwordUpdatedTitle"), successSub: t("success.passwordUpdatedSub"), successRedirect: "/login" });
                   } catch (err) {
-                    set({ loading: false, error: (err as ApiError).message || "Could not reset password." });
+                    set({ loading: false, error: (err as ApiError).message || t("errors.resetFailed") });
                   }
                 }}>
-                  <FieldGroup label="New Password" required>
-                    <PasswordField value={resetPass.pass} onChange={v => setResetPass(f => ({ ...f, pass: v }))} placeholder="Choose a strong password" />
+                  <FieldGroup label={t("reset.newPassword")} required>
+                    <PasswordField value={resetPass.pass} onChange={v => setResetPass(f => ({ ...f, pass: v }))} placeholder={t("reset.newPasswordPlaceholder")} />
                     <PasswordStrength password={resetPass.pass} />
                   </FieldGroup>
-                  <FieldGroup label="Confirm New Password" required>
-                    <PasswordField value={resetPass.confirm} onChange={v => setResetPass(f => ({ ...f, confirm: v }))} placeholder="Repeat new password"
+                  <FieldGroup label={t("reset.confirmNew")} required>
+                    <PasswordField value={resetPass.confirm} onChange={v => setResetPass(f => ({ ...f, confirm: v }))} placeholder={t("reset.repeatNew")}
                       error={!!resetPass.confirm && resetPass.pass !== resetPass.confirm} />
                     {resetPass.confirm && resetPass.pass !== resetPass.confirm && (
-                      <span className="text-[11px] text-[#DC2626]">Passwords don't match</span>
+                      <span className="text-[11px] text-[#DC2626]">{t("reset.mismatch")}</span>
                     )}
                   </FieldGroup>
                   <div className="bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] p-3">
-                    {["At least 8 characters","One uppercase letter","One number","One special character"].map(r => (
-                      <div key={r} className="flex items-center gap-2 text-[11px] text-[#9CA3AF] mb-1 last:mb-0">
-                        <CheckCircle size={11} className={resetPass.pass.length >= 8 ? "text-[#0E7C66]" : "text-[#E5E7EB]"} /> {r}
+                    {(["minChars","uppercase","number","special"] as const).map(rk => (
+                      <div key={rk} className="flex items-center gap-2 text-[11px] text-[#9CA3AF] mb-1 last:mb-0">
+                        <CheckCircle size={11} className={resetPass.pass.length >= 8 ? "text-[#0E7C66]" : "text-[#E5E7EB]"} /> {t(`passwordRules.${rk}`)}
                       </div>
                     ))}
                   </div>
-                  <PrimaryButton type="submit" loading={state.loading}>Update Password <ArrowRight size={14} /></PrimaryButton>
+                  <PrimaryButton type="submit" loading={state.loading}>{t("reset.update")} <ArrowRight size={14} /></PrimaryButton>
                 </form>
               </div>
             )}
@@ -827,8 +847,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
             {/* ── ROLE SELECT ── */}
             {v === "role-select" && (
               <div>
-                <FormHeader icon={LayoutDashboard} title="Choose your workspace"
-                  sub="Your account has access to multiple portals. Where would you like to go?" />
+                <FormHeader icon={LayoutDashboard} title={t("roleSelect.title")}
+                  sub={t("roleSelect.sub")} />
                 <div className="flex flex-col gap-3 mb-6">
                   {USER_ROLES.map(roleId => {
                     const role = ROLES.find(r => r.id === roleId)!;
@@ -847,8 +867,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                           <Icon size={20} style={{ color: role.color }} />
                         </div>
                         <div className="flex-1">
-                          <div className={cn("text-[14px] font-bold transition-colors", isSelected ? "text-[#1B75BC]" : "text-[#111827]")}>{role.label}</div>
-                          <div className="text-[11px] text-[#9CA3AF] mt-0.5">{role.desc}</div>
+                          <div className={cn("text-[14px] font-bold transition-colors", isSelected ? "text-[#1B75BC]" : "text-[#111827]")}>{t(`roles.${role.id}.label`)}</div>
+                          <div className="text-[11px] text-[#9CA3AF] mt-0.5">{t(`roles.${role.id}.desc`)}</div>
                         </div>
                         <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
                           isSelected ? "border-[#1B75BC] bg-[#1B75BC]" : "border-[#D1D5DB]")}>
@@ -859,8 +879,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   })}
                 </div>
                 <label className="flex items-center gap-2.5 mb-5 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 accent-[#1B75BC]" />
-                  <span className="text-[12px] text-[#6B7280]">Remember my selection and skip this screen next time</span>
+                  <input type="checkbox" className="w-4 h-4 accent-[#1B75BC] flex-shrink-0" />
+                  <span className="text-[12px] text-[#6B7280]">{t("roleSelect.remember")}</span>
                 </label>
                 <PrimaryButton
                   loading={state.loading}
@@ -869,11 +889,11 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     const dest = ROLE_ROUTES[selectedRole] ?? "/erp";
                     simulateLoad(() => navigate(dest));
                   }}>
-                  {selectedRole ? `Continue as ${ROLES.find(r => r.id === selectedRole)?.label}` : "Select a workspace"} <ArrowRight size={14} />
+                  {selectedRole ? t("roleSelect.continueAs", { role: t(`roles.${selectedRole}.label`) }) : t("roleSelect.selectPrompt")} <ArrowRight size={14} />
                 </PrimaryButton>
                 <button onClick={() => go("login")}
                   className="w-full mt-3 min-h-[44px] text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors cursor-pointer">
-                  Sign out
+                  {t("roleSelect.signOut")}
                 </button>
               </div>
             )}
@@ -897,10 +917,10 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                       go("login");
                     }
                   }}>
-                    Continue to Sign In <ArrowRight size={14} />
+                    {t("success.continue")} <ArrowRight size={14} />
                   </PrimaryButton>
                   <Link to="/" className="text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors min-h-[44px] flex items-center justify-center">
-                    Return to Home
+                    {t("success.returnHome")}
                   </Link>
                 </div>
               </div>
@@ -912,36 +932,35 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                 <div className="w-20 h-20 bg-[#FEF2F2] rounded-full flex items-center justify-center mx-auto mb-6">
                   <AlertTriangle size={36} className="text-[#DC2626]" />
                 </div>
-                <h1 className="text-[22px] font-black text-[#111827] mb-2">Account Locked</h1>
+                <h1 className="text-[22px] font-black text-[#111827] mb-2">{t("locked.title")}</h1>
                 <p className="text-[13px] text-[#6B7280] leading-relaxed mb-2 max-w-xs mx-auto">
-                  Your account has been temporarily locked after too many failed sign-in attempts.
+                  {t("locked.message")}
                 </p>
-                <p className="text-[12px] text-[#9CA3AF] mb-8">Lock expires in <span className="font-bold text-[#374151]">29 minutes</span></p>
+                <p className="text-[12px] text-[#9CA3AF] mb-8">
+                  <Trans t={t} i18nKey="locked.expiresIn"
+                    components={{ b: <span className="font-bold text-[#374151]" /> }} />
+                </p>
                 <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-[12px] p-4 mb-6 text-left">
-                  <div className="text-[12px] font-bold text-[#991B1B] mb-2">What you can do:</div>
+                  <div className="text-[12px] font-bold text-[#991B1B] mb-2">{t("locked.whatToDo")}</div>
                   <ul className="flex flex-col gap-1.5">
-                    {[
-                      "Wait 30 minutes for the lock to expire",
-                      "Use 'Forgot Password' to reset and unlock",
-                      "Contact our support team for immediate help",
-                    ].map(t => (
-                      <li key={t} className="flex items-start gap-2 text-[12px] text-[#991B1B]">
-                        <span className="mt-0.5 text-[#DC2626]">·</span> {t}
+                    {["0", "1", "2"].map(i => (
+                      <li key={i} className="flex items-start gap-2 text-[12px] text-[#991B1B]">
+                        <span className="mt-0.5 text-[#DC2626]">·</span> {t(`locked.tips.${i}`)}
                       </li>
                     ))}
                   </ul>
                 </div>
                 <div className="flex flex-col gap-3">
                   <PrimaryButton onClick={() => go("forgot")}>
-                    Reset Password to Unlock
+                    {t("locked.resetToUnlock")}
                   </PrimaryButton>
                   <a href="mailto:support@smtravel.com.bd"
                     className="min-h-[48px] flex items-center justify-center gap-2 border-2 border-[#E5E7EB] text-[#374151] font-bold rounded-[12px] text-[13px] hover:border-[#1B75BC]/30 transition-colors">
-                    <Mail size={14} /> Contact Support
+                    <Mail size={14} /> {t("locked.contactSupport")}
                   </a>
                   <button onClick={() => go("login")}
                     className="text-[12px] text-[#9CA3AF] hover:text-[#374151] transition-colors min-h-[44px] cursor-pointer">
-                    Back to Sign In
+                    {t("locked.backToSignIn")}
                   </button>
                 </div>
               </div>
@@ -954,7 +973,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
         <div className="md:hidden flex-shrink-0 pb-24 px-5 text-center text-[11px] text-[#9CA3AF]">
           {v !== "login" && (
             <button onClick={() => go("login")} className="text-[#1B75BC] font-bold hover:underline">
-              Back to Sign In
+              {t("mobileBack")}
             </button>
           )}
         </div>

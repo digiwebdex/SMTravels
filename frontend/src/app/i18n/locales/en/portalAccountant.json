@@ -1,0 +1,111 @@
+{
+  "brand": { "portal": "Accounts Portal" },
+  "fy": "FY",
+  "roles": { "finance": "Finance" },
+  "nav": {
+    "financialDashboard": "Financial Dashboard",
+    "incomeExpense": "Income & Expense",
+    "bankCash": "Bank & Cash",
+    "journalEntries": "Journal Entries",
+    "invoicesPayments": "Invoices & Payments",
+    "financialReports": "Financial Reports",
+    "taxReports": "Tax Reports",
+    "auditLogs": "Audit Logs"
+  },
+  "bottomNav": { "home": "Home", "pl": "P&L", "bank": "Bank", "audit": "Audit" },
+  "labels": { "journal": "Journal" },
+  "dashboard": {
+    "eyebrow": "Accountant Dashboard",
+    "title": "Financial Overview",
+    "invoicesYtd": "Invoices (YTD)",
+    "billed": "Billed",
+    "collected": "Collected",
+    "outstanding": "Outstanding",
+    "ledgerNote": "Detailed ledgers below reuse the branch-scoped finance & report endpoints.",
+    "kpi": {
+      "revenue": "Revenue (YTD)",
+      "expenses": "Expenses (YTD)",
+      "netProfit": "Net Profit",
+      "postedJournals": "Posted Journals"
+    }
+  },
+  "tabs": {
+    "income": "income",
+    "expense": "expense",
+    "invoices": "invoices",
+    "payments": "payments"
+  },
+  "incomeExpense": {
+    "total": "Total {{type}} (baseAmount, BDT)"
+  },
+  "bankCash": {
+    "recentTransactions": "Recent Transactions",
+    "allAccounts": "All Accounts",
+    "credit": "credit",
+    "debit": "debit",
+    "cols": {
+      "description": "Description",
+      "account": "Account"
+    }
+  },
+  "journal": {
+    "entries": "Entries",
+    "posted": "Posted",
+    "drafts": "Drafts",
+    "reversed": "reversed",
+    "status": { "posted": "posted", "draft": "draft" }
+  },
+  "invPay": { "draft": "DRAFT" },
+  "reports": {
+    "customReport": "Custom Report",
+    "view": "View",
+    "grossRevenue": "Gross Revenue YTD",
+    "totalExpenses": "Total Expenses YTD",
+    "netProfit": "Net Profit YTD",
+    "cols": {
+      "report": "Report",
+      "generated": "Generated"
+    }
+  },
+  "tax": {
+    "vatCollected": "VAT Collected YTD",
+    "incomeTax": "Income Tax (est.)",
+    "nextFiling": "Next Filing",
+    "vatRatesTitle": "Bangladesh VAT Rates",
+    "vatRatesBody": "Standard rate: 15% · Tourism services: 15% VAT + 5% SD applies on international tour packages.",
+    "quarterlySummary": "Quarterly VAT Summary — 2024",
+    "filed": "Filed",
+    "return": "Return",
+    "prepare": "Prepare",
+    "documents": "Tax Documents",
+    "cols": {
+      "quarter": "Quarter",
+      "taxableIncome": "Taxable Income",
+      "vatCollected": "VAT Collected",
+      "incomeTax": "Income Tax",
+      "dueDate": "Due Date"
+    }
+  },
+  "audit": {
+    "export": "Export",
+    "filters": { "all": "all", "info": "info", "warning": "warning", "critical": "critical" },
+    "severity": { "info": "info", "warning": "warning", "critical": "critical" },
+    "cols": {
+      "logId": "Log ID",
+      "action": "Action",
+      "entity": "Entity",
+      "user": "User",
+      "time": "Time",
+      "severity": "Severity"
+    }
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
+    "employeeId": "Employee ID",
+    "department": "Department",
+    "branch": "Branch",
+    "nid": "NID Number"
+  }
+}

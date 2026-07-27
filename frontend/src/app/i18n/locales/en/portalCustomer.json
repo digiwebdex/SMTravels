@@ -1,0 +1,125 @@
+{
+  "shell": {
+    "myPortal": "My Portal"
+  },
+  "common": {
+    "signOut": "Sign Out",
+    "view": "View",
+    "customerFallback": "Customer"
+  },
+  "bottomNav": {
+    "home": "Home"
+  },
+  "labels": {
+    "balanceDue": "Balance Due",
+    "totalAmount": "Total Amount",
+    "amountPaid": "Amount Paid",
+    "fullyPaid": "Fully Paid"
+  },
+  "docStatus": {
+    "verified": "Verified",
+    "uploaded": "Uploaded",
+    "missing": "Missing"
+  },
+  "dashboard": {
+    "bookingPrefix": "Your",
+    "bookingActive": "booking is active ✈️",
+    "noActiveBookings": "No active bookings",
+    "nextBooking": "Next Booking",
+    "departs": "Departs {{date}}",
+    "acrossUnpaid_one": "across {{count}} unpaid invoice",
+    "acrossUnpaid_other": "across {{count}} unpaid invoices",
+    "viewPlan": "View Plan",
+    "paidOnNext": "paid on next booking",
+    "getSupport": "Get Support",
+    "recentUpdates": "Recent Updates",
+    "seeAll": "See all",
+    "noUpdates": "No updates."
+  },
+  "bookings": {
+    "departure": "Departure",
+    "return": "Return",
+    "currency": "Currency"
+  },
+  "bookingDetail": {
+    "back": "Back to bookings",
+    "journeyDetails": "Journey Details",
+    "timeline": "Booking Timeline",
+    "paymentSummary": "Payment Summary"
+  },
+  "payments": {
+    "totalPaid": "Total Paid",
+    "transactions": "Transactions",
+    "payment": "Payment",
+    "reversed": "Reversed"
+  },
+  "installments": {
+    "plan": "Plan",
+    "countPaid": "{{paid}} of {{total}}",
+    "paidLabel": "paid",
+    "remaining": "Remaining {{amount}}",
+    "installmentN": "Installment {{number}}",
+    "due": "Due",
+    "paidOn": "Paid on {{date}}",
+    "dueOn": "Due {{date}}"
+  },
+  "invoices": {
+    "invoice": "Invoice",
+    "invoiceHeading": "INVOICE",
+    "item": "Item",
+    "draft": "DRAFT",
+    "issued": "Issued {{date}}",
+    "due": "Due {{date}}",
+    "balanceShort": "Balance {{amount}}"
+  },
+  "documents": {
+    "subtitle": "Your uploaded travel documents",
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "uploadHint": "Please ensure all required documents are uploaded at least 30 days before departure. PDF, JPG or PNG — max 10 MB.",
+    "required": "Required"
+  },
+  "voucher": {
+    "subtitle": "Your official travel vouchers and confirmation letters",
+    "types": {
+      "booking": "Booking Voucher",
+      "hotel": "Hotel Confirmation",
+      "flight": "Flight Itinerary",
+      "visa": "Visa Copy",
+      "group": "Group Letter"
+    },
+    "hint": "Vouchers will be available to download once your booking is fully confirmed and visa is approved."
+  },
+  "support": {
+    "newTicket": "New Ticket",
+    "subject": "Subject",
+    "helpPlaceholder": "How can we help?",
+    "create": "Create",
+    "messagePlaceholder": "Type your message…",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "resolved": "Resolved",
+      "pending": "Pending"
+    }
+  },
+  "notifications": {
+    "markAllRead": "Mark all read"
+  },
+  "profile": {
+    "customer": "Customer",
+    "since": "Since {{year}}",
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
+    "dob": "Date of Birth",
+    "nid": "NID Number",
+    "passportNo": "Passport No.",
+    "addressSection": "Address",
+    "address": "Address",
+    "district": "District",
+    "division": "Division",
+    "country": "Country"
+  }
+}

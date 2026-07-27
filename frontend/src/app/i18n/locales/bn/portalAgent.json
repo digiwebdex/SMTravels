@@ -1,0 +1,142 @@
+{
+  "shell": {
+    "agentPortal": "এজেন্ট পোর্টাল",
+    "tierAgent": "{{tier}} এজেন্ট"
+  },
+  "common": {
+    "signOut": "সাইন আউট",
+    "searchShort": "খুঁজুন…",
+    "agentFallback": "এজেন্ট"
+  },
+  "bottomNav": {
+    "home": "হোম",
+    "commission": "কমিশন"
+  },
+  "nav": {
+    "leadManagement": "লিড ব্যবস্থাপনা",
+    "commissionReports": "কমিশন রিপোর্ট",
+    "walletPayments": "ওয়ালেট ও পেমেন্ট",
+    "myTeam": "আমার টিম",
+    "analytics": "অ্যানালিটিক্স",
+    "profileSettings": "প্রোফাইল সেটিংস"
+  },
+  "leadStatus": {
+    "new": "নতুন",
+    "qualified": "যোগ্য",
+    "proposal": "প্রস্তাব",
+    "negotiation": "আলোচনা",
+    "won": "সফল",
+    "lost": "ব্যর্থ"
+  },
+  "interest": {
+    "high": "উচ্চ আগ্রহ",
+    "medium": "মাঝারি আগ্রহ",
+    "low": "নিম্ন আগ্রহ"
+  },
+  "dashboard": {
+    "greeting": "সালাম, {{name}}!",
+    "tierLabel": "{{tier}} টিয়ার",
+    "walletBalance": "ওয়ালেট ব্যালেন্স",
+    "earned": "অর্জিত",
+    "assignedToMe": "আমাকে বরাদ্দকৃত",
+    "mine": "আমার",
+    "subAgents": "সাব-এজেন্ট",
+    "commissionWallet": "কমিশন ওয়ালেট",
+    "availableBalanceLedger": "ব্যবহারযোগ্য ব্যালেন্স (রিড-অনলি লেজার)",
+    "commissionReport": "কমিশন রিপোর্ট",
+    "recentLeads": "সাম্প্রতিক লিড"
+  },
+  "leads": {
+    "subtitle": "আপনার সম্ভাব্য গ্রাহকদের ট্র্যাক ও রূপান্তর করুন",
+    "addButton": "নতুন লিড",
+    "searchPlaceholder": "লিড খুঁজুন…",
+    "noLeads": "এখনও কোনো লিড নেই।",
+    "call": "কল",
+    "update": "আপডেট",
+    "managedByStaff": "স্টাফ দ্বারা পরিচালিত",
+    "addModalTitle": "নতুন লিড যোগ করুন",
+    "fullName": "পূর্ণ নাম",
+    "phoneNumber": "ফোন নম্বর",
+    "serviceInterest": "সেবার আগ্রহ",
+    "notes": "নোট",
+    "saving": "সংরক্ষণ হচ্ছে…",
+    "saveButton": "লিড সংরক্ষণ"
+  },
+  "customers": {
+    "vip": "VIP",
+    "totalValue": "মোট মূল্য",
+    "lastBooking": "সর্বশেষ বুকিং",
+    "viewHistory": "ইতিহাস দেখুন",
+    "newBooking": "নতুন বুকিং"
+  },
+  "bookings": {
+    "totalBookings": "মোট বুকিং",
+    "commissionEarned": "অর্জিত কমিশন",
+    "commissionPending": "অপেক্ষমাণ কমিশন",
+    "noBookings": "এখনও কোনো বুকিং নেই।",
+    "customerPrefix": "গ্রাহক",
+    "bookingValue": "বুকিং মূল্য"
+  },
+  "commissions": {
+    "totalEarned": "মোট অর্জিত",
+    "pendingPayout": "অপেক্ষমাণ পেআউট",
+    "awaitingTransfer": "ট্রান্সফারের অপেক্ষায়",
+    "byPeriod": "সময়কাল অনুযায়ী কমিশন",
+    "noCommissions": "এখনও কোনো কমিশন নেই।",
+    "grossRate": "গ্রস {{gross}} · রেট {{rate}}%"
+  },
+  "wallet": {
+    "agentBalance": "এজেন্ট ওয়ালেট ব্যালেন্স",
+    "ledgerNote": "অপরিবর্তনীয় কমিশন লেজার — রিড-অনলি",
+    "withdrawalNote": "উত্তোলন ব্যাক অফিস দ্বারা প্রক্রিয়া করা হয়। এই লেজারটি কেবল যোগ-করা-যায় (append-only)।",
+    "transactionHistory": "লেনদেনের ইতিহাস",
+    "noTransactions": "কোনো লেনদেন নেই।",
+    "reversed": "প্রত্যাহৃত"
+  },
+  "team": {
+    "downlineNote": "আপনার ডাউনলাইন (আপনার পরিচিত সাব-এজেন্ট)",
+    "subAgents": "সাব-এজেন্ট",
+    "teamBookings": "টিম বুকিং",
+    "teamCommission": "টিম কমিশন",
+    "noSubAgents": "আপনার কোনো সাব-এজেন্ট নেই।",
+    "commissionCaption": "কমিশন"
+  },
+  "analytics": {
+    "conversionRate": "রূপান্তর হার",
+    "leadsToBookings": "লিড থেকে বুকিং",
+    "avgTicket": "গড় টিকিট",
+    "perBooking": "প্রতি বুকিং",
+    "returnClients": "ফিরে আসা গ্রাহক",
+    "repeatBookings": "পুনরাবৃত্ত বুকিং",
+    "responseTime": "সাড়াদানের সময়",
+    "avgLeadResponse": "গড় লিড সাড়া",
+    "bookingsTrend": "বুকিং ট্রেন্ড",
+    "last6Months": "গত 6 মাস",
+    "commissionTrend": "কমিশন ট্রেন্ড",
+    "bookingsByService": "সেবা অনুযায়ী বুকিং"
+  },
+  "support": {
+    "newTicket": "নতুন টিকিট",
+    "open": "খোলা",
+    "messagePlaceholder": "আপনার বার্তা লিখুন…",
+    "agentHotline": "এজেন্ট হটলাইন",
+    "prioritySupport": "অগ্রাধিকার সহায়তা",
+    "messagesCount_one": "{{count}}টি বার্তা",
+    "messagesCount_other": "{{count}}টি বার্তা",
+    "status": {
+      "open": "খোলা",
+      "resolved": "সমাধান হয়েছে"
+    }
+  },
+  "profile": {
+    "personalInfo": "ব্যক্তিগত তথ্য",
+    "fullName": "পূর্ণ নাম",
+    "nid": "এনআইডি নম্বর",
+    "tradeLicense": "ট্রেড লাইসেন্স",
+    "bankDetails": "ব্যাংক ও পেমেন্ট বিবরণ",
+    "bankName": "ব্যাংকের নাম",
+    "accountNo": "অ্যাকাউন্ট নম্বর",
+    "bkashNo": "বিকাশ নম্বর",
+    "nagadNo": "নগদ নম্বর"
+  }
+}

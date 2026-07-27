@@ -1,0 +1,110 @@
+{
+  "brand": { "portal": "Supplier Portal" },
+  "nav": {
+    "bookingRequests": "Booking Requests",
+    "myServices": "My Services",
+    "messages": "Messages",
+    "profileSettings": "Profile Settings"
+  },
+  "bottomNav": { "home": "Home" },
+  "pending": {
+    "badge_one": "{{count}} pending request",
+    "badge_other": "{{count}} pending requests",
+    "short": "{{count}} pending"
+  },
+  "dashboard": {
+    "eyebrow": "Supplier Dashboard",
+    "rating": "Rating",
+    "actionRequired": "Action Required",
+    "review": "Review",
+    "outstandingPayables": "Outstanding payables {{amount}}",
+    "kpi": {
+      "pendingRequests": "Pending Requests",
+      "pendingRequestsSub": "Require action",
+      "myServices": "My Services",
+      "myServicesSub": "Listed",
+      "unpaidInvoices": "Unpaid Invoices",
+      "unpaidInvoicesSub": "Outstanding",
+      "outstanding": "Outstanding",
+      "outstandingSub": "Payables"
+    }
+  },
+  "labels": {
+    "totalInvoiced": "Total Invoiced",
+    "outstanding": "Outstanding",
+    "invoice": "Invoice",
+    "issuedDue": "Issued / Due",
+    "totalReceived": "Total Received"
+  },
+  "requests": {
+    "acceptTitle": "Accept Request?",
+    "declineTitle": "Decline Request?",
+    "reasonLabel": "Reason for declining",
+    "reasonPlaceholder": "e.g., No availability for requested dates…",
+    "confirm": "Confirm",
+    "decline": "Decline",
+    "accept": "Accept",
+    "acceptConfirm": "Accept & Confirm",
+    "back": "Back to requests",
+    "bookingRequest": "Booking Request",
+    "detailsTitle": "Request Details",
+    "requestNo": "Request No.",
+    "client": "Client",
+    "service": "Service",
+    "received": "Received",
+    "deadline": "Deadline",
+    "serviceAmount": "Service Amount",
+    "responseDeadline": "Response Deadline",
+    "responseNeededBy": "Response needed by {{date}}"
+  },
+  "filters": { "all": "All" },
+  "services": {
+    "bookingsCount_one": "{{count}} booking",
+    "bookingsCount_other": "{{count}} bookings"
+  },
+  "payments": { "title": "Payments Received" },
+  "statements": {
+    "title": "Statements",
+    "paidToYou": "Paid to You",
+    "outstandingPayables": "Outstanding Payables",
+    "dueAmount": "Due {{amount}}",
+    "ofAmount": "of {{amount}}"
+  },
+  "messages": { "replyPlaceholder": "Type a reply…" },
+  "support": {
+    "newTicket": "New Ticket",
+    "line": "Supplier Support Line",
+    "priority": "Priority",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "messagePlaceholder": "Type your message…",
+    "status": { "open": "Open", "resolved": "Resolved" }
+  },
+  "reports": {
+    "revenueByMonth": "Revenue by Month",
+    "revenueByService": "Revenue by Service",
+    "downloadReports": "Download Reports",
+    "kpi": {
+      "totalRequests": "Total Requests",
+      "totalRequestsSub": "YTD",
+      "acceptanceRate": "Acceptance Rate",
+      "acceptanceRateSub": "Confirmed",
+      "turnaround": "Avg. Turnaround",
+      "turnaroundSub": "Days to confirm",
+      "clientRating": "Client Rating",
+      "clientRatingSub": "Overall"
+    }
+  },
+  "profile": {
+    "companyInfo": "Company Information",
+    "bankDetails": "Bank Details",
+    "companyName": "Company Name",
+    "contactPerson": "Contact Person",
+    "category": "Category",
+    "tradeLicense": "Trade License",
+    "tin": "TIN",
+    "address": "Address",
+    "bankName": "Bank Name",
+    "accountNo": "Account No."
+  }
+}

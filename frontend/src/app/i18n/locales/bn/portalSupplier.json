@@ -1,0 +1,110 @@
+{
+  "brand": { "portal": "সরবরাহকারী পোর্টাল" },
+  "nav": {
+    "bookingRequests": "বুকিং অনুরোধ",
+    "myServices": "আমার সেবাসমূহ",
+    "messages": "বার্তা",
+    "profileSettings": "প্রোফাইল সেটিংস"
+  },
+  "bottomNav": { "home": "হোম" },
+  "pending": {
+    "badge_one": "{{count}} টি অপেক্ষমাণ অনুরোধ",
+    "badge_other": "{{count}} টি অপেক্ষমাণ অনুরোধ",
+    "short": "{{count}} টি অপেক্ষমাণ"
+  },
+  "dashboard": {
+    "eyebrow": "সরবরাহকারী ড্যাশবোর্ড",
+    "rating": "রেটিং",
+    "actionRequired": "পদক্ষেপ প্রয়োজন",
+    "review": "পর্যালোচনা",
+    "outstandingPayables": "বকেয়া প্রদেয় {{amount}}",
+    "kpi": {
+      "pendingRequests": "অপেক্ষমাণ অনুরোধ",
+      "pendingRequestsSub": "পদক্ষেপ প্রয়োজন",
+      "myServices": "আমার সেবাসমূহ",
+      "myServicesSub": "তালিকাভুক্ত",
+      "unpaidInvoices": "অপরিশোধিত ইনভয়েস",
+      "unpaidInvoicesSub": "বকেয়া",
+      "outstanding": "বকেয়া",
+      "outstandingSub": "প্রদেয়"
+    }
+  },
+  "labels": {
+    "totalInvoiced": "মোট ইনভয়েসকৃত",
+    "outstanding": "বকেয়া",
+    "invoice": "ইনভয়েস",
+    "issuedDue": "ইস্যু / বকেয়া",
+    "totalReceived": "মোট প্রাপ্ত"
+  },
+  "requests": {
+    "acceptTitle": "অনুরোধ গ্রহণ করবেন?",
+    "declineTitle": "অনুরোধ প্রত্যাখ্যান করবেন?",
+    "reasonLabel": "প্রত্যাখ্যানের কারণ",
+    "reasonPlaceholder": "যেমন, অনুরোধকৃত তারিখের জন্য কোনো সহজলভ্যতা নেই…",
+    "confirm": "নিশ্চিত করুন",
+    "decline": "প্রত্যাখ্যান",
+    "accept": "গ্রহণ",
+    "acceptConfirm": "গ্রহণ ও নিশ্চিত করুন",
+    "back": "অনুরোধে ফিরে যান",
+    "bookingRequest": "বুকিং অনুরোধ",
+    "detailsTitle": "অনুরোধের বিবরণ",
+    "requestNo": "অনুরোধ নং",
+    "client": "ক্লায়েন্ট",
+    "service": "সেবা",
+    "received": "প্রাপ্ত",
+    "deadline": "সময়সীমা",
+    "serviceAmount": "সেবার পরিমাণ",
+    "responseDeadline": "সাড়ার সময়সীমা",
+    "responseNeededBy": "{{date}} এর মধ্যে সাড়া প্রয়োজন"
+  },
+  "filters": { "all": "সব" },
+  "services": {
+    "bookingsCount_one": "{{count}} টি বুকিং",
+    "bookingsCount_other": "{{count}} টি বুকিং"
+  },
+  "payments": { "title": "প্রাপ্ত পেমেন্ট" },
+  "statements": {
+    "title": "বিবরণী",
+    "paidToYou": "আপনাকে পরিশোধিত",
+    "outstandingPayables": "বকেয়া প্রদেয়",
+    "dueAmount": "{{amount}} বকেয়া",
+    "ofAmount": "মোট {{amount}} এর"
+  },
+  "messages": { "replyPlaceholder": "একটি উত্তর লিখুন…" },
+  "support": {
+    "newTicket": "নতুন টিকিট",
+    "line": "সরবরাহকারী সহায়তা লাইন",
+    "priority": "অগ্রাধিকার",
+    "messagesCount_one": "{{count}} টি বার্তা",
+    "messagesCount_other": "{{count}} টি বার্তা",
+    "messagePlaceholder": "আপনার বার্তা লিখুন…",
+    "status": { "open": "খোলা", "resolved": "সমাধানকৃত" }
+  },
+  "reports": {
+    "revenueByMonth": "মাসভিত্তিক আয়",
+    "revenueByService": "সেবাভিত্তিক আয়",
+    "downloadReports": "রিপোর্ট ডাউনলোড",
+    "kpi": {
+      "totalRequests": "মোট অনুরোধ",
+      "totalRequestsSub": "চলতি বছর",
+      "acceptanceRate": "গ্রহণের হার",
+      "acceptanceRateSub": "নিশ্চিত",
+      "turnaround": "গড় সাড়াকাল",
+      "turnaroundSub": "নিশ্চিত হতে দিন",
+      "clientRating": "ক্লায়েন্ট রেটিং",
+      "clientRatingSub": "সর্বমোট"
+    }
+  },
+  "profile": {
+    "companyInfo": "কোম্পানির তথ্য",
+    "bankDetails": "ব্যাংক বিবরণ",
+    "companyName": "কোম্পানির নাম",
+    "contactPerson": "যোগাযোগকারী ব্যক্তি",
+    "category": "শ্রেণি",
+    "tradeLicense": "ট্রেড লাইসেন্স",
+    "tin": "টিআইএন",
+    "address": "ঠিকানা",
+    "bankName": "ব্যাংকের নাম",
+    "accountNo": "অ্যাকাউন্ট নং"
+  }
+}

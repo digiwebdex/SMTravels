@@ -1,0 +1,125 @@
+{
+  "shell": {
+    "myPortal": "আমার পোর্টাল"
+  },
+  "common": {
+    "signOut": "সাইন আউট",
+    "view": "দেখুন",
+    "customerFallback": "গ্রাহক"
+  },
+  "bottomNav": {
+    "home": "হোম"
+  },
+  "labels": {
+    "balanceDue": "বকেয়া ব্যালেন্স",
+    "totalAmount": "মোট পরিমাণ",
+    "amountPaid": "পরিশোধিত পরিমাণ",
+    "fullyPaid": "সম্পূর্ণ পরিশোধিত"
+  },
+  "docStatus": {
+    "verified": "যাচাইকৃত",
+    "uploaded": "আপলোড হয়েছে",
+    "missing": "অনুপস্থিত"
+  },
+  "dashboard": {
+    "bookingPrefix": "আপনার",
+    "bookingActive": "বুকিং সক্রিয় ✈️",
+    "noActiveBookings": "কোনো সক্রিয় বুকিং নেই",
+    "nextBooking": "পরবর্তী বুকিং",
+    "departs": "রওনা {{date}}",
+    "acrossUnpaid_one": "{{count}}টি অপরিশোধিত ইনভয়েসে",
+    "acrossUnpaid_other": "{{count}}টি অপরিশোধিত ইনভয়েসে",
+    "viewPlan": "প্ল্যান দেখুন",
+    "paidOnNext": "পরবর্তী বুকিংয়ে পরিশোধিত",
+    "getSupport": "সহায়তা নিন",
+    "recentUpdates": "সাম্প্রতিক আপডেট",
+    "seeAll": "সব দেখুন",
+    "noUpdates": "কোনো আপডেট নেই।"
+  },
+  "bookings": {
+    "departure": "প্রস্থান",
+    "return": "প্রত্যাবর্তন",
+    "currency": "মুদ্রা"
+  },
+  "bookingDetail": {
+    "back": "বুকিংয়ে ফিরে যান",
+    "journeyDetails": "যাত্রার বিবরণ",
+    "timeline": "বুকিং টাইমলাইন",
+    "paymentSummary": "পেমেন্ট সারসংক্ষেপ"
+  },
+  "payments": {
+    "totalPaid": "মোট পরিশোধিত",
+    "transactions": "লেনদেন",
+    "payment": "পেমেন্ট",
+    "reversed": "প্রত্যাহৃত"
+  },
+  "installments": {
+    "plan": "প্ল্যান",
+    "countPaid": "{{total}}টির মধ্যে {{paid}}টি",
+    "paidLabel": "পরিশোধিত",
+    "remaining": "বাকি {{amount}}",
+    "installmentN": "কিস্তি {{number}}",
+    "due": "বকেয়া",
+    "paidOn": "পরিশোধিত {{date}}",
+    "dueOn": "শেষ তারিখ {{date}}"
+  },
+  "invoices": {
+    "invoice": "ইনভয়েস",
+    "invoiceHeading": "ইনভয়েস",
+    "item": "পণ্য",
+    "draft": "খসড়া",
+    "issued": "ইস্যু {{date}}",
+    "due": "শেষ তারিখ {{date}}",
+    "balanceShort": "ব্যালেন্স {{amount}}"
+  },
+  "documents": {
+    "subtitle": "আপনার আপলোড করা ভ্রমণ ডকুমেন্ট",
+    "upload": "আপলোড",
+    "uploading": "আপলোড হচ্ছে…",
+    "uploadHint": "অনুগ্রহ করে প্রস্থানের অন্তত 30 দিন আগে সব প্রয়োজনীয় ডকুমেন্ট আপলোড করুন। PDF, JPG বা PNG — সর্বোচ্চ 10 MB।",
+    "required": "আবশ্যক"
+  },
+  "voucher": {
+    "subtitle": "আপনার অফিসিয়াল ভ্রমণ ভাউচার ও নিশ্চিতকরণ পত্র",
+    "types": {
+      "booking": "বুকিং ভাউচার",
+      "hotel": "হোটেল নিশ্চিতকরণ",
+      "flight": "ফ্লাইট ইটিনারারি",
+      "visa": "ভিসা কপি",
+      "group": "গ্রুপ লেটার"
+    },
+    "hint": "আপনার বুকিং সম্পূর্ণ নিশ্চিত এবং ভিসা অনুমোদিত হলে ভাউচারগুলো ডাউনলোডের জন্য উপলব্ধ হবে।"
+  },
+  "support": {
+    "newTicket": "নতুন টিকিট",
+    "subject": "বিষয়",
+    "helpPlaceholder": "আমরা কীভাবে সাহায্য করতে পারি?",
+    "create": "তৈরি করুন",
+    "messagePlaceholder": "আপনার বার্তা লিখুন…",
+    "messagesCount_one": "{{count}}টি বার্তা",
+    "messagesCount_other": "{{count}}টি বার্তা",
+    "status": {
+      "open": "খোলা",
+      "closed": "বন্ধ",
+      "resolved": "সমাধান হয়েছে",
+      "pending": "অপেক্ষমাণ"
+    }
+  },
+  "notifications": {
+    "markAllRead": "সব পঠিত হিসেবে চিহ্নিত করুন"
+  },
+  "profile": {
+    "customer": "গ্রাহক",
+    "since": "{{year}} সাল থেকে",
+    "personalInfo": "ব্যক্তিগত তথ্য",
+    "fullName": "পূর্ণ নাম",
+    "dob": "জন্ম তারিখ",
+    "nid": "এনআইডি নম্বর",
+    "passportNo": "পাসপোর্ট নম্বর",
+    "addressSection": "ঠিকানা",
+    "address": "ঠিকানা",
+    "district": "জেলা",
+    "division": "বিভাগ",
+    "country": "দেশ"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "brand": { "portal": "স্টাফ পোর্টাল" },
+  "nav": {
+    "dailyTasks": "দৈনিক কার্যতালিকা",
+    "myReports": "আমার রিপোর্ট"
+  },
+  "bottomNav": { "home": "হোম", "alerts": "সতর্কতা" },
+  "roles": { "staff": "স্টাফ" },
+  "filters": { "all": "সব" },
+  "taskStatus": {
+    "todo": "করণীয়",
+    "in_progress": "চলমান",
+    "done": "সম্পন্ন"
+  },
+  "priority": { "high": "উচ্চ", "medium": "মাঝারি", "low": "নিম্ন" },
+  "placeholders": {
+    "search": "অনুসন্ধান…",
+    "searchCustomers": "গ্রাহক অনুসন্ধান…",
+    "searchDocs": "ডকুমেন্ট অনুসন্ধান…"
+  },
+  "dashboard": {
+    "eyebrow": "স্টাফ ড্যাশবোর্ড",
+    "greeting": "শুভ দিন, {{name}}!",
+    "branch": "শাখা",
+    "tasksByStatus": "স্ট্যাটাস অনুযায়ী আমার কার্যতালিকা",
+    "viewAllTasks": "সব কার্যতালিকা দেখুন",
+    "pinnedAnnouncements": "পিন করা ঘোষণা",
+    "kpi": {
+      "openTasks": "চলমান কার্যতালিকা",
+      "myBookings": "আমার বুকিং",
+      "branchCustomers": "শাখার গ্রাহক"
+    }
+  },
+  "tasks": {
+    "summary": "{{pending}} অপেক্ষমাণ · {{completed}} সম্পন্ন",
+    "addTask": "কার্য যোগ করুন",
+    "done": "সম্পন্ন",
+    "priority": "অগ্রাধিকার",
+    "description": "কার্যের বিবরণ",
+    "descriptionPlaceholder": "কী করতে হবে?",
+    "dueDateTime": "নির্ধারিত তারিখ/সময়",
+    "category": "শ্রেণি",
+    "saving": "সংরক্ষণ হচ্ছে…",
+    "save": "কার্য সংরক্ষণ"
+  },
+  "bookings": {
+    "title": "বুকিং ব্যবস্থাপনা",
+    "cols": {
+      "bookingId": "বুকিং আইডি",
+      "customer": "গ্রাহক",
+      "service": "সেবা",
+      "departure": "যাত্রা"
+    }
+  },
+  "customers": {
+    "cols": {
+      "customer": "গ্রাহক",
+      "contact": "যোগাযোগ",
+      "since": "যোগদানের সময়"
+    }
+  },
+  "reports": {
+    "bookingsClosed": "মাসভিত্তিক সম্পন্ন বুকিং",
+    "performanceSummary": "কর্মদক্ষতার সারসংক্ষেপ",
+    "export": "রপ্তানি",
+    "kpi": {
+      "bookings": "বুকিং (Jul)",
+      "tasksDone": "সম্পন্ন কার্য",
+      "customersServed": "সেবাপ্রাপ্ত গ্রাহক"
+    },
+    "rows": {
+      "taskCompletion": "কার্য সম্পন্নের হার",
+      "bookingClose": "বুকিং সম্পন্নের হার",
+      "customerSatisfaction": "গ্রাহক সন্তুষ্টি",
+      "responseTime": "সাড়াদানের সময় (গড়)"
+    }
+  },
+  "documents": {
+    "cols": {
+      "document": "ডকুমেন্ট",
+      "updated": "হালনাগাদ"
+    }
+  },
+  "announcements": { "pinned": "পিন করা" },
+  "support": {
+    "title": "সহায়তা টিকিট",
+    "newTicket": "নতুন টিকিট",
+    "replyPlaceholder": "উত্তর লিখুন…",
+    "messagesCount_one": "{{count}} টি বার্তা",
+    "messagesCount_other": "{{count}} টি বার্তা",
+    "status": { "open": "খোলা", "resolved": "সমাধানকৃত" }
+  },
+  "notifications": { "markAllRead": "সব পঠিত হিসেবে চিহ্নিত করুন" },
+  "profile": {
+    "title": "প্রোফাইল সেটিংস",
+    "personalInfo": "ব্যক্তিগত তথ্য",
+    "fullName": "পূর্ণ নাম",
+    "employeeId": "কর্মচারী আইডি",
+    "department": "বিভাগ",
+    "branch": "শাখা",
+    "nid": "এনআইডি নম্বর"
+  }
+}

@@ -12,6 +12,7 @@ import {
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
 import { useIncome, useExpenses, useInvoices, usePayments, useJournal } from "../hooks/finance";
 import { SampleBadge } from "./SampleBadge";
@@ -19,8 +20,9 @@ const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-G
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
 function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
+  const { t } = useTranslation("portalAccountant");
   if (q.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
-  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || "Failed to load."}</div>;
+  if (q.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(q.error as Error)?.message || t("portalCommon:empty.failed")}</div>;
   return <>{children}</>;
 }
 
@@ -29,15 +31,15 @@ type AccView =
   | "invoices-payments" | "reports" | "tax" | "audit" | "profile";
 
 const NAV: { id: AccView; icon: React.ElementType; label: string; badge?: number }[] = [
-  { id: "dashboard",        icon: LayoutDashboard, label: "Financial Dashboard" },
-  { id: "income-expense",   icon: TrendingUp,      label: "Income & Expense"   },
-  { id: "bank-cash",        icon: Building2,       label: "Bank & Cash"        },
-  { id: "journal",          icon: BookOpen,        label: "Journal Entries"    },
-  { id: "invoices-payments",icon: FileText,        label: "Invoices & Payments"},
-  { id: "reports",          icon: BarChart3,       label: "Financial Reports"  },
-  { id: "tax",              icon: Shield,          label: "Tax Reports"        },
-  { id: "audit",            icon: ClipboardList,   label: "Audit Logs",  badge: 3 },
-  { id: "profile",          icon: User,            label: "Profile"            },
+  { id: "dashboard",        icon: LayoutDashboard, label: "portalAccountant:nav.financialDashboard" },
+  { id: "income-expense",   icon: TrendingUp,      label: "portalAccountant:nav.incomeExpense"   },
+  { id: "bank-cash",        icon: Building2,       label: "portalAccountant:nav.bankCash"        },
+  { id: "journal",          icon: BookOpen,        label: "portalAccountant:nav.journalEntries"  },
+  { id: "invoices-payments",icon: FileText,        label: "portalAccountant:nav.invoicesPayments"},
+  { id: "reports",          icon: BarChart3,       label: "portalAccountant:nav.financialReports"},
+  { id: "tax",              icon: Shield,          label: "portalAccountant:nav.taxReports"      },
+  { id: "audit",            icon: ClipboardList,   label: "portalAccountant:nav.auditLogs",  badge: 3 },
+  { id: "profile",          icon: User,            label: "portalCommon:nav.profile"             },
 ];
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -134,6 +136,7 @@ function AmountBig({ val, color }: { val: number; color?: string }) {
 
 // ─── FINANCIAL DASHBOARD ──────────────────────────────────────────────────────
 function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
+  const { t } = useTranslation("portalAccountant");
   const q = useAccountantDashboard();
   const d = q.data;
   return (
@@ -142,17 +145,17 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
       <div className="space-y-5" data-portal="dashboard">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Accountant Dashboard</p>
-            <h1 className="text-2xl font-bold text-slate-900 mt-0.5" data-portal-name>Financial Overview</h1>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">{t("dashboard.eyebrow")}</p>
+            <h1 className="text-2xl font-bold text-slate-900 mt-0.5" data-portal-name>{t("dashboard.title")}</h1>
             <p className="text-sm text-slate-500 mt-0.5">{d.accountantName} · {d.branchName ?? "—"}</p>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label:"Revenue (YTD)", val:fmtBDT2(d.revenue), color:"text-emerald-600", bg:"bg-emerald-500", Icon:TrendingUp },
-            { label:"Expenses (YTD)", val:fmtBDT2(d.expense), color:"text-red-500", bg:"bg-red-500", Icon:TrendingDown },
-            { label:"Net Profit", val:fmtBDT2(d.netProfit), color:"text-[#1B75BC]", bg:"bg-[#1B75BC]", Icon:CircleDollarSign },
-            { label:"Posted Journals", val:String(d.postedJournalCount), color:"text-purple-600", bg:"bg-purple-500", Icon:Building2 },
+            { label:t("dashboard.kpi.revenue"), val:fmtBDT2(d.revenue), color:"text-emerald-600", bg:"bg-emerald-500", Icon:TrendingUp },
+            { label:t("dashboard.kpi.expenses"), val:fmtBDT2(d.expense), color:"text-red-500", bg:"bg-red-500", Icon:TrendingDown },
+            { label:t("dashboard.kpi.netProfit"), val:fmtBDT2(d.netProfit), color:"text-[#1B75BC]", bg:"bg-[#1B75BC]", Icon:CircleDollarSign },
+            { label:t("dashboard.kpi.postedJournals"), val:String(d.postedJournalCount), color:"text-purple-600", bg:"bg-purple-500", Icon:Building2 },
           ].map(k => (
             <div key={k.label} className="bg-white rounded-xl border border-slate-200 p-4">
               <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-white mb-3", k.bg)}><k.Icon size={16} /></div>
@@ -162,19 +165,19 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
           ))}
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
-          <p className="font-bold text-slate-800 mb-4">Invoices (YTD)</p>
+          <p className="font-bold text-slate-800 mb-4">{t("dashboard.invoicesYtd")}</p>
           <div className="grid grid-cols-3 gap-3">
-            {[["Billed",d.invoices.billed],["Collected",d.invoices.collected],["Outstanding",d.invoices.outstanding]].map(([l,v])=>(
-              <div key={l} className="bg-slate-50 rounded-xl p-3 text-center"><p className="text-sm font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(v)}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+            {[[t("dashboard.billed"),d.invoices.billed],[t("dashboard.collected"),d.invoices.collected],[t("dashboard.outstanding"),d.invoices.outstanding]].map(([l,v])=>(
+              <div key={l} className="bg-slate-50 rounded-xl p-3 text-center"><p className="text-sm font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(v as number)}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
             ))}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          {[["income-expense","Income & Expense"],["journal","Journal"],["invoices-payments","Invoices"]].map(([v,label])=>(
+          {[["income-expense",t("nav.incomeExpense")],["journal",t("labels.journal")],["invoices-payments",t("portalCommon:nav.invoices")]].map(([v,label])=>(
             <button key={v} onClick={()=>onGo(v as AccView)} className="p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#1B75BC]/30 text-sm font-semibold text-slate-700 text-left">{label} <span className="text-slate-300">→</span></button>
           ))}
         </div>
-        <p className="text-xs text-slate-400 text-center">Detailed ledgers below reuse the branch-scoped finance &amp; report endpoints.</p>
+        <p className="text-xs text-slate-400 text-center">{t("dashboard.ledgerNote")}</p>
       </div>
       )}
     </PLoad>
@@ -183,6 +186,7 @@ function FinDashboard({ onGo }: { onGo: (v: AccView) => void }) {
 
 // ─── INCOME & EXPENSE ─────────────────────────────────────────────────────────
 function IncomeExpenseView() {
+  const { t } = useTranslation("portalAccountant");
   const [tab, setTab] = useState("income");
   const incQ = useIncome({ range: "ytd", pageSize: 100 });
   const expQ = useExpenses({ range: "ytd", pageSize: 100 });
@@ -190,25 +194,25 @@ function IncomeExpenseView() {
   const rows = q.data?.data ?? [];
   return (
     <div className="space-y-5" data-portal="income-expense">
-      <h2 className="text-xl font-bold text-slate-800">Income & Expense</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("nav.incomeExpense")}</h2>
       <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl w-fit">
-        {["income","expense"].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} className={cn("px-4 py-2 text-sm font-semibold rounded-xl capitalize", tab===t?"bg-white text-slate-800 shadow-sm":"text-slate-500")}>{t}</button>
+        {["income","expense"].map(tb=>(
+          <button key={tb} onClick={()=>setTab(tb)} className={cn("px-4 py-2 text-sm font-semibold rounded-xl capitalize whitespace-nowrap", tab===tb?"bg-white text-slate-800 shadow-sm":"text-slate-500")}>{t(`tabs.${tb}`)}</button>
         ))}
       </div>
       <PLoad q={q}>
         <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1 capitalize">Total {tab} (baseAmount, BDT)</p>
+          <p className="text-xs text-slate-400 mb-1 capitalize">{t("incomeExpense.total", { type: t(`tabs.${tab}`) })}</p>
           {/* Sum baseAmount from the rows — the ledger endpoint's stats.totalAmount sums raw
               `amount` across currencies (a mixed-currency bug); baseAmount is the correct aggregate. */}
           <p className={cn("text-2xl font-black", tab==="income"?"text-emerald-600":"text-red-500")} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(rows.reduce((s,r)=>s+r.baseAmount,0))}</p>
         </div>
         <div className="space-y-2.5">
-          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">No {tab} records.</p>}
+          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">{t("portalCommon:empty.nothing")}</p>}
           {rows.map(r=>(
             <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
               <div><p className="text-sm font-semibold text-slate-800">{r.category}</p><p className="text-xs text-slate-400 mt-0.5">{r.party || r.description || "—"} · {r.date}</p></div>
-              <div className="text-right"><p className={cn("font-black", tab==="income"?"text-emerald-600":"text-red-500")} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(r.baseAmount)}</p><span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-slate-100 text-slate-600">{r.status.toLowerCase()}</span></div>
+              <div className="text-right"><p className={cn("font-black", tab==="income"?"text-emerald-600":"text-red-500")} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(r.baseAmount)}</p><span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-slate-100 text-slate-600">{t(`portalCommon:status.${r.status.toLowerCase()}`, { defaultValue: r.status.toLowerCase() })}</span></div>
             </div>
           ))}
         </div>
@@ -219,6 +223,7 @@ function IncomeExpenseView() {
 
 // ─── BANK & CASH ──────────────────────────────────────────────────────────────
 function BankCashView() {
+  const { t } = useTranslation("portalAccountant");
   const TRANSACTIONS = [
     { date:"Jul 15", desc:"Client payment — BK-0892",      account:"DBBL", type:"credit", amount:130000  },
     { date:"Jul 14", desc:"Supplier payment — Dar Al-Tawhid", account:"DBBL", type:"debit",  amount:2940000 },
@@ -232,9 +237,9 @@ function BankCashView() {
     <div className="space-y-5">
       <SampleBadge />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Bank & Cash</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5">
-          <Download size={14}/> Statement
+        <h2 className="text-xl font-bold text-slate-800">{t("nav.bankCash")}</h2>
+        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+          <Download size={14}/> {t("portalCommon:nav.statements")}
         </button>
       </div>
 
@@ -262,10 +267,10 @@ function BankCashView() {
       {/* Transaction ledger */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="font-bold text-slate-800">Recent Transactions</p>
+          <p className="font-bold text-slate-800">{t("bankCash.recentTransactions")}</p>
           <div className="flex items-center gap-2">
             <select className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none text-slate-600">
-              <option>All Accounts</option>
+              <option>{t("bankCash.allAccounts")}</option>
               {BANK_ACCOUNTS.map(a=><option key={a.id}>{a.bank}</option>)}
             </select>
           </div>
@@ -273,26 +278,26 @@ function BankCashView() {
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {["Date","Description","Account","Type","Amount"].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+              {["portalCommon:labels.date","portalAccountant:bankCash.cols.description","portalAccountant:bankCash.cols.account","portalCommon:labels.type","portalCommon:labels.amount"].map((h,hi) => (
+                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {TRANSACTIONS.map((t,i) => (
+            {TRANSACTIONS.map((tx,i) => (
               <tr key={i} className="hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{t.date}</td>
-                <td className="px-4 py-3 text-sm text-slate-700 max-w-xs truncate">{t.desc}</td>
-                <td className="px-4 py-3"><span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-mono">{t.account}</span></td>
+                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{tx.date}</td>
+                <td className="px-4 py-3 text-sm text-slate-700 max-w-xs truncate">{tx.desc}</td>
+                <td className="px-4 py-3"><span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-mono">{tx.account}</span></td>
                 <td className="px-4 py-3">
                   <span className={cn("flex items-center gap-1 text-xs font-semibold w-fit",
-                    t.type==="credit"?"text-emerald-600":"text-red-500")}>
-                    {t.type==="credit"?<ArrowDownLeft size={12}/>:<ArrowUpRight size={12}/>}
-                    {t.type}
+                    tx.type==="credit"?"text-emerald-600":"text-red-500")}>
+                    {tx.type==="credit"?<ArrowDownLeft size={12}/>:<ArrowUpRight size={12}/>}
+                    {t(`bankCash.${tx.type}`)}
                   </span>
                 </td>
-                <td className={cn("px-4 py-3 text-sm font-black font-mono",t.type==="credit"?"text-emerald-600":"text-red-500")}>
-                  {t.type==="credit"?"+":"-"}{fmtShort(t.amount)}
+                <td className={cn("px-4 py-3 text-sm font-black font-mono",tx.type==="credit"?"text-emerald-600":"text-red-500")}>
+                  {tx.type==="credit"?"+":"-"}{fmtShort(tx.amount)}
                 </td>
               </tr>
             ))}
@@ -305,23 +310,24 @@ function BankCashView() {
 
 // ─── JOURNAL ENTRIES ──────────────────────────────────────────────────────────
 function JournalView() {
+  const { t } = useTranslation("portalAccountant");
   const q = useJournal({ range: "ytd", pageSize: 100 });
   const rows = q.data?.data ?? [];
   return (
     <div className="space-y-5" data-portal="journal">
-      <h2 className="text-xl font-bold text-slate-800">Journal Entries</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("nav.journalEntries")}</h2>
       <PLoad q={q}>
         <div className="grid grid-cols-3 gap-3">
-          {[["Entries", q.data?.stats.total ?? 0],["Posted", q.data?.stats.posted ?? 0],["Drafts", q.data?.stats.drafts ?? 0]].map(([l,v])=>(
+          {[[t("journal.entries"), q.data?.stats.total ?? 0],[t("journal.posted"), q.data?.stats.posted ?? 0],[t("journal.drafts"), q.data?.stats.drafts ?? 0]].map(([l,v])=>(
             <div key={l} className="bg-white border border-slate-200 rounded-2xl p-3 text-center"><p className="text-lg font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{v}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
           ))}
         </div>
         <div className="space-y-2.5">
-          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">No journal entries.</p>}
+          {rows.length===0 && <p className="text-sm text-slate-400 text-center py-4">{t("portalCommon:empty.nothing")}</p>}
           {rows.map(j=>(
             <div key={j.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
               <div><p className="text-sm font-semibold text-slate-800 font-mono">{j.ref}</p><p className="text-xs text-slate-400 mt-0.5">{j.description || "—"} · {j.date}</p></div>
-              <div className="text-right"><p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(j.totalDebit)}</p><span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize", j.isReversed?"bg-red-50 text-red-500":j.status==="POSTED"?"bg-emerald-50 text-emerald-600":"bg-slate-100 text-slate-500")}>{j.isReversed?"reversed":j.status.toLowerCase()}</span></div>
+              <div className="text-right"><p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(j.totalDebit)}</p><span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize", j.isReversed?"bg-red-50 text-red-500":j.status==="POSTED"?"bg-emerald-50 text-emerald-600":"bg-slate-100 text-slate-500")}>{j.isReversed ? t("journal.reversed") : t(`journal.status.${j.status.toLowerCase()}`, { defaultValue: j.status.toLowerCase() })}</span></div>
             </div>
           ))}
         </div>
@@ -332,6 +338,7 @@ function JournalView() {
 
 // ─── INVOICES & PAYMENTS ──────────────────────────────────────────────────────
 function InvPayView() {
+  const { t } = useTranslation("portalAccountant");
   const [tab, setTab] = useState("invoices");
   const invQ = useInvoices({ range: "ytd", pageSize: 100 });
   const payQ = usePayments({ range: "ytd", pageSize: 100 });
@@ -339,25 +346,25 @@ function InvPayView() {
   const payments = payQ.data?.data ?? [];
   return (
     <div className="space-y-5" data-portal="invpay">
-      <h2 className="text-xl font-bold text-slate-800">Invoices & Payments</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("nav.invoicesPayments")}</h2>
       <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl w-fit">
-        {["invoices","payments"].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} className={cn("px-4 py-2 text-sm font-semibold rounded-xl capitalize", tab===t?"bg-white text-slate-800 shadow-sm":"text-slate-500")}>{t}</button>
+        {["invoices","payments"].map(tb=>(
+          <button key={tb} onClick={()=>setTab(tb)} className={cn("px-4 py-2 text-sm font-semibold rounded-xl capitalize whitespace-nowrap", tab===tb?"bg-white text-slate-800 shadow-sm":"text-slate-500")}>{t(`tabs.${tb}`)}</button>
         ))}
       </div>
       {tab==="invoices" ? (
         <PLoad q={invQ}>
           <div className="grid grid-cols-3 gap-3">
-            {[["Billed", invQ.data?.stats.totalBilled ?? 0],["Collected", invQ.data?.stats.totalPaid ?? 0],["Outstanding", invQ.data?.stats.totalDue ?? 0]].map(([l,v])=>(
-              <div key={l} className="bg-white border border-slate-200 rounded-2xl p-3 text-center"><p className="text-base font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(v)}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
+            {[[t("dashboard.billed"), invQ.data?.stats.totalBilled ?? 0],[t("dashboard.collected"), invQ.data?.stats.totalPaid ?? 0],[t("dashboard.outstanding"), invQ.data?.stats.totalDue ?? 0]].map(([l,v])=>(
+              <div key={l} className="bg-white border border-slate-200 rounded-2xl p-3 text-center"><p className="text-base font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(v as number)}</p><p className="text-xs text-slate-400 mt-0.5">{l}</p></div>
             ))}
           </div>
           <div className="space-y-2.5">
-            {invoices.length===0 && <p className="text-sm text-slate-400 text-center py-4">No invoices.</p>}
+            {invoices.length===0 && <p className="text-sm text-slate-400 text-center py-4">{t("portalCommon:empty.nothing")}</p>}
             {invoices.map(i=>(
               <div key={i.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
-                <div><p className="text-sm font-semibold text-slate-800 font-mono">{i.invoiceNo || "DRAFT"}</p><p className="text-xs text-slate-400 mt-0.5">{i.customerName || "—"} · {i.issueDate || "—"}</p></div>
-                <div className="text-right"><p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(i.total)}</p><span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-slate-100 text-slate-600">{i.status.toLowerCase()}</span></div>
+                <div><p className="text-sm font-semibold text-slate-800 font-mono">{i.invoiceNo || t("invPay.draft")}</p><p className="text-xs text-slate-400 mt-0.5">{i.customerName || "—"} · {i.issueDate || "—"}</p></div>
+                <div className="text-right"><p className="font-black text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT2(i.total)}</p><span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-slate-100 text-slate-600">{t(`portalCommon:status.${i.status.toLowerCase()}`, { defaultValue: i.status.toLowerCase() })}</span></div>
               </div>
             ))}
           </div>
@@ -365,7 +372,7 @@ function InvPayView() {
       ) : (
         <PLoad q={payQ}>
           <div className="space-y-2.5">
-            {payments.length===0 && <p className="text-sm text-slate-400 text-center py-4">No payments.</p>}
+            {payments.length===0 && <p className="text-sm text-slate-400 text-center py-4">{t("portalCommon:empty.nothing")}</p>}
             {payments.map(p=>(
               <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
                 <div><p className="text-sm font-semibold text-slate-800 font-mono">{p.receiptNo || p.paymentNo}</p><p className="text-xs text-slate-400 mt-0.5">{p.customerName || p.invoiceNo || "—"} · {p.method.replace(/_/g," ")}</p></div>
@@ -390,22 +397,23 @@ function FinReportsView() {
     { name:"Budget vs Actual — H1 2024",         type:"Variance",       date:"Jun 30" },
   ];
 
+  const { t } = useTranslation("portalAccountant");
   return (
     <div className="space-y-5">
       <SampleBadge />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Financial Reports</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3.5 py-2 rounded-xl hover:bg-[#1B75BC]/5">
-          <Plus size={14}/> Custom Report
+        <h2 className="text-xl font-bold text-slate-800">{t("nav.financialReports")}</h2>
+        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3.5 py-2 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+          <Plus size={14}/> {t("reports.customReport")}
         </button>
       </div>
 
       {/* KPI summary */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Gross Revenue YTD",  val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)),   color:"text-emerald-600" },
-          { label:"Total Expenses YTD", val:fmtShort(EXPENSE_DATA.reduce((s,v)=>s+v,0)),  color:"text-red-500"     },
-          { label:"Net Profit YTD",     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#1B75BC]" },
+          { label:t("reports.grossRevenue"),  val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)),   color:"text-emerald-600" },
+          { label:t("reports.totalExpenses"), val:fmtShort(EXPENSE_DATA.reduce((s,v)=>s+v,0)),  color:"text-red-500"     },
+          { label:t("reports.netProfit"),     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#1B75BC]" },
         ].map(s => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
             <p className={cn("text-xl font-black", s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
@@ -419,8 +427,8 @@ function FinReportsView() {
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {["Report","Type","Generated",""].map(h => (
-                <th key={h} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+              {["portalAccountant:reports.cols.report","portalCommon:labels.type","portalAccountant:reports.cols.generated",""].map((h,hi) => (
+                <th key={hi} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
               ))}
             </tr>
           </thead>
@@ -439,8 +447,8 @@ function FinReportsView() {
                 <td className="px-5 py-4 text-xs text-slate-400">{r.date}</td>
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline"><Eye size={12}/> View</button>
-                    <button className="flex items-center gap-1 text-xs text-slate-500 font-semibold hover:underline"><Download size={12}/> PDF</button>
+                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap"><Eye size={12}/> {t("reports.view")}</button>
+                    <button className="flex items-center gap-1 text-xs text-slate-500 font-semibold hover:underline whitespace-nowrap"><Download size={12}/> PDF</button>
                   </div>
                 </td>
               </tr>
@@ -454,16 +462,17 @@ function FinReportsView() {
 
 // ─── TAX REPORTS ─────────────────────────────────────────────────────────────
 function TaxView() {
+  const { t } = useTranslation("portalAccountant");
   return (
     <div className="space-y-5">
       <SampleBadge />
-      <h2 className="text-xl font-bold text-slate-800">Tax Reports</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("nav.taxReports")}</h2>
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"VAT Collected YTD",  val:"৳10,01,000", color:"bg-[#1B75BC]"  },
-          { label:"Income Tax (est.)",  val:"৳1,33,400",  color:"bg-purple-500" },
-          { label:"Next Filing",        val:"Oct 31",     color:"bg-amber-500"  },
+          { label:t("tax.vatCollected"),  val:"৳10,01,000", color:"bg-[#1B75BC]"  },
+          { label:t("tax.incomeTax"),  val:"৳1,33,400",  color:"bg-purple-500" },
+          { label:t("tax.nextFiling"),        val:"Oct 31",     color:"bg-amber-500"  },
         ].map(s => (
           <div key={s.label} className={cn("rounded-2xl p-5 text-white", s.color)}>
             <p className="text-2xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
@@ -476,21 +485,21 @@ function TaxView() {
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
         <Info size={15} className="text-blue-500 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-blue-800">Bangladesh VAT Rates</p>
-          <p className="text-xs text-blue-600 mt-0.5">Standard rate: 15% · Tourism services: 15% VAT + 5% SD applies on international tour packages.</p>
+          <p className="text-sm font-semibold text-blue-800">{t("tax.vatRatesTitle")}</p>
+          <p className="text-xs text-blue-600 mt-0.5">{t("tax.vatRatesBody")}</p>
         </div>
       </div>
 
       {/* Quarterly breakdown */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100">
-          <p className="font-bold text-slate-800">Quarterly VAT Summary — 2024</p>
+          <p className="font-bold text-slate-800">{t("tax.quarterlySummary")}</p>
         </div>
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {["Quarter","Taxable Income","VAT Collected","Income Tax","Status","Due Date",""].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+              {["portalAccountant:tax.cols.quarter","portalAccountant:tax.cols.taxableIncome","portalAccountant:tax.cols.vatCollected","portalAccountant:tax.cols.incomeTax","portalCommon:labels.status","portalAccountant:tax.cols.dueDate",""].map((h,hi) => (
+                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
               ))}
             </tr>
           </thead>
@@ -506,14 +515,14 @@ function TaxView() {
                     q.filed
                       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                       : "bg-amber-50 text-amber-700 border-amber-200")}>
-                    {q.filed ? "Filed" : "Pending"}
+                    {q.filed ? t("tax.filed") : t("portalCommon:status.pending")}
                   </span>
                 </td>
                 <td className="px-4 py-4 text-xs text-slate-500">{q.deadline}</td>
                 <td className="px-4 py-4">
                   {q.filed
-                    ? <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline"><Download size={12}/> Return</button>
-                    : <button className="text-xs bg-[#1B75BC] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14588F]">Prepare</button>}
+                    ? <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap"><Download size={12}/> {t("tax.return")}</button>
+                    : <button className="text-xs bg-[#1B75BC] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14588F] whitespace-nowrap">{t("tax.prepare")}</button>}
                 </td>
               </tr>
             ))}
@@ -523,13 +532,13 @@ function TaxView() {
 
       {/* Tax documents */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-3">Tax Documents</p>
+        <p className="font-bold text-slate-800 mb-3">{t("tax.documents")}</p>
         <div className="space-y-2">
           {["VAT Return Q1 2024","VAT Return Q2 2024","TIN Certificate","Trade License 2024"].map(doc => (
             <div key={doc} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
               <span className="text-sm font-medium text-slate-700">{doc}</span>
-              <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline">
-                <Download size={12}/> Download
+              <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">
+                <Download size={12}/> {t("common:actions.download")}
               </button>
             </div>
           ))}
@@ -541,6 +550,7 @@ function TaxView() {
 
 // ─── AUDIT LOGS ───────────────────────────────────────────────────────────────
 function AuditView() {
+  const { t } = useTranslation("portalAccountant");
   const [filter, setFilter] = useState("all");
   const shown = AUDIT_LOG.filter(l => filter==="all" || l.severity===filter);
 
@@ -548,28 +558,28 @@ function AuditView() {
     <div className="space-y-4">
       <SampleBadge />
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Audit Logs</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5">
-          <Download size={14}/> Export
+        <h2 className="text-xl font-bold text-slate-800">{t("nav.auditLogs")}</h2>
+        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+          <Download size={14}/> {t("audit.export")}
         </button>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
         {["all","info","warning","critical"].map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all",
+            className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap flex-shrink-0",
               filter===f ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
-            {f}
+            {t(`audit.filters.${f}`)}
           </button>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
         <table className="w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {["Log ID","Action","Entity","User","Time","Severity"].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+              {["portalAccountant:audit.cols.logId","portalAccountant:audit.cols.action","portalAccountant:audit.cols.entity","portalAccountant:audit.cols.user","portalAccountant:audit.cols.time","portalAccountant:audit.cols.severity"].map((h,hi) => (
+                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
               ))}
             </tr>
           </thead>
@@ -586,7 +596,7 @@ function AuditView() {
                   <td className="px-4 py-3">
                     <span className={cn("inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold border", s.badge)}>
                       <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
-                      {log.severity}
+                      {t(`audit.severity.${log.severity}`, { defaultValue: log.severity })}
                     </span>
                   </td>
                 </tr>
@@ -601,27 +611,28 @@ function AuditView() {
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function AccProfile() {
+  const { t } = useTranslation("portalAccountant");
   const q = useAccountantMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
   return (
     <div className="space-y-5" data-portal="profile">
-      <h2 className="text-xl font-bold text-slate-800">Profile Settings</h2>
+      <h2 className="text-xl font-bold text-slate-800">{t("profile.title")}</h2>
       <PLoad q={q}>
         {me && (<>
           <div className="bg-gradient-to-br from-[#1B75BC] to-[#1a4a8a] rounded-2xl p-5 text-white flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-2xl font-black">{initials}</div>
             <div>
               <p className="text-xl font-bold" data-portal-name>{me.name}</p>
-              <p className="text-white/70 text-sm mt-0.5">{me.department ?? "Finance"} · {me.branchName ?? "—"}</p>
+              <p className="text-white/70 text-sm mt-0.5">{me.department ?? t("roles.finance")} · {me.branchName ?? "—"}</p>
               <p className="text-white/50 text-xs mt-1 font-mono">{me.employeeId ?? ""}</p>
             </div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <p className="font-semibold text-slate-700 text-sm">Personal Information</p>
+            <p className="font-semibold text-slate-700 text-sm">{t("profile.personalInfo")}</p>
             {[
-              ["Full Name",me.name],["Employee ID",me.employeeId ?? "—"],["Department",me.department ?? "—"],
-              ["Branch",me.branchName ?? "—"],["Phone",me.phone ?? "—"],["Email",me.email],["NID Number",me.nid ?? "—"],
+              [t("profile.fullName"),me.name],[t("profile.employeeId"),me.employeeId ?? "—"],[t("profile.department"),me.department ?? "—"],
+              [t("profile.branch"),me.branchName ?? "—"],[t("portalCommon:labels.phone"),me.phone ?? "—"],[t("portalCommon:labels.email"),me.email],[t("profile.nid"),me.nid ?? "—"],
             ].map(([l,v]) => (
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
@@ -629,7 +640,7 @@ function AccProfile() {
               </div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> Sign Out</button>
+          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -638,6 +649,7 @@ function AccProfile() {
 
 // ─── Sidebar inner ────────────────────────────────────────────────────────────
 function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => void; onClose?: () => void }) {
+  const { t } = useTranslation("portalAccountant");
   const { data: me } = useAccountantMe();
   const aName = me?.name ?? "Accountant";
   const aInit = aName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -645,10 +657,10 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
     <aside className="w-56 bg-[#17456B] flex flex-col h-full">
       <div className="px-4 py-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-black">BDH</div>
+          <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-black">SM</div>
           <div>
-            <p className="text-white text-sm font-bold leading-tight">BDH Travels</p>
-            <p className="text-white/50 text-xs">Accounts Portal</p>
+            <p className="text-white text-sm font-bold leading-tight">SM Travels International</p>
+            <p className="text-white/50 text-xs">{t("brand.portal")}</p>
           </div>
         </div>
         {onClose && (
@@ -660,7 +672,7 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
           <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{aInit}</div>
           <div className="min-w-0">
             <p className="text-white text-xs font-semibold truncate" data-portal-name>{aName}</p>
-            <p className="text-white/50 text-xs truncate">{me?.department ?? "Finance"}</p>
+            <p className="text-white/50 text-xs truncate">{me?.department ?? t("roles.finance")}</p>
           </div>
         </div>
       </div>
@@ -673,7 +685,7 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
                 : "text-white/60 hover:text-white hover:bg-white/8")}
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
-            <span className="flex-1 text-left text-xs">{item.label}</span>
+            <span className="flex-1 text-left text-xs">{t(item.label)}</span>
             {item.badge ? (
               <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
             ) : null}
@@ -683,7 +695,7 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
       <div className="p-3 border-t border-white/10">
         <button className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
           style={{ minHeight: 44 }}>
-          <LogOut size={14}/> Sign Out
+          <LogOut size={14}/> {t("portalCommon:nav.logout")}
         </button>
       </div>
     </aside>
@@ -692,15 +704,16 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
 
 // Mobile bottom nav
 const ACC_BOTTOM_NAV = [
-  { id: "dashboard"        as AccView, icon: LayoutDashboard, label: "Home"    },
-  { id: "income-expense"   as AccView, icon: TrendingUp,      label: "P&L"     },
-  { id: "bank-cash"        as AccView, icon: Building2,       label: "Bank"    },
-  { id: "invoices-payments"as AccView, icon: FileText,        label: "Invoices"},
-  { id: "audit"            as AccView, icon: ClipboardList,   label: "Audit", badge: 3 },
+  { id: "dashboard"        as AccView, icon: LayoutDashboard, label: "portalAccountant:bottomNav.home"    },
+  { id: "income-expense"   as AccView, icon: TrendingUp,      label: "portalAccountant:bottomNav.pl"     },
+  { id: "bank-cash"        as AccView, icon: Building2,       label: "portalAccountant:bottomNav.bank"    },
+  { id: "invoices-payments"as AccView, icon: FileText,        label: "portalCommon:nav.invoices"},
+  { id: "audit"            as AccView, icon: ClipboardList,   label: "portalAccountant:bottomNav.audit", badge: 3 },
 ];
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
 export function AccountantPortal() {
+  const { t } = useTranslation("portalAccountant");
   const [view, setView] = useState<AccView>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const go = (v: AccView) => setView(v);
@@ -719,7 +732,7 @@ export function AccountantPortal() {
     }
   };
 
-  const currentLabel = NAV.find(n => n.id === view)?.label ?? "";
+  const currentLabel = t(NAV.find(n => n.id === view)?.label ?? "");
 
   return (
     <div className="min-h-screen bg-[#F0F2F5]">
@@ -731,7 +744,7 @@ export function AccountantPortal() {
             <p className="text-sm font-semibold text-slate-600">{currentLabel}</p>
             <div className="flex items-center gap-3">
               <div className="text-xs text-slate-400">
-                FY: <span className="font-semibold text-slate-700">2024</span>
+                {t("fy")}: <span className="font-semibold text-slate-700">2024</span>
               </div>
               <button onClick={() => go("profile")}
                 className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
@@ -759,7 +772,7 @@ export function AccountantPortal() {
               style={{ minWidth: 44, minHeight: 44 }}
               className="flex items-center justify-center"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">BDH</div>
+              <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">SM</div>
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[160px]">{currentLabel}</p>
@@ -767,7 +780,7 @@ export function AccountantPortal() {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-400 font-mono">FY 2024</span>
+            <span className="text-xs text-slate-400 font-mono">{t("fy")} 2024</span>
             <button onClick={() => go("profile")}
               className="w-8 h-8 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">
               FA
@@ -780,7 +793,7 @@ export function AccountantPortal() {
         </main>
 
         <MobileBottomNav
-          items={ACC_BOTTOM_NAV}
+          items={ACC_BOTTOM_NAV.map(i => ({ ...i, label: t(i.label) }))}
           active={view}
           onChange={go}
         />

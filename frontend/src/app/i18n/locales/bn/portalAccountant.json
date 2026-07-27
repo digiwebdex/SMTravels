@@ -1,0 +1,111 @@
+{
+  "brand": { "portal": "অ্যাকাউন্টস পোর্টাল" },
+  "fy": "অর্থবছর",
+  "roles": { "finance": "ফিন্যান্স" },
+  "nav": {
+    "financialDashboard": "আর্থিক ড্যাশবোর্ড",
+    "incomeExpense": "আয় ও ব্যয়",
+    "bankCash": "ব্যাংক ও নগদ",
+    "journalEntries": "জার্নাল এন্ট্রি",
+    "invoicesPayments": "ইনভয়েস ও পেমেন্ট",
+    "financialReports": "আর্থিক প্রতিবেদন",
+    "taxReports": "কর প্রতিবেদন",
+    "auditLogs": "নিরীক্ষা লগ"
+  },
+  "bottomNav": { "home": "হোম", "pl": "লাভ-ক্ষতি", "bank": "ব্যাংক", "audit": "নিরীক্ষা" },
+  "labels": { "journal": "জার্নাল" },
+  "dashboard": {
+    "eyebrow": "অ্যাকাউন্ট্যান্ট ড্যাশবোর্ড",
+    "title": "আর্থিক সারসংক্ষেপ",
+    "invoicesYtd": "ইনভয়েস (YTD)",
+    "billed": "বিলকৃত",
+    "collected": "সংগৃহীত",
+    "outstanding": "বকেয়া",
+    "ledgerNote": "নিচের বিস্তারিত লেজারগুলো শাখা-ভিত্তিক ফিন্যান্স ও রিপোর্ট এন্ডপয়েন্ট পুনরায় ব্যবহার করে।",
+    "kpi": {
+      "revenue": "রাজস্ব (YTD)",
+      "expenses": "ব্যয় (YTD)",
+      "netProfit": "নিট মুনাফা",
+      "postedJournals": "পোস্টকৃত জার্নাল"
+    }
+  },
+  "tabs": {
+    "income": "আয়",
+    "expense": "ব্যয়",
+    "invoices": "ইনভয়েস",
+    "payments": "পেমেন্ট"
+  },
+  "incomeExpense": {
+    "total": "মোট {{type}} (baseAmount, BDT)"
+  },
+  "bankCash": {
+    "recentTransactions": "সাম্প্রতিক লেনদেন",
+    "allAccounts": "সব অ্যাকাউন্ট",
+    "credit": "ক্রেডিট",
+    "debit": "ডেবিট",
+    "cols": {
+      "description": "বিবরণ",
+      "account": "অ্যাকাউন্ট"
+    }
+  },
+  "journal": {
+    "entries": "এন্ট্রি",
+    "posted": "পোস্টকৃত",
+    "drafts": "খসড়া",
+    "reversed": "বিপরীতকৃত",
+    "status": { "posted": "পোস্টকৃত", "draft": "খসড়া" }
+  },
+  "invPay": { "draft": "খসড়া" },
+  "reports": {
+    "customReport": "কাস্টম প্রতিবেদন",
+    "view": "দেখুন",
+    "grossRevenue": "মোট রাজস্ব (YTD)",
+    "totalExpenses": "মোট ব্যয় (YTD)",
+    "netProfit": "নিট মুনাফা (YTD)",
+    "cols": {
+      "report": "প্রতিবেদন",
+      "generated": "তৈরি"
+    }
+  },
+  "tax": {
+    "vatCollected": "সংগৃহীত ভ্যাট (YTD)",
+    "incomeTax": "আয়কর (আনুমানিক)",
+    "nextFiling": "পরবর্তী দাখিল",
+    "vatRatesTitle": "বাংলাদেশ ভ্যাট হার",
+    "vatRatesBody": "প্রমিত হার: 15% · পর্যটন সেবা: আন্তর্জাতিক ট্যুর প্যাকেজে 15% ভ্যাট + 5% এসডি প্রযোজ্য।",
+    "quarterlySummary": "ত্রৈমাসিক ভ্যাট সারসংক্ষেপ — 2024",
+    "filed": "দাখিলকৃত",
+    "return": "রিটার্ন",
+    "prepare": "প্রস্তুত করুন",
+    "documents": "কর ডকুমেন্ট",
+    "cols": {
+      "quarter": "ত্রৈমাসিক",
+      "taxableIncome": "করযোগ্য আয়",
+      "vatCollected": "সংগৃহীত ভ্যাট",
+      "incomeTax": "আয়কর",
+      "dueDate": "শেষ তারিখ"
+    }
+  },
+  "audit": {
+    "export": "রপ্তানি",
+    "filters": { "all": "সব", "info": "তথ্য", "warning": "সতর্কতা", "critical": "গুরুতর" },
+    "severity": { "info": "তথ্য", "warning": "সতর্কতা", "critical": "গুরুতর" },
+    "cols": {
+      "logId": "লগ আইডি",
+      "action": "অ্যাকশন",
+      "entity": "এনটিটি",
+      "user": "ব্যবহারকারী",
+      "time": "সময়",
+      "severity": "গুরুত্ব"
+    }
+  },
+  "profile": {
+    "title": "প্রোফাইল সেটিংস",
+    "personalInfo": "ব্যক্তিগত তথ্য",
+    "fullName": "পূর্ণ নাম",
+    "employeeId": "কর্মচারী আইডি",
+    "department": "বিভাগ",
+    "branch": "শাখা",
+    "nid": "এনআইডি নম্বর"
+  }
+}

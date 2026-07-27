@@ -1,0 +1,142 @@
+{
+  "shell": {
+    "agentPortal": "Agent Portal",
+    "tierAgent": "{{tier}} Agent"
+  },
+  "common": {
+    "signOut": "Sign Out",
+    "searchShort": "Search…",
+    "agentFallback": "Agent"
+  },
+  "bottomNav": {
+    "home": "Home",
+    "commission": "Commission"
+  },
+  "nav": {
+    "leadManagement": "Lead Management",
+    "commissionReports": "Commission Reports",
+    "walletPayments": "Wallet & Payments",
+    "myTeam": "My Team",
+    "analytics": "Analytics",
+    "profileSettings": "Profile Settings"
+  },
+  "leadStatus": {
+    "new": "New",
+    "qualified": "Qualified",
+    "proposal": "Proposal",
+    "negotiation": "Negotiation",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "interest": {
+    "high": "High Interest",
+    "medium": "Medium Interest",
+    "low": "Low Interest"
+  },
+  "dashboard": {
+    "greeting": "Salam, {{name}}!",
+    "tierLabel": "{{tier}} Tier",
+    "walletBalance": "Wallet Balance",
+    "earned": "Earned",
+    "assignedToMe": "Assigned to me",
+    "mine": "Mine",
+    "subAgents": "Sub-agents",
+    "commissionWallet": "Commission Wallet",
+    "availableBalanceLedger": "Available balance (read-only ledger)",
+    "commissionReport": "Commission Report",
+    "recentLeads": "Recent Leads"
+  },
+  "leads": {
+    "subtitle": "Track and convert your prospects",
+    "addButton": "Add Lead",
+    "searchPlaceholder": "Search leads…",
+    "noLeads": "No leads yet.",
+    "call": "Call",
+    "update": "Update",
+    "managedByStaff": "Managed by staff",
+    "addModalTitle": "Add New Lead",
+    "fullName": "Full Name",
+    "phoneNumber": "Phone Number",
+    "serviceInterest": "Service Interest",
+    "notes": "Notes",
+    "saving": "Saving…",
+    "saveButton": "Save Lead"
+  },
+  "customers": {
+    "vip": "VIP",
+    "totalValue": "Total Value",
+    "lastBooking": "Last Booking",
+    "viewHistory": "View History",
+    "newBooking": "New Booking"
+  },
+  "bookings": {
+    "totalBookings": "Total Bookings",
+    "commissionEarned": "Commission Earned",
+    "commissionPending": "Commission Pending",
+    "noBookings": "No bookings yet.",
+    "customerPrefix": "Customer",
+    "bookingValue": "Booking Value"
+  },
+  "commissions": {
+    "totalEarned": "Total Earned",
+    "pendingPayout": "Pending Payout",
+    "awaitingTransfer": "Awaiting transfer",
+    "byPeriod": "Commission by Period",
+    "noCommissions": "No commissions yet.",
+    "grossRate": "Gross {{gross}} · rate {{rate}}%"
+  },
+  "wallet": {
+    "agentBalance": "Agent Wallet Balance",
+    "ledgerNote": "Immutable commission ledger — read-only",
+    "withdrawalNote": "Withdrawals are processed by the back office. This ledger is append-only.",
+    "transactionHistory": "Transaction History",
+    "noTransactions": "No transactions.",
+    "reversed": "reversed"
+  },
+  "team": {
+    "downlineNote": "Your downline (sub-agents you introduced)",
+    "subAgents": "Sub-agents",
+    "teamBookings": "Team Bookings",
+    "teamCommission": "Team Commission",
+    "noSubAgents": "You have no sub-agents.",
+    "commissionCaption": "commission"
+  },
+  "analytics": {
+    "conversionRate": "Conversion Rate",
+    "leadsToBookings": "Leads to bookings",
+    "avgTicket": "Avg. Ticket",
+    "perBooking": "Per booking",
+    "returnClients": "Return Clients",
+    "repeatBookings": "Repeat bookings",
+    "responseTime": "Response Time",
+    "avgLeadResponse": "Avg. lead response",
+    "bookingsTrend": "Bookings Trend",
+    "last6Months": "Last 6 months",
+    "commissionTrend": "Commission Trend",
+    "bookingsByService": "Bookings by Service"
+  },
+  "support": {
+    "newTicket": "New Ticket",
+    "open": "Open",
+    "messagePlaceholder": "Type your message…",
+    "agentHotline": "Agent Hotline",
+    "prioritySupport": "Priority support",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    }
+  },
+  "profile": {
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
+    "nid": "NID Number",
+    "tradeLicense": "Trade License",
+    "bankDetails": "Bank & Payment Details",
+    "bankName": "Bank Name",
+    "accountNo": "Account No.",
+    "bkashNo": "bKash No.",
+    "nagadNo": "Nagad No."
+  }
+}
