@@ -90,7 +90,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-0.5 flex-1">
+          <nav className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0">
             {["Home","About"].map(label => {
               const item = MAIN_NAV.find(n => n.label === label)!;
               return (
@@ -161,21 +161,23 @@ export function Header() {
               <Globe size={13} className="text-[#9CA3AF]" /> {lang === "bn" ? "বাংলা" : "EN"}
             </button>
 
+            {/* Action buttons — i18n pattern: whitespace-nowrap + shrink-0 = content-sized,
+                never clip/wrap when Bangla labels run longer; px-3 xl:px-4 buys space at lg. */}
             {/* Login — desktop only */}
             <Link to="/login"
-              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] text-[12px] font-bold rounded-[8px] hover:bg-[#1B75BC]/5 transition-all min-h-[40px]">
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] text-[12px] font-bold rounded-[8px] hover:bg-[#1B75BC]/5 transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.login")}
             </Link>
 
             {/* Agent Register — tablet+ */}
             <Link to="/register"
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#F15A24] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#CC3C17] transition-all min-h-[40px]">
+              className="hidden md:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[#F15A24] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#CC3C17] transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.agentRegister")}
             </Link>
 
             {/* Book Now — desktop */}
             <Link to="/book"
-              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#14588F] transition-all min-h-[40px]">
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[#1B75BC] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#14588F] transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.bookNow")}
             </Link>
 

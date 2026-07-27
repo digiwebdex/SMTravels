@@ -180,11 +180,11 @@ export function PackageDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              {/* Tabs */}
-              <div className="flex gap-1 bg-white rounded-[12px] p-1 border border-[#E5E7EB] mb-6 w-fit">
+              {/* Tabs — i18n pattern: scroll instead of clip (Bangla labels run wider) */}
+              <div className="flex gap-1 bg-white rounded-[12px] p-1 border border-[#E5E7EB] mb-6 w-fit max-w-full overflow-x-auto no-scrollbar">
                 {(["overview", "itinerary", "inclusions"] as const).map(tb => (
                   <button key={tb} onClick={() => setTab(tb)}
-                    className={cn("px-5 py-2 rounded-[8px] text-[12px] font-bold capitalize transition-all cursor-pointer",
+                    className={cn("px-5 py-2 rounded-[8px] text-[12px] font-bold capitalize transition-all cursor-pointer whitespace-nowrap shrink-0",
                       tab === tb ? "bg-[#1B75BC] text-white shadow" : "text-[#9CA3AF] hover:text-[#374151]"
                     )}>
                     {t(`detail.tabs.${tb}`)}
