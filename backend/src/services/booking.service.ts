@@ -4,6 +4,7 @@ import { branchWhere, isGlobalRole, type AuthCtx } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import { money, type CurrencyCode } from "../lib/money";
 import { allocateSequence, formatBookingNo } from "../lib/sequence";
+import { reserveBatchSeat, reserveQuotaSlot, releaseBatchSeat, releaseQuotaSlot } from "../lib/capacity";
 import { notifyBookingConfirmed } from "./notification.service";
 import {
   detailSchemaFor,
@@ -50,9 +51,9 @@ function buildDetailData(serviceType: ServiceType, detail: Record<string, unknow
   const b = (k: string) => (detail[k] as boolean | undefined) ?? undefined;
   switch (serviceType) {
     case "HAJJ":
-      return { packageTier: s("packageTier"), season: s("season"), groupAssign: s("groupAssign"), departureDate: toDate(s("departureDate")), returnDate: toDate(s("returnDate")), roomType: s("roomType"), transport: s("transport"), hotelMakkah: s("hotelMakkah"), hotelMadinah: s("hotelMadinah"), daysMakkah: n("daysMakkah"), daysMadinah: n("daysMadinah"), mahramRequired: b("mahramRequired") ?? false, specialRequests: s("specialRequests") };
+      return { packageTier: s("packageTier"), season: s("season"), groupAssign: s("groupAssign"), departureDate: toDate(s("departureDate")), returnDate: toDate(s("returnDate")), roomType: s("roomType"), transport: s("transport"), hotelMakkah: s("hotelMakkah"), hotelMadinah: s("hotelMadinah"), daysMakkah: n("daysMakkah"), daysMadinah: n("daysMadinah"), haramDistanceMakkah: s("haramDistanceMakkah"), haramDistanceMadinah: s("haramDistanceMadinah"), tentCategory: s("tentCategory"), maktabNo: s("maktabNo"), qurbani: b("qurbani") ?? false, mahramRequired: b("mahramRequired") ?? false, specialRequests: s("specialRequests") };
     case "UMRAH":
-      return { packageTier: s("packageTier"), season: s("season"), departureDate: toDate(s("departureDate")), returnDate: toDate(s("returnDate")), roomType: s("roomType"), transport: s("transport"), hotelMakkah: s("hotelMakkah"), hotelMadinah: s("hotelMadinah"), daysMakkah: n("daysMakkah"), daysMadinah: n("daysMadinah"), mahramRequired: b("mahramRequired") ?? false, specialRequests: s("specialRequests") };
+      return { packageTier: s("packageTier"), season: s("season"), departureDate: toDate(s("departureDate")), returnDate: toDate(s("returnDate")), roomType: s("roomType"), transport: s("transport"), hotelMakkah: s("hotelMakkah"), hotelMadinah: s("hotelMadinah"), daysMakkah: n("daysMakkah"), daysMadinah: n("daysMadinah"), haramDistanceMakkah: s("haramDistanceMakkah"), haramDistanceMadinah: s("haramDistanceMadinah"), visaIssuedAt: toDate(s("visaIssuedAt")), visaExpiry: toDate(s("visaExpiry")), mahramRequired: b("mahramRequired") ?? false, specialRequests: s("specialRequests") };
     case "VISA":
       return { destinationCountry: s("destinationCountry"), visaType: s("visaType"), processingSpeed: s("processingSpeed"), passportCount: n("passportCount") ?? 1, purpose: s("purpose"), visaNumber: s("visaNumber"), visaExpiry: toDate(s("visaExpiry")), notes: s("notes") };
     case "AIR_TICKET":
@@ -353,6 +354,14 @@ export async function updateBooking(auth: AuthCtx, id: string, input: BookingUpd
     if (input.travelers) data.travelersCount = input.travelers.length;
     await tx.booking.update({ where: { id }, data });
 
+    // Release reserved Hajj/Umrah capacity when a confirmed booking is cancelled
+    // (a DRAFT never reserved — no bookingNo — so nothing to release there).
+    if (input.status === "CANCELLED" && existing.status !== "CANCELLED" && existing.bookingNo) {
+      const seats = existing.travelersCount;
+      if (existing.batchId) await releaseBatchSeat(tx, existing.batchId, seats);
+      if (existing.quotaId) await releaseQuotaSlot(tx, existing.quotaId, seats);
+    }
+
     if (input.detail && Object.keys(input.detail).length) {
       const parsed = detailSchemaFor[existing.serviceType].safeParse(input.detail);
       if (!parsed.success) throw new HttpError(400, "InvalidBookingDetail", { issues: parsed.error.flatten() });
@@ -391,6 +400,10 @@ export async function confirmBooking(auth: AuthCtx, id: string): Promise<Booking
     if (b.bookingNo) throw new HttpError(409, "AlreadyConfirmed", { detail: `Already numbered ${b.bookingNo}` });
     if (b.status !== "DRAFT" && b.status !== "PENDING") throw new HttpError(409, "NotConfirmable", { detail: `status=${b.status}` });
 
+    // seats/quota to reserve = number of pilgrims on this booking (updated below
+    // if travelers get materialized from wizardData).
+    let seats = b.travelersCount;
+
     // 1) allocate the gapless per-branch/year number FIRST (inside this tx)
     const year = new Date().getUTCFullYear();
     const seq = await allocateSequence(tx, "BOOKING", b.branchId, year);
@@ -418,6 +431,7 @@ export async function confirmBooking(auth: AuthCtx, id: string): Promise<Booking
       const tp = travelerSchema.array().safeParse(wizard.travelers);
       if (tp.success && tp.data.length) {
         await syncTravelers(tx, id, tp.data);
+        seats = tp.data.length;
         await tx.booking.update({ where: { id }, data: { travelersCount: tp.data.length } });
       }
     }
@@ -438,6 +452,13 @@ export async function confirmBooking(auth: AuthCtx, id: string): Promise<Booking
     }
     const received = Number((wizard.payment as Record<string, unknown> | undefined)?.received ?? 0);
     if (received > 0) moneyData.paidAmount = received;
+
+    // 4b) reserve Hajj/Umrah capacity (row-locked). If the batch/quota is full
+    //     this throws INSIDE the tx → the bookingNo allocation above rolls back
+    //     and no seat is consumed. Concurrent confirms on the last seat serialize
+    //     on the FOR UPDATE lock; only one wins.
+    if (b.batchId) await reserveBatchSeat(tx, b.batchId, seats);
+    if (b.quotaId) await reserveQuotaSlot(tx, b.quotaId, seats);
 
     // 5) flag CONFIRMED + write activity
     await tx.booking.update({ where: { id }, data: { bookingNo, status: "CONFIRMED", ...moneyData } });

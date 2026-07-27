@@ -40,6 +40,7 @@ const NAV_GROUPS = [
     items: [
       { icon: Package,         label: "Packages",         path: "/erp/packages",            module: "packages" },
       { icon: Layers,          label: "Services",         path: "/erp/services",            module: "packages" },
+      { icon: Star,            label: "Hajj/Umrah Ops",   path: "/erp/hajj-ops",            module: "ops" },
     ],
   },
   {

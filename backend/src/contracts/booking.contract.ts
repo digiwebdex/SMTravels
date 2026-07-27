@@ -38,11 +38,23 @@ export const hajjDetailSchema = z.object({
   hotelMadinah: z.string().min(1),
   daysMakkah: z.coerce.number().int().nonnegative().optional(),
   daysMadinah: z.coerce.number().int().nonnegative().optional(),
+  // package components (Phase 2)
+  haramDistanceMakkah: z.string().optional(),
+  haramDistanceMadinah: z.string().optional(),
+  tentCategory: z.string().optional(),
+  maktabNo: z.string().optional(),
+  qurbani: z.boolean().optional(),
   mahramRequired: z.boolean().optional(),
   specialRequests: z.string().optional(),
 });
 
-export const umrahDetailSchema = hajjDetailSchema.omit({ groupAssign: true });
+// Umrah: no Hajj-only Mina/Maktab/Qurbani fields, but a visa window instead.
+export const umrahDetailSchema = hajjDetailSchema
+  .omit({ groupAssign: true, tentCategory: true, maktabNo: true, qurbani: true })
+  .extend({
+    visaIssuedAt: dateStr.optional(),
+    visaExpiry: dateStr.optional(),
+  });
 
 export const visaDetailSchema = z.object({
   destinationCountry: z.string().min(1),

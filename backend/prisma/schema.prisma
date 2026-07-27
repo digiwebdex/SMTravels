@@ -139,6 +139,27 @@ enum PackageStatus {
   SUSPENDED
 }
 
+// Hajj/Umrah operations (Phase 2)
+enum QuotaType {
+  GOVT
+  PRIVATE
+}
+
+enum BatchStatus {
+  OPEN
+  CLOSED
+  DEPARTED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  PENDING
+  PRE_REGISTERED
+  REGISTERED
+  CONFIRMED
+  CANCELLED
+}
+
 enum InvoiceStatus {
   DRAFT
   SENT
@@ -894,6 +915,9 @@ model Booking {
   travelersCount Int           @default(1)
   departureDate  DateTime?     @db.Date
   returnDate     DateTime?     @db.Date
+  // Hajj/Umrah capacity assignment (Phase 2). Seats/quota are reserved at confirm.
+  batchId        String?
+  quotaId        String?
   notes          String?
   createdById    String?
   createdAt      DateTime      @default(now()) @db.Timestamptz(6)
@@ -905,6 +929,8 @@ model Booking {
   package       Package?  @relation(fields: [packageId], references: [id], onDelete: Restrict)
   assignedStaff User?     @relation("BookingStaff", fields: [assignedStaffId], references: [id], onDelete: Restrict)
   agent         Agent?    @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  batch         DepartureBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  quota         HajjQuota?      @relation(fields: [quotaId], references: [id], onDelete: SetNull)
 
   hajj      HajjBooking?
   umrah     UmrahBooking?
@@ -932,6 +958,8 @@ model Booking {
   @@index([customerId, createdAt])
   @@index([packageId])
   @@index([assignedStaffId])
+  @@index([batchId])
+  @@index([quotaId])
 }
 
 model HajjBooking {
@@ -948,6 +976,12 @@ model HajjBooking {
   hotelMadinah String?
   daysMakkah   Int?
   daysMadinah  Int?
+  // package components (Phase 2)
+  haramDistanceMakkah  String? // e.g. "300m"
+  haramDistanceMadinah String?
+  tentCategory String? // Mina/Arafat tent category (Hajj)
+  maktabNo     String?
+  qurbani      Boolean @default(false)
   mahramRequired Boolean    @default(false)
   specialRequests String?
   stageStatus  StageStatus  @default(PENDING)
@@ -968,6 +1002,11 @@ model UmrahBooking {
   hotelMadinah String?
   daysMakkah   Int?
   daysMadinah  Int?
+  // package components + Umrah visa window (Phase 2)
+  haramDistanceMakkah  String?
+  haramDistanceMadinah String?
+  visaIssuedAt DateTime? @db.Date
+  visaExpiry   DateTime? @db.Date
   mahramRequired Boolean   @default(false)
   specialRequests String?
   stageStatus  StageStatus @default(PENDING)
@@ -2078,4 +2117,88 @@ model DocumentSequence {
   lastValue Int    @default(0)
 
   @@unique([scope, branchId, year])
+}
+
+// ── Hajj/Umrah operations (Phase 2) ──────────────────────────────────────────
+// Quota, group-departure batches, and pilgrim government registration.
+// Capacity counters (HajjQuota.filled, DepartureBatch.filledSeats) are reserved
+// at booking-confirm time under a SELECT ... FOR UPDATE row lock (see
+// reserve*Capacity in seat.service) and guarded by DB CHECK constraints so they
+// can never exceed capacity or go negative — even under concurrent confirms.
+
+model HajjQuota {
+  id          String      @id @default(cuid())
+  branchId    String? // null = company-wide allotment; else per-branch
+  serviceType ServiceType @default(HAJJ)
+  season      String // e.g. "2026"
+  label       String // e.g. "Govt Hajj 2026"
+  quotaType   QuotaType   @default(GOVT)
+  allotted    Int // total slots granted (>= 0)
+  filled      Int         @default(0) // reserved slots (0 <= filled <= allotted)
+  notes       String?
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?   @db.Timestamptz(6)
+
+  bookings Booking[]
+
+  @@index([serviceType, season])
+  @@index([branchId])
+}
+
+model DepartureBatch {
+  id            String      @id @default(cuid())
+  branchId      String
+  code          String // BATCH-DHK-2026-0001 (gapless per branch/year)
+  serviceType   ServiceType @default(HAJJ)
+  season        String?
+  packageId     String? // catalog package (bare scalar; no FK, like other ops rows)
+  name          String // "Hajj Group 07"
+  departureDate DateTime?   @db.Date
+  returnDate    DateTime?   @db.Date
+  totalSeats    Int         @default(0) // capacity (>= 0)
+  filledSeats   Int         @default(0) // 0 <= filledSeats <= totalSeats
+  muallimName   String?
+  muallimNo     String?
+  maktab        String?
+  transport     String?
+  status        BatchStatus @default(OPEN)
+  notes         String?
+  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime?   @db.Timestamptz(6)
+
+  bookings Booking[]
+
+  @@index([branchId, serviceType, season])
+  @@index([packageId])
+}
+
+model PilgrimRegistration {
+  id          String      @id @default(cuid())
+  branchId    String
+  bookingId   String? // bare scalar (no FK — Traveler/Booking edits shouldn't cascade)
+  travelerId  String?
+  customerId  String?
+  pilgrimName String
+  serviceType ServiceType @default(HAJJ)
+  season      String
+  quotaType   QuotaType   @default(GOVT)
+  // government identifiers — encrypted at rest (AES-GCM) + HMAC blind index for search
+  preRegSerial     String?
+  preRegSerialHash String?
+  pid              String?
+  pidHash          String?
+  trackingNo       String?
+  trackingNoHash   String?
+  piiKeyId         Int?
+  status       RegistrationStatus @default(PENDING)
+  registeredAt DateTime?          @db.Date
+  notes        String?
+  createdAt    DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime           @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?          @db.Timestamptz(6)
+
+  @@index([branchId, season])
+  @@index([bookingId])
 }

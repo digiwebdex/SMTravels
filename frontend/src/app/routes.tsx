@@ -40,6 +40,7 @@ const CommunicationsModule = lazyNamed(() => import("./erp/CommunicationsModule"
 const ReportsBIModule      = lazyNamed(() => import("./erp/ReportsBIModule"), "ReportsBIModule");
 const CmsModule            = lazyNamed(() => import("./erp/CmsModule"), "CmsModule");
 const OperationsModule     = lazyNamed(() => import("./erp/OperationsModule"), "OperationsModule");
+const HajjOpsModule        = lazyNamed(() => import("./erp/HajjOpsModule"), "HajjOpsModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
 
 // Portals
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
       { path: "reports-bi", element: withSuspense(<ReportsBIModule />) },
       { path: "cms", element: withSuspense(<CmsModule />) },
       { path: "ops", element: withSuspense(<OperationsModule />) },
+      { path: "hajj-ops", element: withSuspense(<HajjOpsModule />) },
       { path: "settings", element: withSuspense(<SettingsModule />) },
     ],
   },
