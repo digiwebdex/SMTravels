@@ -42,6 +42,7 @@ const ReportsBIModule      = lazyNamed(() => import("./erp/ReportsBIModule"), "R
 const CmsModule            = lazyNamed(() => import("./erp/CmsModule"), "CmsModule");
 const OperationsModule     = lazyNamed(() => import("./erp/OperationsModule"), "OperationsModule");
 const HajjOpsModule        = lazyNamed(() => import("./erp/HajjOpsModule"), "HajjOpsModule");
+const PartnersModule       = lazyNamed(() => import("./erp/PartnersModule"), "PartnersModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
 
 // Portals
@@ -95,8 +96,8 @@ export const router = createBrowserRouter([
       { path: "ops", element: withSuspense(<OperationsModule />) },
       { path: "hajj-ops", element: withSuspense(<HajjOpsModule />) },
       { path: "settings", element: withSuspense(<SettingsModule />) },
+      { path: "partners", element: withSuspense(<PartnersModule />) },
       // Step 3 placeholders — nav home + RBAC module, no functionality yet.
-      { path: "partners", element: <ComingSoon k="partners" group="partners" /> },
       { path: "suppliers", element: <ComingSoon k="suppliers" group="partners" /> },
       { path: "ops-team", element: <ComingSoon k="opsTeam" group="partners" /> },
       { path: "hotels", element: <ComingSoon k="hotels" group="partners" /> },

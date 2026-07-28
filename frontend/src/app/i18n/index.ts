@@ -60,6 +60,8 @@ import enErpBookings from "./locales/en/erpBookings.json";
 import bnErpBookings from "./locales/bn/erpBookings.json";
 import enErpNav from "./locales/en/erpNav.json";
 import bnErpNav from "./locales/bn/erpNav.json";
+import enErpPartners from "./locales/en/erpPartners.json";
+import bnErpPartners from "./locales/bn/erpPartners.json";
 
 export const resources = {
   en: {
@@ -70,6 +72,7 @@ export const resources = {
     portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
     portalAccountant: enPortalAccountant,
     erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings, erpNav: enErpNav,
+    erpPartners: enErpPartners,
   },
   bn: {
     common: bnCommon, layout: bnLayout, home: bnHome, about: bnAbout,
@@ -79,6 +82,7 @@ export const resources = {
     portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
     portalAccountant: bnPortalAccountant,
     erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings, erpNav: bnErpNav,
+    erpPartners: bnErpPartners,
   },
 } as const;
 
@@ -90,7 +94,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });

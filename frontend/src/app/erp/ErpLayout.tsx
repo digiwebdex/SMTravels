@@ -59,7 +59,7 @@ const NAV_GROUPS = [
     { icon: Settings2,     labelKey: "operations", path: "/erp/ops",       module: "ops" },
   ] },
   { key: "partners", items: [
-    { icon: Handshake,   labelKey: "partners",  path: "/erp/partners",  module: "ops", soon: true },
+    { icon: Handshake,   labelKey: "partners",  path: "/erp/partners",  module: "partners" },
     { icon: Truck,       labelKey: "suppliers", path: "/erp/suppliers", module: "ops", soon: true },
     { icon: UsersRound,  labelKey: "opsTeam",   path: "/erp/ops-team",  module: "ops", soon: true },
     { icon: Hotel,       labelKey: "hotels",    path: "/erp/hotels",    module: "ops", soon: true },

@@ -1,0 +1,96 @@
+{
+  "title": "Partners",
+  "subtitle": "B2B agents & sub-agents — downline, commissions & wallet",
+  "kpi": {
+    "total": "Total Partners",
+    "active": "Active",
+    "wallet": "Wallet Balance",
+    "commission": "Commission Paid"
+  },
+  "filter": {
+    "search": "Search name, code, phone…",
+    "tier": "All tiers",
+    "status": "All statuses"
+  },
+  "col": {
+    "partner": "Partner",
+    "tier": "Tier",
+    "parent": "Parent",
+    "subAgents": "Sub-agents",
+    "bookings": "Bookings",
+    "commission": "Commission",
+    "wallet": "Wallet",
+    "status": "Status"
+  },
+  "topLevel": "Top-level",
+  "back": "Back to partners",
+  "empty": "No partners found",
+  "emptyDesc": "No agents match the current filters, or none exist in your branch scope.",
+  "detail": {
+    "downline": "Downline",
+    "downlineSub": "Direct sub-agents only",
+    "bookings": "Bookings",
+    "commissions": "Commissions",
+    "wallet": "Wallet ledger",
+    "walletNote": "Read-only ledger — append & reverse only. Corrections are posted as reversals via back-office, never edited here.",
+    "contact": "Contact & bank",
+    "manage": "Tier & status",
+    "manageNote": "Assign commission tier and manage agent status.",
+    "readonlyNote": "You have read-only access — tier and status changes require manage permission.",
+    "save": "Save changes",
+    "saved": "Partner updated",
+    "noBookings": "No bookings yet",
+    "noCommissions": "No commissions yet",
+    "noWallet": "No wallet transactions",
+    "noDownline": "No sub-agents",
+    "noContact": "No contact or bank details on file.",
+    "earned": "Commission Paid",
+    "pending": "Commission Pending",
+    "rate": "Commission rate",
+    "subCount": "Sub-agents"
+  },
+  "field": {
+    "phone": "Phone",
+    "email": "Email",
+    "tradeLicense": "Trade license",
+    "bank": "Bank",
+    "account": "Account no.",
+    "bankBranch": "Bank branch",
+    "bkash": "bKash",
+    "nagad": "Nagad"
+  },
+  "tab": {
+    "bookings": "Bookings",
+    "commissions": "Commissions",
+    "wallet": "Wallet"
+  },
+  "commCol": {
+    "ref": "Booking / Period",
+    "gross": "Gross",
+    "rate": "Rate",
+    "amount": "Amount",
+    "status": "Status",
+    "date": "Date"
+  },
+  "wtCol": {
+    "date": "Date",
+    "type": "Type",
+    "desc": "Description",
+    "amount": "Amount",
+    "method": "Method",
+    "ref": "Reference"
+  },
+  "bkCol": {
+    "no": "Booking",
+    "service": "Service",
+    "status": "Status",
+    "amount": "Amount",
+    "date": "Date"
+  },
+  "override": "Override",
+  "reversed": "Reversed",
+  "credit": "Credit",
+  "debit": "Debit",
+  "tierLabel": { "SILVER": "Silver", "GOLD": "Gold", "PLATINUM": "Platinum" },
+  "statusLabel": { "active": "Active", "inactive": "Inactive", "suspended": "Suspended" }
+}
