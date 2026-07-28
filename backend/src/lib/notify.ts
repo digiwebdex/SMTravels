@@ -77,10 +77,37 @@ class LogSmsSender implements SmsSender {
   }
 }
 
+// ── whatsapp ───────────────────────────────────────────────────────────────────
+export interface WhatsAppSender {
+  send(phone: string, message: string): Promise<void>;
+}
+
+/** WhatsApp Cloud API (Meta Graph). Env-gated; falls back to log-only. */
+class CloudWhatsAppSender implements WhatsAppSender {
+  async send(phone: string, message: string): Promise<void> {
+    const res = await fetch(`https://graph.facebook.com/v20.0/${env.WHATSAPP_PHONE_ID}/messages`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${env.WHATSAPP_TOKEN}`, "content-type": "application/json" },
+      body: JSON.stringify({ messaging_product: "whatsapp", to: phone, type: "text", text: { body: message } }),
+    });
+    if (!res.ok) throw new Error(`WhatsApp API rejected the message: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+    logger.info({ phone }, "whatsapp sent");
+  }
+}
+
+/** No WhatsApp credentials — log the intent (never the body). */
+class LogWhatsAppSender implements WhatsAppSender {
+  async send(phone: string): Promise<void> {
+    logger.info({ phone }, "whatsapp NOT sent (WhatsApp not configured) — logged only");
+  }
+}
+
 // ── singletons, chosen once at boot ──────────────────────────────────────────
 export const emailSender: EmailSender = env.SMTP_HOST ? new SmtpEmailSender() : new LogEmailSender();
 export const smsSender: SmsSender =
   env.BULKSMSBD_API_KEY && env.BULKSMSBD_SENDER_ID ? new BulkSmsBdSender() : new LogSmsSender();
+export const whatsappSender: WhatsAppSender =
+  env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_ID ? new CloudWhatsAppSender() : new LogWhatsAppSender();
 
 /** Fire-and-forget wrapper — messaging failures never reach the request path. */
 export function notifySafe(label: string, p: Promise<unknown>): void {

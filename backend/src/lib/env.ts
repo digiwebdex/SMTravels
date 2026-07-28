@@ -27,6 +27,12 @@ const EnvSchema = z.object({
   SMTP_FROM: z.string().default("SM Travels <no-reply@smtravel.com.bd>"),
   BULKSMSBD_API_KEY: z.string().optional(),
   BULKSMSBD_SENDER_ID: z.string().optional(),
+  // WhatsApp (Meta Cloud API) + passport OCR — all optional: missing credentials
+  // fall back to safe log-only / mock implementations (see lib/notify, lib/ocr).
+  WHATSAPP_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_ID: z.string().optional(),
+  OCR_API_URL: z.string().optional(),
+  OCR_API_KEY: z.string().optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

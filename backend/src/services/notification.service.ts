@@ -8,7 +8,7 @@
  */
 import { UserRole } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { emailSender, smsSender, notifySafe } from "../lib/notify";
+import { emailSender, smsSender, whatsappSender, notifySafe } from "../lib/notify";
 import type { AuthCtx } from "../middleware/auth";
 
 const fmtBDT = (n: number): string => `BDT ${n.toLocaleString("en-US")}`;
@@ -84,6 +84,7 @@ export function notifyBookingConfirmed(bookingId: string): void {
         `Our team will contact you with the next steps.\n\nSM Travels International`;
       if (email) notifySafe("booking-email", emailSender.send(email, `Booking confirmed — ${b.bookingNo}`, text));
       if (phone) notifySafe("booking-sms", smsSender.send(phone, `SM Travels: your ${service} booking ${b.bookingNo} is confirmed. We will contact you shortly.`));
+      if (phone) notifySafe("booking-whatsapp", whatsappSender.send(phone, `SM Travels International: your ${service} booking ${b.bookingNo} is confirmed.${dep} Our team will contact you shortly.`));
       if (userId) await inApp([userId], { title: "Booking confirmed", body: `${service} — ${b.bookingNo}`, type: "booking", color: "#0E7C66" });
     })(),
   );

@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import {
   ChevronLeft, ChevronRight, Check, Plus, Trash2, Upload,
   AlertCircle, FileText, CreditCard, Banknote,
-  Smartphone, Building2, CheckCircle2, Info, Loader2,
+  Smartphone, Building2, CheckCircle2, Info, Loader2, Camera,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { cn, fmtPrice } from "../../lib/utils";
 import { ServiceType, SERVICE_CFG } from "./BookingsModule";
 import { useCreateBooking, useSaveDraft, useConfirmBooking, SERVICE_ENUM } from "../../hooks/bookings";
+import { useScanPassport } from "../../hooks/ocr";
 import { useUploadDocument } from "../../hooks/documents";
 import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { ApiError } from "../../lib/api";
@@ -627,6 +628,31 @@ function StepTravelers({ service, travelers, setTravelers }: { service: ServiceT
   const remove = (id: string) => setTravelers(travelers.filter(t => t.id !== id));
   const update = (id: string, field: keyof TravelerForm, v: string) =>
     setTravelers(travelers.map(t => t.id === id ? { ...t, [field]: v } : t));
+  // apply many OCR fields in ONE update (calling update() N times clobbers on stale state)
+  const patchTraveler = (id: string, patch: Partial<TravelerForm>) =>
+    setTravelers(travelers.map(t => t.id === id ? { ...t, ...patch } : t));
+
+  const { t: tb } = useTranslation("erpBookings");
+  const scan = useScanPassport();
+  const [ocrNotes, setOcrNotes] = useState<Record<string, string>>({});
+  const handleScan = (id: string, file: File) => {
+    scan.mutate(file, {
+      onSuccess: (r) => {
+        const f = r.fields;
+        const patch: Partial<TravelerForm> = {};
+        if (f.fullName) patch.name = f.fullName;
+        if (f.passportNo) patch.passportNo = f.passportNo;
+        if (f.dateOfBirth) patch.dob = f.dateOfBirth;
+        if (f.expiryDate) patch.passportExpiry = f.expiryDate;
+        if (f.nationality) patch.nationality = f.nationality;
+        if (f.gender) patch.gender = f.gender === "FEMALE" ? "Female" : "Male";
+        patchTraveler(id, patch); // OCR output PRE-FILLS the editable form — never authoritative
+        setOcrNotes(n => ({ ...n, [id]: r.warning || tb("ocr.reviewNote") }));
+        toast.warning(tb("ocr.reviewNote"));
+      },
+      onError: (e: Error) => toast.error(e.message || "Passport scan failed"),
+    });
+  };
 
   const needsMahram = service === "Hajj" || service === "Umrah";
 
@@ -652,12 +678,24 @@ function StepTravelers({ service, travelers, setTravelers }: { service: ServiceT
                 <span className="text-[12px] font-bold text-[#374151]">{t.name || `Traveler ${i + 1}`}</span>
                 {i === 0 && <span className="text-[9px] font-bold text-white bg-[#F15A24] px-1.5 py-0.5 rounded-full">PRIMARY</span>}
               </div>
-              {i > 0 && (
-                <button onClick={() => remove(t.id)} className="text-[#DC2626] hover:text-[#991B1B] cursor-pointer p-1">
-                  <Trash2 size={13} />
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold text-[#1B75BC] hover:underline cursor-pointer">
+                  <input type="file" accept="image/*,application/pdf" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleScan(t.id, f); e.currentTarget.value = ""; }} />
+                  {scan.isPending ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />} {tb("ocr.scan")}
+                </label>
+                {i > 0 && (
+                  <button onClick={() => remove(t.id)} className="text-[#DC2626] hover:text-[#991B1B] cursor-pointer p-1">
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
             </div>
+            {ocrNotes[t.id] && (
+              <div className="flex items-start gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 text-[11px] text-amber-800">
+                <AlertCircle size={13} className="flex-shrink-0 mt-0.5" /> {ocrNotes[t.id]}
+              </div>
+            )}
             <div className="p-4 grid grid-cols-3 gap-4">
               <div className="col-span-3">
                 <Field label="Full Name (as on passport)" required>

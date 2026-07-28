@@ -39,5 +39,10 @@
     "save": "Save",
     "cancel": "Cancel",
     "notSet": "Not set"
+  },
+  "ocr": {
+    "scan": "Scan passport",
+    "scanning": "Scanning…",
+    "reviewNote": "Pre-filled from a passport scan — verify every field before saving. OCR is never authoritative for a legal document."
   }
 }
