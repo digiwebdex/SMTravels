@@ -20,6 +20,7 @@ import { publicRouter } from "./public.route";
 import { portalRouter } from "./portal.route";
 import { portalRolesRouter } from "./portal.roles.route";
 import { partnersRouter } from "./partners.route";
+import { suppliersRouter } from "./suppliers.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
@@ -45,3 +46,4 @@ apiRouter.use(publicRouter);
 apiRouter.use(portalRouter);
 apiRouter.use(portalRolesRouter);
 apiRouter.use(partnersRouter);
+apiRouter.use(suppliersRouter);

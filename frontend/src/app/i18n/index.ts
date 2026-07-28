@@ -62,6 +62,8 @@ import enErpNav from "./locales/en/erpNav.json";
 import bnErpNav from "./locales/bn/erpNav.json";
 import enErpPartners from "./locales/en/erpPartners.json";
 import bnErpPartners from "./locales/bn/erpPartners.json";
+import enErpSuppliers from "./locales/en/erpSuppliers.json";
+import bnErpSuppliers from "./locales/bn/erpSuppliers.json";
 
 export const resources = {
   en: {
@@ -72,7 +74,7 @@ export const resources = {
     portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
     portalAccountant: enPortalAccountant,
     erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings, erpNav: enErpNav,
-    erpPartners: enErpPartners,
+    erpPartners: enErpPartners, erpSuppliers: enErpSuppliers,
   },
   bn: {
     common: bnCommon, layout: bnLayout, home: bnHome, about: bnAbout,
@@ -82,7 +84,7 @@ export const resources = {
     portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
     portalAccountant: bnPortalAccountant,
     erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings, erpNav: bnErpNav,
-    erpPartners: bnErpPartners,
+    erpPartners: bnErpPartners, erpSuppliers: bnErpSuppliers,
   },
 } as const;
 
@@ -94,7 +96,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners", "erpSuppliers"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });
