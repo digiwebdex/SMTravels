@@ -49,14 +49,24 @@ export const hajjDetailSchema = z.object({
   specialRequests: z.string().optional(),
 });
 
-// Umrah: no Hajj-only Mina/Maktab/Qurbani fields, but a required visa window
-// (Haram distance stays required — it's part of the base schema below).
+// Umrah: no Hajj-only Mina/Maktab/Qurbani fields. The visa window is OPTIONAL at
+// creation — the visa is processed AFTER the booking is placed, so requiring it
+// up front would block legitimate early bookings. It's validate-if-present here
+// and set later via the /bookings/:id/visa-window endpoint (shows "Visa pending"
+// in the meantime). Haram distance stays required (part of the base schema).
 export const umrahDetailSchema = hajjDetailSchema
   .omit({ groupAssign: true, tentCategory: true, maktabNo: true, qurbani: true })
   .extend({
     visaIssuedAt: dateStr.optional(),
-    visaExpiry: dateStr,             // visa expiry required for a valid Umrah booking
+    visaExpiry: dateStr.optional(),
   });
+
+// Targeted post-creation edit of just the Umrah visa window.
+export const visaWindowSchema = z.object({
+  visaIssuedAt: dateStr.optional(),
+  visaExpiry: dateStr.optional(),
+});
+export type VisaWindowInput = z.infer<typeof visaWindowSchema>;
 
 export const visaDetailSchema = z.object({
   destinationCountry: z.string().min(1),

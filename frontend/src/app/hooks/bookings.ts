@@ -72,7 +72,9 @@ function buildServiceDetails(service: ServiceTypeDto, d: Record<string, unknown>
         put("Tent Category", g("tentCategory")); put("Maktab", g("maktabNo"));
         put("Qurbani", g("qurbani") ? "Yes" : "No");
       } else {
-        put("Visa Issued", g("visaIssuedAt")); put("Visa Expiry", g("visaExpiry"));
+        put("Visa Issued", g("visaIssuedAt"));
+        // always visible — a derived "Pending" state until the visa window is filled
+        out["Visa Expiry"] = (g("visaExpiry") as string) || "Pending";
       }
       put("Mahram", g("mahramRequired") ? "Yes" : "No"); break;
     case "VISA":
@@ -202,6 +204,21 @@ export function useConfirmBooking() {
       qc.invalidateQueries({ queryKey: bookingKeys.all });
       qc.invalidateQueries({ queryKey: bookingKeys.detail(b.id) });
     },
+  });
+}
+
+/** Set/clear the Umrah visa window on an existing booking (post-creation edit). */
+export function useSetVisaWindow(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { visaIssuedAt?: string; visaExpiry?: string }) =>
+      apiFetch<BookingDetailResponse>(`/bookings/${id}/visa-window`, { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: bookingKeys.detail(id) });
+      qc.invalidateQueries({ queryKey: bookingKeys.all });
+      toast.success("Visa window updated");
+    },
+    onError: (e: Error) => toast.error(e.message || "Could not update the visa window"),
   });
 }
 

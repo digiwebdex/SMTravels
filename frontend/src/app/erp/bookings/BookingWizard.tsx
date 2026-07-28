@@ -269,7 +269,7 @@ function HajjUmrahDetails({ service, detail, set }: { service: ServiceType } & D
           <Field label={tb("comp.visaIssued")}>
             <input type="date" className={inputCls} value={val(detail, "visaIssuedAt")} onChange={e => set("visaIssuedAt", e.target.value)} />
           </Field>
-          <Field label={tb("comp.visaExpiry")} required>
+          <Field label={tb("comp.visaExpiry")}>
             <input type="date" className={inputCls} value={val(detail, "visaExpiry")} onChange={e => set("visaExpiry", e.target.value)} />
           </Field>
         </Grid2>

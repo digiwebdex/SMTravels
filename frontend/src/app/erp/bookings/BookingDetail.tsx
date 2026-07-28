@@ -7,8 +7,10 @@ import {
   ChevronDown, ChevronRight, ExternalLink, Copy, Shield, Scan,
   PauseCircle, BarChart3, CreditCard, Banknote, Building2, MessageSquare,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn, fmtPrice } from "../../lib/utils";
 import { Booking, ServiceType, SERVICE_CFG, STATUS_CFG, ServiceBadge, StatusBadge } from "./BookingsModule";
+import { useSetVisaWindow } from "../../hooks/bookings";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface DetailProps {
@@ -199,6 +201,67 @@ function ManpowerTracker({ details }: { details: Record<string, string | number 
   );
 }
 
+// ─── Umrah visa window (post-creation edit + derived "pending" state) ──────────
+function UmrahVisaWindow({ booking }: { booking: Booking }) {
+  const { t } = useTranslation("erpBookings");
+  const sd = booking.serviceDetails;
+  const curExpiry = typeof sd["Visa Expiry"] === "string" && sd["Visa Expiry"] !== "Pending" ? (sd["Visa Expiry"] as string) : "";
+  const curIssued = typeof sd["Visa Issued"] === "string" ? (sd["Visa Issued"] as string) : "";
+  const pending = !curExpiry;
+  const [editing, setEditing] = useState(false);
+  const [issued, setIssued] = useState(curIssued);
+  const [expiry, setExpiry] = useState(curExpiry);
+  const save = useSetVisaWindow(booking.id);
+  const openEdit = () => { setIssued(curIssued); setExpiry(curExpiry); setEditing(true); };
+  const submit = () => save.mutate({ visaIssuedAt: issued || undefined, visaExpiry: expiry || undefined }, { onSuccess: () => setEditing(false) });
+
+  return (
+    <Card>
+      <SectionHeader title={t("visa.window")} action={
+        pending
+          ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200"><AlertCircle size={11} /> {t("visa.pending")}</span>
+          : <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 size={11} /> {t("visa.issued")}</span>
+      } />
+      <div className="p-5">
+        {!editing ? (
+          <div className="flex items-start justify-between gap-4">
+            <div className="grid grid-cols-2 gap-4 flex-1">
+              <KV label={t("visa.issuedLabel")} value={curIssued || t("visa.notSet")} mono />
+              <KV label={t("visa.expiryLabel")} value={curExpiry || t("visa.pending")} mono />
+            </div>
+            <button onClick={openEdit}
+              className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1B75BC] hover:underline flex-shrink-0 cursor-pointer">
+              <Edit3 size={12} /> {pending ? t("visa.add") : t("visa.edit")}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-[11px] text-[#9CA3AF]">{t("visa.hint")}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">{t("visa.issuedLabel")}</div>
+                <input type="date" value={issued} onChange={e => setIssued(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-[8px] outline-none focus:border-[#1B75BC]" />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">{t("visa.expiryLabel")}</div>
+                <input type="date" value={expiry} onChange={e => setExpiry(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-[8px] outline-none focus:border-[#1B75BC]" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={submit} disabled={save.isPending}
+                className="px-4 py-2 bg-[#0E7C66] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#065F46] cursor-pointer disabled:opacity-60">{t("visa.save")}</button>
+              <button onClick={() => setEditing(false)}
+                className="px-4 py-2 border border-[#E5E7EB] text-[#374151] text-[12px] font-medium rounded-[8px] cursor-pointer">{t("visa.cancel")}</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 // ─── Overview tab ──────────────────────────────────────────────────────────────
 function OverviewTab({ booking }: { booking: Booking }) {
   const cfg = SERVICE_CFG[booking.service];
@@ -206,7 +269,10 @@ function OverviewTab({ booking }: { booking: Booking }) {
   const due = booking.amount - booking.paid;
   const paidPct = Math.round((booking.paid / booking.amount) * 100);
 
-  const serviceDetails = Object.entries(booking.serviceDetails).filter(([,v]) => v !== "" && v !== undefined);
+  const serviceDetails = Object.entries(booking.serviceDetails)
+    .filter(([, v]) => v !== "" && v !== undefined)
+    // Umrah visa dates get their own editable card below — don't duplicate here.
+    .filter(([k]) => !(booking.service === "Umrah" && (k === "Visa Issued" || k === "Visa Expiry")));
 
   return (
     <div className="flex flex-col gap-4">
@@ -259,6 +325,9 @@ function OverviewTab({ booking }: { booking: Booking }) {
               </div>
             </Card>
           )}
+
+          {/* Umrah visa window — editable after creation, shows "pending" until filled */}
+          {booking.service === "Umrah" && <UmrahVisaWindow booking={booking} />}
 
           {/* Visa tracker */}
           {booking.service === "Visa" && <VisaTracker details={booking.serviceDetails} />}

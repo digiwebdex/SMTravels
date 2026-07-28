@@ -8,6 +8,7 @@ import {
   updateBookingHandler,
   saveDraftHandler,
   confirmBookingHandler,
+  setVisaWindowHandler,
   deleteBookingHandler,
 } from "../controllers/booking.controller";
 
@@ -23,5 +24,6 @@ bookingRouter.get("/bookings/:id", requireAuth, view, asyncHandler(getBookingHan
 bookingRouter.post("/bookings", requireAuth, manage, asyncHandler(createBookingHandler));
 bookingRouter.patch("/bookings/:id/draft", requireAuth, manage, asyncHandler(saveDraftHandler));
 bookingRouter.post("/bookings/:id/confirm", requireAuth, manage, asyncHandler(confirmBookingHandler));
+bookingRouter.post("/bookings/:id/visa-window", requireAuth, manage, asyncHandler(setVisaWindowHandler));
 bookingRouter.patch("/bookings/:id", requireAuth, manage, asyncHandler(updateBookingHandler));
 bookingRouter.delete("/bookings/:id", requireAuth, manage, asyncHandler(deleteBookingHandler));

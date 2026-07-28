@@ -471,6 +471,31 @@ export async function confirmBooking(auth: AuthCtx, id: string): Promise<Booking
   return getBooking(auth, id);
 }
 
+/**
+ * Set/clear the Umrah visa window AFTER creation (validate-if-present). The visa
+ * is processed after the booking is placed, so this is the workflow step that
+ * fills it in later; a derived "Visa pending" state shows until visaExpiry is set.
+ */
+export async function setVisaWindow(auth: AuthCtx, id: string, input: { visaIssuedAt?: string; visaExpiry?: string }): Promise<BookingDetailResponse> {
+  const b = await prisma.booking.findFirst({
+    where: { id, ...branchWhere(auth), deletedAt: null },
+    select: { id: true, serviceType: true, status: true, umrah: { select: { bookingId: true } } },
+  });
+  if (!b) throw new HttpError(404, "NotFound");
+  if (b.serviceType !== "UMRAH") throw new HttpError(400, "NotUmrah", { detail: "The visa window applies to Umrah bookings only" });
+  if (b.status === "CANCELLED") throw new HttpError(409, "BookingLocked", { detail: "A cancelled booking cannot be edited" });
+  if (!b.umrah) throw new HttpError(409, "NoUmrahDetail", { detail: "Confirm the booking before adding its visa window" });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.umrahBooking.update({
+      where: { bookingId: id },
+      data: { visaIssuedAt: toDate(input.visaIssuedAt), visaExpiry: toDate(input.visaExpiry) },
+    });
+    await logActivity(tx, id, auth.userId, "Visa window updated", input.visaExpiry ? `Expires ${input.visaExpiry}` : "Cleared");
+  });
+  return getBooking(auth, id);
+}
+
 /** Soft-delete a DRAFT only. Issued/confirmed bookings are cancelled via status. */
 export async function deleteBooking(auth: AuthCtx, id: string): Promise<void> {
   const b = await prisma.booking.findFirst({ where: { id, ...branchWhere(auth), deletedAt: null }, select: { id: true, status: true } });

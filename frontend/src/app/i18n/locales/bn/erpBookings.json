@@ -25,5 +25,19 @@
       "c": "Category C (Standard)",
       "muassasa": "Muassasa (Govt allotment)"
     }
+  },
+  "visa": {
+    "window": "Umrah Visa Window",
+    "pending": "Visa pending",
+    "issued": "Issued",
+    "expiry": "Expires",
+    "issuedLabel": "Visa Issued Date",
+    "expiryLabel": "Visa Expiry Date",
+    "hint": "The visa is processed after the booking is placed — add it here once it's issued.",
+    "add": "Add visa window",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "notSet": "Not set"
   }
 }
