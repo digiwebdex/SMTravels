@@ -75,6 +75,7 @@ const PII_FIELDS: Record<string, { enc: string; hash?: string }[]> = {
   ],
   Traveler: [{ enc: "passportNo", hash: "passportHash" }],
   Agent: [{ enc: "nid", hash: "nidHash" }],
+  OperationsTeamMember: [{ enc: "passportNo", hash: "passportHash" }],
   User: [{ enc: "nid", hash: "nidHash" }],
   Document: [{ enc: "ocrPassportNo", hash: "ocrPassportHash" }],
   PilgrimRegistration: [

@@ -48,6 +48,7 @@ export const batchCreateSchema = z.object({
   departureDate: optStr,
   returnDate: optStr,
   totalSeats: z.coerce.number().int().min(0),
+  muallimId: optStr, // link to an ops-roster MUALLIM; snapshots name/no onto the batch
   muallimName: optStr,
   muallimNo: optStr,
   maktab: optStr,
@@ -63,6 +64,7 @@ export const batchUpdateSchema = z.object({
   departureDate: optStr,
   returnDate: optStr,
   totalSeats: z.coerce.number().int().min(0).optional(),
+  muallimId: optStr, // set = link to a roster MUALLIM (snapshots name/no); "" = clear the link
   muallimName: optStr,
   muallimNo: optStr,
   maktab: optStr,
@@ -128,7 +130,7 @@ export interface BatchDto {
   season: string | null; packageId: string | null; name: string;
   departureDate: string | null; returnDate: string | null;
   totalSeats: number; filledSeats: number; remainingSeats: number;
-  muallimName: string | null; muallimNo: string | null; maktab: string | null; transport: string | null;
+  muallimId: string | null; muallimName: string | null; muallimNo: string | null; maktab: string | null; transport: string | null;
   status: string; notes: string | null; createdAt: string;
 }
 export interface BatchDetail extends BatchDto { bookings: BatchBookingDto[] }

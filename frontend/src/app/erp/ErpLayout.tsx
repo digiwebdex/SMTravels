@@ -61,7 +61,7 @@ const NAV_GROUPS = [
   { key: "partners", items: [
     { icon: Handshake,   labelKey: "partners",  path: "/erp/partners",  module: "partners" },
     { icon: Truck,       labelKey: "suppliers", path: "/erp/suppliers", module: "suppliers" },
-    { icon: UsersRound,  labelKey: "opsTeam",   path: "/erp/ops-team",  module: "ops", soon: true },
+    { icon: UsersRound,  labelKey: "opsTeam",   path: "/erp/ops-team",  module: "operations_team" },
     { icon: Hotel,       labelKey: "hotels",    path: "/erp/hotels",    module: "ops", soon: true },
     { icon: Bus,         labelKey: "transport", path: "/erp/transport", module: "ops", soon: true },
   ] },

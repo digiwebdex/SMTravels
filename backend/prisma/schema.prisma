@@ -2158,6 +2158,10 @@ model DepartureBatch {
   returnDate    DateTime?   @db.Date
   totalSeats    Int         @default(0) // capacity (>= 0)
   filledSeats   Int         @default(0) // 0 <= filledSeats <= totalSeats
+  // Muallim: canonical link to the ops roster (bare scalar; no FK, like packageId).
+  // muallimName/muallimNo are a denormalized snapshot of the linked member — or
+  // legacy free-text when muallimId is null. The roster row is the source of truth.
+  muallimId     String?
   muallimName   String?
   muallimNo     String?
   maktab        String?
@@ -2172,6 +2176,55 @@ model DepartureBatch {
 
   @@index([branchId, serviceType, season])
   @@index([packageId])
+  @@index([muallimId])
+}
+
+// ─── Operations team roster (Muallim / guide / imam / medical / driver / crew) ──
+// Genuinely-mixed data: branchId null = global/shared crew (e.g. a Makkah muallim
+// serving every branch); branchId set = branch-local staff. Assignment to a batch
+// carries the branch via DepartureBatch.branchId. passportNo is encrypted at rest.
+enum OpsRoleType {
+  MUALLIM
+  GUIDE
+  IMAM
+  MEDICAL
+  DRIVER
+  COORDINATOR
+  OTHER
+}
+
+enum OpsMemberStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+model OperationsTeamMember {
+  id           String          @id @default(cuid())
+  memberCode   String          @unique // OTM-0001 (gapless "OPS_MEMBER" sequence)
+  branchId     String? // null = global/shared crew; set = branch-local staff
+  name         String
+  roleType     OpsRoleType
+  phone        String?
+  email        String?
+  nationality  String?
+  baseLocation String?
+  languages    String?
+  licenseNo    String?
+  // passport — encrypted at rest (AES-GCM) + HMAC blind index, like pilgrim reg
+  passportNo   String?
+  passportHash String?
+  piiKeyId     Int?
+  rating       Decimal?        @db.Decimal(3, 2)
+  status       OpsMemberStatus @default(ACTIVE)
+  notes        String?
+  createdAt    DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime        @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?       @db.Timestamptz(6)
+
+  @@index([branchId, roleType, status])
+  @@index([roleType])
+  @@index([passportHash])
 }
 
 model PilgrimRegistration {

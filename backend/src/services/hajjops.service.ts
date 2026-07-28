@@ -119,7 +119,7 @@ async function toBatchDto(b: Prisma.DepartureBatchGetPayload<object>): Promise<B
     season: b.season, packageId: b.packageId, name: b.name,
     departureDate: dOnly(b.departureDate), returnDate: dOnly(b.returnDate),
     totalSeats: b.totalSeats, filledSeats: b.filledSeats, remainingSeats: Math.max(0, b.totalSeats - b.filledSeats),
-    muallimName: b.muallimName, muallimNo: b.muallimNo, maktab: b.maktab, transport: b.transport,
+    muallimId: b.muallimId, muallimName: b.muallimName, muallimNo: b.muallimNo, maktab: b.maktab, transport: b.transport,
     status: b.status, notes: b.notes, createdAt: dIso(b.createdAt)!,
   };
 }
@@ -148,10 +148,24 @@ export async function getBatch(auth: AuthCtx, id: string): Promise<BatchDetail> 
   };
 }
 
+/** Resolve a roster MUALLIM for a batch: must be a MUALLIM, not deleted, and
+ *  branch-compatible (global crew, or the batch's own branch). Returns the fields
+ *  to snapshot onto the batch. Throws 400 if the id isn't a valid/visible muallim. */
+async function resolveMuallim(muallimId: string, batchBranchId: string): Promise<{ muallimId: string; muallimName: string; muallimNo: string | null }> {
+  const m = await prisma.operationsTeamMember.findFirst({
+    where: { id: muallimId, roleType: "MUALLIM", deletedAt: null, OR: [{ branchId: null }, { branchId: batchBranchId }] },
+    select: { id: true, name: true, phone: true },
+  });
+  if (!m) throw new HttpError(400, "InvalidMuallim", { detail: "Not a valid muallim for this branch" });
+  return { muallimId: m.id, muallimName: m.name, muallimNo: m.phone ?? null };
+}
+
 export async function createBatch(auth: AuthCtx, input: BatchCreateInput): Promise<BatchDto> {
   const branchId = writeBranch(auth, input.branchId);
   const br = (await branches()).get(branchId);
   if (!br) throw new HttpError(400, "BranchRequired", { detail: "Unknown branch" });
+  // link to a roster muallim (snapshot name/no) — or fall back to free-text
+  const muallim = input.muallimId ? await resolveMuallim(input.muallimId, branchId) : null;
   const year = new Date().getUTCFullYear();
   const row = await prisma.$transaction(async (tx) => {
     const seq = await allocateSequence(tx, "BATCH", branchId, year);
@@ -160,7 +174,10 @@ export async function createBatch(auth: AuthCtx, input: BatchCreateInput): Promi
         branchId, code: formatDocNo("BATCH", br.code, year, seq), serviceType: input.serviceType as ServiceType,
         name: input.name, season: input.season ?? null, packageId: input.packageId ?? null,
         departureDate: toDate(input.departureDate), returnDate: toDate(input.returnDate),
-        totalSeats: input.totalSeats, muallimName: input.muallimName ?? null, muallimNo: input.muallimNo ?? null,
+        totalSeats: input.totalSeats,
+        muallimId: muallim?.muallimId ?? null,
+        muallimName: muallim ? muallim.muallimName : (input.muallimName ?? null),
+        muallimNo: muallim ? muallim.muallimNo : (input.muallimNo ?? null),
         maktab: input.maktab ?? null, transport: input.transport ?? null, notes: input.notes ?? null,
       },
     });
@@ -175,14 +192,27 @@ export async function updateBatch(auth: AuthCtx, id: string, input: BatchUpdateI
   if (input.totalSeats != null && input.totalSeats < b.filledSeats) {
     throw new HttpError(409, "SeatsBelowFilled", { detail: `Cannot set capacity (${input.totalSeats}) below the ${b.filledSeats} seats already filled` });
   }
+  // muallim link: set id → resolve + snapshot; "" → clear link; omitted → free-text edits pass through
+  const muallimData: { muallimId?: string | null; muallimName?: string; muallimNo?: string } = {};
+  if (input.muallimId !== undefined) {
+    if (input.muallimId === "") {
+      muallimData.muallimId = null;
+    } else {
+      const m = await resolveMuallim(input.muallimId, b.branchId);
+      muallimData.muallimId = m.muallimId; muallimData.muallimName = m.muallimName; muallimData.muallimNo = m.muallimNo ?? undefined;
+    }
+  } else {
+    if (input.muallimName !== undefined) muallimData.muallimName = input.muallimName;
+    if (input.muallimNo !== undefined) muallimData.muallimNo = input.muallimNo;
+  }
   const row = await prisma.departureBatch.update({
     where: { id },
     data: {
       name: input.name ?? undefined, season: input.season ?? undefined, packageId: input.packageId ?? undefined,
       departureDate: input.departureDate !== undefined ? toDate(input.departureDate) : undefined,
       returnDate: input.returnDate !== undefined ? toDate(input.returnDate) : undefined,
-      totalSeats: input.totalSeats ?? undefined, muallimName: input.muallimName ?? undefined,
-      muallimNo: input.muallimNo ?? undefined, maktab: input.maktab ?? undefined, transport: input.transport ?? undefined,
+      totalSeats: input.totalSeats ?? undefined, ...muallimData,
+      maktab: input.maktab ?? undefined, transport: input.transport ?? undefined,
       status: input.status ?? undefined, notes: input.notes ?? undefined,
     },
   });

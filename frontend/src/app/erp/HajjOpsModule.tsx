@@ -10,6 +10,7 @@ import {
   useQuotas, useBatches, useRegistrations, usePassportAlerts,
   useCreateQuota, useCreateBatch, useCreateRegistration,
 } from "../hooks/hajjops";
+import { useMuallimOptions } from "../hooks/operations";
 
 type Tab = "quota" | "batches" | "registrations" | "alerts";
 const TABS: { key: Tab; icon: React.ElementType }[] = [
@@ -115,13 +116,17 @@ function BatchesTab() {
   const serviceOpts = useServiceOpts();
   const q = useBatches();
   const create = useCreateBatch();
+  const { data: muallims } = useMuallimOptions();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ serviceType: "HAJJ", name: "", season: "", totalSeats: "", muallimName: "", maktab: "", departureDate: "" });
+  const empty = { serviceType: "HAJJ", name: "", season: "", totalSeats: "", muallimId: "", muallimName: "", maktab: "", departureDate: "" };
+  const [f, setF] = useState(empty);
+  const muallimOpts = [{ value: "", label: t("batchPicker.none", { ns: "erpOperations", defaultValue: "— Free-text / none —" }) },
+    ...(muallims ?? []).map((m) => ({ value: m.id, label: `${m.name} (${m.memberCode})` }))];
   const submit = () => {
     if (!f.name || !f.totalSeats) return;
     create.mutate(
-      { serviceType: f.serviceType as "HAJJ", name: f.name, season: f.season || undefined, totalSeats: Number(f.totalSeats), muallimName: f.muallimName || undefined, maktab: f.maktab || undefined, departureDate: f.departureDate || undefined },
-      { onSuccess: () => { setOpen(false); setF({ serviceType: "HAJJ", name: "", season: "", totalSeats: "", muallimName: "", maktab: "", departureDate: "" }); } },
+      { serviceType: f.serviceType as "HAJJ", name: f.name, season: f.season || undefined, totalSeats: Number(f.totalSeats), muallimId: f.muallimId || undefined, muallimName: f.muallimName || undefined, maktab: f.maktab || undefined, departureDate: f.departureDate || undefined },
+      { onSuccess: () => { setOpen(false); setF(empty); } },
     );
   };
   const statusTone = (s: string): Tone => (s === "OPEN" ? "green" : s === "DEPARTED" ? "blue" : s === "CANCELLED" ? "red" : "slate");
@@ -134,7 +139,10 @@ function BatchesTab() {
           <FormField label={t("batches.form.name")} required><TextInput placeholder={t("batches.form.namePh")} value={f.name} onChange={(v) => setF({ ...f, name: v })} /></FormField>
           <FormField label={t("erpCommon:field.season")}><TextInput placeholder={t("batches.form.seasonPh")} value={f.season} onChange={(v) => setF({ ...f, season: v })} /></FormField>
           <FormField label={t("batches.form.totalSeats")} required><TextInput type="number" placeholder={t("batches.form.totalSeatsPh")} value={f.totalSeats} onChange={(v) => setF({ ...f, totalSeats: v })} /></FormField>
-          <FormField label={t("batches.form.muallim")}><TextInput placeholder={t("batches.form.muallimPh")} value={f.muallimName} onChange={(v) => setF({ ...f, muallimName: v })} /></FormField>
+          <FormField label={t("batchPicker.label", { ns: "erpOperations", defaultValue: "Muallim (roster)" })}>
+            <SelectInput value={f.muallimId} onChange={(v) => setF({ ...f, muallimId: v })} options={muallimOpts} />
+          </FormField>
+          <FormField label={t("batches.form.muallim")}><TextInput placeholder={t("batches.form.muallimPh")} value={f.muallimName} onChange={(v) => setF({ ...f, muallimName: v })} disabled={!!f.muallimId} /></FormField>
           <FormField label={t("batches.form.maktab")}><TextInput placeholder={t("batches.form.maktabPh")} value={f.maktab} onChange={(v) => setF({ ...f, maktab: v })} /></FormField>
           <FormField label={t("batches.form.departure")}><TextInput type="date" value={f.departureDate} onChange={(v) => setF({ ...f, departureDate: v })} /></FormField>
           <div className="flex items-end"><Btn loading={create.isPending} onClick={submit}>{t("batches.form.create")}</Btn></div>

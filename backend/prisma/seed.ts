@@ -27,7 +27,7 @@ const COMPANY_ID = "cmp_smtravels";
 const MODULES = [
   "dashboard", "bookings", "crm", "packages", "accounts",
   "invoices", "reports", "documents", "cms", "ops", "settings",
-  "partners", "suppliers",
+  "partners", "suppliers", "operations_team",
 ] as const;
 
 // access matrix: role -> module -> full | view | none (default none)
@@ -35,10 +35,10 @@ const FULL = MODULES.reduce((a, m) => ({ ...a, [m]: "full" }), {} as Record<stri
 const MATRIX: Partial<Record<UserRole, Record<string, string>>> = {
   SUPER_ADMIN: FULL,
   COMPANY_ADMIN: FULL,
-  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", accounts: "view", invoices: "view", reports: "view" },
+  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", accounts: "view", invoices: "view", reports: "view" },
   ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view" },
   STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view" },
-  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view" },
+  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view" },
   VISA_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", crm: "view", packages: "view" },
   HAJJ_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
   UMRAH_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
@@ -715,6 +715,39 @@ async function seedDemo() {
       update: { title: a.title, body: a.body, pinned: a.pinned },
     });
   }
+
+  // 20e) OPERATIONS TEAM ROSTER — global (shared) crew + branch-local staff.
+  //      passportNo is written through the PII-extended client → encrypted at rest.
+  const OPS_TEAM = [
+    { id: "otm_muallim_global", code: "OTM-0001", branchId: null,        role: "MUALLIM",     name: "Sheikh Abdullah Al-Makki", phone: "+966500000001", nat: "SA", loc: "Makkah",  langs: "Arabic, Bangla, Urdu", passport: "SA1234567" },
+    { id: "otm_driver_global",  code: "OTM-0002", branchId: null,        role: "DRIVER",      name: "Yusuf Al-Madani",          phone: "+966500000002", nat: "SA", loc: "Madinah", langs: "Arabic",               passport: "SA7654321", license: "KSA-DL-99881" },
+    { id: "otm_imam_global",    code: "OTM-0003", branchId: null,        role: "IMAM",        name: "Hafiz Ismail",             phone: "+966500000003", nat: "SA", loc: "Makkah",  langs: "Arabic, Bangla",       passport: "SA5551212" },
+    { id: "otm_guide_dhaka",    code: "OTM-0004", branchId: "brn_dhaka", role: "GUIDE",       name: "Karim Uddin",              phone: "+8801711000004", nat: "BD", loc: "Dhaka",  langs: "Bangla, English" },
+    { id: "otm_medical_dhaka",  code: "OTM-0005", branchId: "brn_dhaka", role: "MEDICAL",     name: "Dr. Nasrin Akhter",        phone: "+8801711000005", nat: "BD", loc: "Dhaka",  langs: "Bangla, English",      license: "BMDC-A-44521" },
+    { id: "otm_coord_ctg",      code: "OTM-0006", branchId: "brn_ctg",   role: "COORDINATOR", name: "Rahim Chowdhury",          phone: "+8801811000006", nat: "BD", loc: "Chittagong", langs: "Bangla" },
+  ];
+  for (const m of OPS_TEAM) {
+    await prisma.operationsTeamMember.upsert({
+      where: { id: m.id },
+      create: { id: m.id, memberCode: m.code, branchId: m.branchId, name: m.name, roleType: m.role as never, phone: m.phone, nationality: m.nat, baseLocation: m.loc, languages: m.langs, licenseNo: (m as { license?: string }).license ?? null, passportNo: (m as { passport?: string }).passport ?? null, status: "ACTIVE", rating: 4.7 },
+      update: { name: m.name, roleType: m.role as never, branchId: m.branchId, phone: m.phone, baseLocation: m.loc, passportNo: (m as { passport?: string }).passport ?? null },
+    });
+  }
+  // Advance the OPS_MEMBER sequence past the seeded codes so runtime creates start
+  // at OTM-0007 (no memberCode collision). update:{} = never roll back a counter
+  // that runtime has already advanced.
+  await prisma.documentSequence.upsert({
+    where: { scope_branchId_year: { scope: "OPS_MEMBER", branchId: "GLOBAL", year: 0 } },
+    create: { scope: "OPS_MEMBER", branchId: "GLOBAL", year: 0, lastValue: OPS_TEAM.length },
+    update: {},
+  });
+  // A legacy free-text batch (muallimId null → muallimName renders) to prove the
+  // additive migration didn't break Phase-2 batches.
+  await prisma.departureBatch.upsert({
+    where: { id: "batch_legacy_dhk" },
+    create: { id: "batch_legacy_dhk", branchId: "brn_dhaka", code: "BATCH-DHK-2026-9001", serviceType: "HAJJ", season: "2026", name: "Hajj Group 07 (legacy)", departureDate: dt("2026-06-01"), totalSeats: 45, filledSeats: 0, muallimName: "Sh. Free-text Muallim", muallimNo: "+8801700000000", maktab: "Maktab 112", status: "OPEN" },
+    update: { name: "Hajj Group 07 (legacy)", muallimName: "Sh. Free-text Muallim" },
+  });
 
   // 20d) ACCOUNTANT — PII on usr_accountant (reuses finance/reports endpoints).
   await prisma.user.update({ where: { id: "usr_accountant" }, data: { nid: "1988555566667", employeeId: "EMP-0012", department: "Finance" } });

@@ -1,0 +1,83 @@
+{
+  "title": "Operations Team",
+  "subtitle": "Muallim, guide, imam, medical & driver roster",
+  "new": "New member",
+  "kpi": {
+    "total": "Total Crew",
+    "global": "Shared (global)",
+    "branch": "Branch-local",
+    "muallims": "Muallims"
+  },
+  "filter": {
+    "search": "Search name, code, location…",
+    "role": "All roles",
+    "status": "All statuses"
+  },
+  "col": {
+    "member": "Member",
+    "role": "Role",
+    "location": "Base",
+    "languages": "Languages",
+    "scope": "Scope",
+    "status": "Status"
+  },
+  "scope": { "global": "Global", "branch": "Branch" },
+  "scopeNote": "You see your branch's members plus shared global crew. Global crew serve every branch.",
+  "back": "Back to roster",
+  "empty": "No team members found",
+  "emptyDesc": "No crew match the current filters. Add your first roster member to get started.",
+  "detail": {
+    "edit": "Edit member",
+    "contact": "Contact",
+    "identity": "Identity & credentials",
+    "assigned": "Assigned batches",
+    "assignedSub": "Departure batches this muallim leads",
+    "noAssigned": "Not assigned to any batch",
+    "readonlyNote": "You have read-only access — adding or editing crew requires manage permission.",
+    "passportMasked": "Passport on file (encrypted)",
+    "confirmDelete": "Remove this team member?"
+  },
+  "field": {
+    "phone": "Phone",
+    "email": "Email",
+    "nationality": "Nationality",
+    "baseLocation": "Base location",
+    "languages": "Languages",
+    "licenseNo": "Licence / reg. no.",
+    "passportNo": "Passport no.",
+    "rating": "Rating",
+    "notes": "Notes"
+  },
+  "form": {
+    "createTitle": "New team member",
+    "editTitle": "Edit team member",
+    "name": "Full name",
+    "role": "Role",
+    "scope": "Scope",
+    "scopeGlobal": "Global (shared across branches)",
+    "scopeBranch": "This branch only",
+    "phone": "Phone",
+    "email": "Email",
+    "nationality": "Nationality",
+    "baseLocation": "Base location",
+    "languages": "Languages",
+    "licenseNo": "Licence / registration no.",
+    "passportNo": "Passport no. (encrypted at rest)",
+    "rating": "Rating (0–5)",
+    "status": "Status",
+    "notes": "Notes",
+    "save": "Save member",
+    "cancel": "Cancel"
+  },
+  "roleLabel": {
+    "MUALLIM": "Muallim",
+    "GUIDE": "Guide",
+    "IMAM": "Imam",
+    "MEDICAL": "Medical",
+    "DRIVER": "Driver",
+    "COORDINATOR": "Coordinator",
+    "OTHER": "Other"
+  },
+  "statusLabel": { "ACTIVE": "Active", "INACTIVE": "Inactive", "ON_LEAVE": "On leave" },
+  "batchPicker": { "label": "Muallim (from roster)", "none": "— Free-text / none —" }
+}
