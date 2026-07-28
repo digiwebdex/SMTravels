@@ -30,6 +30,26 @@
     "reports": "Reports & Analytics",
     "reportsBi": "Reports & BI",
     "cms": "CMS",
-    "settings": "Settings"
+    "settings": "Settings",
+    "partners": "Partners",
+    "suppliers": "Suppliers",
+    "opsTeam": "Operations Team",
+    "hotels": "Hotels",
+    "transport": "Transport",
+    "sales": "Sales",
+    "marketing": "Marketing",
+    "sms": "SMS Center",
+    "whatsapp": "WhatsApp Center",
+    "ocr": "OCR Center",
+    "hr": "HR & Payroll",
+    "integrations": "Integrations",
+    "ai": "AI Assistant"
+  },
+  "coming": {
+    "badge": "Planned",
+    "soon": "Soon",
+    "title": "Coming soon",
+    "desc": "{{name}} is planned but not built yet — no functionality here.",
+    "note": "Placeholder — this section will be scoped and built as its own pass."
   }
 }

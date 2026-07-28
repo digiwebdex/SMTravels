@@ -3,6 +3,7 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { SkeletonPage } from "./lib/ds";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { ERP_ROLES, type Role } from "./auth/roles";
+import { ComingSoon } from "./erp/ComingSoon"; // tiny placeholder; direct import keeps its props typed
 
 // ── Eager: public website (the landing path — must load fast) ────────────────
 import { Layout } from "./components/Layout";
@@ -94,6 +95,20 @@ export const router = createBrowserRouter([
       { path: "ops", element: withSuspense(<OperationsModule />) },
       { path: "hajj-ops", element: withSuspense(<HajjOpsModule />) },
       { path: "settings", element: withSuspense(<SettingsModule />) },
+      // Step 3 placeholders — nav home + RBAC module, no functionality yet.
+      { path: "partners", element: <ComingSoon k="partners" group="partners" /> },
+      { path: "suppliers", element: <ComingSoon k="suppliers" group="partners" /> },
+      { path: "ops-team", element: <ComingSoon k="opsTeam" group="partners" /> },
+      { path: "hotels", element: <ComingSoon k="hotels" group="partners" /> },
+      { path: "transport", element: <ComingSoon k="transport" group="partners" /> },
+      { path: "sales", element: <ComingSoon k="sales" group="finance" /> },
+      { path: "marketing", element: <ComingSoon k="marketing" group="communication" /> },
+      { path: "sms", element: <ComingSoon k="sms" group="communication" /> },
+      { path: "whatsapp", element: <ComingSoon k="whatsapp" group="communication" /> },
+      { path: "ocr", element: <ComingSoon k="ocr" group="operations" /> },
+      { path: "hr", element: <ComingSoon k="hr" group="admin" /> },
+      { path: "integrations", element: <ComingSoon k="integrations" group="admin" /> },
+      { path: "ai", element: <ComingSoon k="ai" group="admin" /> },
     ],
   },
   { path: "/sitemap", element: withSuspense(<SitemapWorkflow />) },
