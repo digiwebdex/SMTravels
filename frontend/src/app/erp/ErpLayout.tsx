@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router";
+import { Outlet, NavLink, Link, useLocation, useNavigate, useSearchParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthContext";
 import {
   LayoutDashboard, Users, CalendarDays, Package, Layers, Wallet,
@@ -7,6 +8,7 @@ import {
   ChevronRight, Bell, Search, ChevronDown, Globe, LogOut, UserCircle,
   HelpCircle, Building2, X, Menu, Briefcase, Star, TrendingUp,
   AlertTriangle, RefreshCw, FolderOpen, MessageSquare, LineChart,
+  Moon, Plane, Stamp, ClipboardList,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
@@ -27,52 +29,47 @@ const MOBILE_NAV = [
 // ─── Nav config ───────────────────────────────────────────────────────────────
 // `module` maps each item to an RBAC permission module (see backend seed). The
 // sidebar hides any item the signed-in user's roles don't grant (view|full).
+// 10 consolidated parent groups (see docs/SIDEBAR_REORG_MAP.md). Labels resolve
+// via the erpNav i18n namespace (`group.<key>` / `item.<labelKey>`). `svc` marks a
+// merged entry that opens the ONE existing Bookings screen pre-filtered by service
+// (nav-level merge — no module rewrite). Groups with no visible items don't render;
+// Partners & Suppliers and Portals populate in Step 3.
 const NAV_GROUPS = [
-  {
-    label: "Core",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard",       path: "/erp",          exact: true, module: "dashboard" },
-      { icon: Users,           label: "CRM & Leads",     path: "/erp/crm",                   module: "crm" },
-      { icon: CalendarDays,    label: "Bookings",         path: "/erp/bookings",             module: "bookings" },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
-      { icon: Package,         label: "Packages",         path: "/erp/packages",            module: "packages" },
-      { icon: Layers,          label: "Services",         path: "/erp/services",            module: "packages" },
-      { icon: Star,            label: "Hajj/Umrah Ops",   path: "/erp/hajj-ops",            module: "ops" },
-    ],
-  },
-  {
-    label: "Finance",
-    items: [
-      { icon: Wallet,          label: "Accounts",         path: "/erp/accounts",            module: "accounts" },
-      { icon: Receipt,         label: "Invoices & Payments", path: "/erp/invoices",         module: "invoices" },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { icon: BarChart3,       label: "Reports & Analytics", path: "/erp/reports",          module: "reports" },
-      { icon: LineChart,       label: "Reports & BI",         path: "/erp/reports-bi",       module: "reports" },
-    ],
-  },
-  {
-    label: "Workspace",
-    items: [
-      { icon: FolderOpen,     label: "Documents",            path: "/erp/documents",        module: "documents" },
-      { icon: MessageSquare,  label: "Communications",        path: "/erp/communications",   module: "crm" },
-    ],
-  },
-  {
-    label: "Content & System",
-    items: [
-      { icon: FileEdit,        label: "CMS",              path: "/erp/cms",                 module: "cms" },
-      { icon: Settings2,       label: "Operations",       path: "/erp/ops",                 module: "ops" },
-      { icon: Settings,        label: "Settings",         path: "/erp/settings",            module: "settings" },
-    ],
-  },
+  { key: "dashboard", items: [
+    { icon: LayoutDashboard, labelKey: "dashboard", path: "/erp", exact: true, module: "dashboard" },
+  ] },
+  { key: "crm", items: [
+    { icon: Users, labelKey: "crm", path: "/erp/crm", module: "crm" },
+  ] },
+  { key: "bookings", items: [
+    { icon: CalendarDays, labelKey: "allBookings", path: "/erp/bookings", module: "bookings" },
+    { icon: Star,         labelKey: "hajj",       path: "/erp/bookings", svc: "HAJJ",       module: "bookings" },
+    { icon: Moon,         labelKey: "umrah",      path: "/erp/bookings", svc: "UMRAH",      module: "bookings" },
+    { icon: Stamp,        labelKey: "visa",       path: "/erp/bookings", svc: "VISA",       module: "bookings" },
+    { icon: Plane,        labelKey: "airTicket",  path: "/erp/bookings", svc: "AIR_TICKET", module: "bookings" },
+    { icon: Package,      labelKey: "packages",   path: "/erp/packages", module: "packages" },
+    { icon: Layers,       labelKey: "services",   path: "/erp/services", module: "packages" },
+  ] },
+  { key: "operations", items: [
+    { icon: ClipboardList, labelKey: "hajjOps",    path: "/erp/hajj-ops",  module: "ops" },
+    { icon: FolderOpen,    labelKey: "documents",  path: "/erp/documents", module: "documents" },
+    { icon: Settings2,     labelKey: "operations", path: "/erp/ops",       module: "ops" },
+  ] },
+  { key: "finance", items: [
+    { icon: Wallet,  labelKey: "accounts", path: "/erp/accounts", module: "accounts" },
+    { icon: Receipt, labelKey: "invoices", path: "/erp/invoices", module: "invoices" },
+  ] },
+  { key: "communication", items: [
+    { icon: MessageSquare, labelKey: "communications", path: "/erp/communications", module: "crm" },
+  ] },
+  { key: "reports", items: [
+    { icon: BarChart3, labelKey: "reports",   path: "/erp/reports",    module: "reports" },
+    { icon: LineChart, labelKey: "reportsBi", path: "/erp/reports-bi", module: "reports" },
+  ] },
+  { key: "admin", items: [
+    { icon: FileEdit, labelKey: "cms",      path: "/erp/cms",      module: "cms" },
+    { icon: Settings, labelKey: "settings", path: "/erp/settings", module: "settings" },
+  ] },
 ];
 
 const ALL_BRANCHES = "all";
@@ -91,11 +88,21 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { t } = useTranslation("erpNav");
   const { user, can, logout } = useAuth();
 
-  const isActive = (path: string, exact?: boolean) => {
-    if (exact) return location.pathname === path;
-    return location.pathname === path || location.pathname.startsWith(path + "/");
+  // A merged entry (svc) is active only when its service filter is the current one;
+  // "All Bookings" is active only when no service filter is applied.
+  const isActiveItem = (item: { path: string; exact?: boolean; svc?: string }) => {
+    const onPath = item.exact
+      ? location.pathname === item.path
+      : location.pathname === item.path || location.pathname.startsWith(item.path + "/");
+    if (!onPath) return false;
+    const svc = searchParams.get("service");
+    if (item.svc) return svc === item.svc;
+    if (item.path === "/erp/bookings") return !svc;
+    return true;
   };
 
   // Hide items/groups the signed-in user's RBAC permissions don't grant.
@@ -140,21 +147,23 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 no-scrollbar">
         {visibleGroups.map((group) => (
-          <div key={group.label} className="mb-1">
+          <div key={group.key} className="mb-1">
             {!collapsed && (
               <div className="px-4 pt-3 pb-1">
-                <span className="text-white/30 text-[9px] font-bold uppercase tracking-[0.12em]">{group.label}</span>
+                <span className="text-white/30 text-[9px] font-bold uppercase tracking-[0.12em]">{t(`group.${group.key}`)}</span>
               </div>
             )}
             {collapsed && <div className="my-2 mx-3 h-px bg-white/10" />}
             {group.items.map((item) => {
-              const active = isActive(item.path, item.exact);
+              const active = isActiveItem(item);
+              const label = t(`item.${item.labelKey}`);
+              const to = item.svc ? `${item.path}?service=${item.svc}` : item.path;
               const Icon = item.icon;
               return (
                 <NavLink
-                  key={item.path}
-                  to={item.path}
-                  title={collapsed ? item.label : undefined}
+                  key={item.labelKey}
+                  to={to}
+                  title={collapsed ? label : undefined}
                   className={cn(
                     "flex items-center mx-2 rounded-[8px] transition-all duration-150 cursor-pointer group relative",
                     collapsed ? "justify-center p-2.5 mb-0.5" : "gap-3 px-3 py-2 mb-0.5",
@@ -168,11 +177,11 @@ function Sidebar({ collapsed, onToggle, onMobileClose }: {
                   )}
                   <Icon size={16} className="flex-shrink-0" />
                   {!collapsed && (
-                    <span className="text-[13px] font-medium whitespace-nowrap">{item.label}</span>
+                    <span className="text-[13px] font-medium whitespace-nowrap">{label}</span>
                   )}
                   {collapsed && (
                     <span className="absolute left-full ml-3 px-2 py-1 bg-[#14588F] text-white text-[11px] font-medium rounded-[6px] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-xl z-50">
-                      {item.label}
+                      {label}
                     </span>
                   )}
                 </NavLink>

@@ -58,6 +58,8 @@ import enErpHajjOps from "./locales/en/erpHajjOps.json";
 import bnErpHajjOps from "./locales/bn/erpHajjOps.json";
 import enErpBookings from "./locales/en/erpBookings.json";
 import bnErpBookings from "./locales/bn/erpBookings.json";
+import enErpNav from "./locales/en/erpNav.json";
+import bnErpNav from "./locales/bn/erpNav.json";
 
 export const resources = {
   en: {
@@ -67,7 +69,7 @@ export const resources = {
     auth: enAuth, portalCommon: enPortalCommon, portalCustomer: enPortalCustomer,
     portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
     portalAccountant: enPortalAccountant,
-    erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings,
+    erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings, erpNav: enErpNav,
   },
   bn: {
     common: bnCommon, layout: bnLayout, home: bnHome, about: bnAbout,
@@ -76,7 +78,7 @@ export const resources = {
     auth: bnAuth, portalCommon: bnPortalCommon, portalCustomer: bnPortalCustomer,
     portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
     portalAccountant: bnPortalAccountant,
-    erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings,
+    erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings, erpNav: bnErpNav,
   },
 } as const;
 
@@ -88,7 +90,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });

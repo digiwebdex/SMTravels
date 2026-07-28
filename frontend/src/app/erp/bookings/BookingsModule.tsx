@@ -10,9 +10,10 @@ import { cn, fmtPrice } from "../../lib/utils";
 import { SkeletonTable, ErrorBanner } from "../../lib/ds";
 import { BookingWizard } from "./BookingWizard";
 import { BookingDetail } from "./BookingDetail";
+import { useSearchParams } from "react-router";
 import {
   useBookings, useBranches, useBooking, useDeleteBooking,
-  mapListItem, mapDetail, SERVICE_ENUM, STATUS_ENUM, type BookingListParams,
+  mapListItem, mapDetail, SERVICE_ENUM, SERVICE_LABEL, STATUS_ENUM, type BookingListParams,
 } from "../../hooks/bookings";
 
 // ─── Types & Constants ─────────────────────────────────────────────────────────
@@ -144,11 +145,20 @@ function StatsStrip({ stats }: { stats: Stats }) {
 const ALL_STATUSES: BookingStatus[] = ["Draft", "Confirmed", "Pending", "Processing", "Cancelled", "On Hold", "Completed"];
 const ALL_SERVICES: ServiceType[] = ["Hajj", "Umrah", "Visa", "Air Ticket", "Hotel", "Manpower", "Tour"];
 
+// Merged sidebar entries (Hajj/Umrah/Visa/Air) open this screen pre-filtered via
+// ?service=<ENUM>. Absent param = "All" (today's default behaviour, unchanged).
+const svcFromParam = (s: string | null): ServiceType | "All" =>
+  (s ? (SERVICE_LABEL as Record<string, ServiceType>)[s] : undefined) ?? "All";
+
 function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: string) => void }) {
+  const [searchParams] = useSearchParams();
+  const svcParam = searchParams.get("service");
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<BookingStatus | "All">("All");
-  const [serviceFilter, setServiceFilter] = useState<ServiceType | "All">("All");
+  const [serviceFilter, setServiceFilter] = useState<ServiceType | "All">(svcFromParam(svcParam));
+  // sync when navigating between merged entries (same route, param changes)
+  useEffect(() => { setServiceFilter(svcFromParam(svcParam)); }, [svcParam]);
   const [branchFilter, setBranchFilter] = useState("All");
   const [sortField, setSortField] = useState<"id" | "amount" | "date">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");

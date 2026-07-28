@@ -1,0 +1,35 @@
+{
+  "group": {
+    "dashboard": "Dashboard",
+    "crm": "CRM",
+    "bookings": "Bookings & Services",
+    "operations": "Operations",
+    "partners": "Partners & Suppliers",
+    "finance": "Finance",
+    "communication": "Communication",
+    "reports": "Reports",
+    "portals": "Portals",
+    "admin": "Administration"
+  },
+  "item": {
+    "dashboard": "Dashboard",
+    "crm": "CRM & Leads",
+    "allBookings": "All Bookings",
+    "hajj": "Hajj",
+    "umrah": "Umrah",
+    "visa": "Visa",
+    "airTicket": "Air Ticket",
+    "packages": "Packages",
+    "services": "Services",
+    "hajjOps": "Hajj / Umrah Ops",
+    "documents": "Documents",
+    "operations": "Operations",
+    "accounts": "Accounts",
+    "invoices": "Invoices & Payments",
+    "communications": "Communications",
+    "reports": "Reports & Analytics",
+    "reportsBi": "Reports & BI",
+    "cms": "CMS",
+    "settings": "Settings"
+  }
+}
