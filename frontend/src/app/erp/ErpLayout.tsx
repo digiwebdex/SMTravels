@@ -73,7 +73,7 @@ const NAV_GROUPS = [
   { key: "communication", items: [
     { icon: MessageSquare, labelKey: "communications", path: "/erp/communications", module: "crm" },
     { icon: Megaphone,     labelKey: "marketing",      path: "/erp/marketing",      module: "crm", soon: true },
-    { icon: Smartphone,    labelKey: "sms",            path: "/erp/sms",            module: "crm", soon: true },
+    { icon: Smartphone,    labelKey: "sms",            path: "/erp/sms",            module: "communication" },
     { icon: MessageCircle, labelKey: "whatsapp",       path: "/erp/whatsapp",       module: "crm", soon: true },
   ] },
   { key: "reports", items: [

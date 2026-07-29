@@ -46,6 +46,7 @@ const PartnersModule       = lazyNamed(() => import("./erp/PartnersModule"), "Pa
 const SuppliersModule      = lazyNamed(() => import("./erp/SuppliersModule"), "SuppliersModule");
 const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"), "OperationsTeamModule");
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
+const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
 
 // Portals
@@ -107,7 +108,7 @@ export const router = createBrowserRouter([
       { path: "transport", element: <ComingSoon k="transport" group="partners" /> },
       { path: "sales", element: withSuspense(<SalesModule />) },
       { path: "marketing", element: <ComingSoon k="marketing" group="communication" /> },
-      { path: "sms", element: <ComingSoon k="sms" group="communication" /> },
+      { path: "sms", element: withSuspense(<SmsCenterModule />) },
       { path: "whatsapp", element: <ComingSoon k="whatsapp" group="communication" /> },
       { path: "ocr", element: <ComingSoon k="ocr" group="operations" /> },
       { path: "hr", element: <ComingSoon k="hr" group="admin" /> },

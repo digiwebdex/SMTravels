@@ -27,7 +27,7 @@ const COMPANY_ID = "cmp_smtravels";
 const MODULES = [
   "dashboard", "bookings", "crm", "packages", "accounts",
   "invoices", "reports", "documents", "cms", "ops", "settings",
-  "partners", "suppliers", "operations_team", "sales",
+  "partners", "suppliers", "operations_team", "sales", "communication",
 ] as const;
 
 // access matrix: role -> module -> full | view | none (default none)
@@ -35,10 +35,10 @@ const FULL = MODULES.reduce((a, m) => ({ ...a, [m]: "full" }), {} as Record<stri
 const MATRIX: Partial<Record<UserRole, Record<string, string>>> = {
   SUPER_ADMIN: FULL,
   COMPANY_ADMIN: FULL,
-  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", accounts: "view", invoices: "view", reports: "view" },
+  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", communication: "full", accounts: "view", invoices: "view", reports: "view" },
   ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view" },
   STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view" },
-  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view", sales: "full" },
+  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view", sales: "full", communication: "full" },
   VISA_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", crm: "view", packages: "view" },
   HAJJ_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
   UMRAH_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
@@ -768,6 +768,34 @@ async function seedDemo() {
         lines: { create: qt.lines.map((l) => ({ description: l.d, serviceType: l.s as never, quantity: l.q, unitPrice: l.u, amount: l.a })) },
       },
       update: { status: qt.status as never, subtotal: qt.sub, discountAmount: qt.disc, total: qt.total, baseAmount: qt.total },
+    });
+  }
+
+  // 20g) COMMUNICATION — reusable SMS templates (MessageTemplate) + a couple of
+  //      log rows so the SMS Center history isn't empty. Dev has no BulkSMSBD creds
+  //      → real sends are log-only (status LOGGED).
+  const SMS_TEMPLATES = [
+    { id: "tpl_sms_booking", name: "Booking confirmed", category: "Booking", event: "booking.confirmed", content: "SM Travels: your {{service}} booking {{bookingNo}} is confirmed. We will contact you shortly." },
+    { id: "tpl_sms_payment", name: "Payment received", category: "Finance", event: "payment.received", content: "SM Travels: payment of {{amount}} received. Ref {{ref}}. Thank you." },
+    { id: "tpl_sms_promo", name: "Hajj early-bird", category: "Marketing", event: null, content: "SM Travels: Hajj 2026 early-bird packages now open. Reply or call us to reserve your seat." },
+  ];
+  for (const tp of SMS_TEMPLATES) {
+    await prisma.messageTemplate.upsert({
+      where: { id: tp.id },
+      create: { id: tp.id, channel: "SMS", name: tp.name, category: tp.category, event: tp.event, content: tp.content, status: "active" },
+      update: { name: tp.name, content: tp.content, category: tp.category },
+    });
+  }
+  const smsSender = await prisma.user.findFirst({ where: { role: UserRole.COMPANY_ADMIN }, select: { id: true } });
+  const SMS_LOGS = [
+    { id: "mlog_1", branchId: "brn_dhaka", recipient: "+8801711000001", name: "Md. Karim Ullah", body: "SM Travels: your HAJJ booking DHK-2026-0001 is confirmed. We will contact you shortly.", tpl: "tpl_sms_booking", status: "LOGGED" },
+    { id: "mlog_2", branchId: "brn_ctg", recipient: "+8801811000002", name: "Fatima Begum", body: "SM Travels: Hajj 2026 early-bird packages now open. Reply or call us to reserve your seat.", tpl: "tpl_sms_promo", status: "LOGGED" },
+  ];
+  for (const lg of SMS_LOGS) {
+    await prisma.messageLog.upsert({
+      where: { id: lg.id },
+      create: { id: lg.id, branchId: lg.branchId, channel: "SMS", recipient: lg.recipient, recipientName: lg.name, body: lg.body, templateId: lg.tpl, status: lg.status as never, sentById: smsSender?.id ?? null },
+      update: { status: lg.status as never },
     });
   }
 

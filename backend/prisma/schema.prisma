@@ -2093,6 +2093,31 @@ model MessageTemplate {
   @@index([channel])
 }
 
+// Outbound message audit trail (SMS now; channel-tagged for future WhatsApp/email).
+// LOGGED = sender ran in log-only mode (no credentials) — recorded, not delivered.
+enum MessageStatus {
+  SENT
+  LOGGED
+  FAILED
+}
+
+model MessageLog {
+  id            String          @id @default(cuid())
+  branchId      String
+  channel       TemplateChannel @default(SMS)
+  recipient     String // phone number
+  recipientName String?
+  body          String
+  templateId    String? // MessageTemplate used, if any (bare scalar snapshot)
+  status        MessageStatus   @default(LOGGED)
+  error         String? // failure reason when FAILED
+  sentById      String? // user who triggered the send
+  createdAt     DateTime        @default(now()) @db.Timestamptz(6)
+
+  @@index([branchId, createdAt])
+  @@index([channel, status])
+}
+
 model SupportTicket {
   id            String       @id @default(cuid())
   ticketNo      String

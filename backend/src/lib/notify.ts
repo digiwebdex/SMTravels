@@ -104,8 +104,8 @@ class LogWhatsAppSender implements WhatsAppSender {
 
 // ── singletons, chosen once at boot ──────────────────────────────────────────
 export const emailSender: EmailSender = env.SMTP_HOST ? new SmtpEmailSender() : new LogEmailSender();
-export const smsSender: SmsSender =
-  env.BULKSMSBD_API_KEY && env.BULKSMSBD_SENDER_ID ? new BulkSmsBdSender() : new LogSmsSender();
+export const smsConfigured = !!(env.BULKSMSBD_API_KEY && env.BULKSMSBD_SENDER_ID);
+export const smsSender: SmsSender = smsConfigured ? new BulkSmsBdSender() : new LogSmsSender();
 export const whatsappSender: WhatsAppSender =
   env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_ID ? new CloudWhatsAppSender() : new LogWhatsAppSender();
 

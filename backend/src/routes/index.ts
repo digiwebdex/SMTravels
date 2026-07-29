@@ -23,6 +23,7 @@ import { partnersRouter } from "./partners.route";
 import { suppliersRouter } from "./suppliers.route";
 import { operationsRouter } from "./operations.route";
 import { salesRouter } from "./sales.route";
+import { communicationRouter } from "./communication.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
@@ -51,3 +52,4 @@ apiRouter.use(partnersRouter);
 apiRouter.use(suppliersRouter);
 apiRouter.use(operationsRouter);
 apiRouter.use(salesRouter);
+apiRouter.use(communicationRouter);

@@ -1,0 +1,48 @@
+{
+  "title": "SMS Center",
+  "subtitle": "Message log, templates & broadcast — over the BulkSMSBD sender",
+  "notConfigured": "SMS is in log-only mode — no BulkSMSBD credentials are set, so messages are recorded but not delivered. Add the API key + sender ID to production to go live.",
+  "tab": { "log": "Message log", "templates": "Templates", "send": "Send / Broadcast" },
+  "kpi": { "total": "Messages", "sent": "Sent", "logged": "Logged", "failed": "Failed" },
+  "log": {
+    "search": "Search recipient, body…",
+    "status": "All statuses",
+    "empty": "No messages yet",
+    "emptyDesc": "Sent messages appear here with their delivery status.",
+    "col": { "when": "When", "recipient": "Recipient", "body": "Message", "template": "Template", "status": "Status", "by": "Sent by", "branch": "Branch" }
+  },
+  "tpl": {
+    "new": "New template",
+    "empty": "No templates yet",
+    "emptyDesc": "Create reusable SMS templates for common messages.",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Archive this template?",
+    "col": { "name": "Name", "category": "Category", "content": "Content" },
+    "form": { "createTitle": "New SMS template", "editTitle": "Edit SMS template", "name": "Template name", "category": "Category", "event": "Event key", "content": "Message content", "save": "Save template", "cancel": "Cancel", "hint": "You can use placeholders like {{name}} or {{bookingNo}}." }
+  },
+  "send": {
+    "title": "Send an SMS",
+    "audience": "Audience",
+    "mode": { "manual": "Manual numbers", "customer": "A customer", "lead": "Lead segment", "batch": "Batch pilgrims" },
+    "phones": "Phone numbers",
+    "phonesPh": "One per line, e.g. +8801711000000",
+    "customer": "Customer",
+    "customerPh": "Select a customer…",
+    "leadStage": "Lead stage",
+    "leadService": "Service interest",
+    "anyStage": "Any stage",
+    "anyService": "Any service",
+    "batch": "Departure batch",
+    "batchPh": "Select a batch…",
+    "template": "Template (optional)",
+    "templatePh": "— Write a custom message —",
+    "body": "Message",
+    "bodyPh": "Type your message…",
+    "branch": "Branch",
+    "send": "Send SMS",
+    "recipientsHint": "Message is recorded in the log for every recipient.",
+    "chars": "{{count}} chars"
+  },
+  "statusLabel": { "SENT": "Sent", "LOGGED": "Logged", "FAILED": "Failed" }
+}
