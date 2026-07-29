@@ -68,7 +68,7 @@ const NAV_GROUPS = [
   { key: "finance", items: [
     { icon: Wallet,  labelKey: "accounts", path: "/erp/accounts", module: "accounts" },
     { icon: Receipt, labelKey: "invoices", path: "/erp/invoices", module: "invoices" },
-    { icon: Tag,     labelKey: "sales",    path: "/erp/sales",    module: "invoices", soon: true },
+    { icon: Tag,     labelKey: "sales",    path: "/erp/sales",    module: "sales" },
   ] },
   { key: "communication", items: [
     { icon: MessageSquare, labelKey: "communications", path: "/erp/communications", module: "crm" },

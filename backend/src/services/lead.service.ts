@@ -203,6 +203,28 @@ export async function changeStage(auth: AuthCtx, id: string, stage: LeadListItem
  * If any step fails (e.g. a duplicate customer phone), the whole thing rolls
  * back and the lead is left unconverted.
  */
+/** Lead → customer inside a caller-supplied transaction. Creates the customer,
+ *  marks the lead WON + linked, carries notes over, logs history. The caller owns
+ *  the transaction, so this composes into larger atomic flows (e.g. quotation
+ *  conversion) — if the caller's tx rolls back, no orphaned customer is left. */
+export async function convertLeadTx(
+  tx: Tx, auth: AuthCtx,
+  lead: { id: string; branchId: string; name: string; phone: string; email: string | null },
+): Promise<string> {
+  const customer = await tx.customer.create({
+    data: {
+      branchId: lead.branchId, type: "INDIVIDUAL", name: lead.name, phone: lead.phone,
+      email: lead.email || null, createdById: auth.userId,
+    },
+  });
+  await tx.lead.update({ where: { id: lead.id }, data: { customerId: customer.id, stage: "WON" } });
+  // carry the lead's notes onto the customer (also visible on the lead)
+  await tx.note.updateMany({ where: { leadId: lead.id, customerId: null }, data: { customerId: customer.id } });
+  await logLeadActivity(tx, lead.id, auth.userId, "CONVERTED", `Converted to customer ${customer.id}`);
+  await tx.activityLog.create({ data: { userId: auth.userId, action: "LEAD_CONVERTED", target: customer.id, module: "crm" } });
+  return customer.id;
+}
+
 export async function convertLead(auth: AuthCtx, id: string): Promise<{ customerId: string; leadId: string }> {
   const lead = await prisma.lead.findFirst({ where: { id, ...branchWhere(auth), deletedAt: null } });
   if (!lead) throw new HttpError(404, "NotFound");
@@ -210,18 +232,8 @@ export async function convertLead(auth: AuthCtx, id: string): Promise<{ customer
 
   try {
     return await prisma.$transaction(async (tx) => {
-      const customer = await tx.customer.create({
-        data: {
-          branchId: lead.branchId, type: "INDIVIDUAL", name: lead.name, phone: lead.phone,
-          email: lead.email || null, createdById: auth.userId,
-        },
-      });
-      await tx.lead.update({ where: { id }, data: { customerId: customer.id, stage: "WON" } });
-      // carry the lead's notes onto the customer (also visible on the lead)
-      await tx.note.updateMany({ where: { leadId: id, customerId: null }, data: { customerId: customer.id } });
-      await logLeadActivity(tx, id, auth.userId, "CONVERTED", `Converted to customer ${customer.id}`);
-      await tx.activityLog.create({ data: { userId: auth.userId, action: "LEAD_CONVERTED", target: customer.id, module: "crm" } });
-      return { customerId: customer.id, leadId: id };
+      const customerId = await convertLeadTx(tx, auth, lead);
+      return { customerId, leadId: id };
     });
   } catch (err) {
     mapUniqueError(err); // duplicate phone/email → friendly 409, lead stays unconverted

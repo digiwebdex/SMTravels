@@ -1421,6 +1421,68 @@ model PromoCode {
   deletedAt   DateTime?   @db.Timestamptz(6)
 }
 
+// ─── Sales: Quotations → Sales Orders ─────────────────────────────────────────
+// A quotation is a DRAFT price OFFER — it never posts to the ledger. "Sales order"
+// is the ACCEPTED status (no separate table). Conversion creates a DRAFT Booking
+// through the existing revenue flow (no bookingNo / seat / quota consumed until the
+// existing confirm step). Money invariant mirrors Invoice (BDT ⇒ rate 1).
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED // = "sales order"
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+model Quotation {
+  id             String          @id @default(cuid())
+  quoteNo        String          @unique // gapless per branch/year: QUO-DHK-2026-0001
+  branchId       String
+  customerId     String? // offer for an existing customer …
+  leadId         String? // … or a lead (converted to a customer on booking conversion)
+  serviceType    ServiceType
+  status         QuotationStatus @default(DRAFT)
+  validUntil     DateTime?       @db.Date
+  subtotal       Decimal         @db.Decimal(18, 4)
+  discountAmount Decimal         @default(0) @db.Decimal(18, 4)
+  total          Decimal         @db.Decimal(18, 4)
+  currency       Currency        @default(BDT)
+  exchangeRate   Decimal         @default(1) @db.Decimal(18, 8)
+  baseAmount     Decimal         @db.Decimal(18, 4)
+  promoCodeId    String? // reuse the existing PromoCode master (bare scalar)
+  notes          String?
+  bookingId      String? // set on conversion (bare scalar; no FK, like other ops links)
+  createdById    String?
+  createdAt      DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime        @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?       @db.Timestamptz(6)
+
+  // branchId / customerId / leadId are bare scalars (no FK — resolved in the
+  // service), consistent with packageId / muallimId and other ops-row links.
+  lines QuotationLine[]
+
+  @@index([branchId, status, createdAt])
+  @@index([customerId])
+  @@index([leadId])
+  @@index([bookingId])
+}
+
+model QuotationLine {
+  id          String       @id @default(cuid())
+  quotationId String
+  description String
+  serviceType ServiceType?
+  quantity    Int          @default(1)
+  unitPrice   Decimal      @db.Decimal(18, 4)
+  amount      Decimal      @db.Decimal(18, 4) // quantity * unitPrice
+  createdAt   DateTime     @default(now()) @db.Timestamptz(6)
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@index([quotationId])
+}
+
 model Account {
   id            String        @id @default(cuid())
   code          String        @unique

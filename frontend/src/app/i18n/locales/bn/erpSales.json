@@ -1,0 +1,79 @@
+{
+  "title": "Sales",
+  "subtitle": "Quotations → Sales Orders — draft offers, converted to bookings",
+  "new": "New quotation",
+  "kpi": {
+    "total": "Total Quotations",
+    "open": "Open (draft/sent)",
+    "accepted": "Accepted",
+    "value": "Pipeline Value"
+  },
+  "filter": {
+    "search": "Search quote no…",
+    "status": "All statuses",
+    "service": "All services"
+  },
+  "col": {
+    "quoteNo": "Quote #",
+    "recipient": "Recipient",
+    "service": "Service",
+    "total": "Total",
+    "status": "Status",
+    "valid": "Valid until"
+  },
+  "back": "Back to quotations",
+  "empty": "No quotations found",
+  "emptyDesc": "No quotations match the filters. Create your first quotation to get started.",
+  "lead": "Lead",
+  "customer": "Customer",
+  "detail": {
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total",
+    "lines": "Line items",
+    "notes": "Notes",
+    "send": "Send to customer",
+    "accept": "Mark accepted",
+    "reject": "Mark rejected",
+    "convert": "Convert to booking",
+    "converted": "Converted to a draft booking",
+    "convertedLead": "Lead was converted to a customer",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Delete this quotation?",
+    "confirmConvert": "Convert this quotation to a draft booking? Capacity is reserved only when staff confirm the booking.",
+    "noLedgerNote": "A quotation never posts to the ledger. Converting creates a DRAFT booking; the invoice/ledger flow runs later through Bookings & Finance.",
+    "readonlyNote": "You have read-only access — creating or editing quotations requires manage permission.",
+    "bookingLink": "View booking"
+  },
+  "form": {
+    "createTitle": "New quotation",
+    "editTitle": "Edit quotation",
+    "recipient": "Customer",
+    "recipientPh": "Select a customer…",
+    "service": "Service",
+    "validUntil": "Valid until",
+    "currency": "Currency",
+    "exchangeRate": "Exchange rate",
+    "discount": "Discount amount",
+    "notes": "Notes",
+    "lines": "Line items",
+    "addLine": "Add line",
+    "lineDesc": "Description",
+    "lineQty": "Qty",
+    "linePrice": "Unit price",
+    "lineAmount": "Amount",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "save": "Save quotation",
+    "cancel": "Cancel"
+  },
+  "statusLabel": {
+    "DRAFT": "Draft",
+    "SENT": "Sent",
+    "ACCEPTED": "Accepted",
+    "REJECTED": "Rejected",
+    "EXPIRED": "Expired",
+    "CONVERTED": "Converted"
+  }
+}

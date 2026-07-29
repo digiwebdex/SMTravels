@@ -66,6 +66,8 @@ import enErpSuppliers from "./locales/en/erpSuppliers.json";
 import bnErpSuppliers from "./locales/bn/erpSuppliers.json";
 import enErpOperations from "./locales/en/erpOperations.json";
 import bnErpOperations from "./locales/bn/erpOperations.json";
+import enErpSales from "./locales/en/erpSales.json";
+import bnErpSales from "./locales/bn/erpSales.json";
 
 export const resources = {
   en: {
@@ -76,7 +78,7 @@ export const resources = {
     portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
     portalAccountant: enPortalAccountant,
     erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings, erpNav: enErpNav,
-    erpPartners: enErpPartners, erpSuppliers: enErpSuppliers, erpOperations: enErpOperations,
+    erpPartners: enErpPartners, erpSuppliers: enErpSuppliers, erpOperations: enErpOperations, erpSales: enErpSales,
   },
   bn: {
     common: bnCommon, layout: bnLayout, home: bnHome, about: bnAbout,
@@ -86,7 +88,7 @@ export const resources = {
     portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
     portalAccountant: bnPortalAccountant,
     erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings, erpNav: bnErpNav,
-    erpPartners: bnErpPartners, erpSuppliers: bnErpSuppliers, erpOperations: bnErpOperations,
+    erpPartners: bnErpPartners, erpSuppliers: bnErpSuppliers, erpOperations: bnErpOperations, erpSales: bnErpSales,
   },
 } as const;
 
@@ -98,7 +100,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners", "erpSuppliers", "erpOperations"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners", "erpSuppliers", "erpOperations", "erpSales"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });

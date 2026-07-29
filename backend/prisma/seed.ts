@@ -27,7 +27,7 @@ const COMPANY_ID = "cmp_smtravels";
 const MODULES = [
   "dashboard", "bookings", "crm", "packages", "accounts",
   "invoices", "reports", "documents", "cms", "ops", "settings",
-  "partners", "suppliers", "operations_team",
+  "partners", "suppliers", "operations_team", "sales",
 ] as const;
 
 // access matrix: role -> module -> full | view | none (default none)
@@ -35,10 +35,10 @@ const FULL = MODULES.reduce((a, m) => ({ ...a, [m]: "full" }), {} as Record<stri
 const MATRIX: Partial<Record<UserRole, Record<string, string>>> = {
   SUPER_ADMIN: FULL,
   COMPANY_ADMIN: FULL,
-  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", accounts: "view", invoices: "view", reports: "view" },
+  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", accounts: "view", invoices: "view", reports: "view" },
   ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view" },
   STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view" },
-  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view" },
+  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view", sales: "full" },
   VISA_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", crm: "view", packages: "view" },
   HAJJ_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
   UMRAH_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
@@ -748,6 +748,28 @@ async function seedDemo() {
     create: { id: "batch_legacy_dhk", branchId: "brn_dhaka", code: "BATCH-DHK-2026-9001", serviceType: "HAJJ", season: "2026", name: "Hajj Group 07 (legacy)", departureDate: dt("2026-06-01"), totalSeats: 45, filledSeats: 0, muallimName: "Sh. Free-text Muallim", muallimNo: "+8801700000000", maktab: "Maktab 112", status: "OPEN" },
     update: { name: "Hajj Group 07 (legacy)", muallimName: "Sh. Free-text Muallim" },
   });
+
+  // 20f) SALES — demo quotations (customer-based; safe to re-seed, no conversion
+  //      side effects). quoteNo uses a high 9xxx range so it never collides with
+  //      the runtime QUOTE sequence (which allocates 0001+).
+  const QUOTES = [
+    { id: "quote_dhk_1", no: "QUO-DHK-2026-9001", branchId: "brn_dhaka", cust: "cus_demo", svc: "HAJJ", status: "SENT", sub: 750000, disc: 50000, total: 700000,
+      lines: [{ d: "Hajj Package (Economy)", s: "HAJJ", q: 2, u: 350000, a: 700000 }, { d: "Extra Madinah nights", s: "HOTEL", q: 1, u: 50000, a: 50000 }] },
+    { id: "quote_ctg_1", no: "QUO-CTG-2026-9001", branchId: "brn_ctg", cust: "cus_ctg", svc: "UMRAH", status: "DRAFT", sub: 180000, disc: 0, total: 180000,
+      lines: [{ d: "Umrah Package (Ramadan)", s: "UMRAH", q: 1, u: 180000, a: 180000 }] },
+  ];
+  for (const qt of QUOTES) {
+    await prisma.quotation.upsert({
+      where: { id: qt.id },
+      create: {
+        id: qt.id, quoteNo: qt.no, branchId: qt.branchId, customerId: qt.cust, serviceType: qt.svc as never,
+        status: qt.status as never, subtotal: qt.sub, discountAmount: qt.disc, total: qt.total,
+        currency: "BDT", exchangeRate: 1, baseAmount: qt.total, validUntil: dt("2026-08-31"),
+        lines: { create: qt.lines.map((l) => ({ description: l.d, serviceType: l.s as never, quantity: l.q, unitPrice: l.u, amount: l.a })) },
+      },
+      update: { status: qt.status as never, subtotal: qt.sub, discountAmount: qt.disc, total: qt.total, baseAmount: qt.total },
+    });
+  }
 
   // 20d) ACCOUNTANT — PII on usr_accountant (reuses finance/reports endpoints).
   await prisma.user.update({ where: { id: "usr_accountant" }, data: { nid: "1988555566667", employeeId: "EMP-0012", department: "Finance" } });
