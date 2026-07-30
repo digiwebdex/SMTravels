@@ -135,7 +135,7 @@ export function Home() {
     <div className="home-sacred">
       {/* ── HERO — brand + headline + subtitle + CTAs only ── */}
       <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
-        <HeroBackground posterImg={img("photo-1770786106021-52580470e31e", 1920, 1080)} alt="Masjid al-Haram, Makkah" />
+        <HeroBackground posterImg="/hero-makkah-poster.jpg" alt="Masjid al-Haram, Makkah" />
 
         <div className="relative z-10 w-full max-w-[1100px] mx-auto px-5 md:px-8 flex flex-col items-center text-center gap-4 md:gap-5 py-20 md:py-24">
           <h1 className="home-rise text-[2.15rem] sm:text-4xl md:text-5xl lg:text-[3.75rem] text-white leading-[1.12] max-w-3xl drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">

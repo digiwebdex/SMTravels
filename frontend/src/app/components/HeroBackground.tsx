@@ -5,22 +5,24 @@ import React, { useState } from "react";
  * fallbacks so the hero always looks intentional regardless of what's present.
  *
  * Layering (bottom → top):
- *   1. <img> poster — the Kaaba still (remote Unsplash today). Always renders,
- *      so even with no video/poster file the hero shows real imagery.
- *   2. <video> — /hero-makkah.mp4 with /hero-makkah-poster.jpg as its poster.
- *      Autoplays muted+looping (required for mobile autoplay). If the file is
- *      absent or fails to decode, onError hides it and the <img> shows through.
+ *   1. <img> poster — always renders for instant first paint.
+ *   2. <video> — /hero-makkah.mp4 (web-optimized H.264 720p@24fps).
+ *      Autoplays muted+looping. If decode fails, onError hides it.
  *
- * Drop the footage at frontend/public/hero-makkah.mp4 (+ optional
- * hero-makkah-poster.jpg). Runtime-fetched — no rebuild needed when it lands.
+ * Playback notes: ken-burns is NOT applied to the <video> (causes jank).
+ * Drop replacements at frontend/public/hero-makkah.mp4 (+ poster jpg).
  */
 export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: string }) {
   const [videoFailed, setVideoFailed] = useState(false);
 
   return (
-    <div className="absolute inset-0 overflow-hidden home-kenburns">
+    <div className="absolute inset-0 overflow-hidden">
       {/* poster / fallback still — always present beneath the video */}
-      <img src={posterImg} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={posterImg || "/hero-makkah-poster.jpg"}
+        alt={alt}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
 
       {!videoFailed && (
         <video
@@ -29,10 +31,7 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
           muted
           loop
           playsInline
-          // preload="none": don't fetch a byte of video until the browser is
-          // ready to play it, so it never competes with first paint. The poster
-          // <img> below is the instant visual; the clip streams in after.
-          preload="none"
+          preload="metadata"
           poster="/hero-makkah-poster.jpg"
           onError={() => setVideoFailed(true)}
         >
