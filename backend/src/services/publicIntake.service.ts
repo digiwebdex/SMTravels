@@ -26,7 +26,7 @@ async function resolveHqBranch(): Promise<string> {
   return hq.id;
 }
 
-interface LeadSeedData {
+export interface LeadSeedData {
   name: string;
   phone: string;
   email: string | null;
@@ -35,7 +35,8 @@ interface LeadSeedData {
   note: string;
 }
 
-async function upsertWebsiteLead(data: LeadSeedData): Promise<void> {
+/** Shared lead upsert for public forms and AI chat — never exposes ids. */
+export async function createWebsiteLead(data: LeadSeedData): Promise<void> {
   const branchId = await resolveHqBranch();
 
   const existing = await prisma.lead.findFirst({
@@ -95,7 +96,7 @@ export async function submitBookingRequest(input: PublicBookingRequestInput): Pr
     .filter(Boolean)
     .join("\n");
 
-  await upsertWebsiteLead({
+  await createWebsiteLead({
     name: input.name,
     phone: input.phone,
     email: input.email || null,
@@ -107,7 +108,7 @@ export async function submitBookingRequest(input: PublicBookingRequestInput): Pr
 }
 
 export async function submitContact(input: PublicContactInput): Promise<PublicIntakeResult> {
-  await upsertWebsiteLead({
+  await createWebsiteLead({
     name: input.name,
     phone: input.phone,
     email: input.email || null,

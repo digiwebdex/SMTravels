@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiFetch } from "../lib/api";
 import type {
-  AgentProfile, AgentLead, AgentBooking, AgentCommissionRow, AgentWalletView, AgentTeamMember, AgentDashboard, LeadCreateInput,
+  AgentProfile, AgentLead, AgentBooking, AgentCommissionRow, AgentWalletView, AgentTeamMember, AgentDashboard, AgentCustomer, LeadCreateInput,
   SupplierProfile, SupplierRequest, SupplierServiceRow, SupplierInvoiceRow, SupplierPayableRow, SupplierPaymentRow, SupplierDashboard,
   StaffProfile, StaffTask, StaffBooking, StaffCustomer, StaffDocument, StaffAnnouncement, StaffDashboard, TaskCreateInput,
   AccountantProfile, AccountantDashboard,
@@ -16,6 +16,7 @@ export const useAgentMe = () => useQuery({ queryKey: ["ag", "me"], queryFn: () =
 export const useAgentDashboard = () => useQuery({ queryKey: ["ag", "dash"], queryFn: () => apiFetch<AgentDashboard>("/portal/agent/dashboard") });
 export const useAgentLeads = () => useQuery({ queryKey: ["ag", "leads"], queryFn: () => list<AgentLead>("/portal/agent/leads") });
 export const useAgentBookings = () => useQuery({ queryKey: ["ag", "bookings"], queryFn: () => list<AgentBooking>("/portal/agent/bookings") });
+export const useAgentCustomers = () => useQuery({ queryKey: ["ag", "customers"], queryFn: () => list<AgentCustomer>("/portal/agent/customers") });
 export const useAgentCommissions = () => useQuery({ queryKey: ["ag", "comm"], queryFn: () => list<AgentCommissionRow>("/portal/agent/commissions") });
 export const useAgentWallet = () => useQuery({ queryKey: ["ag", "wallet"], queryFn: () => apiFetch<AgentWalletView>("/portal/agent/wallet") });
 export const useAgentTeam = () => useQuery({ queryKey: ["ag", "team"], queryFn: () => list<AgentTeamMember>("/portal/agent/team") });

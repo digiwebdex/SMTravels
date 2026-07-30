@@ -186,10 +186,10 @@ enum PaymentDirection {
 }
 
 enum PaymentStatus {
-  PENDING
-  CONFIRMED
-  FAILED
-  REVERSED
+  PENDING   // customer-submitted NPSB proof awaiting staff verification
+  CONFIRMED // verified or staff-recorded payment (receipt issued)
+  FAILED    // rejected proof or gateway failure
+  REVERSED  // original payment reversed via mirror entry
 }
 
 enum InstallmentStatus {

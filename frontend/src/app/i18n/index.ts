@@ -49,9 +49,9 @@ import enPortalStaff from "./locales/en/portalStaff.json";
 import bnPortalStaff from "./locales/bn/portalStaff.json";
 import enPortalAccountant from "./locales/en/portalAccountant.json";
 import bnPortalAccountant from "./locales/bn/portalAccountant.json";
-// Pass 3 — ERP (per-module namespaces). The bn files are English PLACEHOLDERS
-// for now: the ERP is wired to t() keys so the eventual Bangla sweep is a
-// translation job (edit the bn JSON), not an extraction job.
+// Pass 3 — ERP (per-module namespaces) + AI chat. The bn files are English
+// PLACEHOLDERS for now: the ERP is wired to t() keys so the eventual Bangla
+// sweep is a translation job (edit the bn JSON), not an extraction job.
 import enErpCommon from "./locales/en/erpCommon.json";
 import bnErpCommon from "./locales/bn/erpCommon.json";
 import enErpHajjOps from "./locales/en/erpHajjOps.json";
@@ -70,6 +70,8 @@ import enErpSales from "./locales/en/erpSales.json";
 import bnErpSales from "./locales/bn/erpSales.json";
 import enErpSms from "./locales/en/erpSms.json";
 import bnErpSms from "./locales/bn/erpSms.json";
+import enAiChat from "./locales/en/aiChat.json";
+import bnAiChat from "./locales/bn/aiChat.json";
 
 export const resources = {
   en: {
@@ -78,7 +80,7 @@ export const resources = {
     faq: enFaq, blog: enBlog, gallery: enGallery, booking: enBooking, errors: enErrors,
     auth: enAuth, portalCommon: enPortalCommon, portalCustomer: enPortalCustomer,
     portalAgent: enPortalAgent, portalSupplier: enPortalSupplier, portalStaff: enPortalStaff,
-    portalAccountant: enPortalAccountant,
+    portalAccountant: enPortalAccountant, aiChat: enAiChat,
     erpCommon: enErpCommon, erpHajjOps: enErpHajjOps, erpBookings: enErpBookings, erpNav: enErpNav,
     erpPartners: enErpPartners, erpSuppliers: enErpSuppliers, erpOperations: enErpOperations, erpSales: enErpSales, erpSms: enErpSms,
   },
@@ -88,7 +90,7 @@ export const resources = {
     faq: bnFaq, blog: bnBlog, gallery: bnGallery, booking: bnBooking, errors: bnErrors,
     auth: bnAuth, portalCommon: bnPortalCommon, portalCustomer: bnPortalCustomer,
     portalAgent: bnPortalAgent, portalSupplier: bnPortalSupplier, portalStaff: bnPortalStaff,
-    portalAccountant: bnPortalAccountant,
+    portalAccountant: bnPortalAccountant, aiChat: bnAiChat,
     erpCommon: bnErpCommon, erpHajjOps: bnErpHajjOps, erpBookings: bnErpBookings, erpNav: bnErpNav,
     erpPartners: bnErpPartners, erpSuppliers: bnErpSuppliers, erpOperations: bnErpOperations, erpSales: bnErpSales, erpSms: bnErpSms,
   },
@@ -102,7 +104,7 @@ void i18n.use(initReactI18next).init({
   lng: startLang,
   fallbackLng: "en",
   defaultNS: "common",
-  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners", "erpSuppliers", "erpOperations", "erpSales", "erpSms"],
+  ns: ["common", "layout", "home", "about", "servicesPage", "packages", "contact", "faq", "blog", "gallery", "booking", "errors", "auth", "portalCommon", "portalCustomer", "portalAgent", "portalSupplier", "portalStaff", "portalAccountant", "aiChat", "erpCommon", "erpHajjOps", "erpBookings", "erpNav", "erpPartners", "erpSuppliers", "erpOperations", "erpSales", "erpSms"],
   interpolation: { escapeValue: false }, // React already escapes
   returnNull: false,
 });

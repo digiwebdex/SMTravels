@@ -32,7 +32,12 @@
       "pilgrims": "10,000+ Pilgrims",
       "years": "25+ Years"
     },
-    "reassurance": "No hidden fees · 24/7 WhatsApp support · Easy cancellation · Trusted by 10,000+ families"
+    "reassurance": "No hidden fees · 24/7 WhatsApp support · Easy cancellation · Trusted by 10,000+ families",
+    "cta": {
+      "book": "Book Now",
+      "contact": "Contact Us",
+      "whatsapp": "WhatsApp"
+    }
   },
   "trustStrip": {
     "license": "📋 ATAB License: 0123",

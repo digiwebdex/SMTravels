@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
 import { useIncome, useExpenses, useInvoices, usePayments, useJournal } from "../hooks/finance";
+import { useOverview, usePnlReport } from "../hooks/reports";
 import { SampleBadge } from "./SampleBadge";
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 
@@ -388,74 +389,72 @@ function InvPayView() {
 
 // ─── FINANCIAL REPORTS ────────────────────────────────────────────────────────
 function FinReportsView() {
-  const REPORTS_LIST = [
-    { name:"Profit & Loss Statement — Jul 2024",  type:"P&L",           date:"Jul 20" },
-    { name:"Balance Sheet — Q2 2024",            type:"Balance Sheet",  date:"Jun 30" },
-    { name:"Cash Flow Statement — Q2 2024",      type:"Cash Flow",      date:"Jun 30" },
-    { name:"Accounts Receivable Aging",          type:"AR Aging",       date:"Jul 18" },
-    { name:"Accounts Payable Summary",           type:"AP Summary",     date:"Jul 18" },
-    { name:"Budget vs Actual — H1 2024",         type:"Variance",       date:"Jun 30" },
-  ];
-
   const { t } = useTranslation("portalAccountant");
+  const filters = { range: "ytd" as const };
+  const overviewQ = useOverview(filters);
+  const pnlQ = usePnlReport(filters);
+  const overview = overviewQ.data;
+  const pnl = pnlQ.data;
+  const loading = overviewQ.isLoading || pnlQ.isLoading;
+  const failed = overviewQ.isError || pnlQ.isError;
+
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.financialReports")}</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3.5 py-2 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
-          <Plus size={14}/> {t("reports.customReport")}
-        </button>
       </div>
 
-      {/* KPI summary */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:t("reports.grossRevenue"),  val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)),   color:"text-emerald-600" },
-          { label:t("reports.totalExpenses"), val:fmtShort(EXPENSE_DATA.reduce((s,v)=>s+v,0)),  color:"text-red-500"     },
-          { label:t("reports.netProfit"),     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#1B75BC]" },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
-            <p className={cn("text-xl font-black", s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      {loading && <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>}
+      {failed && !loading && <p className="text-sm text-red-500 text-center py-8">{t("portalCommon:empty.failed")}</p>}
 
-      {/* Reports list */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalAccountant:reports.cols.report","portalCommon:labels.type","portalAccountant:reports.cols.generated",""].map((h,hi) => (
-                <th key={hi} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {REPORTS_LIST.map((r,i) => (
-              <tr key={i} className="hover:bg-slate-50 transition-colors">
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-9 bg-[#1B75BC]/10 border border-[#1B75BC]/20 rounded-lg flex items-center justify-center text-[#1B75BC] text-xs font-bold">PDF</div>
-                    <p className="text-sm font-semibold text-slate-800">{r.name}</p>
-                  </div>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">{r.type}</span>
-                </td>
-                <td className="px-5 py-4 text-xs text-slate-400">{r.date}</td>
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap"><Eye size={12}/> {t("reports.view")}</button>
-                    <button className="flex items-center gap-1 text-xs text-slate-500 font-semibold hover:underline whitespace-nowrap"><Download size={12}/> PDF</button>
-                  </div>
-                </td>
-              </tr>
+      {overview && pnl && !loading && (
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: t("reports.grossRevenue"), val: fmtShort(overview.kpis.revenue), color: "text-emerald-600" },
+              { label: t("reports.totalExpenses"), val: fmtShort(overview.kpis.expenses), color: "text-red-500" },
+              { label: t("reports.netProfit"), val: fmtShort(overview.kpis.netProfit), color: "text-[#1B75BC]" },
+            ].map((s) => (
+              <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
+                <p className={cn("text-xl font-black", s.color)} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{s.val}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <p className="font-semibold text-slate-800 text-sm">P&amp;L — {pnl.applied.label}</p>
+              <p className="text-xs text-slate-400 mt-0.5">Net profit {fmtBDT(pnl.netProfit)} ({pnl.netMargin.toFixed(1)}% margin)</p>
+            </div>
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  {["Category", "Amount"].map((h) => (
+                    <th key={h} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                <tr><td colSpan={2} className="px-5 py-2 text-xs font-semibold text-emerald-600 uppercase">Revenue</td></tr>
+                {pnl.revenueLines.map((line) => (
+                  <tr key={line.code} className="hover:bg-slate-50">
+                    <td className="px-5 py-2 text-sm text-slate-700">{line.name}</td>
+                    <td className="px-5 py-2 text-sm font-mono font-semibold text-slate-800">{fmtBDT(line.amount)}</td>
+                  </tr>
+                ))}
+                <tr><td colSpan={2} className="px-5 py-2 text-xs font-semibold text-red-500 uppercase">Expenses</td></tr>
+                {pnl.expenseLines.map((line) => (
+                  <tr key={line.code} className="hover:bg-slate-50">
+                    <td className="px-5 py-2 text-sm text-slate-700">{line.name}</td>
+                    <td className="px-5 py-2 text-sm font-mono font-semibold text-slate-800">{fmtBDT(line.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 }

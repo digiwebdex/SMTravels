@@ -14,7 +14,7 @@ import { AuthCtx, requireAgentId } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import type {
   AgentProfile, AgentLead, AgentBooking, AgentCommissionRow, AgentWalletView,
-  AgentTeamMember, AgentDashboard, LeadCreateInput,
+  AgentTeamMember, AgentDashboard, AgentCustomer, LeadCreateInput,
 } from "../contracts/portal.contract";
 
 const num = (d: Prisma.Decimal | number | null | undefined): number => (d == null ? 0 : Number(d));
@@ -63,6 +63,33 @@ export async function listBookings(auth: AuthCtx): Promise<AgentBooking[]> {
   const agentId = await requireAgentId(auth);
   const rows = await prisma.booking.findMany({ where: { agentId, deletedAt: null }, include: { customer: { select: { name: true } } }, orderBy: { createdAt: "desc" } });
   return rows.map((b) => ({ id: b.id, bookingNo: b.bookingNo, customerName: b.customer?.name ?? null, serviceType: b.serviceType, status: b.status, baseAmount: num(b.baseAmount), createdAt: iso(b.createdAt) }));
+}
+
+/** Distinct customers from the agent's bookings (aggregated). */
+export async function listCustomers(auth: AuthCtx): Promise<AgentCustomer[]> {
+  const agentId = await requireAgentId(auth);
+  const bookings = await prisma.booking.findMany({
+    where: { agentId, deletedAt: null, customerId: { not: null } },
+    include: { customer: { select: { id: true, name: true, phone: true, rating: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  const byCustomer = new Map<string, { id: string; name: string; phone: string; status: string; bookingsCount: number; totalValue: number; lastBookingAt: Date }>();
+  for (const b of bookings) {
+    if (!b.customer) continue;
+    const cur = byCustomer.get(b.customer.id) ?? {
+      id: b.customer.id, name: b.customer.name, phone: b.customer.phone,
+      status: b.customer.rating?.toLowerCase().includes("vip") ? "vip" : "active",
+      bookingsCount: 0, totalValue: 0, lastBookingAt: b.createdAt,
+    };
+    cur.bookingsCount += 1;
+    cur.totalValue += num(b.baseAmount);
+    if (b.createdAt > cur.lastBookingAt) cur.lastBookingAt = b.createdAt;
+    byCustomer.set(b.customer.id, cur);
+  }
+  return [...byCustomer.values()].map((c) => ({
+    id: c.id, name: c.name, phone: c.phone, bookingsCount: c.bookingsCount,
+    totalValue: c.totalValue, lastBookingAt: iso(c.lastBookingAt), status: c.status,
+  }));
 }
 
 export async function listCommissions(auth: AuthCtx): Promise<AgentCommissionRow[]> {

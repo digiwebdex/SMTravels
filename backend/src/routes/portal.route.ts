@@ -8,6 +8,8 @@ import {
   documentsHandler, documentHandler, uploadPortalDocumentHandler, portalDocumentFileHandler,
   ticketsHandler, ticketHandler,
   createTicketHandler, ticketMessageHandler, notificationsHandler, readAllNotificationsHandler,
+  bankAccountsHandler, submitPaymentProofHandler,
+  bookingVoucherPrintHandler,
 } from "../controllers/portal.controller";
 
 // Customer Portal — OWNERSHIP-SCOPED. Every handler resolves the caller's own
@@ -22,11 +24,14 @@ portalRouter.get(`${base}/dashboard`, requireAuth, asyncHandler(dashboardHandler
 
 portalRouter.get(`${base}/bookings`, requireAuth, asyncHandler(bookingsHandler));
 portalRouter.get(`${base}/bookings/:id`, requireAuth, asyncHandler(bookingHandler));
+portalRouter.get(`${base}/bookings/:id/voucher`, requireAuth, asyncHandler(bookingVoucherPrintHandler));
 
 portalRouter.get(`${base}/invoices`, requireAuth, asyncHandler(invoicesHandler));
 portalRouter.get(`${base}/invoices/:id`, requireAuth, asyncHandler(invoiceHandler));
 
 portalRouter.get(`${base}/payments`, requireAuth, asyncHandler(paymentsHandler));
+portalRouter.get(`${base}/bank-accounts`, requireAuth, asyncHandler(bankAccountsHandler));
+portalRouter.post(`${base}/payments/proof`, requireAuth, uploadSingleFile, asyncHandler(submitPaymentProofHandler));
 portalRouter.get(`${base}/installments`, requireAuth, asyncHandler(installmentsHandler));
 
 portalRouter.get(`${base}/documents`, requireAuth, asyncHandler(documentsHandler));

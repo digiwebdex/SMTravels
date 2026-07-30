@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
+import { AiChatWidget } from "./AiChatWidget";
 import { useLang } from "../i18n/useLang";
 
 // ─── WhatsApp Icon ────────────────────────────────────────────────────────────
@@ -488,6 +489,7 @@ export function Layout() {
       <div className="md:hidden h-[72px]" />
       <Footer />
       <WhatsAppFloat />
+      <AiChatWidget />
       <MobileBottomBar />
     </div>
   );

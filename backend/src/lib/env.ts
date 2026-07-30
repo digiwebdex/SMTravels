@@ -33,6 +33,14 @@ const EnvSchema = z.object({
   WHATSAPP_PHONE_ID: z.string().optional(),
   OCR_API_URL: z.string().optional(),
   OCR_API_KEY: z.string().optional(),
+  // Branch integrations (WASender messaging + Gemini/Vision OCR) — also optional,
+  // kept alongside the above so either provider path can be configured.
+  WASENDER_API_URL: z.string().optional(),
+  WASENDER_API_TOKEN: z.string().optional(),
+  WASENDER_PHONE_NUMBER_ID: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
+  GOOGLE_VISION_API_KEY: z.string().optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

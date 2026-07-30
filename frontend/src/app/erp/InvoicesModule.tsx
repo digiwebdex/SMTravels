@@ -14,10 +14,13 @@ import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
 import {
   useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
+  usePayments, useRefunds,
 } from "../hooks/finance";
+import { usePendingVerifyPayments, useVerifyPayment } from "../hooks/payments";
+import { downloadViaApi } from "../lib/api";
 import { useCustomers } from "../hooks/crm";
 import { Loader2 } from "lucide-react";
-import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem } from "@contracts/finance.contract";
+import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem, PendingPaymentDto } from "@contracts/finance.contract";
 
 const st2vm = (s: string): InvoiceStatus => s.toLowerCase() as InvoiceStatus;
 
@@ -150,6 +153,100 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
   );
 }
 
+// ─── Pending NPSB verification ────────────────────────────────────────────────
+function PendingNpsbPanel({ compact }: { compact?: boolean }) {
+  const { data, isLoading, isError, error, refetch } = usePendingVerifyPayments();
+  const verify = useVerifyPayment();
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const rows: PendingPaymentDto[] = data?.data ?? [];
+
+  const approve = (id: string) => verify.mutate({ id, approve: true });
+  const reject = (id: string) => {
+    verify.mutate({ id, approve: false, note: rejectNote.trim() || undefined }, {
+      onSuccess: () => { setRejectId(null); setRejectNote(""); },
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-white rounded-xl border border-slate-200 p-5", compact && "mb-5")}>
+        <div className="flex items-center gap-2 text-sm text-slate-400"><Loader2 size={16} className="animate-spin"/> Loading pending NPSB…</div>
+      </div>
+    );
+  }
+  if (isError) {
+    return (
+      <div className={cn(compact && "mb-5")}>
+        <ErrorBanner message={(error as Error)?.message || "Failed to load pending NPSB payments."} onRetry={() => refetch()} />
+      </div>
+    );
+  }
+  if (rows.length === 0 && compact) return null;
+
+  return (
+    <div className={cn("bg-white rounded-xl border border-[#F15A24]/30 overflow-hidden", compact && "mb-5")}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-[#F15A24]/5">
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-[#F15A24]"/>
+          <h3 className="font-semibold text-slate-800 text-sm">Pending NPSB verification</h3>
+          {rows.length > 0 && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#F15A24] text-white font-bold">{rows.length}</span>
+          )}
+        </div>
+        <button onClick={() => refetch()} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><RefreshCw size={14}/></button>
+      </div>
+      {rows.length === 0 ? (
+        <p className="px-5 py-6 text-sm text-slate-400 text-center">No customer payment proofs awaiting verification.</p>
+      ) : (
+        <div className="divide-y divide-slate-50">
+          {rows.map((p) => (
+            <div key={p.id} className="px-5 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-mono text-slate-400">{p.paymentNo || p.id.slice(0, 8)}</p>
+                  <p className="text-sm font-semibold text-slate-800">{p.customerName || "Customer"}</p>
+                  {p.invoiceNo && <p className="text-xs text-slate-500 mt-0.5">Invoice {p.invoiceNo}</p>}
+                  <p className="text-lg font-black text-slate-800 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {fmtC(p.amount, p.currency as Currency)}
+                  </p>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">Ref: {p.reference || "—"} · {p.paidAt?.slice(0, 10)}</p>
+                  {p.proofDocumentName && (
+                    <button
+                      onClick={() => p.proofDocumentId && void downloadViaApi(`/documents/${p.proofDocumentId}/file`, p.proofDocumentName!)}
+                      disabled={!p.proofDocumentId}
+                      className="mt-2 flex items-center gap-1 text-xs text-[#1B75BC] hover:underline disabled:opacity-40">
+                      <Download size={11}/> {p.proofDocumentName}
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  <button onClick={() => approve(p.id)} disabled={verify.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap">
+                    <CheckCircle size={12}/> Approve
+                  </button>
+                  <button onClick={() => setRejectId(rejectId === p.id ? null : p.id)} disabled={verify.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-red-200 text-red-500 rounded-lg hover:bg-red-50 disabled:opacity-50 whitespace-nowrap">
+                    <XCircle size={12}/> Reject
+                  </button>
+                </div>
+              </div>
+              {rejectId === p.id && (
+                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                  <input value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="Rejection note (optional)"
+                    className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none"/>
+                  <button onClick={() => reject(p.id)} disabled={verify.isPending}
+                    className="px-3 py-2 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50">Confirm reject</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Invoice List ─────────────────────────────────────────────────────────────
 function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNew: () => void }) {
   const [search, setSearch] = useState("");
@@ -178,6 +275,7 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           </button>
         </div>
       </div>
+      <PendingNpsbPanel compact/>
       <div className="grid grid-cols-4 gap-4">
         <KpiCard label="Total Billed" value={fmtC(stats.totalBilled)} icon={FileText} color="bg-[#1B75BC]" />
         <KpiCard label="Collected" value={fmtC(stats.totalPaid)} icon={CheckCircle} color="bg-emerald-500" />
@@ -654,6 +752,7 @@ function PaymentCollectionView() {
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Payment Collection</h2>
+      <PendingNpsbPanel/>
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-5">Collect Payment</h3>
@@ -684,16 +783,18 @@ function PaymentCollectionView() {
               <label className="block text-xs font-medium text-slate-600 mb-2">Payment Method</label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: "bank", label: "Bank Transfer", icon: Building2 },
-                  { id: "bkash", label: "bKash", icon: Phone },
-                  { id: "nagad", label: "Nagad", icon: Banknote },
-                  { id: "ssl", label: "SSLCommerz", icon: Globe },
-                ].map(({ id, label, icon: Icon }) => (
-                  <button key={id} onClick={() => setMethod(id)}
+                  { id: "bank", label: "Bank Transfer", icon: Building2, disabled: false },
+                  { id: "bkash", label: "bKash", icon: Phone, disabled: true },
+                  { id: "nagad", label: "Nagad", icon: Banknote, disabled: true },
+                  { id: "ssl", label: "SSLCommerz", icon: Globe, disabled: true },
+                ].map(({ id, label, icon: Icon, disabled }) => (
+                  <button key={id} onClick={() => !disabled && setMethod(id)} disabled={disabled}
                     className={cn("flex flex-col items-center gap-1 p-3 border rounded-lg text-xs transition-all",
+                      disabled ? "border-slate-100 text-slate-300 cursor-not-allowed opacity-50" :
                       method === id ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
                     <Icon size={16} />
                     {label}
+                    {disabled && <span className="text-[10px] text-slate-300">Soon</span>}
                   </button>
                 ))}
               </div>
@@ -963,6 +1064,17 @@ function DueManagementView() {
 
 // ─── Payment History ──────────────────────────────────────────────────────────
 function PaymentHistoryView() {
+  const payQ = usePayments({ pageSize: 100 });
+  const rows = payQ.data?.data ?? [];
+  const stats = payQ.data?.stats;
+  const confirmed = rows.filter((p) => p.status === "CONFIRMED" && !p.isReversed);
+  const failed = rows.filter((p) => p.status === "FAILED");
+  const totalReceived = stats?.totalIn ?? confirmed.reduce((s, p) => s + p.amount, 0);
+
+  if (payQ.isLoading) {
+    return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -970,37 +1082,38 @@ function PaymentHistoryView() {
           <h2 className="text-xl font-bold text-slate-800">Payment History</h2>
           <p className="text-sm text-slate-500 mt-0.5">All payment transactions</p>
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-          <Download size={14} /> Export
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Received (Jul)" value={fmtC(743500)} trend={14} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Transactions" value={String(PAYMENT_HISTORY.length)} icon={Receipt} color="bg-blue-500" />
-        <KpiCard label="Failed" value="1" icon={XCircle} color="bg-red-500" />
+        <KpiCard label="Total Received" value={fmtC(totalReceived)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Transactions" value={String(rows.length)} icon={Receipt} color="bg-blue-500" />
+        <KpiCard label="Failed" value={String(failed.length)} icon={XCircle} color="bg-red-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Txn ID", "Invoice", "Customer", "Amount", "Method", "Gateway", "Date", "Status"].map(h => (
+              {["Txn ID", "Invoice", "Customer", "Amount", "Method", "Date", "Status"].map((h) => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.map(p => (
+            {rows.length === 0 ? (
+              <tr><td colSpan={7} className="px-4 py-8 text-sm text-slate-400 text-center">No payments recorded yet.</td></tr>
+            ) : rows.map((p) => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.id}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoice}</td>
-                <td className="px-4 py-3 text-sm text-slate-700">{p.customer}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.paymentNo ?? p.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoiceNo ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-700">{p.customerName ?? "—"}</td>
                 <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.gateway}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{new Date(p.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
                 <td className="px-4 py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status])}>
-                    {p.status}
+                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
+                    p.status === "CONFIRMED" && !p.isReversed ? PAY_STATUS_CFG.confirmed :
+                    p.status === "FAILED" ? PAY_STATUS_CFG.failed :
+                    p.isReversed ? PAY_STATUS_CFG.refunded : PAY_STATUS_CFG.pending)}>
+                    {p.isReversed ? "reversed" : p.status.toLowerCase()}
                   </span>
                 </td>
               </tr>
@@ -1084,6 +1197,16 @@ function OnlinePaymentsView() {
 
 // ─── Refunds ──────────────────────────────────────────────────────────────────
 function RefundsView() {
+  const refundQ = useRefunds({ pageSize: 100 });
+  const rows = refundQ.data?.data ?? [];
+  const totalRefunded = rows.filter((r) => r.status === "PROCESSED" || r.status === "APPROVED").reduce((s, r) => s + r.amount, 0);
+  const pending = rows.filter((r) => r.status === "PENDING").length;
+  const processed = rows.filter((r) => r.status === "PROCESSED").length;
+
+  if (refundQ.isLoading) {
+    return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -1091,49 +1214,40 @@ function RefundsView() {
           <h2 className="text-xl font-bold text-slate-800">Refunds</h2>
           <p className="text-sm text-slate-500 mt-0.5">Process and track customer refunds</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> New Refund
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Refunded (Jul)" value={fmtC(210000)} icon={RotateCcw} color="bg-red-500" />
-        <KpiCard label="Pending Approval" value="1" icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Processed" value="2" icon={CheckCircle} color="bg-emerald-500" />
+        <KpiCard label="Total Refunded" value={fmtC(totalRefunded)} icon={RotateCcw} color="bg-red-500" />
+        <KpiCard label="Pending Approval" value={String(pending)} icon={Clock} color="bg-amber-500" />
+        <KpiCard label="Processed" value={String(processed)} icon={CheckCircle} color="bg-emerald-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Ref ID", "Invoice", "Customer", "Reason", "Amount", "Method", "Date", "Status", ""].map(h => (
+              {["Ref ID", "Invoice", "Customer", "Reason", "Amount", "Method", "Date", "Status"].map((h) => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {REFUNDS.map(r => (
+            {rows.length === 0 ? (
+              <tr><td colSpan={8} className="px-4 py-8 text-sm text-slate-400 text-center">No refunds recorded yet.</td></tr>
+            ) : rows.map((r) => (
               <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.id}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.invoice}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{r.customer}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.reason}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.refundNo ?? r.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.invoiceNo ?? "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{r.customerName ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{r.reason ?? "—"}</td>
                 <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(r.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.date}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{r.method?.replace(/_/g, " ") ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{new Date(r.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
                 <td className="px-4 py-3">
                   <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                    r.status === "processed" ? "bg-emerald-50 text-emerald-700" :
-                    r.status === "approved" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700")}>
-                    {r.status}
+                    r.status === "PROCESSED" ? "bg-emerald-50 text-emerald-700" :
+                    r.status === "APPROVED" ? "bg-blue-50 text-blue-700" :
+                    r.status === "REJECTED" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700")}>
+                    {r.status.toLowerCase()}
                   </span>
-                </td>
-                <td className="px-4 py-3">
-                  {r.status === "pending" && (
-                    <div className="flex gap-1">
-                      <button className="text-xs text-emerald-600 hover:underline">Approve</button>
-                      <span className="text-slate-300">·</span>
-                      <button className="text-xs text-red-500 hover:underline">Reject</button>
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}

@@ -30,3 +30,9 @@ export const otpRateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, .
 /** Public website forms (booking-request / contact) — the only anonymous
  *  write surface. A human sends a handful; bots get cut off fast. */
 export const publicIntakeRateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 10, ...strict });
+
+/** Public AI chat widget — heavy limit; authenticated ERP chat uses aiAuthChatRateLimiter. */
+export const aiPublicChatRateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 15, ...strict });
+
+/** Authenticated ERP AI assistant — more headroom for staff. */
+export const aiAuthChatRateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, ...strict });

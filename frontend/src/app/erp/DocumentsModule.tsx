@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useErpDocuments, useUploadDocument, downloadDocumentFile } from "../hooks/documents";
+import { useRunOcr } from "../hooks/ocr";
 import { useCustomers } from "../hooks/crm";
 import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (no vite alias; bundling backend code is deliberate off-limits)
 import type { DocumentTypeDto, DocumentDto } from "@contracts/document.contract";
@@ -316,7 +317,11 @@ const OCR_FIELDS = [
 ];
 
 function OcrView() {
-  const [selected, setSelected] = useState("DOC-001");
+  const docs = useErpDocuments({ type: "PASSPORT", pageSize: 50 });
+  const runOcr = useRunOcr();
+  const ocrDocs = (docs.data?.data ?? []).filter((d) => d.hasFile);
+  const [selected, setSelected] = useState<string | null>(null);
+  const activeId = selected ?? ocrDocs[0]?.id ?? null;
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editVal, setEditVal] = useState("");
   const fields = OCR_FIELDS;
@@ -328,10 +333,20 @@ function OcrView() {
         <div>
           <h2 className="text-xl font-bold text-slate-800">OCR Validation</h2>
           <p className="text-sm text-slate-500 mt-0.5">Review and correct extracted field data</p>
+          {ocrDocs.length > 0 && (
+            <select value={activeId ?? ""} onChange={(e) => setSelected(e.target.value || null)}
+              className="mt-2 text-xs border border-slate-200 rounded-lg px-2 py-1">
+              {ocrDocs.map((d) => <option key={d.id} value={d.id}>{d.name} — {d.ownerLabel ?? d.id}</option>)}
+            </select>
+          )}
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-            <RefreshCw size={14} /> Re-run OCR
+          <button
+            onClick={() => activeId && runOcr.mutate(activeId)}
+            disabled={!activeId || runOcr.isPending}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
+            {runOcr.isPending ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            Re-run OCR
           </button>
           <button className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
             <CheckCircle size={14} /> Approve Document

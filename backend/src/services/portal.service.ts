@@ -38,9 +38,9 @@ export async function getProfile(auth: AuthCtx): Promise<PortalProfile> {
 }
 
 // ── bookings ───────────────────────────────────────────────────────────────────
-const toBooking = (b: { id: string; bookingNo: string | null; serviceType: string; status: string; amount: Prisma.Decimal; paidAmount: Prisma.Decimal; currency: string; departureDate: Date | null; returnDate: Date | null; createdAt: Date }): PortalBooking => {
+const toBooking = (b: { id: string; bookingNo: string | null; serviceType: string; status: string; amount: Prisma.Decimal; paidAmount: Prisma.Decimal; currency: string; travelersCount: number; departureDate: Date | null; returnDate: Date | null; createdAt: Date }): PortalBooking => {
   const amount = num(b.amount), paid = num(b.paidAmount);
-  return { id: b.id, bookingNo: b.bookingNo, serviceType: b.serviceType, status: b.status, amount, paidAmount: paid, dueAmount: Math.max(0, amount - paid), currency: b.currency, departureDate: dOnly(b.departureDate), returnDate: dOnly(b.returnDate), createdAt: iso(b.createdAt) };
+  return { id: b.id, bookingNo: b.bookingNo, serviceType: b.serviceType, status: b.status, amount, paidAmount: paid, dueAmount: Math.max(0, amount - paid), currency: b.currency, travelersCount: b.travelersCount, departureDate: dOnly(b.departureDate), returnDate: dOnly(b.returnDate), createdAt: iso(b.createdAt) };
 };
 
 export async function listBookings(auth: AuthCtx): Promise<PortalBooking[]> {

@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { Link } from "react-router";
 import { useTranslation, Trans } from "react-i18next";
 import { ChevronDown, ChevronUp, Search, MessageCircle, Phone } from "lucide-react";
-import { FAQS } from "../lib/data";
 import { cn } from "../lib/utils";
+import { usePublicFaqs } from "../hooks/publicContent";
 
 // FAQS is Record<string, {q,a}[]> — convert to array for rendering
-const FAQ_ARRAY = Object.entries(FAQS).map(([category, items]) => ({ category, items }));
+function faqsToArray(faqs: Record<string, { q: string; a: string }[]>) {
+  return Object.entries(faqs).map(([category, items]) => ({ category, items }));
+}
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
@@ -32,14 +34,16 @@ export function FAQPage() {
   const { t } = useTranslation("faq");
   const [search, setSearch] = useState("");
   const [active, setActive] = useState(0);
-  const categories = FAQ_ARRAY.map(c => c.category);
+  const { faqs } = usePublicFaqs();
+  const faqArray = faqsToArray(faqs);
+  const categories = faqArray.map(c => c.category);
 
   const allFiltered = search.trim()
-    ? FAQ_ARRAY.flatMap(c => c.items.filter(q =>
+    ? faqArray.flatMap(c => c.items.filter(q =>
         q.q.toLowerCase().includes(search.toLowerCase()) ||
         q.a.toLowerCase().includes(search.toLowerCase())
       ))
-    : FAQ_ARRAY[active]?.items ?? [];
+    : faqArray[active]?.items ?? [];
 
   return (
     <>

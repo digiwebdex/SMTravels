@@ -143,6 +143,17 @@ export async function apiFetchBlob(path: string): Promise<Blob> {
   return res.blob();
 }
 
+/** Open an authenticated HTML print view in a new tab (triggers window.print). */
+export async function openPrintPage(path: string): Promise<void> {
+  const blob = await apiFetchBlob(path);
+  const html = await blob.text();
+  const w = window.open("", "_blank", "noopener,noreferrer");
+  if (!w) throw new ApiError(0, "PopupBlocked", "Allow pop-ups to open the print view.");
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
 /** Fetch an authenticated file and hand it to the browser as a download. */
 export async function downloadViaApi(path: string, filename: string): Promise<void> {
   const blob = await apiFetchBlob(path);

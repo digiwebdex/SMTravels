@@ -5,8 +5,8 @@ import {
   Star, Clock, MapPin, ChevronRight, Filter, Search, ArrowRight,
   CheckCircle, XCircle, Users, Hotel, Plane, Calendar, Phone, X,
 } from "lucide-react";
-import { PACKAGES } from "../lib/data";
 import { img, fmtPrice, cn } from "../lib/utils";
+import { usePublicPackages, usePublicPackage, contentLinkKey } from "../hooks/publicContent";
 
 // ─── PACKAGES LISTING ─────────────────────────────────────────────────────────
 const TYPES = ["All", "Hajj", "Umrah", "Tour", "Combined"];
@@ -18,8 +18,9 @@ export function PackagesPage() {
   const [type, setType] = useState("All");
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const { packages, fromApi } = usePublicPackages({ limit: 100 });
 
-  const filtered = PACKAGES.filter(p => {
+  const filtered = packages.filter(p => {
     if (type !== "All" && p.type !== type) return false;
     if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -83,7 +84,7 @@ export function PackagesPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filtered.map(pkg => (
-                <Link key={pkg.id} to={`/packages/${pkg.id}`}
+                <Link key={pkg.slug || pkg.id} to={`/packages/${contentLinkKey(pkg, fromApi)}`}
                   className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group">
                   <div className="relative h-52 overflow-hidden">
                     <img src={img(pkg.image, 600, 420)} alt={pkg.title}
@@ -138,7 +139,7 @@ export function PackagesPage() {
 export function PackageDetailPage() {
   const { t } = useTranslation("packages");
   const { id } = useParams();
-  const pkg = PACKAGES.find(p => String(p.id) === id);
+  const { package: pkg } = usePublicPackage(id);
   const [tab, setTab] = useState<"overview" | "itinerary" | "inclusions">("overview");
   const [form, setForm] = useState({ name: "", phone: "", pax: "2", date: "" });
 

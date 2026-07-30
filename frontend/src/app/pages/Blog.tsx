@@ -2,24 +2,25 @@ import React, { useState } from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Search, Clock, User, Tag, ArrowRight, Calendar, ChevronRight } from "lucide-react";
-import { BLOGS } from "../lib/data";
 import { img, cn } from "../lib/utils";
+import { usePublicBlogPosts, usePublicBlogPost, contentLinkKey } from "../hooks/publicContent";
 
 // ─── BLOG LIST ─────────────────────────────────────────────────────────────────
 export function BlogPage() {
   const { t } = useTranslation("blog");
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const { posts: blogs, fromApi } = usePublicBlogPosts({ limit: 100 });
 
-  const categories = ["All", ...Array.from(new Set(BLOGS.map(b => b.category)))];
+  const categories = ["All", ...Array.from(new Set(blogs.map(b => b.category)))];
 
-  const filtered = BLOGS.filter(b => {
+  const filtered = blogs.filter(b => {
     if (activeCategory !== "All" && b.category !== activeCategory) return false;
     if (search && !b.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const featured = BLOGS[0];
+  const featured = filtered[0] ?? blogs[0];
 
   return (
     <>
@@ -35,7 +36,8 @@ export function BlogPage() {
       <section className="py-8 md:py-12 bg-[#F7F8FA]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           {/* Featured */}
-          <Link to={`/blog/${featured.id}`} className="block mb-8 md:mb-12 bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-xl transition-all duration-200 group">
+          {featured && (
+          <Link to={`/blog/${contentLinkKey(featured, fromApi)}`} className="block mb-8 md:mb-12 bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-xl transition-all duration-200 group">
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="relative h-[260px] md:h-auto overflow-hidden">
                 <img src={img(featured.image, 800, 500)} alt={featured.title}
@@ -58,6 +60,7 @@ export function BlogPage() {
               </div>
             </div>
           </Link>
+          )}
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-5 md:mb-7 items-center">
@@ -82,7 +85,7 @@ export function BlogPage() {
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filtered.map(b => (
-              <Link key={b.id} to={`/blog/${b.id}`}
+              <Link key={b.slug || b.id} to={`/blog/${contentLinkKey(b, fromApi)}`}
                 className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <div className="relative h-48 overflow-hidden">
                   <img src={img(b.image, 600, 350)} alt={b.title}
@@ -122,8 +125,9 @@ export function BlogPage() {
 export function BlogDetailPage() {
   const { t } = useTranslation("blog");
   const { id } = useParams();
-  const blog = BLOGS.find(b => String(b.id) === id);
-  const related = BLOGS.filter(b => String(b.id) !== id).slice(0, 3);
+  const { post: blog, body: apiBody } = usePublicBlogPost(id);
+  const { posts: allBlogs, fromApi } = usePublicBlogPosts({ limit: 100 });
+  const related = allBlogs.filter(b => contentLinkKey(b, fromApi) !== id).slice(0, 3);
 
   if (!blog) {
     return (
@@ -134,7 +138,7 @@ export function BlogDetailPage() {
     );
   }
 
-  const articleContent = `
+  const articleContent = apiBody ?? `
     ${blog.excerpt}
 
     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hajj and Umrah represent the pinnacle of Islamic devotion — a physical, spiritual, and emotional journey that millions of Muslims from around the world undertake each year.
@@ -219,7 +223,7 @@ export function BlogDetailPage() {
                 <h4 className="text-[14px] font-black text-[#111827] mb-4">{t("detail.related")}</h4>
                 <div className="flex flex-col gap-4">
                   {related.map(r => (
-                    <Link key={r.id} to={`/blog/${r.id}`} className="flex gap-3 group">
+                    <Link key={r.slug || r.id} to={`/blog/${contentLinkKey(r, fromApi)}`} className="flex gap-3 group">
                       <img src={img(r.image, 120, 90)} alt={r.title}
                         className="w-16 h-16 rounded-[8px] object-cover flex-shrink-0" />
                       <div>

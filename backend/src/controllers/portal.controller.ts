@@ -1,8 +1,13 @@
 import type { Request, Response } from "express";
 import { ticketCreateSchema, ticketMessageSchema } from "../contracts/portal.contract";
+import { paymentProofSubmitSchema } from "../contracts/finance.contract";
 import { portalDocumentUploadSchema } from "../contracts/document.contract";
 import { HttpError } from "../middleware/errorHandler";
 import * as portal from "../services/portal.service";
+import * as paymentProof from "../services/paymentProof.service";
+import { bookingVoucherPrintHandler as bookingVoucherPrint } from "./print.controller";
+
+export { bookingVoucherPrint as bookingVoucherPrintHandler };
 
 export async function meHandler(req: Request, res: Response) { res.json(await portal.getProfile(req.auth!)); }
 export async function dashboardHandler(req: Request, res: Response) { res.json(await portal.getDashboard(req.auth!)); }
@@ -14,6 +19,10 @@ export async function invoicesHandler(req: Request, res: Response) { res.json({ 
 export async function invoiceHandler(req: Request, res: Response) { res.json(await portal.getInvoice(req.auth!, req.params.id)); }
 
 export async function paymentsHandler(req: Request, res: Response) { res.json({ data: await portal.listPayments(req.auth!) }); }
+export async function bankAccountsHandler(_req: Request, res: Response) { res.json(await paymentProof.listBankAccountsPublic()); }
+export async function submitPaymentProofHandler(req: Request, res: Response) {
+  res.status(201).json(await paymentProof.submitPaymentProof(req.auth!, paymentProofSubmitSchema.parse(req.body), req.file));
+}
 export async function installmentsHandler(req: Request, res: Response) { res.json({ data: await portal.listInstallmentPlans(req.auth!) }); }
 
 export async function documentsHandler(req: Request, res: Response) { res.json({ data: await portal.listDocuments(req.auth!) }); }

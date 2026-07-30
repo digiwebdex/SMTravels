@@ -6,86 +6,37 @@ import {
   ChevronRight, ArrowRight, CheckCircle, Users, Award, Calendar,
   Phone, Quote, Clock, TrendingUp, Heart, Headphones,
 } from "lucide-react";
-import { cn, img, fmtPrice } from "../lib/utils";
-import { PACKAGES, TESTIMONIALS, SERVICES, BLOGS } from "../lib/data";
+import { img, fmtPrice } from "../lib/utils";
+import { SERVICES } from "../lib/data";
 import { HeroBackground } from "../components/HeroBackground";
+import { usePublicPackages, usePublicBlogPosts, usePublicTestimonials, contentLinkKey } from "../hooks/publicContent";
 
-// ─── Hero Booking Widget ──────────────────────────────────────────────────────
-// `id` is the stable value; the display label comes from t(labelKey).
-const SERVICE_TYPES = [
-  { id: "Hajj",         labelKey: "booking.tabs.hajj" },
-  { id: "Umrah",        labelKey: "booking.tabs.umrah" },
-  { id: "Visa",         labelKey: "booking.tabs.visa" },
-  { id: "Air Ticket",   labelKey: "booking.tabs.airTicket" },
-  { id: "Tour Package", labelKey: "booking.tabs.tour" },
-  { id: "Hotel",        labelKey: "booking.tabs.hotel" },
-];
-
-const TRAVELER_OPTIONS = [
-  { id: "1 Traveler",   labelKey: "booking.travelerOptions.one" },
-  { id: "2 Travelers",  labelKey: "booking.travelerOptions.two" },
-  { id: "3 Travelers",  labelKey: "booking.travelerOptions.three" },
-  { id: "4+ Travelers", labelKey: "booking.travelerOptions.fourPlus" },
-];
-
-function BookingWidget() {
+/** Hero CTA group — replaces the old search/booking widget (disabled). */
+function HeroCtas() {
   const { t } = useTranslation("home");
-  const [service, setService] = useState(SERVICE_TYPES[0].id);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [date, setDate] = useState("");
-  const [pax, setPax] = useState(TRAVELER_OPTIONS[0].id);
-
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-full max-w-3xl mx-auto">
-      {/* Service Tabs — horizontally scrollable on mobile */}
-      <div className="flex gap-1 mb-4 md:mb-5 bg-[#F3F4F6] rounded-[10px] p-1 overflow-x-auto no-scrollbar -mx-1 px-1">
-        {SERVICE_TYPES.map(opt => (
-          <button key={opt.id} onClick={() => setService(opt.id)}
-            className={cn("flex-shrink-0 px-3 md:px-4 py-2 rounded-[8px] text-[11px] md:text-[12px] font-semibold transition-all cursor-pointer min-h-[36px]",
-              service === opt.id ? "bg-[#1B75BC] text-white shadow" : "text-[#6B7280] hover:text-[#374151]"
-            )}>
-            {t(opt.labelKey)}
-          </button>
-        ))}
-      </div>
-
-      {/* Fields — 1 col on mobile, 2 on sm, 4 on md */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.from")}</label>
-          <input value={from} onChange={e => setFrom(e.target.value)}
-            placeholder={t("booking.fromPlaceholder")}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.to")}</label>
-          <input value={to} onChange={e => setTo(e.target.value)}
-            placeholder={t("booking.toPlaceholder")}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.departure")}</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.travelers")}</label>
-          <select value={pax} onChange={e => setPax(e.target.value)}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all bg-white cursor-pointer min-h-[48px]">
-            {TRAVELER_OPTIONS.map(o => <option key={o.id} value={o.id}>{t(o.labelKey)}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex gap-3 mt-4">
-        <Link to="/book" className="flex-1 py-3.5 md:py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold rounded-[10px] text-[14px] transition-colors text-center min-h-[48px] flex items-center justify-center">
-          {t("booking.searchBook")}
-        </Link>
-        <Link to="/contact" className="px-4 md:px-5 py-3.5 md:py-3 border-2 border-[#F15A24] text-[#D64A12] font-bold rounded-[10px] text-[13px] hover:bg-[#F15A24]/5 transition-colors flex items-center min-h-[48px]">
-          {t("common:actions.getQuote")}
-        </Link>
-      </div>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full max-w-xl mx-auto">
+      <Link
+        to="/book"
+        className="flex-1 py-3.5 px-6 bg-[#F15A24] hover:bg-[#CC3C17] text-white font-bold rounded-[10px] text-[15px] transition-colors text-center min-h-[48px] flex items-center justify-center shadow-lg shadow-[#F15A24]/25"
+      >
+        {t("hero.cta.book")}
+      </Link>
+      <Link
+        to="/contact"
+        className="flex-1 py-3.5 px-6 bg-white/95 hover:bg-white text-[#1B75BC] font-bold rounded-[10px] text-[15px] transition-colors text-center min-h-[48px] flex items-center justify-center"
+      >
+        {t("hero.cta.contact")}
+      </Link>
+      <a
+        href="https://wa.me/8801712345678?text=Hello%20SMTravel"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 py-3.5 px-6 border-2 border-white/40 hover:border-white text-white font-bold rounded-[10px] text-[15px] transition-colors text-center min-h-[48px] flex items-center justify-center gap-2"
+      >
+        <Phone size={16} />
+        {t("hero.cta.whatsapp")}
+      </a>
     </div>
   );
 }
@@ -127,6 +78,12 @@ function Counter({ end, suffix = "", label }: { end: number; suffix?: string; la
 // ─── HOME PAGE ───────────────────────────────────────────────────────────────
 export function Home() {
   const { t } = useTranslation("home");
+  const { packages: allPackages, fromApi: packagesFromApi } = usePublicPackages({ limit: 20 });
+  const { posts: allBlogs, fromApi: blogsFromApi } = usePublicBlogPosts({ limit: 10 });
+  const { testimonials: allTestimonials } = usePublicTestimonials();
+  const featuredPackages = allPackages.slice(0, 4);
+  const featuredBlogs = allBlogs.slice(0, 3);
+  const featuredTestimonials = allTestimonials.slice(0, 3);
   const services = [
     { id: "hajj", i18n: "hajj", icon: Star, color: "#F15A24", bg: "#FFF9E6" },
     { id: "umrah", i18n: "umrah", icon: MapPin, color: "#1B75BC", bg: "#EEF2FF" },
@@ -182,7 +139,7 @@ export function Home() {
             ))}
           </div>
 
-          <BookingWidget />
+          <HeroCtas />
 
           <p className="text-white/40 text-[11px]">
             {t("hero.reassurance")}
@@ -243,8 +200,8 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {PACKAGES.slice(0, 4).map(pkg => (
-              <Link key={pkg.id} to={`/packages/${pkg.id}`}
+            {featuredPackages.map(pkg => (
+              <Link key={pkg.slug || pkg.id} to={`/packages/${contentLinkKey(pkg, packagesFromApi)}`}
                 className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group">
                 <div className="relative h-48 overflow-hidden">
                   <img src={img(pkg.image, 600, 400)} alt={pkg.title}
@@ -360,7 +317,7 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {TESTIMONIALS.slice(0, 3).map((t, idx) => (
+            {featuredTestimonials.map((t, idx) => (
               <div key={idx} className="bg-[#F7F8FA] rounded-2xl p-6 border border-[#E5E7EB] relative">
                 <Quote size={28} className="text-[#D64A12]/30 mb-3" />
                 <p className="text-[13px] text-[#374151] leading-relaxed mb-5 italic">"{t.text}"</p>
@@ -398,8 +355,8 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {BLOGS.slice(0, 3).map(b => (
-              <Link key={b.id} to={`/blog/${b.id}`}
+            {featuredBlogs.map(b => (
+              <Link key={b.slug || b.id} to={`/blog/${contentLinkKey(b, blogsFromApi)}`}
                 className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
                 <div className="relative h-48 overflow-hidden">
                   <img src={img(b.image, 600, 300)} alt={b.title}

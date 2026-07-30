@@ -100,3 +100,16 @@ export interface DocumentListResult {
   page: number;
   pageSize: number;
 }
+
+/** OCR extraction result returned by POST /documents/:id/ocr */
+export interface DocumentOcrResultDto {
+  id: string;
+  name: string;
+  ocrStatus: string | null;
+  ocrConfidence: number | null;
+  ocrName: string | null;
+  ocrPassportNo: string | null;
+  ocrDob: string | null;
+  ocrExpiry: string | null;
+  ocrNationality: string | null;
+}

@@ -3,7 +3,7 @@ import { UserRole } from "@prisma/client";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth, requireRole } from "../middleware/auth";
 import {
-  agentMe, agentDashboard, agentLeads, agentCreateLead, agentBookings,
+  agentMe, agentDashboard, agentLeads, agentCreateLead, agentBookings, agentCustomers,
   agentCommissions, agentWallet, agentTeam, agentTeamMember,
 } from "../controllers/portal.agent.controller";
 import {
@@ -30,6 +30,7 @@ portalRolesRouter.get(`${A}/dashboard`, requireAuth, asyncHandler(agentDashboard
 portalRolesRouter.get(`${A}/leads`, requireAuth, asyncHandler(agentLeads));
 portalRolesRouter.post(`${A}/leads`, requireAuth, asyncHandler(agentCreateLead));
 portalRolesRouter.get(`${A}/bookings`, requireAuth, asyncHandler(agentBookings));
+portalRolesRouter.get(`${A}/customers`, requireAuth, asyncHandler(agentCustomers));
 portalRolesRouter.get(`${A}/commissions`, requireAuth, asyncHandler(agentCommissions));
 portalRolesRouter.get(`${A}/wallet`, requireAuth, asyncHandler(agentWallet)); // READ-ONLY — no POST/PATCH exists
 portalRolesRouter.get(`${A}/team`, requireAuth, asyncHandler(agentTeam));

@@ -45,6 +45,21 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
 }
 
+/** Attach req.auth when a valid Bearer token is present; never 401s. */
+export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+  if (token) {
+    try {
+      const claims = verifyAccessToken(token);
+      req.auth = { userId: claims.sub, role: claims.role, branchId: claims.branchId };
+    } catch {
+      /* treat as anonymous */
+    }
+  }
+  next();
+}
+
 /** Coarse gate on the token's role hint (fast, no DB). Use for route-family
  *  guards like "/erp/* needs a staff role"; use requirePermission for fine grain. */
 export function requireRole(...roles: UserRole[]) {
@@ -69,6 +84,12 @@ export function requireRole(...roles: UserRole[]) {
   };
 }
 
+function hasModuleAccess(grants: { access: string }[], action: "view" | "manage"): boolean {
+  return grants.some((g) =>
+    action === "view" ? g.access === "view" || g.access === "full" : g.access === "full",
+  );
+}
+
 /** Fine-grained gate that reads the RBAC tables (the authorization source of
  *  truth). `action:"view"` passes on access view|full; `action:"manage"` needs full. */
 export function requirePermission(module: string, action: "view" | "manage" = "view") {
@@ -82,10 +103,7 @@ export function requirePermission(module: string, action: "view" | "manage" = "v
         where: { role: { users: { some: { userId: req.auth.userId } } }, permission: { module } },
         select: { access: true },
       });
-      const ok = grants.some((g) =>
-        action === "view" ? g.access === "view" || g.access === "full" : g.access === "full",
-      );
-      if (!ok) {
+      if (!hasModuleAccess(grants, action)) {
         void audit({
           event: "PERMISSION_DENIED",
           userId: req.auth.userId,
@@ -95,6 +113,44 @@ export function requirePermission(module: string, action: "view" | "manage" = "v
           detail: `${module}.${action}`,
         });
         res.status(403).json({ error: "Forbidden", message: `Missing ${module}.${action}`, requestId: req.id });
+        return;
+      }
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+/** Pass if the user has the requested action on ANY of the listed modules. */
+export function requireAnyPermission(modules: string[], action: "view" | "manage" = "view") {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.auth) {
+        res.status(401).json({ error: "Unauthorized", requestId: req.id });
+        return;
+      }
+      const grants = await prisma.rolePermission.findMany({
+        where: {
+          role: { users: { some: { userId: req.auth.userId } } },
+          permission: { module: { in: modules } },
+        },
+        select: { access: true },
+      });
+      if (!hasModuleAccess(grants, action)) {
+        void audit({
+          event: "PERMISSION_DENIED",
+          userId: req.auth.userId,
+          ip: clientIp(req),
+          resource: modules.join("|"),
+          severity: AuditSeverity.WARNING,
+          detail: `need one of [${modules.join(",")}].${action}`,
+        });
+        res.status(403).json({
+          error: "Forbidden",
+          message: `Missing ${modules.join(" or ")}.${action}`,
+          requestId: req.id,
+        });
         return;
       }
       next();

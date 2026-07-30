@@ -36,5 +36,43 @@
   "empty": {
     "failed": "Something went wrong",
     "nothing": "Nothing here yet"
+  },
+  "nav": {
+    "groups": {
+      "dashboard": "Dashboard",
+      "crm": "CRM",
+      "services": "Services",
+      "catalog": "Catalog",
+      "finance": "Finance",
+      "workspace": "Workspace",
+      "reports": "Reports",
+      "system": "System"
+    },
+    "executiveDashboard": "Executive Dashboard",
+    "leads": "Leads",
+    "customers": "Customers",
+    "corporateClients": "Corporate Clients",
+    "allBookings": "All Bookings",
+    "hajj": "Hajj",
+    "umrah": "Umrah",
+    "visa": "Visa",
+    "airTicket": "Air Ticket",
+    "hotel": "Hotel",
+    "manpower": "Manpower",
+    "tour": "Tour",
+    "packages": "Packages",
+    "servicesConfig": "Services Config",
+    "accounts": "Accounts",
+    "invoicesPayments": "Invoices & Payments",
+    "documents": "Documents",
+    "communications": "Communications",
+    "reportsAnalytics": "Reports & Analytics",
+    "reportsBi": "Reports & BI",
+    "websiteCms": "Website CMS",
+    "operations": "Operations",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Executive Dashboard"
   }
 }

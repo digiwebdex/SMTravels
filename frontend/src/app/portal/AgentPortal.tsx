@@ -15,7 +15,7 @@ import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import {
   useAgentMe, useAgentDashboard, useAgentWallet, useAgentTeam, useAgentLeads, useAgentCommissions,
-  useAgentBookings, useCreateLead,
+  useAgentBookings, useAgentCustomers, useCreateLead,
 } from "../hooks/portals";
 import { SampleBadge } from "./SampleBadge";
 
@@ -380,55 +380,48 @@ function LeadsView() {
 // ─── CUSTOMERS ───────────────────────────────────────────────────────────────
 function CustomersView() {
   const { t } = useTranslation("portalAgent");
+  const q = useAgentCustomers();
+  const customers = q.data ?? [];
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.customers")}</h2>
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-          <input placeholder={t("common.searchShort")} className="pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none w-36"/>
-        </div>
       </div>
+      <PLoad q={q}>
       <div className="space-y-3">
-        {CUSTOMERS.map(c=>(
+        {customers.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.none")}</p>
+        ) : customers.map((c) => (
           <div key={c.id} className="bg-white rounded-2xl border border-slate-200 p-5">
             <div className="flex items-start gap-3 mb-3">
               <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0",
-                c.status==="vip"?"bg-[#F15A24]/20 text-[#D64A12]":"bg-[#1B75BC]/10 text-[#1B75BC]")}>
-                {c.name.split(" ").map(n=>n[0]).join("")}
+                c.status === "vip" ? "bg-[#F15A24]/20 text-[#D64A12]" : "bg-[#1B75BC]/10 text-[#1B75BC]")}>
+                {c.name.split(" ").map((n) => n[0]).join("")}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-slate-800">{c.name}</p>
-                  {c.status==="vip" && (
+                  {c.status === "vip" && (
                     <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-[#F15A24]/15 text-[#D64A12] rounded-full font-bold">
                       <Star size={10} className="fill-[#F15A24]"/> {t("customers.vip")}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">{c.phone} · {c.id}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{c.phone}</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              {[[t("portalCommon:nav.bookings"),c.bookings],[t("customers.totalValue"),fmtBDT(c.totalVal)],[t("customers.lastBooking"),c.lastBooking]].map(([k,v])=>(
+              {[[t("portalCommon:nav.bookings"), c.bookingsCount], [t("customers.totalValue"), fmtBDT(c.totalValue)], [t("customers.lastBooking"), c.lastBookingAt ? iso2date(c.lastBookingAt) : "—"]].map(([k, v]) => (
                 <div key={k as string} className="bg-slate-50 rounded-xl p-2.5 text-center">
-                  <p className="text-sm font-bold text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p>
+                  <p className="text-sm font-bold text-slate-800" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{v}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{k}</p>
                 </div>
               ))}
             </div>
-            <div className="flex gap-2 mt-3">
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap">
-                <Eye size={12}/> {t("customers.viewHistory")}
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] whitespace-nowrap">
-                <Briefcase size={12}/> {t("customers.newBooking")}
-              </button>
-            </div>
           </div>
         ))}
       </div>
+      </PLoad>
     </div>
   );
 }

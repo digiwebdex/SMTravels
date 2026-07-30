@@ -8,6 +8,10 @@ import {
   Info, GitBranch, FileText,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { Loader2 } from "lucide-react";
+import { useIntegrationsStatus, useTestIntegration } from "../hooks/integrations";
+import { useBankAccounts } from "../hooks/finance";
+import { useAdminUsers, useUpdateUser, useRoles, useAdminBranches } from "../hooks/settings";
 
 type SView =
   | "general" | "email" | "sms" | "whatsapp" | "payment"
@@ -36,7 +40,6 @@ const NAV_GROUPS = [
   ]},
   { label:"Infrastructure", items:[
     { id:"backup"      as SView, label:"Backup Settings",    icon:Database   },
-    { id:"plans"       as SView, label:"Subscription Plans", icon:Star       },
     { id:"health"      as SView, label:"System Health",      icon:Activity   },
   ]},
 ];
@@ -141,6 +144,60 @@ function SaveBtn() {
   );
 }
 
+function ConnectionStatus({ configured, loading }: { configured: boolean; loading?: boolean }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-400">
+        <Loader2 size={15} className="animate-spin"/><span className="text-sm">Checking connection…</span>
+      </div>
+    );
+  }
+  return (
+    <div className={cn("flex items-center gap-3 p-3.5 rounded-xl border",
+      configured ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200")}>
+      {configured ? <CheckCircle size={15} className="text-emerald-500 flex-shrink-0"/> : <AlertTriangle size={15} className="text-amber-500 flex-shrink-0"/>}
+      <p className={cn("text-sm font-medium", configured ? "text-emerald-700" : "text-amber-700")}>
+        {configured ? "Configured" : "Not configured"}
+      </p>
+    </div>
+  );
+}
+
+function EnvKeysNote() {
+  return (
+    <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+      <Key size={15} className="text-slate-400 flex-shrink-0"/>
+      <p className="text-sm text-slate-600">
+        API keys live in server <code className="text-xs bg-slate-200 px-1.5 py-0.5 rounded font-mono">.env.production</code> — never pasted in this UI
+      </p>
+    </div>
+  );
+}
+
+function IntegrationTestForm({ channel, placeholder }: { channel: "email" | "sms" | "whatsapp"; placeholder: string }) {
+  const [to, setTo] = useState("");
+  const [sent, setSent] = useState(false);
+  const test = useTestIntegration();
+  const send = () => {
+    if (!to.trim()) return;
+    test.mutate({ channel, to: to.trim() }, {
+      onSuccess: () => { setSent(true); setTimeout(() => setSent(false), 3000); },
+    });
+  };
+  return (
+    <Panel title="Send test" icon={Zap}>
+      <div className="flex gap-2">
+        <input value={to} onChange={(e) => setTo(e.target.value)} placeholder={placeholder}
+          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+        <button onClick={send} disabled={test.isPending || !to.trim()}
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50 whitespace-nowrap">
+          {test.isPending ? <Loader2 size={14} className="animate-spin"/> : sent ? <><CheckCircle size={14}/> Sent!</> : <><Zap size={14}/> Send test</>}
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
 // ─── GENERAL ─────────────────────────────────────────────────────────────────
 function GeneralSettings() {
   return (
@@ -179,18 +236,21 @@ function GeneralSettings() {
 
 // ─── EMAIL ────────────────────────────────────────────────────────────────────
 function EmailSettings() {
-  const [testOk, setTestOk] = useState(false);
+  const { data: status, isLoading } = useIntegrationsStatus();
   return (
     <div className="space-y-5">
       <PageHeader title="Email Settings" subtitle="SMTP configuration for outgoing email"/>
+      <ConnectionStatus configured={!!status?.email} loading={isLoading}/>
+      <EnvKeysNote/>
       <Panel title="SMTP Configuration" icon={Mail}>
-        <Field label="Mail Driver"><Sel opts={["SMTP","SendGrid","Mailgun","Amazon SES"]}/></Field>
-        <Field label="SMTP Host"><Inp dv="smtp.gmail.com"/></Field>
-        <Field label="SMTP Port"><Inp dv="587"/></Field>
-        <Field label="Encryption"><Sel opts={["TLS","SSL","None"]} dv="TLS"/></Field>
-        <Field label="Username"><Inp type="email" dv="noreply@bdhtravels.com"/></Field>
-        <Field label="Password"><SecretInp dv="••••••••••"/></Field>
-        <Field label="From Name"><Inp dv="BDH Travels & Tourism"/></Field>
+        <Field label="Mail Driver" hint="Configured via server environment"><Sel opts={["SMTP","SendGrid","Mailgun","Amazon SES"]}/></Field>
+        <Field label="From Name"><Inp dv="SM Travels International"/></Field>
+        <Field label="Status" hint="Live credential check">
+          <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium",
+            status?.email ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
+            {isLoading ? "Checking…" : status?.email ? "Configured" : "Not configured"}
+          </span>
+        </Field>
       </Panel>
       <Panel title="Email Templates" icon={Mail}>
         {["Booking Confirmation","Payment Receipt","Visa Update","Password Reset","Welcome Email"].map(t=>(
@@ -200,35 +260,30 @@ function EmailSettings() {
           </div>
         ))}
       </Panel>
-      <div className="flex items-center justify-between">
-        <button onClick={()=>{setTestOk(true);setTimeout(()=>setTestOk(false),3000);}}
-          className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-          {testOk?<><CheckCircle size={14} className="text-emerald-500"/> Sent!</>:<><Zap size={14}/> Send Test Email</>}
-        </button>
-        <SaveBtn/>
-      </div>
+      <IntegrationTestForm channel="email" placeholder="recipient@example.com"/>
     </div>
   );
 }
 
 // ─── SMS ─────────────────────────────────────────────────────────────────────
 function SmsSettings() {
+  const { data: status, isLoading } = useIntegrationsStatus();
   return (
     <div className="space-y-5">
       <PageHeader title="SMS Settings" subtitle="BulkSMSBD API for outgoing SMS notifications"/>
+      <ConnectionStatus configured={!!status?.sms} loading={isLoading}/>
+      <EnvKeysNote/>
       <div className="flex items-center gap-3 p-3.5 bg-blue-50 border border-blue-200 rounded-xl">
         <Info size={15} className="text-blue-500 flex-shrink-0"/>
-        <p className="text-sm text-blue-700">Using <strong>BulkSMSBD</strong> — Bangladesh's leading bulk SMS gateway. Docs at <a href="#" className="underline">bulksmsbd.net</a></p>
+        <p className="text-sm text-blue-700">Using <strong>BulkSMSBD</strong> — credentials are managed on the server, not in this UI.</p>
       </div>
       <Panel title="BulkSMSBD API" icon={MessageSquare} iconColor="#059669">
-        <Field label="API Key" hint="From your BulkSMSBD dashboard"><SecretInp dv="bdh_api_xxxxxxxxxxxx"/></Field>
-        <Field label="Sender ID" hint="Approved alphanumeric sender"><Inp dv="BDHTRVL"/></Field>
-        <Field label="API Endpoint"><Inp dv="https://bulksmsbd.net/api/smsapi"/></Field>
-        <Field label="SMS Balance" hint="Current credit balance">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-slate-800 font-mono">4,280 credits</span>
-            <button className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-emerald-600 text-white rounded-lg"><Plus size={11}/> Top Up</button>
-          </div>
+        <Field label="Sender ID" hint="Configured via BULKSMSBD_SENDER_ID in .env.production"><Inp dv="— server managed —" placeholder="Set in .env.production"/></Field>
+        <Field label="Connection">
+          <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium",
+            status?.sms ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
+            {isLoading ? "Checking…" : status?.sms ? "Configured" : "Not configured"}
+          </span>
         </Field>
       </Panel>
       <Panel title="SMS Triggers" icon={Bell}>
@@ -239,28 +294,37 @@ function SmsSettings() {
           </div>
         ))}
       </Panel>
-      <SaveBtn/>
+      <IntegrationTestForm channel="sms" placeholder="+880 1XXXXXXXXX"/>
     </div>
   );
 }
 
 // ─── WHATSAPP ────────────────────────────────────────────────────────────────
 function WhatsappSettings() {
+  const { data: status, isLoading } = useIntegrationsStatus();
   return (
     <div className="space-y-5">
       <PageHeader title="WhatsApp Settings" subtitle="Wasender API for WhatsApp Business messaging"/>
-      <div className="flex items-center gap-3 p-3.5 bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl">
+      <ConnectionStatus configured={!!status?.whatsapp} loading={isLoading}/>
+      <EnvKeysNote/>
+      <div className={cn("flex items-center gap-3 p-3.5 rounded-xl border",
+        status?.whatsapp ? "bg-[#25D366]/10 border-[#25D366]/30" : "bg-amber-50 border-amber-200")}>
         <div className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0"><Phone size={12} className="text-white"/></div>
-        <p className="text-sm text-[#1a9e4e] font-medium">Connected — BDH Official WhatsApp Business account active</p>
+        <p className={cn("text-sm font-medium", status?.whatsapp ? "text-[#1a9e4e]" : "text-amber-700")}>
+          {isLoading ? "Checking connection…" : status?.whatsapp ? "Wasender API configured" : "Wasender API not configured"}
+        </p>
       </div>
       <Panel title="Wasender API" icon={Phone} iconColor="#25D366">
-        <Field label="API Token"><SecretInp dv="wsndr_live_xxxxxxxxxxx"/></Field>
-        <Field label="Phone Number ID"><Inp dv="+880 1XXXXXXXXX"/></Field>
-        <Field label="Business Account ID"><Inp dv="105xxxxxxxxxx"/></Field>
         <Field label="Webhook URL" hint="For incoming message events">
-          <div className="flex gap-2"><Inp dv="https://bdhtravels.com/api/whatsapp/webhook"/>
+          <div className="flex gap-2"><Inp dv="https://your-domain.com/api/whatsapp/webhook"/>
             <button className="px-3 py-2 border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 flex-shrink-0"><Copy size={14}/></button>
           </div>
+        </Field>
+        <Field label="Connection">
+          <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium",
+            status?.whatsapp ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
+            {isLoading ? "Checking…" : status?.whatsapp ? "Configured" : "Not configured"}
+          </span>
         </Field>
       </Panel>
       <Panel title="Message Templates" icon={MessageSquare} iconColor="#25D366">
@@ -277,58 +341,97 @@ function WhatsappSettings() {
           </div>
         ))}
       </Panel>
-      <SaveBtn/>
+      <IntegrationTestForm channel="whatsapp" placeholder="+880 1XXXXXXXXX"/>
     </div>
   );
 }
 
 // ─── PAYMENT ─────────────────────────────────────────────────────────────────
 function PaymentSettings() {
-  const gws = [
-    { name:"bKash",      logo:"bK",  color:"#E2136E", mode:"live",    fee:"1.5%" },
-    { name:"Nagad",      logo:"Na",  color:"#F7941D", mode:"live",    fee:"1.5%" },
-    { name:"SSLCommerz", logo:"SSL", color:"#E12219", mode:"sandbox", fee:"2.5%" },
-    { name:"Visa/MC",    logo:"V/M", color:"#1A1F71", mode:"live",    fee:"2.0%" },
+  const { data: banks, isLoading } = useBankAccounts();
+  const disabledGws = [
+    { name:"bKash",      logo:"bK",  color:"#E2136E" },
+    { name:"Nagad",      logo:"Na",  color:"#F7941D" },
+    { name:"SSLCommerz", logo:"SSL", color:"#E12219" },
   ];
   return (
     <div className="space-y-5">
-      <PageHeader title="Payment Settings" subtitle="Configure payment gateways and transaction settings"/>
-      {gws.map(gw=>(
-        <Panel key={gw.name} title={gw.name} icon={CreditCard} iconColor={gw.color}>
-          <div className="flex items-center justify-between mb-4">
+      <PageHeader title="Payment Settings" subtitle="NPSB bank transfer instructions for customer portal payments"/>
+      <div className="flex items-center gap-3 p-3.5 bg-blue-50 border border-blue-200 rounded-xl">
+        <Info size={15} className="text-blue-500 flex-shrink-0"/>
+        <p className="text-sm text-blue-700">
+          Customers pay via <strong>NPSB bank transfer</strong>, upload proof in the portal, and staff verify in Invoices → Payment Collection.
+          Bank accounts are managed in <strong>Accounts → Bank Accounts</strong>.
+        </p>
+      </div>
+      <Panel title="NPSB — Company Bank Accounts" icon={CreditCard} iconColor="#1B75BC">
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-sm text-slate-400 py-4"><Loader2 size={16} className="animate-spin"/> Loading accounts…</div>
+        ) : (banks ?? []).length === 0 ? (
+          <p className="text-sm text-slate-500 py-2">No active bank accounts. Add them in the Accounts module to show NPSB instructions to customers.</p>
+        ) : (
+          <div className="space-y-3">
+            {(banks ?? []).filter((b) => b.active).map((b) => (
+              <div key={b.id} className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                <p className="font-semibold text-slate-800 text-sm">{b.name}</p>
+                {b.bankName && <p className="text-xs text-slate-500 mt-0.5">{b.bankName}{b.branchName ? ` · ${b.branchName}` : ""}</p>}
+                <div className="flex flex-wrap gap-4 mt-2 text-sm">
+                  {b.accountNumber && <span className="font-mono text-slate-700">A/C: {b.accountNumber}</span>}
+                  {b.iban && <span className="font-mono text-slate-600">IBAN: {b.iban}</span>}
+                  <span className="text-xs px-2 py-0.5 bg-[#1B75BC]/10 text-[#1B75BC] rounded-full font-medium">{b.currency}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Panel>
+      <Panel title="How NPSB works" icon={FileText} iconColor="#F15A24">
+        <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
+          <li>Customer transfers to a company account above via NPSB / mobile banking.</li>
+          <li>Customer submits amount, NPSB reference, and proof screenshot in the portal.</li>
+          <li>Accountant approves or rejects the pending payment in Invoices → Payment Collection.</li>
+        </ol>
+      </Panel>
+      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">Coming soon — disabled</p>
+      {disabledGws.map(gw=>(
+        <Panel key={gw.name} title={gw.name} icon={CreditCard} iconColor={gw.color} className="opacity-60">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: gw.color }}>{gw.logo}</div>
-              <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",gw.mode==="live"?"bg-emerald-50 text-emerald-600":"bg-amber-50 text-amber-600")}>{gw.mode.toUpperCase()}</span>
+              <div className="w-12 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold opacity-50" style={{ background: gw.color }}>{gw.logo}</div>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-400">Not available</span>
             </div>
-            <Toggle on={gw.mode==="live"}/>
+            <Toggle on={false} label="Disabled"/>
           </div>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div><label className="text-xs font-medium text-slate-500 mb-1 block">API Key / Merchant ID</label><SecretInp dv="live_xxxxxxxxxxxx"/></div>
-            <div><label className="text-xs font-medium text-slate-500 mb-1 block">Secret Key</label><SecretInp dv="secret_xxxxxxxxx"/></div>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-slate-500">Transaction fee: <strong className="text-slate-700">{gw.fee}</strong></span>
-            <Sel opts={["Live Mode","Sandbox Mode"]} dv={gw.mode==="live"?"Live Mode":"Sandbox Mode"}/>
-          </div>
+          <p className="text-xs text-slate-400 mt-3">Online gateway integration is planned for a future release.</p>
         </Panel>
       ))}
-      <SaveBtn/>
     </div>
   );
 }
 
 // ─── OCR ────────────────────────────────────────────────────────────────────
 function OcrSettings() {
+  const { data: status, isLoading } = useIntegrationsStatus();
   return (
     <div className="space-y-5">
       <PageHeader title="OCR Settings" subtitle="Optical Character Recognition for passport & document scanning"/>
+      <ConnectionStatus configured={!!status?.vision} loading={isLoading}/>
+      <EnvKeysNote/>
       <div className="flex items-center gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
         <AlertTriangle size={15} className="text-amber-500 flex-shrink-0"/>
-        <p className="text-sm text-amber-700">OCR is a <strong>paid add-on</strong>. Current plan: <strong>500 scans/month</strong> · Used: <strong>312 / 500</strong> this cycle.</p>
+        <p className="text-sm text-amber-700">
+          Google Vision: <strong>{isLoading ? "…" : status?.vision ? "Configured" : "Not configured"}</strong>
+          {status?.gemini != null && <> · Gemini: <strong>{status.gemini ? "Configured" : "Not configured"}</strong></>}
+        </p>
       </div>
       <Panel title="OCR Provider" icon={ScanText} iconColor="#7C3AED">
-        <Field label="Provider"><Sel opts={["OpenAI GPT-4 Vision","Google Vision API","AWS Textract","Azure Computer Vision"]}/></Field>
-        <Field label="API Key"><SecretInp dv="sk-proj-xxxxxxxxxxxx"/></Field>
+        <Field label="Provider"><Sel opts={["Google Vision API","OpenAI GPT-4 Vision","AWS Textract","Azure Computer Vision"]} dv="Google Vision API"/></Field>
+        <Field label="Vision API" hint="GOOGLE_VISION_* in .env.production">
+          <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium",
+            status?.vision ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
+            {isLoading ? "Checking…" : status?.vision ? "Configured" : "Not configured"}
+          </span>
+        </Field>
         <Field label="Model"><Sel opts={["gpt-4o","gpt-4-vision-preview","claude-sonnet-4-6"]}/></Field>
         <Field label="Confidence Threshold" hint="Min % to auto-accept field">
           <div className="flex items-center gap-3">
@@ -411,68 +514,61 @@ function BackupSettings() {
 }
 
 // ─── ROLES ───────────────────────────────────────────────────────────────────
-const ROLES_DATA = [
-  { id:1, name:"Super Admin",    users:1, color:"#EF4444", desc:"Full system access. No restrictions."              },
-  { id:2, name:"Branch Manager", users:3, color:"#1B75BC", desc:"Full branch access, read-only other branches."     },
-  { id:3, name:"Sales Executive",users:8, color:"#0E7C66", desc:"Manage bookings, clients, invoices."               },
-  { id:4, name:"Visa Officer",   users:4, color:"#F15A24", desc:"Visa applications, OCR, status updates."           },
-  { id:5, name:"Accountant",     users:2, color:"#2563EB", desc:"Finance, invoices, reports. No booking edits."     },
-  { id:6, name:"HR Manager",     users:1, color:"#7C3AED", desc:"Staff, KPI, payroll, manpower management."         },
-  { id:7, name:"Support Staff",  users:5, color:"#64748B", desc:"View-only CRM, respond to inquiries."              },
-];
-const MODS = ["Dashboard","Bookings","CRM","Packages","Accounts","Invoices","Reports","Documents","CMS","Operations","Settings"];
+const ROLE_COLORS: Record<string, string> = {
+  SUPER_ADMIN: "#EF4444", COMPANY_ADMIN: "#DC2626", BRANCH_MANAGER: "#1B75BC",
+  STAFF: "#64748B", ACCOUNTANT: "#2563EB", SALES_EXECUTIVE: "#0E7C66",
+  VISA_EXECUTIVE: "#F15A24", HAJJ_EXECUTIVE: "#7C3AED", UMRAH_EXECUTIVE: "#9333EA",
+  AGENT: "#059669", SUPPLIER: "#78716C", CUSTOMER: "#94A3B8",
+};
+const MODS = ["dashboard","bookings","crm","packages","accounts","invoices","reports","documents","cms","ops","settings"];
 
 function RolesView() {
-  const [sel, setSel] = useState(1);
-  const role = ROLES_DATA.find(r=>r.id===sel)!;
+  const { data: roles, isLoading, isError } = useRoles();
+  const [sel, setSel] = useState<string | null>(null);
+  const selected = roles?.find((r) => r.id === (sel ?? roles[0]?.id));
+  if (isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  if (isError || !roles?.length) return <p className="text-sm text-slate-500">Unable to load roles.</p>;
+  const role = selected ?? roles[0];
+  const permByMod = Object.fromEntries((role.permissions ?? []).map((p) => [p.module, p.access]));
   return (
     <div>
-      <PageHeader title="Role Management" subtitle="Define roles and their access scope"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Plus size={14}/> New Role</button>}/>
+      <PageHeader title="Role Management" subtitle="System roles and module access (read-only matrix from RBAC seed)"/>
       <div className="grid grid-cols-3 gap-5">
-        <div className="space-y-2">
-          {ROLES_DATA.map(r=>(
-            <button key={r.id} onClick={()=>setSel(r.id)}
+        <div className="space-y-2 max-h-[32rem] overflow-y-auto">
+          {roles.map((r) => (
+            <button key={r.id} onClick={() => setSel(r.id)}
               className={cn("w-full text-left p-4 rounded-xl border transition-all",
-                sel===r.id?"border-[#1B75BC] bg-[#1B75BC]/5":"bg-white border-slate-200 hover:bg-slate-50")}>
+                role.id === r.id ? "border-[#1B75BC] bg-[#1B75BC]/5" : "bg-white border-slate-200 hover:bg-slate-50")}>
               <div className="flex items-center gap-2.5 mb-0.5">
-                <div className="w-3 h-3 rounded-full" style={{ background: r.color }}/>
+                <div className="w-3 h-3 rounded-full" style={{ background: ROLE_COLORS[r.key] ?? "#64748B" }}/>
                 <span className="text-sm font-semibold text-slate-800 flex-1">{r.name}</span>
-                <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{r.users}</span>
+                <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{r.userCount}</span>
               </div>
-              <p className="text-xs text-slate-400 ml-5">{r.desc}</p>
+              <p className="text-xs text-slate-400 ml-5">{r.description ?? r.key}</p>
             </button>
           ))}
         </div>
         <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold" style={{ background: role.color }}>{role.name.slice(0,1)}</div>
-              <div><p className="font-bold text-slate-800">{role.name}</p><p className="text-xs text-slate-400">{role.users} users assigned</p></div>
-            </div>
-            <div className="flex gap-2">
-              <button className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600"><Edit2 size={13}/> Edit</button>
-              {role.id!==1 && <button className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-red-200 text-red-500 rounded-lg"><Trash2 size={13}/> Delete</button>}
-            </div>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold" style={{ background: ROLE_COLORS[role.key] ?? "#64748B" }}>{role.name.slice(0, 1)}</div>
+            <div><p className="font-bold text-slate-800">{role.name}</p><p className="text-xs text-slate-400">{role.userCount} users · {role.isSystem ? "System role" : "Custom"}</p></div>
           </div>
-          <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Description</label>
-            <Txt dv={role.desc} rows={2}/>
-          </div>
+          {role.description && <p className="text-sm text-slate-600">{role.description}</p>}
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Module Access</p>
             <div className="grid grid-cols-2 gap-2">
-              {MODS.map(mod=>(
-                <div key={mod} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
-                  <span className="text-xs text-slate-600">{mod}</span>
-                  <select className="text-xs border border-slate-200 rounded px-1.5 py-0.5 bg-white focus:outline-none">
-                    <option>Full</option><option>View</option><option>None</option>
-                  </select>
-                </div>
-              ))}
+              {MODS.map((mod) => {
+                const access = permByMod[mod] ?? "none";
+                return (
+                  <div key={mod} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                    <span className="text-xs text-slate-600 capitalize">{mod}</span>
+                    <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize",
+                      access === "full" ? "bg-[#1B75BC] text-white" : access === "view" ? "bg-[#1B75BC]/15 text-[#1B75BC]" : "bg-slate-100 text-slate-400")}>{access}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <SaveBtn/>
         </div>
       </div>
     </div>
@@ -521,7 +617,7 @@ function PermissionsMatrix() {
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="text-left text-xs font-semibold text-slate-500 px-5 py-3 w-32 sticky left-0 bg-slate-50 z-10">Module</th>
                 {P_ROLES.map(r=>{
-                  const rc = ROLES_DATA.find(x=>x.name.startsWith(r.split(" ")[0]))?.color;
+                  const rc = "#64748B";
                   return <th key={r} className="text-center text-xs font-semibold px-3 py-3 min-w-24" style={{ color: rc||"#64748B" }}>{r}</th>;
                 })}
               </tr>
@@ -597,42 +693,34 @@ function SystemConfig() {
   );
 }
 
-// ─── BRANCHES ────────────────────────────────────────────────────────────────
-const BRANCH_DATA = [
-  { name:"Chattogram Head Office", city:"Chattogram", mgr:"Abdullah Chowdhury", phone:"+880 31 123 4567", staff:24, status:"active", hq:true  },
-  { name:"Dhaka Branch",           city:"Dhaka",      mgr:"Rahim Khan",         phone:"+880 2 123 4567",  staff:12, status:"active", hq:false },
-  { name:"Sylhet Branch",          city:"Sylhet",     mgr:"Nasir Ahmed",        phone:"+880 821 12345",   staff:6,  status:"active", hq:false },
-  { name:"Cox's Bazar Branch",     city:"Cox's Bazar",mgr:"Kamal Hossain",      phone:"+880 341 12345",   staff:4,  status:"active", hq:false },
-  { name:"Khulna Branch",          city:"Khulna",     mgr:"TBD",                phone:"—",                staff:0,  status:"setup",  hq:false },
-];
-
 function BranchesView() {
+  const { data: branches, isLoading, isError } = useAdminBranches();
+  if (isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  if (isError) return <p className="text-sm text-red-500">Failed to load branches.</p>;
   return (
     <div>
-      <PageHeader title="Branch Management" subtitle="Head office and regional branches"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Plus size={14}/> Add Branch</button>}/>
+      <PageHeader title="Branch Management" subtitle="Head office and regional branches"/>
       <div className="space-y-3">
-        {BRANCH_DATA.map((b,i)=>(
-          <div key={i} className={cn("bg-white rounded-xl border p-5",b.hq?"border-[#1B75BC]/30 bg-[#1B75BC]/3":"border-slate-200")}>
+        {(branches ?? []).map((b) => (
+          <div key={b.id} className={cn("bg-white rounded-xl border p-5", b.isHq ? "border-[#1B75BC]/30 bg-[#1B75BC]/3" : "border-slate-200")}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold",b.hq?"bg-[#1B75BC]":"bg-slate-400")}>{b.city.slice(0,2)}</div>
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold", b.isHq ? "bg-[#1B75BC]" : "bg-slate-400")}>{b.city.slice(0, 2)}</div>
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-slate-800">{b.name}</p>
-                    {b.hq && <span className="text-xs px-2 py-0.5 bg-[#1B75BC] text-white rounded-full font-medium">HQ</span>}
+                    {b.isHq && <span className="text-xs px-2 py-0.5 bg-[#1B75BC] text-white rounded-full font-medium">HQ</span>}
                     <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
-                      b.status==="active"?"bg-emerald-50 text-emerald-600":"bg-amber-50 text-amber-600")}>{b.status}</span>
+                      b.status === "active" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>{b.status}</span>
                   </div>
                   <div className="flex items-center gap-4 mt-0.5 text-xs text-slate-400">
-                    <span>{b.city}</span><span>{b.phone}</span><span>{b.staff} staff</span>
+                    <span>{b.city}</span><span>{b.phone ?? "—"}</span><span>{b.staffCount} staff</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right mr-1"><p className="text-xs text-slate-400">Manager</p><p className="text-sm font-medium text-slate-700">{b.mgr}</p></div>
-                <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400"><Edit2 size={14}/></button>
-                {!b.hq && <button className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500"><Trash2 size={14}/></button>}
+              <div className="text-right mr-1">
+                <p className="text-xs text-slate-400">Manager</p>
+                <p className="text-sm font-medium text-slate-700">{b.managerName ?? "—"}</p>
               </div>
             </div>
           </div>
@@ -642,122 +730,85 @@ function BranchesView() {
   );
 }
 
-// ─── USERS ───────────────────────────────────────────────────────────────────
-const USERS_DATA = [
-  { name:"Abdullah Chowdhury", email:"abdullah@bdhtravels.com", role:"Super Admin",    branch:"Chattogram HQ", status:"active",   last:"Today 09:12" },
-  { name:"Fatema Begum",       email:"fatema@bdhtravels.com",   role:"Visa Officer",   branch:"Chattogram HQ", status:"active",   last:"Today 08:55" },
-  { name:"Rahim Khan",         email:"rahim@bdhtravels.com",    role:"Sales Executive",branch:"Dhaka Branch",  status:"active",   last:"Today 09:01" },
-  { name:"Nasir Ahmed",        email:"nasir@bdhtravels.com",    role:"Branch Manager", branch:"Sylhet Branch", status:"active",   last:"Yesterday"   },
-  { name:"Salma Khatun",       email:"salma@bdhtravels.com",    role:"Support Staff",  branch:"Chattogram HQ", status:"active",   last:"Today 08:30" },
-  { name:"Kamal Hossain",      email:"kamal@bdhtravels.com",    role:"Accountant",     branch:"Chattogram HQ", status:"inactive", last:"Jul 10"      },
-];
-const U_ROLE_COLOR: Record<string,string> = {
-  "Super Admin":"#EF4444","Branch Manager":"#1B75BC","Sales Executive":"#0E7C66",
-  "Visa Officer":"#F15A24","Accountant":"#2563EB","Support Staff":"#64748B",
+const U_ROLE_COLOR: Record<string, string> = {
+  SUPER_ADMIN: "#EF4444", COMPANY_ADMIN: "#DC2626", BRANCH_MANAGER: "#1B75BC",
+  STAFF: "#64748B", ACCOUNTANT: "#2563EB", SALES_EXECUTIVE: "#0E7C66",
+  VISA_EXECUTIVE: "#F15A24", HAJJ_EXECUTIVE: "#7C3AED", UMRAH_EXECUTIVE: "#9333EA",
 };
 
+function formatRoleLabel(role: string) {
+  return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function UsersView() {
+  const { data, isLoading, isError } = useAdminUsers({ pageSize: 100 });
+  const updateUser = useUpdateUser();
+  const users = data?.data ?? [];
+
+  const toggleStatus = (id: string, current: string) => {
+    updateUser.mutate({ id, status: current === "active" ? "inactive" : "active" });
+  };
+
+  if (isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  if (isError) return <p className="text-sm text-red-500">Failed to load users.</p>;
+
   return (
     <div>
-      <PageHeader title="Users Management" subtitle="Staff accounts, roles, and access control"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Plus size={14}/> Invite User</button>}/>
+      <PageHeader title="Users Management" subtitle="Staff accounts, roles, and access control"/>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full">
           <thead><tr className="bg-slate-50 border-b border-slate-100">
-            {["User","Email","Role","Branch","Status","Last Active",""].map(h=>(
+            {["User", "Email", "Role", "Branch", "Status", "Last Active", ""].map((h) => (
               <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
             ))}
           </tr></thead>
-          <tbody>{USERS_DATA.map((u,i)=>(
-            <tr key={i} className="border-b border-slate-50 hover:bg-slate-50 group">
+          <tbody>{users.map((u) => (
+            <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50 group">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: U_ROLE_COLOR[u.role]||"#64748B" }}>
-                    {u.name.split(" ").map(n=>n[0]).join("").slice(0,2)}
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: U_ROLE_COLOR[u.role] || "#64748B" }}>
+                    {u.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                   </div>
                   <span className="text-sm font-medium text-slate-700">{u.name}</span>
                 </div>
               </td>
               <td className="px-4 py-3 text-sm text-slate-500">{u.email}</td>
               <td className="px-4 py-3">
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium text-white" style={{ background: U_ROLE_COLOR[u.role]||"#64748B" }}>{u.role}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium text-white" style={{ background: U_ROLE_COLOR[u.role] || "#64748B" }}>{formatRoleLabel(u.role)}</span>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-500">{u.branch}</td>
+              <td className="px-4 py-3 text-sm text-slate-500">{u.branchName ?? "—"}</td>
               <td className="px-4 py-3">
                 <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
-                  u.status==="active"?"bg-emerald-50 text-emerald-600":"bg-slate-100 text-slate-400")}>{u.status}</span>
+                  u.status === "active" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400")}>{u.status}</span>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-400">{u.last}</td>
-              <td className="px-4 py-3 opacity-0 group-hover:opacity-100"><div className="flex gap-1">
-                <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400" title="Edit"><Edit2 size={12}/></button>
-                <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400" title="Reset password"><Key size={12}/></button>
-                <button className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500" title="Deactivate"><X size={12}/></button>
-              </div></td>
+              <td className="px-4 py-3 text-sm text-slate-400">
+                {u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—"}
+              </td>
+              <td className="px-4 py-3 opacity-0 group-hover:opacity-100">
+                <button onClick={() => toggleStatus(u.id, u.status)} disabled={updateUser.isPending}
+                  className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500" title={u.status === "active" ? "Deactivate" : "Activate"}>
+                  {u.status === "active" ? <X size={12}/> : <Check size={12}/>}
+                </button>
+              </td>
             </tr>
           ))}</tbody>
         </table>
+        {users.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No users found.</p>}
       </div>
     </div>
   );
 }
 
-// ─── SUBSCRIPTION PLANS ───────────────────────────────────────────────────────
-const PLANS = [
-  { id:"starter",  name:"Starter",    price:0,    users:3,  branches:1, color:"#64748B", current:false,
-    features:["Core bookings","Basic reports","5 GB storage"] },
-  { id:"pro",      name:"Pro",        price:4900, users:15, branches:3, color:"#1B75BC", current:true,
-    features:["Everything in Starter","WhatsApp integration","OCR 200/mo","Advanced reports","Priority support"] },
-  { id:"business", name:"Business",   price:9900, users:50, branches:10,color:"#F15A24", current:false,
-    features:["Everything in Pro","OCR 2000/mo","Custom domain","API access","Dedicated support"] },
-  { id:"enterprise",name:"Enterprise",price:-1,   users:-1, branches:-1,color:"#0E7C66", current:false,
-    features:["Unlimited everything","White-label ERP","On-premise deploy","SLA","Custom integrations"] },
-];
-
 function PlansView() {
   return (
     <div>
-      <PageHeader title="Subscription Plans" subtitle="Current plan: Pro · Renews August 1, 2024"/>
-      <div className="grid grid-cols-4 gap-4 mb-5">
-        {PLANS.map(p=>(
-          <div key={p.id} className={cn("rounded-xl border p-5 relative",
-            p.current?"border-[#1B75BC] bg-[#1B75BC]/3":"bg-white border-slate-200")}>
-            {p.current && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#1B75BC] text-white text-xs font-bold rounded-full whitespace-nowrap">Current Plan</div>}
-            <div className="w-8 h-8 rounded-xl mb-3 flex items-center justify-center text-white text-xs font-bold" style={{ background: p.color }}>{p.name.slice(0,1)}</div>
-            <p className="font-bold text-slate-800 mb-0.5">{p.name}</p>
-            <p className="text-2xl font-black text-slate-800 mb-1" style={{ fontFamily:"'JetBrains Mono',monospace" }}>
-              {p.price===0?"Free":p.price===-1?"Custom":`৳${p.price.toLocaleString()}`}
-              {p.price>0&&<span className="text-sm font-normal text-slate-400">/mo</span>}
-            </p>
-            <p className="text-xs text-slate-400 mb-3">
-              {p.users===-1?"Unlimited users":`Up to ${p.users} users`} · {p.branches===-1?"Unlimited branches":`${p.branches} branch${p.branches>1?"es":""}`}
-            </p>
-            <ul className="space-y-1.5 mb-4">
-              {p.features.map(f=><li key={f} className="flex items-start gap-1.5 text-xs text-slate-600"><Check size={11} className="text-emerald-500 mt-0.5 flex-shrink-0"/>{f}</li>)}
-            </ul>
-            <button className={cn("w-full py-2 text-sm font-medium rounded-lg transition-colors",
-              p.current?"bg-[#1B75BC] text-white cursor-default":"border border-slate-200 text-slate-600 hover:bg-slate-50")}>
-              {p.current?"Current":p.price===-1?"Contact Sales":"Upgrade"}
-            </button>
-          </div>
-        ))}
+      <PageHeader title="Subscription Plans" subtitle="Single-tenant deployment"/>
+      <div className="flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-xl">
+        <Info size={18} className="text-slate-400 flex-shrink-0"/>
+        <p className="text-sm text-slate-600">
+          <strong>Not applicable.</strong> This installation runs as a single-tenant ERP. Subscription tiers and SaaS billing are not used — all modules are enabled for your organization.
+        </p>
       </div>
-      <Panel title="Current Usage" icon={Star}>
-        <div className="grid grid-cols-3 gap-4">
-          {[{label:"Users",used:18,max:15,over:true},{label:"Branches",used:3,max:3,over:false},{label:"Storage",used:12,max:50,sfx:" GB",over:false}].map(r=>(
-            <div key={r.label} className="bg-slate-50 rounded-xl p-3">
-              <div className="flex justify-between text-xs text-slate-500 mb-1.5">
-                <span>{r.label}</span>
-                <span className={r.over?"text-red-500 font-semibold":""}>{r.used}/{r.max}{r.sfx||""}</span>
-              </div>
-              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full",r.over?"bg-red-500":"bg-[#1B75BC]")}
-                  style={{ width:`${Math.min((r.used/r.max)*100,100)}%`}}/>
-              </div>
-              {r.over && <p className="text-xs text-red-500 mt-1">Over limit — upgrade plan</p>}
-            </div>
-          ))}
-        </div>
-      </Panel>
     </div>
   );
 }

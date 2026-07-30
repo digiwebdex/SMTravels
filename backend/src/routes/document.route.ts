@@ -5,6 +5,7 @@ import { uploadSingleFile } from "../lib/uploads";
 import {
   listDocumentsHandler, uploadDocumentHandler, documentFileHandler,
 } from "../controllers/document.controller";
+import { runDocumentOcrHandler } from "../controllers/ocr.controller";
 
 // ERP Documents — branch-scoped via the owner relations (see document.service).
 // Files are NEVER served statically; this router is the only read path.
@@ -16,3 +17,4 @@ const manage = requirePermission("documents", "manage");
 documentRouter.get("/documents", requireAuth, view, asyncHandler(listDocumentsHandler));
 documentRouter.post("/documents", requireAuth, manage, uploadSingleFile, asyncHandler(uploadDocumentHandler));
 documentRouter.get("/documents/:id/file", requireAuth, view, asyncHandler(documentFileHandler));
+documentRouter.post("/documents/:id/ocr", requireAuth, manage, asyncHandler(runDocumentOcrHandler));

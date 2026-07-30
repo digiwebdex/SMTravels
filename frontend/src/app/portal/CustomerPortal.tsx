@@ -11,14 +11,16 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
-import { SampleBadge } from "./SampleBadge";
+import { openPrintPage } from "../lib/api";
+import { toast } from "sonner";
 import {
   usePortalMe, usePortalDashboard, usePortalBookings, usePortalBooking,
-  usePortalInvoices, usePortalPayments, usePortalInstallments, usePortalDocuments,
+  usePortalInvoices, usePortalInvoice, usePortalPayments, usePortalInstallments, usePortalDocuments,
   usePortalTickets, usePortalTicket, useCreateTicket, useAddTicketMessage,
   usePortalNotifications, useMarkAllNotificationsRead,
   useUploadPortalDocument, downloadPortalDocument,
 } from "../hooks/portal";
+import { usePortalBankAccounts, useSubmitPaymentProof } from "../hooks/payments";
 import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (type-only imports erase; values would drag backend code into the bundle)
 import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { PortalBooking } from "../hooks/portal";
@@ -331,6 +333,109 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
 }
 
 // ─── PAYMENT HISTORY ─────────────────────────────────────────────────────────
+function NpsbPayForm() {
+  const { t } = useTranslation("portalCustomer");
+  const banksQ = usePortalBankAccounts();
+  const invoicesQ = usePortalInvoices();
+  const submit = useSubmitPaymentProof();
+  const [amount, setAmount] = useState("");
+  const [reference, setReference] = useState("");
+  const [invoiceId, setInvoiceId] = useState("");
+  const fileRef = React.useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const unpaid = (invoicesQ.data ?? []).filter((i) => i.dueAmount > 0);
+
+  const onSubmit = () => {
+    const amt = Number(amount);
+    if (!(amt > 0) || !reference.trim() || !file) return;
+    submit.mutate(
+      { amount: amt, reference: reference.trim(), invoiceId: invoiceId || undefined, file },
+      {
+        onSuccess: () => {
+          setAmount(""); setReference(""); setInvoiceId(""); setFile(null);
+          if (fileRef.current) fileRef.current.value = "";
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#1B75BC]/25 p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="w-9 h-9 rounded-xl bg-[#1B75BC]/10 flex items-center justify-center"><Wallet size={18} className="text-[#1B75BC]"/></div>
+        <div>
+          <p className="font-bold text-slate-800">{t("payments.npsbTitle", { defaultValue: "Pay via NPSB Bank Transfer" })}</p>
+          <p className="text-xs text-slate-500">{t("payments.npsbHint", { defaultValue: "Transfer to a company account, then submit your proof below." })}</p>
+        </div>
+      </div>
+
+      {banksQ.isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-slate-400 py-2"><Loader2 size={16} className="animate-spin"/> Loading bank accounts…</div>
+      ) : (banksQ.data ?? []).length === 0 ? (
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">Bank account details are not published yet. Contact support for payment instructions.</p>
+      ) : (
+        <div className="space-y-2">
+          {(banksQ.data ?? []).map((b) => (
+            <div key={b.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+              <p className="font-semibold text-slate-800">{b.name}</p>
+              {b.bankName && <p className="text-xs text-slate-500">{b.bankName}{b.branchName ? ` · ${b.branchName}` : ""}</p>}
+              <div className="flex flex-wrap gap-3 mt-1.5 font-mono text-xs text-slate-700">
+                {b.accountNumber && <span>A/C: {b.accountNumber}</span>}
+                {b.iban && <span>IBAN: {b.iban}</span>}
+                <span className="text-[#1B75BC] font-sans font-semibold">{b.currency}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">{t("portalCommon:labels.amount")}</label>
+          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0"
+            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 font-mono"/>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">{t("payments.npsbRef", { defaultValue: "NPSB Reference" })}</label>
+          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Txn / reference no."
+            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 font-mono"/>
+        </div>
+      </div>
+
+      {unpaid.length > 0 && (
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">{t("payments.linkInvoice", { defaultValue: "Link to invoice (optional)" })}</label>
+          <select value={invoiceId} onChange={(e) => setInvoiceId(e.target.value)}
+            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none">
+            <option value="">{t("payments.noInvoice", { defaultValue: "General payment" })}</option>
+            {unpaid.map((i) => (
+              <option key={i.id} value={i.id}>{i.invoiceNo || "Draft"} — {fmtBDT(i.dueAmount)} due</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs font-medium text-slate-500 mb-1">{t("payments.proofFile", { defaultValue: "Payment proof (screenshot / receipt)" })}</label>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => fileRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50">
+            <Paperclip size={14}/> {file ? file.name : t("payments.chooseFile", { defaultValue: "Choose file" })}
+          </button>
+          <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}/>
+        </div>
+      </div>
+
+      <button onClick={onSubmit} disabled={submit.isPending || !(Number(amount) > 0) || !reference.trim() || !file}
+        className="w-full flex items-center justify-center gap-2 py-3 bg-[#F15A24] text-white text-sm font-semibold rounded-xl hover:bg-[#D64A12] disabled:opacity-50">
+        {submit.isPending ? <Loader2 size={16} className="animate-spin"/> : <Upload size={16}/>}
+        {t("payments.submitProof", { defaultValue: "Submit payment proof" })}
+      </button>
+    </div>
+  );
+}
+
 function PaymentsView() {
   const { t } = useTranslation("portalCustomer");
   const q = usePortalPayments();
@@ -339,6 +444,7 @@ function PaymentsView() {
   return (
     <div className="space-y-4" data-portal="payments">
       <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.paymentHistory")}</h2>
+      <NpsbPayForm/>
       <PortalState query={q} empty={rows.length === 0}>
         <div className="grid grid-cols-2 gap-3">
           {[[t("payments.totalPaid"),fmtBDT(totalPaid)],[t("payments.transactions"),String(rows.length)]].map(([l,v])=>(
@@ -596,44 +702,65 @@ function DocumentsView() {
 }
 
 // ─── VOUCHER ────────────────────────────────────────────────────────────────
+const VOUCHER_READY = new Set(["CONFIRMED", "PROCESSING", "COMPLETED"]);
+
 function VoucherView() {
   const { t } = useTranslation("portalCustomer");
+  const q = usePortalBookings();
+  const rows = q.data ?? [];
+  const [printingId, setPrintingId] = useState<string | null>(null);
+
+  const printVoucher = async (bookingId: string) => {
+    setPrintingId(bookingId);
+    try {
+      await openPrintPage(`/portal/bookings/${bookingId}/voucher`);
+    } catch (e) {
+      toast.error((e as Error).message || t("voucher.printFailed", { defaultValue: "Could not open voucher." }));
+    } finally {
+      setPrintingId(null);
+    }
+  };
+
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <div>
         <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.voucher")}</h2>
         <p className="text-sm text-slate-500 mt-0.5">{t("voucher.subtitle")}</p>
       </div>
-      {[
-        { id:"BK-0892", title:"Hajj Economy 2024", typeKey:"voucher.types.booking", ready:true,  bg:"#1B75BC" },
-        { id:"BK-0892", title:"Hajj Economy 2024", typeKey:"voucher.types.hotel",   ready:true,  bg:"#0E7C66" },
-        { id:"BK-0892", title:"Hajj Economy 2024", typeKey:"voucher.types.flight",  ready:true,  bg:"#2563EB" },
-        { id:"BK-0892", title:"Hajj Economy 2024", typeKey:"voucher.types.visa",    ready:true,  bg:"#F15A24" },
-        { id:"BK-0892", title:"Hajj Economy 2024", typeKey:"voucher.types.group",   ready:false, bg:"#7C3AED" },
-      ].map((v,i)=>(
-        <div key={i} className={cn("rounded-2xl p-5 flex items-center gap-4",
-          v.ready?"bg-white border border-slate-200":"bg-slate-50 border border-dashed border-slate-200")}>
-          <div className="w-12 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
-            style={{ background: v.ready ? v.bg : "#CBD5E1" }}>
-            <FileText size={22} className="text-white"/>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-400 mb-0.5">{v.id}</p>
-            <p className="font-bold text-slate-800">{t(v.typeKey)}</p>
-            <p className="text-xs text-slate-400">{v.title}</p>
-          </div>
-          {v.ready ? (
-            <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] transition-colors flex-shrink-0 whitespace-nowrap">
-              <Download size={14}/> {t("common:actions.download")}
-            </button>
-          ) : (
-            <span className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-200 text-slate-400 text-sm font-medium rounded-xl flex-shrink-0 cursor-not-allowed whitespace-nowrap">
-              <Clock size={14}/> {t("portalCommon:status.pending")}
-            </span>
-          )}
-        </div>
-      ))}
+      <PortalState query={q} empty={rows.length === 0}>
+        {rows.map((b) => {
+          const ready = VOUCHER_READY.has(b.status);
+          const service = b.serviceType.replace(/_/g, " ").toLowerCase();
+          return (
+            <div key={b.id} className={cn("rounded-2xl p-5 flex items-center gap-4",
+              ready ? "bg-white border border-slate-200" : "bg-slate-50 border border-dashed border-slate-200")}>
+              <div className="w-12 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                style={{ background: ready ? "#1B75BC" : "#CBD5E1" }}>
+                <FileText size={22} className="text-white"/>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-400 mb-0.5 font-mono">{b.bookingNo ?? b.id.slice(0, 8)}</p>
+                <p className="font-bold text-slate-800">{t("voucher.types.booking")}</p>
+        <p className="text-xs text-slate-400 capitalize">{service} · {b.travelersCount} {t("voucher.travelers", { defaultValue: "traveler(s)" })}</p>
+              </div>
+              {ready ? (
+                <button
+                  type="button"
+                  onClick={() => void printVoucher(b.id)}
+                  disabled={printingId === b.id}
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] transition-colors flex-shrink-0 whitespace-nowrap disabled:opacity-60">
+                  {printingId === b.id ? <Loader2 size={14} className="animate-spin"/> : <Download size={14}/>}
+                  {t("voucher.print", { defaultValue: "Print voucher" })}
+                </button>
+              ) : (
+                <span className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-200 text-slate-400 text-sm font-medium rounded-xl flex-shrink-0 cursor-not-allowed whitespace-nowrap">
+                  <Clock size={14}/> {t("portalCommon:status.pending")}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </PortalState>
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
         <Info size={15} className="text-amber-500 flex-shrink-0 mt-0.5"/>
         <p className="text-sm text-amber-700">{t("voucher.hint")}</p>

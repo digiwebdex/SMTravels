@@ -1,0 +1,13 @@
+{
+  "title": "SM Travels Assistant",
+  "subtitle": "Hajj, Umrah & visa help",
+  "placeholder": "Ask about packages, visas, or booking…",
+  "send": "Send",
+  "open": "Open chat assistant",
+  "close": "Close chat",
+  "greeting": "Assalamu Alaikum! I can help with Hajj, Umrah, visa, and travel questions. For prices, please book online or WhatsApp us.",
+  "bookHint": "Ready to book?",
+  "bookLink": "Book online",
+  "typing": "Thinking…",
+  "error": "Assistant unavailable — try Book or WhatsApp."
+}
