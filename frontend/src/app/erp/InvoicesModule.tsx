@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import {
   FileText, Plus, Search, Filter, Download, Eye, Send, Printer,
@@ -79,13 +79,25 @@ const VOUCHERS = [
   { id: "VCH-004", code: "AGENT15", type: "percent", value: 15, currency: "BDT" as Currency, service: "Agent Bookings", used: 50, limit: 50, expires: "Jul 15", status: "expired" },
 ];
 
-const AGING_DATA = [
-  { range: "Current", amount: 1283000, count: 3, color: "#0E7C66" },
-  { range: "1–30 days", amount: 450000, count: 2, color: "#F59E0B" },
-  { range: "31–60 days", amount: 268000, count: 1, color: "#F97316" },
-  { range: "61–90 days", amount: 120000, count: 1, color: "#EF4444" },
-  { range: "90+ days", amount: 85000, count: 1, color: "#991B1B" },
-];
+const AGING_BUCKETS = [
+  { range: "0–30 days", min: 0, max: 30, color: "#F59E0B" },
+  { range: "31–60 days", min: 31, max: 60, color: "#F97316" },
+  { range: "61–90 days", min: 61, max: 90, color: "#EF4444" },
+  { range: "90+ days", min: 91, max: Infinity, color: "#991B1B" },
+] as const;
+
+function daysOverdue(dueDate: string | null): number {
+  if (!dueDate) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.floor((today.getTime() - due.getTime()) / 86400000));
+}
+
+function agingBucket(days: number): (typeof AGING_BUCKETS)[number] {
+  return AGING_BUCKETS.find(b => days >= b.min && days <= b.max) ?? AGING_BUCKETS[0];
+}
 
 const INV_STATUS_CFG: Record<InvoiceStatus, { label: string; cls: string }> = {
   draft:     { label: "Draft",      cls: "bg-slate-100 text-slate-500" },
@@ -761,25 +773,74 @@ function ReceiptsView() {
 }
 
 // ─── Payment Collection ───────────────────────────────────────────────────────
+const COLLECTION_METHODS: Record<string, string> = {
+  bank: "BANK_TRANSFER",
+  bkash: "BKASH",
+  nagad: "NAGAD",
+  ssl: "SSLCOMMERZ",
+};
+
 function PaymentCollectionView() {
+  const { data, isLoading, isError, error, refetch } = useInvoices({ pageSize: 200 });
+  const record = useRecordPayment();
   const [selectedInv, setSelectedInv] = useState("");
   const [method, setMethod] = useState("bank");
   const [amount, setAmount] = useState("");
+  const [reference, setReference] = useState("");
+  const [paidAt, setPaidAt] = useState(() => new Date().toISOString().slice(0, 10));
+
+  const pending = (data?.data ?? []).filter(
+    inv => inv.dueAmount > 0 && !["DRAFT", "PAID", "CANCELLED"].includes(inv.status),
+  );
+  const selected = pending.find(i => i.id === selectedInv);
+
+  const onSelectInvoice = (id: string) => {
+    setSelectedInv(id);
+    const inv = pending.find(i => i.id === id);
+    if (inv) setAmount(String(inv.dueAmount));
+  };
+
+  const submit = () => {
+    if (!selected || !(Number(amount) > 0)) return;
+    record.mutate(
+      {
+        invoiceId: selected.id,
+        amount: Number(amount),
+        method: COLLECTION_METHODS[method] as never,
+        reference: reference.trim() || undefined,
+        paidAt: paidAt || undefined,
+      },
+      {
+        onSuccess: () => {
+          setSelectedInv("");
+          setAmount("");
+          setReference("");
+        },
+      },
+    );
+  };
+
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Payment Collection</h2>
       <PendingNpsbPanel/>
+      {isError && <ErrorBanner message={(error as Error)?.message || "Failed to load invoices."} onRetry={() => refetch()} />}
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-5">Collect Payment</h3>
+          {isLoading ? (
+            <div className="flex justify-center py-12 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>
+          ) : (
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Invoice / Booking</label>
-              <select value={selectedInv} onChange={e => setSelectedInv(e.target.value)}
+              <select value={selectedInv} onChange={e => onSelectInvoice(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">Select invoice…</option>
-                {INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled").map(i => (
-                  <option key={i.id} value={i.id}>{i.id} – {i.customer} ({fmtC(i.amount - i.paid)} due)</option>
+                {pending.map(i => (
+                  <option key={i.id} value={i.id}>
+                    {i.invoiceNo ?? i.id.slice(0, 8)} – {i.customerName ?? "Customer"} ({fmtC(i.dueAmount, i.currency as Currency)} due)
+                  </option>
                 ))}
               </select>
             </div>
@@ -791,7 +852,7 @@ function PaymentCollectionView() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
-                <input type="date" defaultValue="2024-07-14"
+                <input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
               </div>
             </div>
@@ -804,7 +865,7 @@ function PaymentCollectionView() {
                   { id: "nagad", label: "Nagad", icon: Banknote, disabled: true },
                   { id: "ssl", label: "SSLCommerz", icon: Globe, disabled: true },
                 ].map(({ id, label, icon: Icon, disabled }) => (
-                  <button key={id} onClick={() => !disabled && setMethod(id)} disabled={disabled}
+                  <button key={id} type="button" onClick={() => !disabled && setMethod(id)} disabled={disabled}
                     className={cn("flex flex-col items-center gap-1 p-3 border rounded-lg text-xs transition-all",
                       disabled ? "border-slate-100 text-slate-300 cursor-not-allowed opacity-50" :
                       method === id ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
@@ -817,7 +878,7 @@ function PaymentCollectionView() {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Reference / Transaction ID</label>
-              <input placeholder="TXN ID or cheque number…"
+              <input placeholder="TXN ID or cheque number…" value={reference} onChange={e => setReference(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
             </div>
             <div>
@@ -826,32 +887,42 @@ function PaymentCollectionView() {
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
             </div>
             <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
-              <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
-              <button className="px-5 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+              <button type="button" onClick={() => { setSelectedInv(""); setAmount(""); setReference(""); }}
+                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+              <button type="button" onClick={submit} disabled={record.isPending || !selected || !(Number(amount) > 0)}
+                className="px-5 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50">
+                {record.isPending && <Loader2 size={14} className="animate-spin" />}
                 <CheckCircle size={14} /> Record Payment
               </button>
             </div>
           </div>
+          )}
         </div>
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Pending Collections</h4>
+            {isLoading ? (
+              <div className="flex justify-center py-8 text-slate-400"><Loader2 size={18} className="animate-spin" /></div>
+            ) : pending.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-6">No outstanding invoices.</p>
+            ) : (
             <div className="space-y-3">
-              {INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled").map(inv => (
+              {pending.map(inv => (
                 <div key={inv.id} className="pb-3 border-b border-slate-50 last:border-0 last:pb-0">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs font-mono text-slate-400">{inv.id}</p>
-                      <p className="text-sm font-medium text-slate-700">{inv.customer}</p>
+                      <p className="text-xs font-mono text-slate-400">{inv.invoiceNo ?? inv.id.slice(0, 8)}</p>
+                      <p className="text-sm font-medium text-slate-700">{inv.customerName ?? "—"}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-red-500 font-mono">{fmtC(inv.amount - inv.paid)}</p>
-                      <InvStatusChip status={inv.status} />
+                      <p className="text-sm font-bold text-red-500 font-mono">{fmtC(inv.dueAmount, inv.currency as Currency)}</p>
+                      <InvStatusChip status={st2vm(inv.status)} />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -1042,7 +1113,37 @@ function InstallmentBuilderView() {
 
 // ─── Due Management ───────────────────────────────────────────────────────────
 function DueManagementView() {
-  const totalDue = AGING_DATA.reduce((s, d) => s + d.amount, 0);
+  const { data, isLoading, isError, error, refetch } = useInvoices({ pageSize: 500 });
+  const stats = data?.stats ?? { total: 0, totalBilled: 0, totalPaid: 0, totalDue: 0, overdue: 0 };
+  const outstanding = (data?.data ?? []).filter(inv => inv.dueAmount > 0 && inv.status !== "CANCELLED" && inv.status !== "DRAFT");
+
+  const agingData = AGING_BUCKETS.map(b => ({
+    range: b.range,
+    color: b.color,
+    amount: 0,
+    count: 0,
+  }));
+  for (const inv of outstanding) {
+    const days = daysOverdue(inv.dueDate);
+    const bucket = agingBucket(days);
+    const idx = AGING_BUCKETS.indexOf(bucket);
+    agingData[idx].amount += inv.dueAmount;
+    agingData[idx].count += 1;
+  }
+
+  const overdue30Plus = outstanding
+    .filter(inv => daysOverdue(inv.dueDate) > 30)
+    .reduce((s, inv) => s + inv.dueAmount, 0);
+  const avgDays = outstanding.length
+    ? Math.round(outstanding.reduce((s, inv) => s + daysOverdue(inv.dueDate), 0) / outstanding.length)
+    : 0;
+
+  const dueRows = [...outstanding].sort((a, b) => daysOverdue(b.dueDate) - daysOverdue(a.dueDate));
+
+  if (isLoading) {
+    return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -1054,26 +1155,27 @@ function DueManagementView() {
           <Send size={14} /> Send All Reminders
         </button>
       </div>
+      {isError && <ErrorBanner message={(error as Error)?.message || "Failed to load invoices."} onRetry={() => refetch()} />}
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Outstanding" value={fmtC(totalDue)} icon={Wallet} color="bg-amber-500" />
-        <KpiCard label="Overdue (30+ days)" value={fmtC(473000)} trend={-5} icon={AlertTriangle} color="bg-red-500" />
-        <KpiCard label="Invoices Due" value="8" icon={FileText} color="bg-[#1B75BC]" />
-        <KpiCard label="Avg. Days Outstanding" value="18 days" icon={Clock} color="bg-slate-500" />
+        <KpiCard label="Total Outstanding" value={fmtC(stats.totalDue)} icon={Wallet} color="bg-amber-500" />
+        <KpiCard label="Overdue (30+ days)" value={fmtC(overdue30Plus)} icon={AlertTriangle} color="bg-red-500" />
+        <KpiCard label="Invoices Due" value={String(outstanding.length)} icon={FileText} color="bg-[#1B75BC]" />
+        <KpiCard label="Avg. Days Outstanding" value={outstanding.length ? `${avgDays} days` : "—"} icon={Clock} color="bg-slate-500" />
       </div>
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="font-semibold text-slate-800 mb-4">Aging Analysis</h3>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={AGING_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 10 }}>
+              <BarChart data={agingData} margin={{ top: 5, right: 5, bottom: 5, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                 <XAxis dataKey="range" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                   tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: number) => [fmtC(v), "Amount"]} />
                 <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                  {AGING_DATA.map((d, i) => (
-                    <rect key={i} fill={d.color} />
+                  {agingData.map((d, i) => (
+                    <Cell key={i} fill={d.color} />
                   ))}
                 </Bar>
               </BarChart>
@@ -1083,7 +1185,7 @@ function DueManagementView() {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h4 className="font-semibold text-slate-800 mb-4">Aging Summary</h4>
           <div className="space-y-3">
-            {AGING_DATA.map(d => (
+            {agingData.map(d => (
               <div key={d.range} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
@@ -1095,7 +1197,7 @@ function DueManagementView() {
             ))}
             <div className="flex items-center justify-between pt-2 border-t border-slate-200 font-bold">
               <span className="text-sm text-slate-800">Total</span>
-              <span className="text-sm text-slate-800 font-mono">{fmtC(totalDue)}</span>
+              <span className="text-sm text-slate-800 font-mono">{fmtC(stats.totalDue)}</span>
             </div>
           </div>
         </div>
@@ -1108,30 +1210,34 @@ function DueManagementView() {
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Invoice", "Customer", "Service", "Due Date", "Outstanding", "Days Overdue", "Status", "Action"].map(h => (
+              {["Invoice", "Customer", "Due Date", "Outstanding", "Days Overdue", "Status", "Action"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled").map(inv => (
-              <tr key={inv.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{inv.id}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{inv.customer}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{inv.service}</td>
-                <td className={cn("px-4 py-3 text-sm", inv.status === "overdue" ? "text-red-600 font-medium" : "text-slate-500")}>{inv.dueDate}</td>
-                <td className="px-4 py-3 text-sm font-mono font-semibold text-red-500">{fmtC(inv.amount - inv.paid)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{inv.status === "overdue" ? "2 days" : "—"}</td>
-                <td className="px-4 py-3"><InvStatusChip status={inv.status} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1">
-                    <button className="text-xs text-[#1B75BC] hover:underline">Remind</button>
-                    <span className="text-slate-300">·</span>
-                    <button className="text-xs text-emerald-600 hover:underline">Collect</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {dueRows.length === 0 ? (
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-400">No outstanding invoices.</td></tr>
+            ) : dueRows.map(inv => {
+              const days = daysOverdue(inv.dueDate);
+              return (
+                <tr key={inv.id} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{inv.invoiceNo ?? inv.id.slice(0, 8)}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-slate-700">{inv.customerName ?? "—"}</td>
+                  <td className={cn("px-4 py-3 text-sm", days > 0 ? "text-red-600 font-medium" : "text-slate-500")}>{inv.dueDate ?? "—"}</td>
+                  <td className="px-4 py-3 text-sm font-mono font-semibold text-red-500">{fmtC(inv.dueAmount, inv.currency as Currency)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-500">{days > 0 ? `${days} days` : "—"}</td>
+                  <td className="px-4 py-3"><InvStatusChip status={st2vm(inv.status)} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      <button className="text-xs text-[#1B75BC] hover:underline">Remind</button>
+                      <span className="text-slate-300">·</span>
+                      <button className="text-xs text-emerald-600 hover:underline">Collect</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

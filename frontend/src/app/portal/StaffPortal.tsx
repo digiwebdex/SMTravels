@@ -19,6 +19,7 @@ import {
   useStaffDocuments, useStaffAnnouncements, useSetTaskStatus, useCreateTask,
   type StaffTask,
 } from "../hooks/portals";
+import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
 
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
@@ -42,18 +43,11 @@ const NAV: { id: StaffView; icon: React.ElementType; label: string; badge?: numb
   { id: "documents",     icon: FolderOpen,      label: "portalCommon:nav.documents"      },
   { id: "announcements", icon: Megaphone,       label: "portalCommon:nav.announcements"  },
   { id: "support",       icon: LifeBuoy,        label: "portalCommon:nav.support"        },
-  { id: "notifications", icon: Bell,            label: "portalCommon:nav.notifications", badge:3 },
+  { id: "notifications", icon: Bell,            label: "portalCommon:nav.notifications" },
   { id: "profile",       icon: User,            label: "portalCommon:nav.profile"        },
 ];
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-const NOTIFS_DATA = [
-  { id:1, title:"New booking assigned to you",          body:"BK-0891 (Nasrin Begum — Umrah Standard) has been assigned to your queue.", time:"2h ago",  read:false, color:"#1B75BC" },
-  { id:2, title:"Task overdue: Collect balance payment", body:"Task #5 was due at 10:00am. Please action immediately.",                    time:"3h ago",  read:false, color:"#EF4444" },
-  { id:3, title:"Customer document approved",           body:"Md. Karim Ullah's visa documents have been verified by the visa team.",      time:"Yesterday",read:false,color:"#0E7C66" },
-  { id:4, title:"New announcement from Management",     body:"Ramadan office hours update. Please check the announcements section.",       time:"Jul 15",  read:true,  color:"#F15A24" },
-];
-
 const SUP_TICKETS = [
   { id:"IT-041", subject:"Cannot access visa processing module", status:"open",     date:"Jul 15", msgs:2 },
   { id:"IT-038", subject:"Client record merge request — CU-0214",status:"resolved", date:"Jul 5",  msgs:3 },
@@ -633,34 +627,42 @@ function StaffSupport() {
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
 function StaffNotifications() {
   const { t } = useTranslation("portalStaff");
-  const [list, setList] = useState(NOTIFS_DATA);
+  const q = useMyNotifications();
+  const markAll = useMarkAllNotificationsRead();
+  const list = q.data ?? [];
+
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.notifications")}</h2>
-        <button onClick={() => setList(n => n.map(x => ({ ...x, read:true })))}
-          className="text-sm text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">{t("notifications.markAllRead")}</button>
+        <button onClick={() => markAll.mutate()} disabled={markAll.isPending || list.every(n => n.read)}
+          className="text-sm text-[#1B75BC] font-semibold hover:underline whitespace-nowrap disabled:opacity-50">{t("notifications.markAllRead")}</button>
       </div>
-      <div className="space-y-2.5">
-        {list.map(n => (
-          <div key={n.id} onClick={() => setList(ls => ls.map(x => x.id===n.id?{...x,read:true}:x))}
-            className={cn("flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all",
-              n.read?"bg-white border-slate-200":"bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:n.color+"18" }}>
-              <div className="w-3 h-3 rounded-full" style={{ background:n.color }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-slate-800">{n.title}</p>
-                {!n.read && <div className="w-2 h-2 rounded-full bg-[#1B75BC] flex-shrink-0" />}
+      <PLoad q={q}>
+        {list.length === 0 && <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.nothing")}</p>}
+        <div className="space-y-2.5">
+          {list.map(n => {
+            const color = n.color || "#1B75BC";
+            return (
+              <div key={n.id}
+                className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all",
+                  n.read ? "bg-white border-slate-200" : "bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "18" }}>
+                  <div className="w-3 h-3 rounded-full" style={{ background: color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-slate-800">{n.title}</p>
+                    {!n.read && <div className="w-2 h-2 rounded-full bg-[#1B75BC] flex-shrink-0" />}
+                  </div>
+                  {n.body && <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>}
+                </div>
+                <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap mt-0.5">{relAge(n.createdAt)}</span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
-            </div>
-            <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap mt-0.5">{n.time}</span>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      </PLoad>
     </div>
   );
 }
@@ -704,7 +706,7 @@ function StaffProfile() {
 }
 
 // ─── Sidebar inner component (shared desktop + drawer) ───────────────────────
-function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void }) {
+function StaffSidebar({ view, go, onClose, unreadNotif }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void; unreadNotif: number }) {
   const { t } = useTranslation("portalStaff");
   const { data: me } = useStaffMe();
   const sName = me?.name ?? t("roles.staff");
@@ -742,8 +744,10 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
             <span className="flex-1 text-left">{t(item.label)}</span>
-            {item.badge ? (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
+            {(item.id === "notifications" ? unreadNotif : item.badge) ? (
+              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+                {item.id === "notifications" ? unreadNotif : item.badge}
+              </span>
             ) : null}
           </button>
         ))}
@@ -763,7 +767,7 @@ const STAFF_BOTTOM_NAV = [
   { id: "dashboard"     as StaffView, icon: LayoutDashboard, label: "portalStaff:bottomNav.home" },
   { id: "tasks"         as StaffView, icon: CheckSquare,     label: "portalCommon:nav.tasks",  badge: 4 },
   { id: "bookings"      as StaffView, icon: Briefcase,       label: "portalCommon:nav.bookings" },
-  { id: "notifications" as StaffView, icon: Bell,            label: "portalStaff:bottomNav.alerts", badge: 3 },
+  { id: "notifications" as StaffView, icon: Bell,            label: "portalStaff:bottomNav.alerts" },
   { id: "profile"       as StaffView, icon: User,            label: "portalCommon:nav.profile"  },
 ];
 
@@ -773,6 +777,8 @@ export function StaffPortal() {
   const [view, setView] = useState<StaffView>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const go = (v: StaffView) => setView(v);
+  const notifQ = useMyNotifications();
+  const unreadNotif = (notifQ.data ?? []).filter(n => !n.read).length;
 
   const render = () => {
     switch (view) {
@@ -789,14 +795,13 @@ export function StaffPortal() {
     }
   };
 
-  const unreadNotif = NOTIFS_DATA.filter(n => !n.read).length;
   const currentLabel = t(NAV.find(n => n.id === view)?.label ?? "");
 
   return (
     <div className="min-h-screen bg-[#F0F2F5]">
       {/* ── Desktop layout ── */}
       <div className="hidden md:flex h-screen overflow-hidden">
-        <StaffSidebar view={view} go={go} />
+        <StaffSidebar view={view} go={go} unreadNotif={unreadNotif} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between flex-shrink-0 h-14">
             <p className="text-sm font-semibold text-slate-600">{currentLabel}</p>
@@ -824,7 +829,7 @@ export function StaffPortal() {
       <div className="md:hidden flex flex-col min-h-screen">
         {/* Mobile drawer */}
         <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} width="w-56">
-          <StaffSidebar view={view} go={go} onClose={() => setDrawerOpen(false)} />
+          <StaffSidebar view={view} go={go} onClose={() => setDrawerOpen(false)} unreadNotif={unreadNotif} />
         </MobileDrawer>
 
         {/* Mobile top bar */}
@@ -865,7 +870,11 @@ export function StaffPortal() {
 
         {/* Mobile bottom nav */}
         <MobileBottomNav
-          items={STAFF_BOTTOM_NAV.map(i => ({ ...i, label: t(i.label) }))}
+          items={STAFF_BOTTOM_NAV.map(i => ({
+            ...i,
+            label: t(i.label),
+            badge: i.id === "notifications" && unreadNotif > 0 ? unreadNotif : i.badge,
+          }))}
           active={view}
           onChange={go}
         />

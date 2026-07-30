@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
 import { useIncome, useExpenses, useInvoices, usePayments, useJournal, useBankAccounts } from "../hooks/finance";
 import { useOverview, usePnlReport } from "../hooks/reports";
+import { useAuditLogs } from "../hooks/ops";
 import { SampleBadge } from "./SampleBadge";
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 
@@ -86,15 +87,6 @@ const PAYMENTS_DATA = [
   { id:"PAY-1041", type:"paid",     to:"Al-Amin Hotels",    amount:64000,  method:"Bank Transfer",date:"Jun 1",   ref:"DBBL-TXN-XXX" },
 ];
 
-const AUDIT_LOG = [
-  { id:"AUD-5221", action:"Invoice created",     entity:"INV-2024-0247",  user:"Accountant",  time:"Jul 16 10:00", severity:"info"     },
-  { id:"AUD-5220", action:"Journal entry posted",entity:"JNL-0740",       user:"Accountant",  time:"Jul 14 14:30", severity:"info"     },
-  { id:"AUD-5219", action:"Payment recorded",    entity:"PAY-1044",       user:"Accountant",  time:"Jun 29 11:00", severity:"info"     },
-  { id:"AUD-5218", action:"Unauthorized access attempt",entity:"Reports", user:"Unknown",    time:"Jun 28 02:14", severity:"critical" },
-  { id:"AUD-5217", action:"Large payment flagged",entity:"INV-SUP-0241",  user:"System",      time:"Jul 14 14:31", severity:"warning"  },
-  { id:"AUD-5216", action:"Account balance reconciled",entity:"ACC-01",   user:"Accountant",  time:"Jun 30 17:00", severity:"info"     },
-];
-
 const TAX_DATA = [
   { quarter:"Q1 (Jan–Mar)", income:2810000, vat:422000, tax:56200, filed:true,  deadline:"Apr 30" },
   { quarter:"Q2 (Apr–Jun)", income:3860000, vat:579000, tax:77200, filed:true,  deadline:"Jul 31" },
@@ -104,6 +96,10 @@ const TAX_DATA = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmtBDT  = (n: number) => "৳ " + n.toLocaleString("en-BD");
 const fmtShort = (n: number) => n >= 100000 ? "৳" + (n/100000).toFixed(n%100000===0?0:1)+"L" : "৳"+n.toLocaleString();
+
+const sevNorm = (s: string) => s.toLowerCase();
+const fmtAuditTime = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 const SEV_CFG: Record<string, { dot:string; row:string; badge:string }> = {
   info:     { dot:"bg-slate-400",  row:"",              badge:"bg-slate-100 text-slate-600 border-slate-200"        },
@@ -511,59 +507,92 @@ function TaxView() {
 function AuditView() {
   const { t } = useTranslation("portalAccountant");
   const [filter, setFilter] = useState("all");
-  const shown = AUDIT_LOG.filter(l => filter==="all" || l.severity===filter);
+  const [textFilter, setTextFilter] = useState("");
+  const auditQ = useAuditLogs();
+  const logs = auditQ.data ?? [];
+  const shown = logs.filter((l) => {
+    if (filter !== "all" && sevNorm(l.severity) !== filter) return false;
+    if (!textFilter.trim()) return true;
+    const q = textFilter.toLowerCase();
+    return [l.event, l.resource, l.userName, l.id].some((v) => (v ?? "").toLowerCase().includes(q));
+  });
 
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.auditLogs")}</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
-          <Download size={14}/> {t("audit.export")}
-        </button>
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {["all","info","warning","critical"].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap flex-shrink-0",
-              filter===f ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
-            {t(`audit.filters.${f}`)}
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => auditQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <RefreshCw size={14} className={auditQ.isFetching ? "animate-spin" : ""} />
           </button>
-        ))}
+          <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+            <Download size={14}/> {t("audit.export")}
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalAccountant:audit.cols.logId","portalAccountant:audit.cols.action","portalAccountant:audit.cols.entity","portalAccountant:audit.cols.user","portalAccountant:audit.cols.time","portalAccountant:audit.cols.severity"].map((h,hi) => (
-                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {shown.map(log => {
-              const s = SEV_CFG[log.severity];
-              return (
-                <tr key={log.id} className={cn("hover:bg-slate-50 transition-colors", s.row)}>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{log.id}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-800">{log.action}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-500">{log.entity}</td>
-                  <td className="px-4 py-3 text-xs text-slate-600">{log.user}</td>
-                  <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{log.time}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold border", s.badge)}>
-                      <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
-                      {t(`audit.severity.${log.severity}`, { defaultValue: log.severity })}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={textFilter}
+            onChange={(e) => setTextFilter(e.target.value)}
+            placeholder={t("portalCommon:actions.search", { defaultValue: "Search…" })}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {["all","info","warning","critical"].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap flex-shrink-0",
+                filter===f ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
+              {t(`audit.filters.${f}`)}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {auditQ.isLoading ? (
+        <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>
+      ) : auditQ.isError ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(auditQ.error as Error)?.message || t("portalCommon:empty.failed")}</div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {["portalAccountant:audit.cols.logId","portalAccountant:audit.cols.action","portalAccountant:audit.cols.entity","portalAccountant:audit.cols.user","portalAccountant:audit.cols.time","portalAccountant:audit.cols.severity"].map((h,hi) => (
+                  <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {shown.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-8 text-sm text-slate-400 text-center">{t("portalCommon:empty.nothing")}</td></tr>
+              )}
+              {shown.map(log => {
+                const sev = sevNorm(log.severity);
+                const s = SEV_CFG[sev] ?? SEV_CFG.info;
+                return (
+                  <tr key={log.id} className={cn("hover:bg-slate-50 transition-colors", s.row)}>
+                    <td className="px-4 py-3 text-xs font-mono text-slate-400">{log.id.slice(0, 8)}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-slate-800">{log.event}</td>
+                    <td className="px-4 py-3 text-xs font-mono text-slate-500">{log.resource ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600">{log.userName ?? t("audit.unknownUser", { defaultValue: "Unknown" })}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{fmtAuditTime(log.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn("inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold border", s.badge)}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
+                        {t(`audit.severity.${sev}`, { defaultValue: sev })}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
