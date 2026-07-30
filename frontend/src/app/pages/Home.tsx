@@ -121,8 +121,14 @@ export function Home() {
   ];
 
   const partners = [
-    "Biman Bangladesh", "Saudi Airlines", "Qatar Airways", "Emirates",
-    "Turkish Airlines", "Etihad Airways", "Air Arabia", "FlyDubai",
+    { name: "Biman Bangladesh", src: "/partners/biman.svg" },
+    { name: "Saudi Airlines", src: "/partners/saudia.svg" },
+    { name: "Qatar Airways", src: "/partners/qatar.svg" },
+    { name: "Emirates", src: "/partners/emirates.svg" },
+    { name: "Turkish Airlines", src: "/partners/turkish.svg" },
+    { name: "Etihad Airways", src: "/partners/etihad.svg" },
+    { name: "Air Arabia", src: "/partners/airarabia.svg" },
+    { name: "FlyDubai", src: "/partners/flydubai.svg" },
   ];
 
   return (
@@ -397,15 +403,25 @@ export function Home() {
 
       {/* ── PARTNERS MARQUEE ── */}
       <section className="py-12 md:py-14 border-y border-[var(--home-line)] bg-[#faf9f7]">
-        <div className="text-center mb-6">
+        <div className="text-center mb-8">
           <div className="text-[11px] font-bold text-[var(--home-muted)] uppercase tracking-[0.22em]">{t("partners.heading")}</div>
         </div>
         <div className="home-marquee">
-          <div className="home-marquee-track px-8">
+          <div className="home-marquee-track items-center px-8 gap-10 md:gap-14">
             {[...partners, ...partners].map((p, i) => (
-              <span key={`${p}-${i}`} className="text-sm md:text-base font-semibold text-[#17456B]/55 whitespace-nowrap tracking-wide">
-                {p}
-              </span>
+              <div
+                key={`${p.name}-${i}`}
+                className="flex-shrink-0 h-10 md:h-12 w-[120px] md:w-[150px] flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                title={p.name}
+              >
+                <img
+                  src={p.src}
+                  alt={p.name}
+                  className="max-h-full max-w-full w-auto object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
             ))}
           </div>
         </div>
