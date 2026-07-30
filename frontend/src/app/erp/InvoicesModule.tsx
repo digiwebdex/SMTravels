@@ -14,13 +14,13 @@ import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
 import {
   useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
-  usePayments, useRefunds,
+  usePayments, useRefunds, useInstallmentPlans, useCreateInstallmentPlan,
 } from "../hooks/finance";
 import { usePendingVerifyPayments, useVerifyPayment } from "../hooks/payments";
 import { downloadViaApi } from "../lib/api";
 import { useCustomers } from "../hooks/crm";
 import { Loader2 } from "lucide-react";
-import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem, PendingPaymentDto } from "@contracts/finance.contract";
+import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem, PendingPaymentDto, InstallmentPlanDto } from "@contracts/finance.contract";
 
 const st2vm = (s: string): InvoiceStatus => s.toLowerCase() as InvoiceStatus;
 
@@ -701,6 +701,21 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
 
 // ─── Receipts ─────────────────────────────────────────────────────────────────
 function ReceiptsView() {
+  const { data, isLoading, isError, error, refetch } = usePayments({ pageSize: 100 });
+  const receipts = (data?.data ?? []).filter(p => p.status === "CONFIRMED" && p.receiptNo);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16 text-slate-400">
+        <Loader2 size={22} className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return <ErrorBanner message={(error as Error)?.message || "Failed to load receipts."} onRetry={() => refetch()} />;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -708,9 +723,6 @@ function ReceiptsView() {
           <h2 className="text-xl font-bold text-slate-800">Receipts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Issued payment receipts</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> Issue Receipt
-        </button>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
@@ -722,14 +734,18 @@ function ReceiptsView() {
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.filter(p => p.status === "confirmed").map((p, i) => (
+            {receipts.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-400">No receipts issued yet.</td>
+              </tr>
+            ) : receipts.map(p => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">REC-{(9000 + i + 1).toString()}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoice}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{p.customer}</td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.receiptNo}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoiceNo ?? "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{p.customerName ?? "—"}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount, p.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{new Date(p.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
                 <td className="px-4 py-3">
                   <button className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
                     <Printer size={12} /> Print
@@ -844,21 +860,58 @@ function PaymentCollectionView() {
 }
 
 // ─── Installment Plan Builder ─────────────────────────────────────────────────
+function planProgress(plan: InstallmentPlanDto) {
+  const paid = plan.downAmount + plan.installments.reduce((s, i) => s + i.paidAmount, 0);
+  const paidCount = plan.installments.filter(i => i.status === "PAID" || i.paidAmount >= i.amountDue).length;
+  const next = plan.installments.find(i => i.status !== "PAID" && i.paidAmount < i.amountDue);
+  const isOverdue = plan.installments.some(i => i.status === "OVERDUE");
+  return { paid, paidCount, next, isOverdue };
+}
+
 function InstallmentBuilderView() {
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState("");
   const [totalAmount, setTotalAmount] = useState("520000");
   const [installments, setInstallments] = useState(4);
   const [downPct, setDownPct] = useState(20);
+
+  const { data: invData } = useInvoices({ pageSize: 50 });
+  const { data: plansData, isLoading: plansLoading } = useInstallmentPlans({ pageSize: 20 });
+  const createPlan = useCreateInstallmentPlan();
+
+  const invoiceOptions = invData?.data ?? [];
+  const selectedInv = invoiceOptions.find(i => i.id === selectedInvoiceId);
 
   const total = parseFloat(totalAmount) || 0;
   const down = Math.round(total * (downPct / 100));
   const remaining = total - down;
   const each = installments > 0 ? Math.round(remaining / installments) : 0;
 
-  const TRACKER_PLANS = [
-    { id: "IP-2401", customer: "Md. Karim Ullah", total: 520000, paid: 312000, installments: 5, paid_n: 3, next: "Aug 1", status: "active" },
-    { id: "IP-2403", customer: "Ahmed Family × 3", total: 215000, paid: 43000, installments: 5, paid_n: 1, next: "Jul 20", status: "active" },
-    { id: "IP-2404", customer: "Rahim & Sons Agency", total: 450000, paid: 0, installments: 3, paid_n: 0, next: "Jul 16", status: "overdue" },
-  ];
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const buildInstallmentRows = () =>
+    Array.from({ length: installments }, (_, i) => {
+      const d = new Date();
+      d.setMonth(d.getMonth() + i + 1);
+      return {
+        label: `Installment ${i + 1}`,
+        amountDue: each,
+        dueDate: d.toISOString().slice(0, 10),
+        monthLabel: `${monthLabels[d.getMonth()]} ${d.getDate()}`,
+      };
+    });
+
+  const handleCreatePlan = () => {
+    if (!selectedInv) return;
+    createPlan.mutate({
+      invoiceId: selectedInv.id,
+      customerId: selectedInv.customerId,
+      currency: selectedInv.currency,
+      downAmount: down,
+      installments: buildInstallmentRows().map(({ label, amountDue, dueDate }) => ({ label, amountDue, dueDate })),
+    });
+  };
+
+  const activePlans = plansData?.data ?? [];
 
   return (
     <div className="space-y-5">
@@ -870,9 +923,20 @@ function InstallmentBuilderView() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Customer / Booking</label>
-              <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                <option>Select booking…</option>
-                {INVOICES.map(i => <option key={i.id}>{i.id} – {i.customer}</option>)}
+              <select
+                value={selectedInvoiceId}
+                onChange={e => {
+                  const id = e.target.value;
+                  setSelectedInvoiceId(id);
+                  const inv = invoiceOptions.find(i => i.id === id);
+                  if (inv) setTotalAmount(String(inv.dueAmount || inv.total));
+                }}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+              >
+                <option value="">Select invoice…</option>
+                {invoiceOptions.map(i => (
+                  <option key={i.id} value={i.id}>{i.invoiceNo ?? i.id} – {i.customerName ?? "Customer"}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -906,12 +970,12 @@ function InstallmentBuilderView() {
                   <span className="font-mono font-semibold text-slate-800">{fmtC(down)}</span>
                 </div>
               </div>
-              {Array.from({ length: installments }, (_, i) => (
+              {buildInstallmentRows().map((row, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{i + 1}</div>
                   <div className="flex-1 flex justify-between text-sm">
-                    <span className="text-slate-600">Installment {i + 1} – {["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"][i]} 1</span>
-                    <span className="font-mono font-semibold text-slate-800">{fmtC(each)}</span>
+                    <span className="text-slate-600">Installment {i + 1} – {row.monthLabel}</span>
+                    <span className="font-mono font-semibold text-slate-800">{fmtC(row.amountDue)}</span>
                   </div>
                 </div>
               ))}
@@ -922,41 +986,54 @@ function InstallmentBuilderView() {
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save Draft</button>
-            <button className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Create Plan</button>
+            <button
+              onClick={handleCreatePlan}
+              disabled={!selectedInv || createPlan.isPending}
+              className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50 flex items-center gap-2"
+            >
+              {createPlan.isPending && <Loader2 size={14} className="animate-spin" />}
+              Create Plan
+            </button>
           </div>
         </div>
         {/* Active plans tracker */}
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h4 className="font-semibold text-slate-800 mb-4">Active Plans</h4>
-          <div className="space-y-4">
-            {TRACKER_PLANS.map(plan => {
-              const pct = Math.round((plan.paid / plan.total) * 100);
-              return (
-                <div key={plan.id} className="pb-4 border-b border-slate-50 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono text-slate-400">{plan.id}</span>
-                    <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full",
-                      plan.status === "overdue" ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700")}>
-                      {plan.status}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-slate-700">{plan.customer}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", plan.status === "overdue" ? "bg-red-400" : "bg-[#1B75BC]")}
-                        style={{ width: `${pct}%` }} />
+          {plansLoading ? (
+            <div className="flex justify-center py-8 text-slate-400"><Loader2 size={18} className="animate-spin" /></div>
+          ) : activePlans.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-6">No installment plans yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {activePlans.map(plan => {
+                const { paid, paidCount, next, isOverdue } = planProgress(plan);
+                const pct = plan.total > 0 ? Math.round((paid / plan.total) * 100) : 0;
+                return (
+                  <div key={plan.id} className="pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-mono text-slate-400">{plan.id.slice(0, 8).toUpperCase()}</span>
+                      <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full",
+                        isOverdue ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700")}>
+                        {isOverdue ? "overdue" : plan.status}
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-500 font-mono">{pct}%</span>
+                    <p className="text-sm font-medium text-slate-700">{plan.customerName ?? "Customer"}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={cn("h-full rounded-full", isOverdue ? "bg-red-400" : "bg-[#1B75BC]")}
+                          style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs text-slate-500 font-mono">{pct}%</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 mt-1">
+                      <span>{paidCount}/{plan.installments.length} paid</span>
+                      <span>Next: {next ? new Date(next.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—"}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>{plan.paid_n}/{plan.installments} paid</span>
-                    <span>Next: {plan.next}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

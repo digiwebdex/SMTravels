@@ -8,7 +8,7 @@ import {
   Users, UserPlus, Grid, List, FilePlus, FolderOpen, Loader2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
-import { useErpDocuments, useUploadDocument, downloadDocumentFile } from "../hooks/documents";
+import { useErpDocuments, useUploadDocument, downloadDocumentFile, useUpdateDocumentStatus } from "../hooks/documents";
 import { useRunOcr } from "../hooks/ocr";
 import { useCustomers } from "../hooks/crm";
 import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (no vite alias; bundling backend code is deliberate off-limits)
@@ -68,6 +68,7 @@ function DocLibrary() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [search, setSearch] = useState("");
   const q = useErpDocuments({ q: search || undefined, pageSize: 50 });
+  const updateStatus = useUpdateDocumentStatus();
   const rows: DocumentDto[] = q.data?.data ?? [];
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
@@ -121,12 +122,32 @@ function DocLibrary() {
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-500">{doc.ownerLabel ?? prettyType(doc.ownerType)}</td>
                 <td className="px-4 py-3">
-                  {doc.hasFile && (
-                    <button onClick={() => void downloadDocumentFile(doc)} title="Download"
-                      className="p-1 hover:bg-slate-100 rounded cursor-pointer">
-                      <Download size={13} className="text-slate-400" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {doc.hasFile && (
+                      <button onClick={() => void downloadDocumentFile(doc)} title="Download"
+                        className="p-1 hover:bg-slate-100 rounded cursor-pointer">
+                        <Download size={13} className="text-slate-400" />
+                      </button>
+                    )}
+                    {doc.status === "UPLOADED" && (
+                      <>
+                        <button
+                          onClick={() => updateStatus.mutate({ id: doc.id, status: "VERIFIED" })}
+                          disabled={updateStatus.isPending}
+                          className="px-2 py-0.5 text-[10px] font-semibold rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                        >
+                          Verify
+                        </button>
+                        <button
+                          onClick={() => updateStatus.mutate({ id: doc.id, status: "FAILED" })}
+                          disabled={updateStatus.isPending}
+                          className="px-2 py-0.5 text-[10px] font-semibold rounded bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -143,6 +164,24 @@ function DocLibrary() {
               <p className="text-xs font-medium text-slate-700 leading-tight mb-1 line-clamp-2">{doc.name}</p>
               <p className="text-xs text-slate-400 mb-2">{fmtBytes(doc.sizeBytes)}</p>
               <StatusChip status={doc.status.toLowerCase()} />
+              {doc.status === "UPLOADED" && (
+                <div className="flex gap-1 mt-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: doc.id, status: "VERIFIED" }); }}
+                    disabled={updateStatus.isPending}
+                    className="flex-1 px-1 py-0.5 text-[10px] font-semibold rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                  >
+                    Verify
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); updateStatus.mutate({ id: doc.id, status: "FAILED" }); }}
+                    disabled={updateStatus.isPending}
+                    className="flex-1 px-1 py-0.5 text-[10px] font-semibold rounded bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

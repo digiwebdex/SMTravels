@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiFetch, downloadViaApi } from "../lib/api";
 import type {
-  DocumentDto, DocumentListResult, DocumentTypeDto,
+  DocumentDto, DocumentListResult, DocumentTypeDto, DocumentStatusDto,
 } from "@contracts/document.contract";
 
 const err = (e: Error) => toast.error(e.message || "Something went wrong");
@@ -77,3 +77,16 @@ export function useUploadDocument() {
 /** ERP download — authenticated fetch, then a browser save. */
 export const downloadDocumentFile = (d: Pick<DocumentDto, "id" | "name">) =>
   downloadViaApi(`/documents/${d.id}/file`, d.name).catch(err);
+
+export function useUpdateDocumentStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: Extract<DocumentStatusDto, "VERIFIED" | "FAILED"> }) =>
+      apiFetch<DocumentDto>(`/documents/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+    onSuccess: (d) => {
+      toast.success(d.status === "VERIFIED" ? "Document verified" : "Document rejected");
+      void qc.invalidateQueries({ queryKey: documentKeys.all });
+    },
+    onError: err,
+  });
+}

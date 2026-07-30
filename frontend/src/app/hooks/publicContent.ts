@@ -5,9 +5,11 @@ import {
   BLOGS,
   TESTIMONIALS,
   FAQS,
+  GALLERY_IMAGES,
   type Package,
   type BlogPost,
 } from "../lib/data";
+import { img } from "../lib/utils";
 import type {
   PublicPackageItem,
   PublicPackageDetail,
@@ -17,6 +19,8 @@ import type {
   PublicBlogListResponse,
   PublicFaqListResponse,
   PublicTestimonialListResponse,
+  PublicGalleryListResponse,
+  PublicGalleryItem,
 } from "@contracts/cms.contract";
 
 const publicFetch = <T>(path: string) => apiFetch<T>(path, {}, { auth: false, retry: false });
@@ -101,6 +105,50 @@ export function faqsToRecord(items: PublicFaqListResponse["data"]): Record<strin
     out[cat].push({ q: f.question, a: f.answer });
   }
   return out;
+}
+
+function resolveGallerySrc(image: string): string {
+  if (!image) return "";
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  if (image.startsWith("/")) return image;
+  return img(image);
+}
+
+export interface PublicGalleryImage {
+  id: string | number;
+  src: string;
+  url: string;
+  category: string;
+  caption: string;
+  /** Aliases for Gallery.tsx (matches GALLERY_IMAGES shape). */
+  title: string;
+  image: string;
+}
+
+export function mapPublicGalleryItem(item: PublicGalleryItem): PublicGalleryImage {
+  const src = resolveGallerySrc(item.image);
+  return {
+    id: item.id,
+    src,
+    url: src,
+    category: item.category,
+    caption: item.title,
+    title: item.title,
+    image: item.image,
+  };
+}
+
+function mapFallbackGallery(g: (typeof GALLERY_IMAGES)[number]): PublicGalleryImage {
+  const src = img(g.image);
+  return {
+    id: g.id,
+    src,
+    url: src,
+    category: g.category,
+    caption: g.title,
+    title: g.title,
+    image: g.image,
+  };
 }
 
 function withFallback<T>(api: T[] | undefined, isError: boolean, fallback: T[]): T[] {
@@ -220,6 +268,20 @@ export function usePublicTestimonials() {
   const testimonials = withFallback(mapped, query.isError, TESTIMONIALS);
 
   return { ...query, testimonials, fromApi: !!mapped?.length && !query.isError };
+}
+
+export function usePublicGallery() {
+  const query = useQuery({
+    queryKey: publicContentKeys.gallery,
+    queryFn: () => publicFetch<PublicGalleryListResponse>("/public/gallery"),
+    staleTime: 60_000,
+  });
+
+  const mapped = query.data?.data.map(mapPublicGalleryItem);
+  const fallback = GALLERY_IMAGES.map(mapFallbackGallery);
+  const images = withFallback(mapped, query.isError, fallback);
+
+  return { ...query, images, fromApi: !!mapped?.length && !query.isError };
 }
 
 /** Resolve a stable route key for packages/blog (prefer slug when from API). */

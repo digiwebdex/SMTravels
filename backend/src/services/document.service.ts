@@ -14,6 +14,7 @@ import { HttpError } from "../middleware/errorHandler";
 import { moveIntoStore, removeQuietly, absoluteStorePath } from "../lib/uploads";
 import type {
   DocumentDto, DocumentListResult, DocumentListQuery, DocumentUploadInput,
+  DocumentStatusDto,
 } from "../contracts/document.contract";
 
 const dOnly = (d: Date | null | undefined): string | null => (d ? d.toISOString().slice(0, 10) : null);
@@ -159,6 +160,35 @@ export interface FileHandle {
   absPath: string;
   mimeType: string;
   name: string;
+}
+
+const VERIFY_FROM: DocumentStatusDto[] = ["UPLOADED", "PENDING"];
+const VERIFY_TO: DocumentStatusDto[] = ["VERIFIED", "FAILED"];
+
+export async function updateDocumentStatus(
+  auth: AuthCtx,
+  id: string,
+  status: DocumentStatusDto,
+): Promise<DocumentDto> {
+  const d = await prisma.document.findFirst({
+    where: { id, ...scopedWhere(auth) },
+    include: ownerInclude,
+  });
+  if (!d) throw new HttpError(404, "NotFound", { detail: "Document not found." });
+  if (!VERIFY_FROM.includes(d.status)) {
+    throw new HttpError(400, "InvalidTransition", {
+      detail: `Cannot verify or reject a document in ${d.status} status.`,
+    });
+  }
+  if (!VERIFY_TO.includes(status)) {
+    throw new HttpError(400, "ValidationError", { detail: "Status must be VERIFIED or FAILED." });
+  }
+  const updated = await prisma.document.update({
+    where: { id },
+    data: { status },
+    include: ownerInclude,
+  });
+  return toDto(updated);
 }
 
 export async function getDocumentFile(auth: AuthCtx, id: string): Promise<FileHandle> {

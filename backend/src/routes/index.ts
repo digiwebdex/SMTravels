@@ -31,6 +31,7 @@ import { aiRouter } from "./ai.route";
 import { cmsPublicRouter } from "./cms.public.route";
 import { cmsRouter } from "./cms.route";
 import { communicationsRouter } from "./communications.route";
+import { opsRouter } from "./ops.route";
 import { receiptsRouter } from "./receipts.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
@@ -69,3 +70,4 @@ apiRouter.use(communicationRouter);
 apiRouter.use(integrationsRouter);
 apiRouter.use(aiRouter);
 apiRouter.use(communicationsRouter);
+apiRouter.use(opsRouter);

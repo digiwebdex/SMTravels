@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router";
 import {
   CheckSquare, Calendar, Bell, Megaphone, MessageSquare, Activity,
   Shield, GitBranch, FolderOpen, Plus, Search, X, Check, Clock,
@@ -6,9 +7,18 @@ import {
   Eye, Edit2, Trash2, Circle, CheckCircle2, ArrowRight, FileText,
   Zap, Flag, Star, ChevronRight, ChevronLeft, ChevronUp, ChevronDown,
   GripVertical, Download, Circle as Dot, Server, Database, HardDrive,
-  MoreHorizontal, TrendingUp, Copy,
+  MoreHorizontal, TrendingUp, Copy, Loader2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { SampleBadge } from "../portal/SampleBadge";
+import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
+import { useUsers } from "../hooks/crm";
+import {
+  useTasks, useCreateTask, useUpdateTask,
+  useAnnouncements, useCreateAnnouncement,
+  useAuditLogs,
+  statusUi, statusApi, priUi, fmtDue, fmtDate, TASK_STATUSES,
+} from "../hooks/ops";
 
 type OpsView =
   | "tasks" | "calendar" | "reminders" | "notifications"
@@ -80,16 +90,6 @@ function Card({ title, children, action, className }: {
 }
 
 // ─── TASKS ───────────────────────────────────────────────────────────────────
-const TASKS_DATA = [
-  { id:1, title:"Process Hajj 2024 batch documents",      assignee:"Abdullah C.", priority:"high",   status:"in-progress", due:"Jul 18", tags:["Hajj","Docs"],    comments:3 },
-  { id:2, title:"Follow up with NMT Travels quota",       assignee:"Rahim K.",    priority:"high",   status:"todo",        due:"Jul 16", tags:["Agent"],          comments:1 },
-  { id:3, title:"Update Umrah package pricing",           assignee:"Fatema B.",   priority:"medium", status:"todo",        due:"Jul 20", tags:["Umrah"],          comments:0 },
-  { id:4, title:"Prepare monthly P&L report",             assignee:"Kamal H.",    priority:"medium", status:"in-progress", due:"Jul 22", tags:["Finance"],        comments:2 },
-  { id:5, title:"Visa application follow-up — batch #09", assignee:"Nasir A.",    priority:"high",   status:"blocked",     due:"Jul 17", tags:["Visa"],           comments:5 },
-  { id:6, title:"Send welcome kits to new Hajj clients",  assignee:"Salma T.",    priority:"low",    status:"done",        due:"Jul 15", tags:["Hajj","Client"],  comments:1 },
-  { id:7, title:"Renew office utility contracts",         assignee:"Abdullah C.", priority:"low",    status:"done",        due:"Jul 10", tags:["Admin"],          comments:0 },
-  { id:8, title:"Set up new branch WhatsApp number",      assignee:"Rahim K.",    priority:"medium", status:"todo",        due:"Jul 25", tags:["Admin","Comms"],  comments:0 },
-];
 const COLS = [
   { id:"todo",        label:"To Do",       color:"bg-slate-400"   },
   { id:"in-progress", label:"In Progress", color:"bg-blue-500"    },
@@ -99,19 +99,58 @@ const COLS = [
 
 function TasksView() {
   const [mode, setMode] = useState<"board"|"list">("board");
-  const [tasks, setTasks] = useState(TASKS_DATA);
-  const toggle = (id: number) => setTasks(t => t.map(x => x.id===id ? {...x, status: x.status==="done"?"todo":"done"} : x));
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [creating, setCreating] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("MEDIUM");
+  const [assigneeId, setAssigneeId] = useState("");
+  const [dueAt, setDueAt] = useState("");
+
+  const tasksQ = useTasks({ q: q || undefined, status: statusFilter });
+  const createM = useCreateTask();
+  const updateM = useUpdateTask();
+  const usersQ = useUsers();
+  const tasks = (tasksQ.data ?? []).map((t) => ({
+    ...t,
+    statusUi: statusUi(t.status),
+    priUi: priUi(t.priority),
+    assignee: t.assigneeName ?? "Unassigned",
+  }));
+
+  const setStatus = (id: string, next: string) => {
+    updateM.mutate({ id, status: statusApi(next) as "TODO" | "IN_PROGRESS" | "BLOCKED" | "DONE" });
+  };
+  const toggle = (id: string, current: string) => setStatus(id, current === "done" ? "todo" : "done");
+
+  const submitCreate = () => {
+    if (!title.trim()) return;
+    createM.mutate(
+      {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority: priority as "HIGH" | "MEDIUM" | "LOW",
+        assigneeId: assigneeId || undefined,
+        dueAt: dueAt || undefined,
+      },
+      { onSuccess: () => { setCreating(false); setTitle(""); setDescription(""); setAssigneeId(""); setDueAt(""); } },
+    );
+  };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input placeholder="Search tasks…" className="pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none w-48" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tasks…"
+              className="pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none w-48" />
           </div>
-          <select className="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-600">
-            <option>All Assignees</option>{["Abdullah C.","Rahim K.","Fatema B.","Kamal H.","Nasir A."].map(a=><option key={a}>{a}</option>)}
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-600">
+            <option>All</option>
+            {COLS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
           <div className="flex bg-slate-100 rounded-lg p-0.5">
             {(["board","list"] as const).map(v=>(
@@ -120,16 +159,51 @@ function TasksView() {
                   mode===v ? "bg-white shadow text-slate-700 font-medium" : "text-slate-500")}>{v}</button>
             ))}
           </div>
+          <button type="button" onClick={() => tasksQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <RefreshCw size={14} className={tasksQ.isFetching ? "animate-spin" : ""} />
+          </button>
         </div>
-        <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+        <button onClick={() => setCreating((v) => !v)}
+          className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Plus size={14}/> New Task
         </button>
       </div>
 
-      {mode === "board" ? (
+      {creating && (
+        <div className="bg-white rounded-xl border border-[#1B75BC]/20 p-5 mb-5 space-y-3">
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title…"
+            className="w-full text-base font-semibold border-none focus:outline-none text-slate-800 placeholder:text-slate-300" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Description (optional)…"
+            className="w-full text-sm text-slate-700 focus:outline-none resize-none placeholder:text-slate-300" />
+          <div className="flex items-center gap-3 flex-wrap">
+            <select value={priority} onChange={(e) => setPriority(e.target.value)}
+              className="text-sm border border-slate-200 rounded-lg px-3 py-2">
+              <option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option>
+            </select>
+            <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
+              className="text-sm border border-slate-200 rounded-lg px-3 py-2">
+              <option value="">Unassigned</option>
+              {(usersQ.data ?? []).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+            <input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)}
+              className="text-sm border border-slate-200 rounded-lg px-3 py-2" />
+            <div className="flex gap-2 ml-auto">
+              <button onClick={() => setCreating(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600">Cancel</button>
+              <button onClick={submitCreate} disabled={createM.isPending || !title.trim()}
+                className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg disabled:opacity-50 flex items-center gap-1.5">
+                {createM.isPending && <Loader2 size={13} className="animate-spin" />} Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tasksQ.isLoading ? (
+        <div className="flex items-center justify-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin" /></div>
+      ) : mode === "board" ? (
         <div className="grid grid-cols-4 gap-4">
           {COLS.map(col => {
-            const ct = tasks.filter(t=>t.status===col.id);
+            const ct = tasks.filter(t=>t.statusUi===col.id);
             return (
               <div key={col.id} className="bg-slate-100 rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between mb-1">
@@ -138,31 +212,33 @@ function TasksView() {
                     <span className="text-xs font-semibold text-slate-600">{col.label}</span>
                     <span className="text-xs bg-white text-slate-500 px-1.5 py-0.5 rounded-full border border-slate-200">{ct.length}</span>
                   </div>
-                  <button className="p-1 hover:bg-slate-200 rounded text-slate-400"><Plus size={12}/></button>
                 </div>
                 {ct.map(t=>(
-                  <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-3 cursor-pointer hover:shadow-sm transition-shadow">
+                  <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-3 hover:shadow-sm transition-shadow">
                     <div className="flex items-start gap-2 mb-2">
-                      <button onClick={()=>toggle(t.id)} className="mt-0.5 flex-shrink-0">
-                        {t.status==="done" ? <CheckCircle2 size={15} className="text-emerald-500 fill-emerald-500"/> : <Circle size={15} className="text-slate-300"/>}
+                      <button onClick={()=>toggle(t.id, t.statusUi)} className="mt-0.5 flex-shrink-0">
+                        {t.statusUi==="done" ? <CheckCircle2 size={15} className="text-emerald-500 fill-emerald-500"/> : <Circle size={15} className="text-slate-300"/>}
                       </button>
-                      <p className={cn("text-xs font-medium leading-snug", t.status==="done"?"line-through text-slate-400":"text-slate-700")}>{t.title}</p>
+                      <p className={cn("text-xs font-medium leading-snug flex-1", t.statusUi==="done"?"line-through text-slate-400":"text-slate-700")}>{t.title}</p>
                     </div>
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {t.tags.map(tag=><span key={tag} className="text-xs px-1.5 py-0.5 bg-[#1B75BC]/8 text-[#1B75BC] rounded-md">{tag}</span>)}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <PriBadge p={t.priority}/>
-                      <div className="flex items-center gap-1.5">
-                        {t.comments>0 && <span className="flex items-center gap-0.5 text-xs text-slate-400"><MessageSquare size={10}/>{t.comments}</span>}
-                        <span className="text-xs text-slate-400 flex items-center gap-0.5"><Clock size={10}/>{t.due}</span>
+                    {t.category && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        <span className="text-xs px-1.5 py-0.5 bg-[#1B75BC]/8 text-[#1B75BC] rounded-md">{t.category}</span>
                       </div>
+                    )}
+                    <div className="flex items-center justify-between gap-1">
+                      <PriBadge p={t.priUi}/>
+                      <select value={t.statusUi} onChange={(e) => setStatus(t.id, e.target.value)}
+                        className="text-xs border border-slate-200 rounded px-1 py-0.5 text-slate-600">
+                        {TASK_STATUSES.map((s) => <option key={s} value={s}>{s.replace("-", " ")}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
+                      <span>{t.assignee}</span>
+                      <span className="flex items-center gap-0.5"><Clock size={10}/>{fmtDue(t.dueAt)}</span>
                     </div>
                   </div>
                 ))}
-                <button className="w-full py-2 text-xs text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1 hover:bg-white rounded-lg transition-colors">
-                  <Plus size={11}/> Add task
-                </button>
               </div>
             );
           })}
@@ -171,30 +247,32 @@ function TasksView() {
         <Card>
           <table className="w-full">
             <thead><tr className="bg-slate-50 border-b border-slate-100">
-              {["","Task","Assignee","Priority","Status","Due","Tags",""].map((h,i)=>(
+              {["","Task","Assignee","Priority","Status","Due","Category"].map((h,i)=>(
                 <th key={i} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr></thead>
             <tbody>{tasks.map(t=>(
-              <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50 group">
-                <td className="px-4 py-3"><button onClick={()=>toggle(t.id)}>
-                  {t.status==="done"?<CheckCircle2 size={15} className="text-emerald-500 fill-emerald-500"/>:<Circle size={15} className="text-slate-300"/>}
+              <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50">
+                <td className="px-4 py-3"><button onClick={()=>toggle(t.id, t.statusUi)}>
+                  {t.statusUi==="done"?<CheckCircle2 size={15} className="text-emerald-500 fill-emerald-500"/>:<Circle size={15} className="text-slate-300"/>}
                 </button></td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-700 max-w-xs">
-                  <span className={cn(t.status==="done"&&"line-through text-slate-400")}>{t.title}</span>
+                  <span className={cn(t.statusUi==="done"&&"line-through text-slate-400")}>{t.title}</span>
                 </td>
                 <td className="px-4 py-3"><div className="flex items-center gap-1.5"><Av name={t.assignee}/><span className="text-sm text-slate-600">{t.assignee}</span></div></td>
-                <td className="px-4 py-3"><PriBadge p={t.priority}/></td>
-                <td className="px-4 py-3"><StBadge s={t.status}/></td>
-                <td className="px-4 py-3 text-sm text-slate-500">{t.due}</td>
-                <td className="px-4 py-3"><div className="flex gap-1">{t.tags.map(tag=><span key={tag} className="text-xs px-1.5 py-0.5 bg-[#1B75BC]/8 text-[#1B75BC] rounded-md">{tag}</span>)}</div></td>
-                <td className="px-4 py-3 opacity-0 group-hover:opacity-100"><div className="flex gap-1">
-                  <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={12}/></button>
-                  <button className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={12}/></button>
-                </div></td>
+                <td className="px-4 py-3"><PriBadge p={t.priUi}/></td>
+                <td className="px-4 py-3">
+                  <select value={t.statusUi} onChange={(e) => setStatus(t.id, e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg px-2 py-1 text-slate-600">
+                    {TASK_STATUSES.map((s) => <option key={s} value={s}>{s.replace("-", " ")}</option>)}
+                  </select>
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">{fmtDue(t.dueAt)}</td>
+                <td className="px-4 py-3 text-xs text-slate-500">{t.category ?? "—"}</td>
               </tr>
             ))}</tbody>
           </table>
+          {tasks.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No tasks yet.</p>}
         </Card>
       )}
     </div>
@@ -220,6 +298,8 @@ function CalendarView() {
   const offset = 1; // July 2024 Mon start
   const cells = [...Array(offset).fill(null), ...Array(31).fill(0).map((_,i)=>i+1)];
   return (
+    <div>
+      <SampleBadge />
     <div className="grid grid-cols-3 gap-5">
       <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-4">
@@ -272,6 +352,7 @@ function CalendarView() {
         </button>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -290,6 +371,7 @@ function RemindersView() {
   const [items, setItems] = useState(REMIND_DATA);
   return (
     <div>
+      <SampleBadge />
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-bold text-slate-800">Reminders</h2>
         <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={14}/> Add Reminder</button>
@@ -323,109 +405,135 @@ function RemindersView() {
 }
 
 // ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
-const NOTIF_DATA = [
-  { id:1, icon:CheckSquare,  color:"#0E7C66", title:"New booking received",         body:"Hajj Economy — Md. Karim Ullah, ৳5,20,000",    time:"2m ago",  read:false },
-  { id:2, icon:TrendingUp,   color:"#1B75BC", title:"Payment received",             body:"bKash #0892 — ৳92,500 from NMT Travels",        time:"15m ago", read:false },
-  { id:3, icon:Check,        color:"#F15A24", title:"Visa batch approved",          body:"Saudi batch #08 — 42 applicants approved",      time:"1h ago",  read:false },
-  { id:4, icon:AlertTriangle,color:"#EF4444", title:"Document expiry alert",        body:"3 passports expire within 30 days",             time:"2h ago",  read:true  },
-  { id:5, icon:Shield,       color:"#64748B", title:"Backup completed",             body:"Automated daily backup — 14 Jul 02:00 AM",     time:"6h ago",  read:true  },
-  { id:6, icon:CheckSquare,  color:"#7C3AED", title:"Task assigned to you",         body:"Process Hajj batch documents — by Abdullah C.",time:"1d ago",  read:true  },
-];
-
 function NotificationsView() {
-  const [items, setItems] = useState(NOTIF_DATA);
-  const unread = items.filter(n=>!n.read).length;
+  const q = useMyNotifications();
+  const markAll = useMarkAllNotificationsRead();
+  const items = q.data ?? [];
+  const unread = items.filter(n => !n.read).length;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h2 className="text-xl font-bold text-slate-800">Notifications</h2><p className="text-sm text-slate-500">{unread} unread</p></div>
         <div className="flex gap-2">
-          <button onClick={()=>setItems(n=>n.map(x=>({...x,read:true})))}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600"><Check size={13}/> Mark all read</button>
-          <select className="text-sm border border-slate-200 rounded-lg px-3 py-2"><option>All</option><option>Unread</option></select>
+          <button onClick={() => markAll.mutate()} disabled={markAll.isPending || unread === 0}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
+            <Check size={13}/> Mark all read
+          </button>
+          <button type="button" onClick={() => q.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <RefreshCw size={14} className={q.isFetching ? "animate-spin" : ""} />
+          </button>
         </div>
       </div>
+      {q.isLoading ? (
+        <div className="flex items-center justify-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin" /></div>
+      ) : (
       <div className="space-y-2">
         {items.map(n=>(
-          <div key={n.id} onClick={()=>setItems(ns=>ns.map(x=>x.id===n.id?{...x,read:true}:x))}
-            className={cn("flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all",
+          <div key={n.id}
+            className={cn("flex items-start gap-4 p-4 rounded-xl border transition-all",
               n.read ? "bg-white border-slate-100" : "bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: n.color+"20" }}>
-              <n.icon size={16} style={{ color: n.color }}/>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#1B75BC]/10">
+              <Bell size={16} className="text-[#1B75BC]" style={n.color ? { color: n.color } : undefined} />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-slate-800">{n.title}</p>
                 {!n.read && <span className="w-2 h-2 rounded-full bg-[#1B75BC] flex-shrink-0"/>}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">{n.body}</p>
+              {n.body && <p className="text-xs text-slate-500 mt-0.5">{n.body}</p>}
             </div>
-            <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap">{n.time}</span>
+            <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap">{relAge(n.createdAt)} ago</span>
           </div>
         ))}
+        {items.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No notifications yet.</p>}
       </div>
+      )}
     </div>
   );
 }
 
 // ─── ANNOUNCEMENTS ───────────────────────────────────────────────────────────
-const ANN_DATA = [
-  { id:1, title:"Eid-ul-Adha Office Closure",         body:"The office will be closed Jun 28–Jul 2 for Eid holidays. Emergency: +880 31 XXX XXXX.",               author:"Abdullah C.", date:"Jun 24", pinned:true,  audience:"All Staff" },
-  { id:2, title:"New Hajj Quota Allocation 2024",     body:"We received 850 Hajj quota for 2024, up 12% from last year. Sales team — update package details.",     author:"CEO Office",   date:"Jun 20", pinned:true,  audience:"All Staff" },
-  { id:3, title:"System Maintenance — Jul 20, 11 PM", body:"Planned maintenance window for ERP upgrades. System may be unavailable for up to 2 hours.",            author:"IT Admin",    date:"Jul 12", pinned:false, audience:"All Staff" },
-  { id:4, title:"Updated Visa Fee Structure",         body:"Saudi Arabia revised processing fees effective July 1. Refer to the updated rate card in shared drive.",author:"Visa Dept.",   date:"Jun 28", pinned:false, audience:"Visa Team" },
-];
-
 function AnnouncementsView() {
   const [composing, setComposing] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [audience, setAudience] = useState("All Staff");
+  const [pinned, setPinned] = useState(false);
+
+  const annQ = useAnnouncements();
+  const createM = useCreateAnnouncement();
+  const items = annQ.data ?? [];
+
+  const submit = () => {
+    if (!title.trim() || !body.trim()) return;
+    createM.mutate(
+      { title: title.trim(), body: body.trim(), audience, pinned },
+      { onSuccess: () => { setComposing(false); setTitle(""); setBody(""); setPinned(false); } },
+    );
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-bold text-slate-800">Announcements</h2>
-        <button onClick={()=>setComposing(v=>!v)}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={14}/> New Announcement</button>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => annQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <RefreshCw size={14} className={annQ.isFetching ? "animate-spin" : ""} />
+          </button>
+          <button onClick={()=>setComposing(v=>!v)}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={14}/> New Announcement</button>
+        </div>
       </div>
       {composing && (
         <div className="bg-white rounded-xl border border-[#1B75BC]/20 p-5 mb-5 space-y-3">
-          <input placeholder="Announcement title…" className="w-full text-base font-semibold border-none focus:outline-none text-slate-800 placeholder:text-slate-300"/>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title…"
+            className="w-full text-base font-semibold border-none focus:outline-none text-slate-800 placeholder:text-slate-300"/>
           <div className="h-px bg-slate-100"/>
-          <textarea rows={3} placeholder="Write your announcement here…"
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} placeholder="Write your announcement here…"
             className="w-full text-sm text-slate-700 focus:outline-none resize-none placeholder:text-slate-300"/>
           <div className="flex items-center gap-3 flex-wrap">
-            <select className="text-sm border border-slate-200 rounded-lg px-3 py-2">
+            <select value={audience} onChange={(e) => setAudience(e.target.value)}
+              className="text-sm border border-slate-200 rounded-lg px-3 py-2">
               <option>All Staff</option><option>Sales Team</option><option>Visa Team</option><option>Accounts</option>
             </select>
-            <label className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer"><input type="checkbox" className="rounded"/> Pin announcement</label>
+            <label className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
+              <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="rounded"/> Pin announcement
+            </label>
             <div className="flex gap-2 ml-auto">
               <button onClick={()=>setComposing(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600">Cancel</button>
-              <button onClick={()=>setComposing(false)} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg">Post</button>
+              <button onClick={submit} disabled={createM.isPending || !title.trim() || !body.trim()}
+                className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg disabled:opacity-50 flex items-center gap-1.5">
+                {createM.isPending && <Loader2 size={13} className="animate-spin" />} Post
+              </button>
             </div>
           </div>
         </div>
       )}
+      {annQ.isLoading ? (
+        <div className="flex items-center justify-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin" /></div>
+      ) : (
       <div className="space-y-3">
-        {ANN_DATA.map(a=>(
+        {items.map(a=>(
           <div key={a.id} className={cn("bg-white rounded-xl border p-5", a.pinned?"border-[#F15A24]/40 bg-[#F15A24]/3":"border-slate-200")}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 {a.pinned && <span className="flex items-center gap-1 text-xs text-[#D64A12] font-medium"><Flag size={11} className="fill-[#F15A24]"/> Pinned</span>}
                 <h3 className="font-semibold text-slate-800">{a.title}</h3>
               </div>
-              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{a.audience}</span>
+              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{a.audience ?? "All Staff"}</span>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed mb-3">{a.body}</p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Av name={a.author} size="sm"/><span>{a.author}</span><span>·</span><span>{a.date}</span>
-              </div>
-              <div className="flex gap-1">
-                <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={13}/></button>
-                <button className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={13}/></button>
+                <Av name={a.authorName ?? "Staff"} size="sm"/><span>{a.authorName ?? "Staff"}</span><span>·</span><span>{fmtDate(a.createdAt)}</span>
               </div>
             </div>
           </div>
         ))}
+        {items.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No announcements yet.</p>}
       </div>
+      )}
     </div>
   );
 }
@@ -450,6 +558,8 @@ function ChatView() {
   const [msg, setMsg] = useState("");
   const [selected, setSelected] = useState(0);
   return (
+    <div>
+      <SampleBadge />
     <div className="flex h-[580px] bg-white rounded-xl border border-slate-200 overflow-hidden">
       {/* Sidebar */}
       <div className="w-56 border-r border-slate-100 flex flex-col flex-shrink-0">
@@ -512,6 +622,7 @@ function ChatView() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -559,31 +670,30 @@ function ActivityView() {
 }
 
 // ─── AUDIT LOGS ───────────────────────────────────────────────────────────────
-const AUDIT_DATA = [
-  { user:"Abdullah C.", ip:"103.12.X.X", event:"LOGIN_SUCCESS",      severity:"info",     resource:"Auth",     time:"Today 09:12" },
-  { user:"Kamal H.",    ip:"103.12.X.X", event:"RECORD_DELETED",     severity:"warning",  resource:"Invoice",  time:"Today 09:05" },
-  { user:"SYSTEM",      ip:"—",          event:"BACKUP_COMPLETED",   severity:"info",     resource:"Database", time:"Today 02:00" },
-  { user:"Rahim K.",    ip:"45.64.X.X",  event:"PERMISSION_CHANGED", severity:"critical", resource:"Roles",    time:"Yesterday"   },
-  { user:"Unknown",     ip:"196.33.X.X", event:"LOGIN_FAILED_×3",    severity:"critical", resource:"Auth",     time:"Yesterday"   },
-  { user:"Fatema B.",   ip:"103.12.X.X", event:"DATA_EXPORT",        severity:"warning",  resource:"Reports",  time:"Jul 13"      },
-  { user:"Abdullah C.", ip:"103.12.X.X", event:"SETTINGS_CHANGED",   severity:"warning",  resource:"Settings", time:"Jul 12"      },
-];
 const SEV_CFG: Record<string,string> = {
   info:     "bg-blue-50 text-blue-600 border-blue-200",
   warning:  "bg-amber-50 text-amber-600 border-amber-200",
   critical: "bg-red-50 text-red-600 border-red-200",
+  INFO:     "bg-blue-50 text-blue-600 border-blue-200",
+  WARNING:  "bg-amber-50 text-amber-600 border-amber-200",
+  CRITICAL: "bg-red-50 text-red-600 border-red-200",
 };
 
 function AuditView() {
+  const auditQ = useAuditLogs();
+  const logs = auditQ.data ?? [];
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <div><h2 className="text-xl font-bold text-slate-800">Audit Logs</h2><p className="text-sm text-slate-500">Security-critical event trail</p></div>
-        <div className="flex gap-2">
-          <select className="text-sm border border-slate-200 rounded-lg px-3 py-2"><option>All Severity</option><option>Critical</option><option>Warning</option></select>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Download size={13}/> Export CSV</button>
-        </div>
+        <button type="button" onClick={() => auditQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+          <RefreshCw size={14} className={auditQ.isFetching ? "animate-spin" : ""} />
+        </button>
       </div>
+      {auditQ.isLoading ? (
+        <div className="flex items-center justify-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin" /></div>
+      ) : (
       <Card>
         <table className="w-full">
           <thead><tr className="bg-slate-50 border-b border-slate-100">
@@ -591,21 +701,24 @@ function AuditView() {
               <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
             ))}
           </tr></thead>
-          <tbody>{AUDIT_DATA.map((log,i)=>(
-            <tr key={i} className={cn("border-b border-slate-50 hover:bg-slate-50",log.severity==="critical"&&"bg-red-50/30")}>
-              <td className="px-4 py-3 text-xs text-slate-400 font-mono">{log.time}</td>
+          <tbody>{logs.map((log)=>(
+            <tr key={log.id} className={cn("border-b border-slate-50 hover:bg-slate-50",
+              (log.severity === "critical" || log.severity === "CRITICAL") && "bg-red-50/30")}>
+              <td className="px-4 py-3 text-xs text-slate-400 font-mono">{fmtDate(log.createdAt)}</td>
               <td className="px-4 py-3"><div className="flex items-center gap-1.5">
-                <Av name={log.user} size="sm" color={log.user==="SYSTEM"?"#64748B":log.user==="Unknown"?"#EF4444":"#1B75BC"}/>
-                <span className="text-sm text-slate-700">{log.user}</span>
+                <Av name={log.userName ?? "Unknown"} size="sm" color={!log.userName ? "#EF4444" : "#1B75BC"}/>
+                <span className="text-sm text-slate-700">{log.userName ?? "Unknown"}</span>
               </div></td>
-              <td className="px-4 py-3 text-xs text-slate-500 font-mono">{log.ip}</td>
+              <td className="px-4 py-3 text-xs text-slate-500 font-mono">{log.ip ?? "—"}</td>
               <td className="px-4 py-3 text-sm font-mono text-slate-700">{log.event}</td>
-              <td className="px-4 py-3 text-sm text-slate-500">{log.resource}</td>
-              <td className="px-4 py-3"><span className={cn("px-2 py-0.5 rounded-full text-xs font-medium border capitalize",SEV_CFG[log.severity])}>{log.severity}</span></td>
+              <td className="px-4 py-3 text-sm text-slate-500">{log.resource ?? "—"}</td>
+              <td className="px-4 py-3"><span className={cn("px-2 py-0.5 rounded-full text-xs font-medium border capitalize", SEV_CFG[log.severity] ?? SEV_CFG.info)}>{log.severity.toLowerCase()}</span></td>
             </tr>
           ))}</tbody>
         </table>
+        {logs.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No audit logs yet.</p>}
       </Card>
+      )}
     </div>
   );
 }
@@ -637,6 +750,7 @@ function WorkflowView() {
   const [sel, setSel] = useState(1);
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div><h2 className="text-xl font-bold text-slate-800">Workflow Automation</h2><p className="text-sm text-slate-500">Automated business process flows</p></div>
         <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={14}/> New Workflow</button>
@@ -768,15 +882,26 @@ export function OperationsModule() {
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Operations</h2>
         </div>
         <nav className="flex-1 py-2 overflow-y-auto no-scrollbar">
-          {NAV.map(item=>(
+          {NAV.map(item=>{
+            const cls = cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
+              view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50");
+            if (item.id === "documents") {
+              return (
+                <Link key={item.id} to="/erp/documents" className={cls}>
+                  <item.icon size={15} className="text-slate-400"/>
+                  <span className="flex-1 text-left">{item.label}</span>
+                </Link>
+              );
+            }
+            return (
             <button key={item.id} onClick={()=>setView(item.id)}
-              className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50")}>
+              className={cls}>
               <item.icon size={15} className={view===item.id?"text-[#1B75BC]":"text-slate-400"}/>
               <span className="flex-1 text-left">{item.label}</span>
               {item.badge && <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>}
             </button>
-          ))}
+            );
+          })}
         </nav>
       </div>
       <div className="flex-1 overflow-y-auto p-6">
@@ -789,7 +914,6 @@ export function OperationsModule() {
         {view==="activity"      && <ActivityView/>}
         {view==="audit"         && <AuditView/>}
         {view==="workflow"      && <WorkflowView/>}
-        {view==="documents"     && <DocumentsView/>}
       </div>
     </div>
   );

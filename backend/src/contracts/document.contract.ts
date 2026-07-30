@@ -101,6 +101,13 @@ export interface DocumentListResult {
   pageSize: number;
 }
 
+// ── status update (ERP verify / reject) ──────────────────────────────────────
+/** Allowed targets when transitioning from UPLOADED or PENDING. */
+export const documentStatusUpdateSchema = z.object({
+  status: z.enum(["VERIFIED", "FAILED"]),
+});
+export type DocumentStatusUpdateInput = z.infer<typeof documentStatusUpdateSchema>;
+
 /** OCR extraction result returned by POST /documents/:id/ocr */
 export interface DocumentOcrResultDto {
   id: string;
