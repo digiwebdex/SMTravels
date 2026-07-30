@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Users, UserCircle, Building2 } from "lucide-react";
+import { useSearchParams } from "react-router";
+import { Users, UserCircle, Building2, type LucideIcon } from "lucide-react";
 import { cn } from "../lib/utils";
 import { LeadsView } from "./crm/LeadsView";
 import { CustomersView } from "./crm/CustomersView";
@@ -7,14 +7,27 @@ import { CorporateView } from "./crm/CorporateView";
 
 type Segment = "leads" | "customers" | "corporate";
 
-const SEGMENTS: { key: Segment; label: string; icon: React.FC<{ size?: number }> }[] = [
+const SEGMENTS: { key: Segment; label: string; icon: LucideIcon }[] = [
   { key: "leads", label: "Leads", icon: Users },
   { key: "customers", label: "Customers", icon: UserCircle },
   { key: "corporate", label: "Corporate", icon: Building2 },
 ];
 
+function parseTab(raw: string | null): Segment {
+  if (raw === "customers" || raw === "corporate" || raw === "leads") return raw;
+  return "leads";
+}
+
 export function CrmModule() {
-  const [seg, setSeg] = useState<Segment>("leads");
+  const [params, setParams] = useSearchParams();
+  const seg = parseTab(params.get("tab"));
+
+  const setSeg = (key: Segment) => {
+    const next = new URLSearchParams(params);
+    next.set("tab", key);
+    setParams(next, { replace: true });
+  };
+
   return (
     <div className="p-5 md:p-7">
       {/* segmented control */}
