@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { img, fmtPrice } from "../lib/utils";
 import { HeroBackground } from "../components/HeroBackground";
-import { BrandLogo } from "../components/BrandLogo";
 import { usePublicPackages, usePublicBlogPosts, usePublicTestimonials, contentLinkKey } from "../hooks/publicContent";
 
 function useReveal<T extends HTMLElement>() {
@@ -133,11 +132,7 @@ export function Home() {
         <HeroBackground posterImg={img("photo-1770786106021-52580470e31e", 1920, 1080)} alt="Masjid al-Haram, Makkah" />
 
         <div className="relative z-10 w-full max-w-[1100px] mx-auto px-5 md:px-8 flex flex-col items-center text-center gap-4 md:gap-5 py-20 md:py-24">
-          <div className="home-rise bg-white rounded-md px-5 py-3 shadow-[0_16px_48px_rgba(0,0,0,0.35)]">
-            <BrandLogo variant="full" className="h-11 md:h-14 w-auto max-w-[240px] md:max-w-[280px]" />
-          </div>
-
-          <h1 className="home-rise home-rise-delay-1 text-[2.15rem] sm:text-4xl md:text-5xl lg:text-[3.75rem] text-white leading-[1.12] max-w-3xl drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
+          <h1 className="home-rise text-[2.15rem] sm:text-4xl md:text-5xl lg:text-[3.75rem] text-white leading-[1.12] max-w-3xl drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
             <Trans
               t={t}
               i18nKey="hero.title"
@@ -145,11 +140,11 @@ export function Home() {
             />
           </h1>
 
-          <p className="home-rise home-rise-delay-2 text-[15px] md:text-lg text-white/80 max-w-lg mx-auto leading-relaxed font-medium drop-shadow-sm">
+          <p className="home-rise home-rise-delay-1 text-[15px] md:text-lg text-white/80 max-w-lg mx-auto leading-relaxed font-medium drop-shadow-sm">
             {t("hero.subtitle")}
           </p>
 
-          <div className="home-rise home-rise-delay-3 w-full pt-1">
+          <div className="home-rise home-rise-delay-2 w-full pt-1">
             <HeroCtas />
           </div>
         </div>
