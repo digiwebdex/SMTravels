@@ -64,9 +64,11 @@
   "packages": {
     "eyebrow": "Featured Journeys",
     "heading": "Packages Crafted with Care",
+    "subheading": "Hajj, Umrah, and curated journeys — priced clearly, guided with devotion.",
     "startingFrom": "Starting from",
     "seatsLeft": "{{count}} seats left",
     "departing": "Departing {{val}}",
+    "explore": "Explore package",
     "viewAllPackages": "View All Packages"
   },
   "why": {

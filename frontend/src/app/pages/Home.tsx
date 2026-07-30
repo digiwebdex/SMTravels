@@ -210,50 +210,124 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── FEATURED PACKAGES ── */}
-      <section ref={packagesRef} className="home-reveal py-16 md:py-24 bg-[#0A2E4D]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-8">
-          <div className="flex items-end justify-between mb-10 md:mb-12 gap-4">
-            <div>
-              <div className="home-ornament justify-start text-[11px] font-bold uppercase tracking-[0.22em] text-[#F15A24] mb-3">
-                {t("packages.eyebrow")}
-              </div>
-              <h2 className="text-3xl md:text-5xl text-white">{t("packages.heading")}</h2>
+      {/* ── FEATURED PACKAGES — editorial sacred layout ── */}
+      <section ref={packagesRef} className="home-reveal py-16 md:py-24 bg-[#faf9f7] relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse at 10% 0%, rgba(27,117,188,0.12), transparent 45%), radial-gradient(ellipse at 90% 100%, rgba(241,90,36,0.08), transparent 40%)",
+          }}
+        />
+        <div className="relative max-w-[1200px] mx-auto px-5 md:px-8">
+          <div className="text-center mb-12 md:mb-14">
+            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
+              {t("packages.eyebrow")}
             </div>
-            <Link to="/packages" className="hidden md:inline-flex items-center gap-2 text-white/70 hover:text-white text-sm font-semibold transition-colors">
-              {t("common:actions.viewAll")} <ArrowRight size={14} />
-            </Link>
+            <h2 className="text-3xl md:text-5xl text-[#0A2E4D] mb-3">{t("packages.heading")}</h2>
+            <p className="text-[var(--home-muted)] text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+              {t("packages.subheading")}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-            {featuredPackages.map((pkg) => (
-              <Link
-                key={pkg.slug || pkg.id}
-                to={`/packages/${contentLinkKey(pkg, packagesFromApi)}`}
-                className="group block"
-              >
-                <div className="relative aspect-[4/5] overflow-hidden mb-4">
-                  <img
-                    src={img(pkg.image, 600, 750)}
-                    alt={pkg.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#061828]/85 via-[#061828]/15 to-transparent" />
-                  <div className="absolute bottom-0 inset-x-0 p-4 text-white">
-                    <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60 mb-1">{pkg.type}</div>
-                    <h3 className="home-display text-xl leading-snug mb-2 group-hover:text-[#F15A24] transition-colors">{pkg.title}</h3>
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="font-bold text-[#F15A24]">{fmtPrice(pkg.price)}</span>
-                      <span className="text-white/55 flex items-center gap-1"><Clock size={11} /> {pkg.duration}</span>
+          {featuredPackages.length > 0 && (() => {
+            const [lead, ...rest] = featuredPackages;
+            const leadHref = `/packages/${contentLinkKey(lead, packagesFromApi)}`;
+            return (
+              <>
+                {/* Lead package — split composition */}
+                <Link
+                  to={leadHref}
+                  className="group grid grid-cols-1 lg:grid-cols-12 mb-8 md:mb-10 overflow-hidden bg-[#0A2E4D] shadow-[0_24px_60px_rgba(10,46,77,0.18)]"
+                >
+                  <div className="relative lg:col-span-7 min-h-[280px] md:min-h-[380px] overflow-hidden">
+                    <img
+                      src={img(lead.image, 1100, 800)}
+                      alt={lead.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#061828]/50 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-[#0A2E4D]/40" />
+                    {lead.badge && (
+                      <span className="absolute top-5 left-5 text-[10px] font-bold uppercase tracking-[0.2em] bg-[#F15A24] text-white px-3 py-1.5">
+                        {lead.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="lg:col-span-5 flex flex-col justify-center px-6 py-8 md:px-10 md:py-12 text-white">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#F15A24] mb-3">
+                      {lead.type}
+                    </div>
+                    <h3 className="home-display text-3xl md:text-4xl leading-[1.15] mb-4 group-hover:text-[#F15A24] transition-colors">
+                      {lead.title}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-white/65 mb-6">
+                      <span className="inline-flex items-center gap-1.5"><Clock size={13} /> {lead.duration}</span>
+                      {lead.departure && (
+                        <span className="inline-flex items-center gap-1.5"><MapPin size={13} /> {t("packages.departing", { val: lead.departure })}</span>
+                      )}
+                    </div>
+                    <div className="flex items-end justify-between gap-4 pt-5 border-t border-white/15">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-white/45 mb-1">{t("packages.startingFrom")}</div>
+                        <div className="text-2xl md:text-3xl font-bold text-[#F15A24]">{fmtPrice(lead.price)}</div>
+                      </div>
+                      <span className="inline-flex items-center gap-2 text-sm font-semibold text-white group-hover:gap-3 transition-all">
+                        {t("packages.explore")} <ArrowRight size={15} />
+                      </span>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
 
-          <div className="text-center mt-10 md:hidden">
-            <Link to="/packages" className="inline-flex items-center gap-2 px-6 py-3 border border-white/30 text-white font-bold text-sm hover:bg-white/10 transition-colors">
+                {/* Remaining packages — image + meta below (readable, not overlay-heavy) */}
+                {rest.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
+                    {rest.map((pkg) => (
+                      <Link
+                        key={pkg.slug || pkg.id}
+                        to={`/packages/${contentLinkKey(pkg, packagesFromApi)}`}
+                        className="group block"
+                      >
+                        <div className="relative aspect-[16/11] overflow-hidden mb-4 bg-[#0A2E4D]/10">
+                          <img
+                            src={img(pkg.image, 700, 480)}
+                            alt={pkg.title}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                          <div className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-[0.18em] bg-white/95 text-[#0A2E4D] px-2.5 py-1">
+                            {pkg.type}
+                          </div>
+                        </div>
+                        <h3 className="home-display text-2xl text-[#0A2E4D] leading-snug mb-2 group-hover:text-[#1B75BC] transition-colors">
+                          {pkg.title}
+                        </h3>
+                        <div className="flex items-center gap-3 text-[12px] text-[var(--home-muted)] mb-3">
+                          <span className="inline-flex items-center gap-1"><Clock size={12} /> {pkg.duration}</span>
+                          {pkg.seats != null && (
+                            <span>{t("packages.seatsLeft", { count: pkg.seats })}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between pt-3 border-t border-[var(--home-line)]">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-wider text-[var(--home-muted)]">{t("packages.startingFrom")}</div>
+                            <div className="text-lg font-bold text-[#F15A24]">{fmtPrice(pkg.price)}</div>
+                          </div>
+                          <span className="w-9 h-9 rounded-full border border-[#1B75BC]/25 text-[#1B75BC] flex items-center justify-center group-hover:bg-[#1B75BC] group-hover:text-white transition-colors">
+                            <ArrowRight size={14} />
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          <div className="text-center mt-12">
+            <Link
+              to="/packages"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold text-sm transition-colors"
+            >
               {t("packages.viewAllPackages")} <ArrowRight size={14} />
             </Link>
           </div>
