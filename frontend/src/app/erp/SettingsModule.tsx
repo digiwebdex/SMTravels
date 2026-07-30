@@ -5,18 +5,23 @@ import {
   Check, X, Plus, Trash2, Edit2, Eye, EyeOff, RefreshCw,
   Download, Upload, AlertTriangle, CheckCircle, ChevronRight,
   Globe, Zap, Key, Server, HardDrive, Bell, Save, Copy,
-  Info, GitBranch, FileText,
+  Info, GitBranch, FileText, Handshake, Truck,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import { useIntegrationsStatus, useTestIntegration } from "../hooks/integrations";
 import { useBankAccounts } from "../hooks/finance";
-import { useAdminUsers, useUpdateUser, useRoles, useAdminBranches } from "../hooks/settings";
+import {
+  useAdminUsers, useUpdateUser, useRoles, useAdminBranches,
+  useAgents, useCreateAgent, useUpdateAgent,
+  useSuppliers, useCreateSupplier, useUpdateSupplier,
+} from "../hooks/settings";
+import type { AgentListItem, SupplierListItem } from "@contracts/settings.contract";
 
 type SView =
   | "general" | "email" | "sms" | "whatsapp" | "payment"
   | "ocr" | "backup" | "roles" | "permissions" | "system"
-  | "branches" | "users" | "plans" | "health";
+  | "branches" | "users" | "agents" | "suppliers" | "plans" | "health";
 
 const NAV_GROUPS = [
   { label:"Core", items:[
@@ -37,6 +42,10 @@ const NAV_GROUPS = [
     { id:"roles"       as SView, label:"Role Management",    icon:Shield     },
     { id:"permissions" as SView, label:"Permissions Matrix", icon:Lock       },
     { id:"users"       as SView, label:"Users Management",   icon:Users      },
+  ]},
+  { label:"Partners", items:[
+    { id:"agents"      as SView, label:"Agents",             icon:Handshake  },
+    { id:"suppliers"   as SView, label:"Suppliers",          icon:Truck      },
   ]},
   { label:"Infrastructure", items:[
     { id:"backup"      as SView, label:"Backup Settings",    icon:Database   },
@@ -730,6 +739,311 @@ function BranchesView() {
   );
 }
 
+const AGENT_TIERS = ["SILVER", "GOLD", "PLATINUM"] as const;
+const SUPPLIER_STATUSES = ["PENDING", "VERIFIED", "SUSPENDED"] as const;
+
+type AgentForm = { name: string; agentCode: string; phone: string; email: string; tier: typeof AGENT_TIERS[number]; branchId: string };
+const emptyAgentForm = (): AgentForm => ({ name: "", agentCode: "", phone: "", email: "", tier: "SILVER", branchId: "" });
+
+function AgentsView() {
+  const { data, isLoading, isError } = useAgents({ pageSize: 100 });
+  const { data: branches } = useAdminBranches();
+  const createAgent = useCreateAgent();
+  const updateAgent = useUpdateAgent();
+  const agents = data?.data ?? [];
+  const [panel, setPanel] = useState<"closed" | "create" | "edit">("closed");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState<AgentForm>(emptyAgentForm);
+
+  const openCreate = () => { setForm(emptyAgentForm()); setEditId(null); setPanel("create"); };
+  const openEdit = (a: AgentListItem) => {
+    setForm({ name: a.name, agentCode: a.agentCode, phone: a.phone ?? "", email: a.email ?? "", tier: (a.tier as AgentForm["tier"]) || "SILVER", branchId: a.branchId ?? "" });
+    setEditId(a.id);
+    setPanel("edit");
+  };
+  const closePanel = () => { setPanel("closed"); setEditId(null); };
+
+  const save = () => {
+    if (!form.name.trim()) return;
+    const payload = {
+      name: form.name.trim(),
+      ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
+      ...(form.email.trim() ? { email: form.email.trim() } : {}),
+      tier: form.tier,
+      ...(form.branchId ? { branchId: form.branchId } : {}),
+    };
+    if (panel === "create") {
+      createAgent.mutate({ ...payload, ...(form.agentCode.trim() ? { agentCode: form.agentCode.trim() } : {}) }, { onSuccess: closePanel });
+    } else if (editId) {
+      updateAgent.mutate({ id: editId, ...payload }, { onSuccess: closePanel });
+    }
+  };
+
+  const busy = createAgent.isPending || updateAgent.isPending;
+
+  if (isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  if (isError) return <p className="text-sm text-red-500">Failed to load agents.</p>;
+
+  return (
+    <div>
+      <PageHeader
+        title="Agents"
+        subtitle="Travel agent partners, tiers, and commission rates"
+        action={
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+            <Plus size={14}/> Add Agent
+          </button>
+        }
+      />
+      <div className="flex gap-5">
+        <div className={cn("bg-white rounded-xl border border-slate-200 overflow-hidden", panel !== "closed" ? "flex-1" : "w-full")}>
+          <table className="w-full">
+            <thead><tr className="bg-slate-50 border-b border-slate-100">
+              {["Agent", "Code", "Contact", "Branch", "Tier", "Status", "Bookings", ""].map((h) => (
+                <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>{agents.map((a) => (
+              <tr key={a.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-[#0E7C66]">
+                      {a.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">{a.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-500">{a.agentCode}</td>
+                <td className="px-4 py-3">
+                  <p className="text-sm text-slate-600">{a.phone ?? "—"}</p>
+                  <p className="text-xs text-slate-400">{a.email ?? "—"}</p>
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">{a.branchName ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 capitalize">{a.tier.toLowerCase()}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
+                    a.status === "active" ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400")}>{a.status}</span>
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">{a.bookingsCount}</td>
+                <td className="px-4 py-3 opacity-0 group-hover:opacity-100">
+                  <button onClick={() => openEdit(a)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#1B75BC]" title="Edit">
+                    <Edit2 size={12}/>
+                  </button>
+                </td>
+              </tr>
+            ))}</tbody>
+          </table>
+          {agents.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No agents found.</p>}
+        </div>
+
+        {panel !== "closed" && (
+          <Panel title={panel === "create" ? "New Agent" : "Edit Agent"} icon={Handshake} className="w-80 flex-shrink-0">
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600">Name *</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              {panel === "create" && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600">Agent Code</label>
+                  <input value={form.agentCode} onChange={(e) => setForm({ ...form, agentCode: e.target.value })}
+                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-medium text-slate-600">Phone</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Tier</label>
+                <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value as AgentForm["tier"] })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+                  {AGENT_TIERS.map((t) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Branch</label>
+                <select value={form.branchId} onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+                  <option value="">— None —</option>
+                  {(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button onClick={save} disabled={busy || !form.name.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50">
+                  {busy ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>}
+                  {panel === "create" ? "Create" : "Save"}
+                </button>
+                <button onClick={closePanel} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+              </div>
+            </div>
+          </Panel>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type SupplierForm = { name: string; supplierCode: string; phone: string; email: string; category: string; status: typeof SUPPLIER_STATUSES[number] };
+const emptySupplierForm = (): SupplierForm => ({ name: "", supplierCode: "", phone: "", email: "", category: "", status: "PENDING" });
+
+function SuppliersView() {
+  const { data, isLoading, isError } = useSuppliers({ pageSize: 100 });
+  const createSupplier = useCreateSupplier();
+  const updateSupplier = useUpdateSupplier();
+  const suppliers = data?.data ?? [];
+  const [panel, setPanel] = useState<"closed" | "create" | "edit">("closed");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState<SupplierForm>(emptySupplierForm);
+
+  const openCreate = () => { setForm(emptySupplierForm()); setEditId(null); setPanel("create"); };
+  const openEdit = (s: SupplierListItem) => {
+    setForm({
+      name: s.name, supplierCode: s.supplierCode, phone: s.phone ?? "", email: s.email ?? "",
+      category: s.category ?? "", status: (s.status as SupplierForm["status"]) || "PENDING",
+    });
+    setEditId(s.id);
+    setPanel("edit");
+  };
+  const closePanel = () => { setPanel("closed"); setEditId(null); };
+
+  const save = () => {
+    if (!form.name.trim()) return;
+    const payload = {
+      name: form.name.trim(),
+      ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
+      ...(form.email.trim() ? { email: form.email.trim() } : {}),
+      ...(form.category.trim() ? { category: form.category.trim() } : {}),
+    };
+    if (panel === "create") {
+      createSupplier.mutate({ ...payload, ...(form.supplierCode.trim() ? { supplierCode: form.supplierCode.trim() } : {}) }, { onSuccess: closePanel });
+    } else if (editId) {
+      updateSupplier.mutate({ id: editId, ...payload, status: form.status }, { onSuccess: closePanel });
+    }
+  };
+
+  const busy = createSupplier.isPending || updateSupplier.isPending;
+
+  if (isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  if (isError) return <p className="text-sm text-red-500">Failed to load suppliers.</p>;
+
+  return (
+    <div>
+      <PageHeader
+        title="Suppliers"
+        subtitle="Hotel, airline, and service vendor partners"
+        action={
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+            <Plus size={14}/> Add Supplier
+          </button>
+        }
+      />
+      <div className="flex gap-5">
+        <div className={cn("bg-white rounded-xl border border-slate-200 overflow-hidden", panel !== "closed" ? "flex-1" : "w-full")}>
+          <table className="w-full">
+            <thead><tr className="bg-slate-50 border-b border-slate-100">
+              {["Supplier", "Code", "Contact", "Category", "Status", "Services", ""].map((h) => (
+                <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>{suppliers.map((s) => (
+              <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-[#F15A24]">
+                      {s.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">{s.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-sm font-mono text-slate-500">{s.supplierCode}</td>
+                <td className="px-4 py-3">
+                  <p className="text-sm text-slate-600">{s.phone ?? "—"}</p>
+                  <p className="text-xs text-slate-400">{s.email ?? "—"}</p>
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">{s.category ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium capitalize",
+                    s.status === "VERIFIED" ? "bg-emerald-50 text-emerald-600"
+                      : s.status === "SUSPENDED" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600")}>{s.status.toLowerCase()}</span>
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">{s.servicesCount}</td>
+                <td className="px-4 py-3 opacity-0 group-hover:opacity-100">
+                  <button onClick={() => openEdit(s)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#1B75BC]" title="Edit">
+                    <Edit2 size={12}/>
+                  </button>
+                </td>
+              </tr>
+            ))}</tbody>
+          </table>
+          {suppliers.length === 0 && <p className="text-sm text-slate-400 text-center py-8">No suppliers found.</p>}
+        </div>
+
+        {panel !== "closed" && (
+          <Panel title={panel === "create" ? "New Supplier" : "Edit Supplier"} icon={Truck} className="w-80 flex-shrink-0">
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600">Name *</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              {panel === "create" && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600">Supplier Code</label>
+                  <input value={form.supplierCode} onChange={(e) => setForm({ ...form, supplierCode: e.target.value })}
+                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-medium text-slate-600">Phone</label>
+                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600">Category</label>
+                <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Hotel, Airline, Visa…"
+                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+              </div>
+              {panel === "edit" && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600">Status</label>
+                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as SupplierForm["status"] })}
+                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+                    {SUPPLIER_STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
+                  </select>
+                </div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button onClick={save} disabled={busy || !form.name.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50">
+                  {busy ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>}
+                  {panel === "create" ? "Create" : "Save"}
+                </button>
+                <button onClick={closePanel} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+              </div>
+            </div>
+          </Panel>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const U_ROLE_COLOR: Record<string, string> = {
   SUPER_ADMIN: "#EF4444", COMPANY_ADMIN: "#DC2626", BRANCH_MANAGER: "#1B75BC",
   STAFF: "#64748B", ACCOUNTANT: "#2563EB", SALES_EXECUTIVE: "#0E7C66",
@@ -921,6 +1235,8 @@ export function SettingsModule() {
           {view==="roles"       && <RolesView/>}
           {view==="permissions" && <PermissionsMatrix/>}
           {view==="users"       && <UsersView/>}
+          {view==="agents"      && <AgentsView/>}
+          {view==="suppliers"   && <SuppliersView/>}
           {view==="system"      && <SystemConfig/>}
           {view==="branches"    && <BranchesView/>}
           {view==="plans"       && <PlansView/>}

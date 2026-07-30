@@ -14,7 +14,7 @@ import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
-import { useIncome, useExpenses, useInvoices, usePayments, useJournal } from "../hooks/finance";
+import { useIncome, useExpenses, useInvoices, usePayments, useJournal, useBankAccounts } from "../hooks/finance";
 import { useOverview, usePnlReport } from "../hooks/reports";
 import { SampleBadge } from "./SampleBadge";
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
@@ -62,13 +62,6 @@ const EXPENSE_ROWS = [
   { category:"Office Rent",        amount:45000,  pct:5,  color:"#EAB308" },
   { category:"Marketing",          amount:42000,  pct:5,  color:"#8B5CF6" },
   { category:"Utilities & Others", amount:53000,  pct:7,  color:"#94A3B8" },
-];
-
-const BANK_ACCOUNTS = [
-  { id:"ACC-01", bank:"Dutch-Bangla Bank",  type:"Current",  acct:"XXXXXXXXX001", balance:2840000, currency:"BDT" },
-  { id:"ACC-02", bank:"Islami Bank BD",     type:"Current",  acct:"XXXXXXXXX002", balance:1560000, currency:"BDT" },
-  { id:"ACC-03", bank:"BRAC Bank",          type:"Savings",  acct:"XXXXXXXXX003", balance:3200000, currency:"BDT" },
-  { id:"ACC-04", bank:"Cash in Hand",       type:"Petty Cash",acct:"—",           balance:45000,   currency:"BDT" },
 ];
 
 const JOURNAL_ENTRIES = [
@@ -225,18 +218,11 @@ function IncomeExpenseView() {
 // ─── BANK & CASH ──────────────────────────────────────────────────────────────
 function BankCashView() {
   const { t } = useTranslation("portalAccountant");
-  const TRANSACTIONS = [
-    { date:"Jul 15", desc:"Client payment — BK-0892",      account:"DBBL", type:"credit", amount:130000  },
-    { date:"Jul 14", desc:"Supplier payment — Dar Al-Tawhid", account:"DBBL", type:"debit",  amount:2940000 },
-    { date:"Jul 12", desc:"Salary disbursement — Jul 24",  account:"IBBL", type:"debit",  amount:120000  },
-    { date:"Jul 10", desc:"Client payment — BK-0892",      account:"DBBL", type:"credit", amount:130000  },
-    { date:"Jun 27", desc:"Supplier settlement — Al-Amin", account:"DBBL", type:"debit",  amount:420000  },
-    { date:"Jun 25", desc:"Tour package revenue — BK-0881",account:"BRAC", type:"credit", amount:215000  },
-  ];
+  const { data: banks, isLoading, isError } = useBankAccounts();
+  const accounts = (banks ?? []).filter(a => a.active);
 
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.bankCash")}</h2>
         <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
@@ -244,67 +230,41 @@ function BankCashView() {
         </button>
       </div>
 
-      {/* Account cards */}
-      <div className="grid grid-cols-2 gap-3">
-        {BANK_ACCOUNTS.map((a,i) => (
-          <div key={a.id} className={cn("rounded-2xl p-5", i===0?"bg-gradient-to-br from-[#1B75BC] to-[#0a2a52] text-white":"bg-white border border-slate-200")}>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className={cn("text-xs font-medium", i===0?"text-white/70":"text-slate-400")}>{a.type}</p>
-                <p className={cn("font-bold mt-0.5", i===0?"text-white":"text-slate-800")}>{a.bank}</p>
-              </div>
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i===0?"bg-white/15":"bg-[#1B75BC]/8")}>
-                <Building2 size={14} className={i===0?"text-white":"text-[#1B75BC]"} />
-              </div>
-            </div>
-            <p className={cn("text-2xl font-black", i===0?"text-white":"text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>
-              {fmtShort(a.balance)}
-            </p>
-            <p className={cn("text-xs mt-1 font-mono", i===0?"text-white/50":"text-slate-400")}>{a.acct}</p>
-          </div>
-        ))}
-      </div>
+      {isLoading && <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>}
+      {isError && <p className="text-sm text-red-500 text-center py-8">Failed to load bank accounts.</p>}
 
-      {/* Transaction ledger */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="font-bold text-slate-800">{t("bankCash.recentTransactions")}</p>
-          <div className="flex items-center gap-2">
-            <select className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none text-slate-600">
-              <option>{t("bankCash.allAccounts")}</option>
-              {BANK_ACCOUNTS.map(a=><option key={a.id}>{a.bank}</option>)}
-            </select>
-          </div>
-        </div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalCommon:labels.date","portalAccountant:bankCash.cols.description","portalAccountant:bankCash.cols.account","portalCommon:labels.type","portalCommon:labels.amount"].map((h,hi) => (
-                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {TRANSACTIONS.map((tx,i) => (
-              <tr key={i} className="hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{tx.date}</td>
-                <td className="px-4 py-3 text-sm text-slate-700 max-w-xs truncate">{tx.desc}</td>
-                <td className="px-4 py-3"><span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-mono">{tx.account}</span></td>
-                <td className="px-4 py-3">
-                  <span className={cn("flex items-center gap-1 text-xs font-semibold w-fit",
-                    tx.type==="credit"?"text-emerald-600":"text-red-500")}>
-                    {tx.type==="credit"?<ArrowDownLeft size={12}/>:<ArrowUpRight size={12}/>}
-                    {t(`bankCash.${tx.type}`)}
-                  </span>
-                </td>
-                <td className={cn("px-4 py-3 text-sm font-black font-mono",tx.type==="credit"?"text-emerald-600":"text-red-500")}>
-                  {tx.type==="credit"?"+":"-"}{fmtShort(tx.amount)}
-                </td>
-              </tr>
+      {!isLoading && !isError && accounts.length === 0 && (
+        <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.nothing")}</p>
+      )}
+
+      {accounts.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            {accounts.map((a, i) => (
+              <div key={a.id} className={cn("rounded-2xl p-5", i === 0 ? "bg-gradient-to-br from-[#1B75BC] to-[#0a2a52] text-white" : "bg-white border border-slate-200")}>
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className={cn("text-xs font-medium capitalize", i === 0 ? "text-white/70" : "text-slate-400")}>{a.type.toLowerCase().replace("_", " ")}</p>
+                    <p className={cn("font-bold mt-0.5", i === 0 ? "text-white" : "text-slate-800")}>{a.bankName ?? a.name}</p>
+                  </div>
+                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i === 0 ? "bg-white/15" : "bg-[#1B75BC]/8")}>
+                    <Building2 size={14} className={i === 0 ? "text-white" : "text-[#1B75BC]"} />
+                  </div>
+                </div>
+                <p className={cn("text-2xl font-black", i === 0 ? "text-white" : "text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>
+                  {fmtShort(Number(a.balance))}
+                </p>
+                <p className={cn("text-xs mt-1 font-mono", i === 0 ? "text-white/50" : "text-slate-400")}>{a.accountNumber ?? "—"}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+            <p className="text-sm text-slate-500">{t("bankCash.recentTransactions")}</p>
+            <p className="text-xs text-slate-400 mt-1">Transaction history is derived from posted journal entries in the ERP.</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

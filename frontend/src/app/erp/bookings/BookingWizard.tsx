@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   ChevronLeft, ChevronRight, Check, Plus, Trash2, Upload,
   AlertCircle, FileText, CreditCard, Banknote,
-  Smartphone, Building2, CheckCircle2, Info, Loader2, Camera,
+  Smartphone, Building2, CheckCircle2, Info, Loader2, Camera, ScanText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { ServiceType, SERVICE_CFG } from "./BookingsModule";
 import { useCreateBooking, useSaveDraft, useConfirmBooking, SERVICE_ENUM } from "../../hooks/bookings";
 import { useScanPassport } from "../../hooks/ocr";
 import { useUploadDocument } from "../../hooks/documents";
+import { useRunOcr } from "../../hooks/ocr";
 import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { ApiError } from "../../lib/api";
 
@@ -778,9 +779,11 @@ function docTypeFor(label: string): DocumentTypeDto {
 function StepDocuments({ service, bookingId }: { service: ServiceType | null; bookingId: string | null }) {
   const docs = service ? DOC_TYPES[service] : DOC_TYPES["Umrah"];
   const upload = useUploadDocument();
-  // label -> uploaded state (filename once the POST succeeds; "…" while in flight)
-  const [done, setDone] = useState<Record<string, string>>({});
+  const runOcr = useRunOcr();
+  // label -> uploaded state (filename + document id once the POST succeeds)
+  const [done, setDone] = useState<Record<string, { filename: string; docId: string }>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [ocrBusy, setOcrBusy] = useState<string | null>(null);
 
   const pick = (label: string, file: File | null) => {
     if (!file || !bookingId || busy) return;
@@ -788,10 +791,19 @@ function StepDocuments({ service, bookingId }: { service: ServiceType | null; bo
     upload.mutate(
       { file, type: docTypeFor(label), name: label, bookingId },
       {
-        onSuccess: () => { setDone(d => ({ ...d, [label]: file.name })); setBusy(null); },
+        onSuccess: (doc) => { setDone(d => ({ ...d, [label]: { filename: file.name, docId: doc.id } })); setBusy(null); },
         onError: () => setBusy(null),
       },
     );
+  };
+
+  const isPassportDoc = (label: string) => docTypeFor(label) === "PASSPORT";
+
+  const triggerOcr = (label: string) => {
+    const docId = done[label]?.docId;
+    if (!docId || ocrBusy) return;
+    setOcrBusy(label);
+    runOcr.mutate(docId, { onSettled: () => setOcrBusy(null) });
   };
 
   return (
@@ -807,9 +819,21 @@ function StepDocuments({ service, bookingId }: { service: ServiceType | null; bo
             </div>
             <div className="p-3">
               {done[doc] ? (
-                <div className="flex items-center gap-2 h-20 px-3 border-2 border-[#0E7C66]/30 bg-[#0E7C66]/5 rounded-[8px]">
-                  <CheckCircle2 size={16} className="text-[#0E7C66] flex-shrink-0" />
-                  <span className="text-[10px] text-[#0E7C66] font-semibold truncate">{done[doc]}</span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 h-16 px-3 border-2 border-[#0E7C66]/30 bg-[#0E7C66]/5 rounded-[8px]">
+                    <CheckCircle2 size={16} className="text-[#0E7C66] flex-shrink-0" />
+                    <span className="text-[10px] text-[#0E7C66] font-semibold truncate">{done[doc].filename}</span>
+                  </div>
+                  {isPassportDoc(doc) && (
+                    <button
+                      type="button"
+                      onClick={() => triggerOcr(doc)}
+                      disabled={ocrBusy === doc || runOcr.isPending}
+                      className="flex items-center justify-center gap-1.5 w-full py-1.5 text-[10px] font-bold text-[#1B75BC] border border-[#1B75BC]/30 rounded-[6px] hover:bg-[#1B75BC]/5 disabled:opacity-50">
+                      {ocrBusy === doc ? <Loader2 size={12} className="animate-spin"/> : <ScanText size={12}/>}
+                      Run OCR
+                    </button>
+                  )}
                 </div>
               ) : (
                 <label className={cn(

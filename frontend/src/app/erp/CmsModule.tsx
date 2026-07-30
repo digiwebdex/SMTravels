@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FileText, Menu, Image, Layout, BookOpen, Tag, Star, HelpCircle,
   FolderOpen, Settings, Plus, Search, Eye, Edit2, Trash2, Copy,
@@ -11,6 +11,14 @@ import {
   BarChart2, Users, Calendar, Filter,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { SampleBadge } from "../portal/SampleBadge";
+import { Drawer, Field, inputCls, selectCls, PrimaryBtn, GhostBtn } from "./crm/ui";
+import {
+  useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost,
+  useFaqs, useCreateFaq, useUpdateFaq, useDeleteFaq,
+  useTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial,
+  type FaqDto, type TestimonialDto,
+} from "../hooks/cms";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CmsView =
@@ -59,15 +67,6 @@ const PAGES = [
   { id: 6, title: "Terms of Use", slug: "/terms",       status: "draft",     updatedAt: "Jun 28, 2024", author: "Admin", views: 320   },
 ];
 
-const POSTS = [
-  { id: 1, title: "Complete Guide to Hajj 2024",          category: "Hajj",  status: "published", date: "Jul 12, 2024", author: "Abdullah C.", views: 4820, featured: true  },
-  { id: 2, title: "Umrah Packages: What to Expect",        category: "Umrah", status: "published", date: "Jul 9, 2024",  author: "Fatema B.",   views: 3140, featured: false },
-  { id: 3, title: "Saudi Visa Application Step-by-Step",   category: "Visa",  status: "published", date: "Jul 6, 2024",  author: "Rahim K.",    views: 6310, featured: true  },
-  { id: 4, title: "Top 10 Hotels Near Masjid al-Haram",    category: "Hotel", status: "draft",     date: "Jul 3, 2024",  author: "Salma T.",    views: 0,    featured: false },
-  { id: 5, title: "Malaysia Tour Package Review 2024",     category: "Tour",  status: "draft",     date: "Jun 30, 2024", author: "Kamal H.",    views: 0,    featured: false },
-  { id: 6, title: "Manpower Opportunities in Middle East", category: "News",  status: "scheduled", date: "Jul 20, 2024", author: "Nasir A.",    views: 0,    featured: false },
-];
-
 const MENU_ITEMS = [
   { id: 1, label: "Home",         url: "/",             children: [] },
   { id: 2, label: "Services",     url: "/services",     children: [
@@ -94,23 +93,6 @@ const BANNERS = [
   { id: 2, title: "Hajj 2024 Open",       position: "Homepage Hero",   type: "hero",    active: true,  expires: "Mar 1"  },
   { id: 3, title: "Visa Assistance",      position: "Sidebar Right",   type: "sidebar", active: false, expires: "—"      },
   { id: 4, title: "Newsletter Signup",    position: "Footer Top",      type: "cta",     active: true,  expires: "—"      },
-];
-
-const TESTIMONIALS = [
-  { id: 1, name: "Md. Karim Ullah",   role: "Hajj Pilgrim",      rating: 5, text: "Excellent service from BDH. Everything was perfectly arranged.",       approved: true  },
-  { id: 2, name: "Rabeya Akter",      role: "Umrah Traveler",    rating: 5, text: "Very professional team. Would highly recommend to everyone.",           approved: true  },
-  { id: 3, name: "Ahmed Hossain",     role: "Malaysia Tour",     rating: 4, text: "Great trip overall. Hotel was good and guide was very helpful.",         approved: false },
-  { id: 4, name: "Fatema Khanam",     role: "Visa Client",       rating: 5, text: "Got my Saudi visa in just 3 days. Amazing support throughout.",          approved: true  },
-  { id: 5, name: "Nasir Uddin",       role: "Manpower Client",   rating: 4, text: "Smooth process for overseas job placement. Transparent and honest.",     approved: false },
-];
-
-const FAQS = [
-  { id: 1, question: "What documents are required for Hajj?",           category: "Hajj",  order: 1, published: true  },
-  { id: 2, question: "How early should I book for Umrah?",              category: "Umrah", order: 2, published: true  },
-  { id: 3, question: "What is the Saudi visa processing time?",         category: "Visa",  order: 3, published: true  },
-  { id: 4, question: "Do you offer installment payment plans?",         category: "Payment",order:4, published: true  },
-  { id: 5, question: "Can I change my package after booking?",          category: "Policy",order: 5, published: false },
-  { id: 6, question: "What is your cancellation and refund policy?",    category: "Policy",order: 6, published: true  },
 ];
 
 const CATEGORIES = [
@@ -143,16 +125,18 @@ const MEDIA: MediaFile[] = [
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 function StatusChip({ status }: { status: string }) {
+  const key = status.toLowerCase();
   const cfg: Record<string, string> = {
     published: "bg-emerald-50 text-emerald-700 border-emerald-200",
     draft:     "bg-slate-100 text-slate-500 border-slate-200",
     scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+    archived:  "bg-slate-100 text-slate-400 border-slate-200",
     active:    "bg-emerald-50 text-emerald-700 border-emerald-200",
     inactive:  "bg-slate-100 text-slate-400 border-slate-200",
   };
   return (
-    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border capitalize", cfg[status] ?? cfg.draft)}>
-      {status}
+    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border capitalize", cfg[key] ?? cfg.draft)}>
+      {key}
     </span>
   );
 }
@@ -197,7 +181,7 @@ function ActionMenu({ onEdit, onDelete, onDuplicate }: {
             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"><Edit2 size={13} /> Edit</button>}
           {onDuplicate && <button onClick={() => { onDuplicate(); setOpen(false); }}
             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"><Copy size={13} /> Duplicate</button>}
-          {onDelete && <button onClick={() => setOpen(false)}
+          {onDelete && <button onClick={() => { onDelete(); setOpen(false); }}
             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50"><Trash2 size={13} /> Delete</button>}
         </div>
       )}
@@ -288,27 +272,78 @@ function FeaturedImagePicker({ value, onChange }: { value: string; onChange: (v:
 function ContentEditor({
   type = "page",
   title: initTitle = "",
+  postId = null,
   onBack,
 }: {
-  type?: "page" | "blog"; title?: string; onBack: () => void;
+  type?: "page" | "blog"; title?: string; postId?: string | null; onBack: () => void;
 }) {
+  const isBlog = type === "blog";
+  const { data: existingPost, isLoading: loadingPost } = useBlogPost(isBlog ? postId : null);
+  const createPost = useCreateBlogPost();
+  const updatePost = useUpdateBlogPost();
+
   const [title, setTitle] = useState(initTitle || (type === "page" ? "New Page" : "New Blog Post"));
   const [body, setBody] = useState("");
+  const [excerpt, setExcerpt] = useState("");
   const [featImg, setFeatImg] = useState("");
   const [slug, setSlug] = useState(initTitle ? initTitle.toLowerCase().replace(/\s+/g, "-") : "");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDesc, setMetaDesc] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
   const [category, setCategory] = useState("Hajj");
   const [preview, setPreview] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [showPreview, setShowPreview] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [hydrated, setHydrated] = useState(!isBlog || !postId);
 
-  const handleSave = (pub?: boolean) => {
-    if (pub) setStatus("published");
+  useEffect(() => {
+    if (!isBlog || !existingPost) return;
+    setTitle(existingPost.title);
+    setBody(existingPost.body ?? "");
+    setExcerpt(existingPost.excerpt ?? "");
+    setFeatImg(existingPost.featImg ?? "");
+    setSlug(existingPost.slug);
+    setMetaTitle(existingPost.metaTitle ?? "");
+    setMetaDesc(existingPost.metaDesc ?? "");
+    setStatus(existingPost.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT");
+    setHydrated(true);
+  }, [isBlog, existingPost]);
+
+  const handleSave = async (pub?: boolean) => {
+    const nextStatus = pub ? "PUBLISHED" : status;
+    if (pub) setStatus("PUBLISHED");
+
+    if (isBlog) {
+      const payload = {
+        title: title.trim(),
+        slug: slug.trim() || undefined,
+        body: body.trim() || undefined,
+        excerpt: excerpt.trim() || undefined,
+        featImg: featImg.trim() || undefined,
+        metaTitle: metaTitle.trim() || undefined,
+        metaDesc: metaDesc.trim() || undefined,
+        status: nextStatus as "DRAFT" | "PUBLISHED",
+      };
+      if (postId) {
+        await updatePost.mutateAsync({ id: postId, ...payload });
+      } else {
+        await createPost.mutateAsync(payload);
+      }
+    }
+
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  const saving = createPost.isPending || updatePost.isPending;
+
+  if (isBlog && postId && (loadingPost || !hydrated)) {
+    return (
+      <div className="flex items-center justify-center h-full text-sm text-slate-400">Loading post…</div>
+    );
+  }
+
+  const displayStatus = status.toLowerCase();
 
   return (
     <div className="flex flex-col h-full">
@@ -322,7 +357,7 @@ function ContentEditor({
           <span className="text-sm font-medium text-slate-700">{type === "page" ? "Pages" : "Blog"}</span>
           <span className="text-sm text-slate-400">/</span>
           <span className="text-sm text-slate-600 truncate max-w-48">{title}</span>
-          <StatusChip status={status} />
+          <StatusChip status={displayStatus} />
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowPreview(v => !v)}
@@ -330,12 +365,12 @@ function ContentEditor({
               showPreview ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "border-slate-200 text-slate-600 hover:bg-slate-50")}>
             <Eye size={13} /> Preview
           </button>
-          <button onClick={() => handleSave()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button onClick={() => handleSave()} disabled={saving || (isBlog && !title.trim())}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
             {saved ? <><Check size={13} className="text-emerald-500" /> Saved</> : <><Save size={13} /> Save Draft</>}
           </button>
-          <button onClick={() => handleSave(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+          <button onClick={() => handleSave(true)} disabled={saving || (isBlog && !title.trim())}
+            className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50">
             <Globe size={13} /> Publish
           </button>
         </div>
@@ -398,6 +433,14 @@ function ContentEditor({
 
               <div className="bg-white rounded-xl border border-slate-200 p-5">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Content</label>
+                {isBlog && (
+                  <div className="mb-3">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Excerpt</label>
+                    <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2}
+                      placeholder="Short summary shown in blog listings…"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none mb-3" />
+                  </div>
+                )}
                 <RichEditor value={body} onChange={setBody} />
               </div>
 
@@ -437,10 +480,10 @@ function ContentEditor({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Status</span>
-                    <select value={status} onChange={e => setStatus(e.target.value as any)}
+                    <select value={status} onChange={e => setStatus(e.target.value as "DRAFT" | "PUBLISHED")}
                       className="text-sm border border-slate-200 rounded-lg px-2 py-1 focus:outline-none">
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
+                      <option value="DRAFT">Draft</option>
+                      <option value="PUBLISHED">Published</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-between">
@@ -556,12 +599,19 @@ function PagesView({ onEdit }: { onEdit: (title: string) => void }) {
 }
 
 // ─── BLOG ─────────────────────────────────────────────────────────────────────
-function BlogView({ onEdit }: { onEdit: (title: string) => void }) {
+function BlogView({ onEdit }: { onEdit: (id: string | null) => void }) {
   const [tab, setTab] = useState<"all" | "published" | "draft" | "scheduled">("all");
-  const filtered = tab === "all" ? POSTS : POSTS.filter(p => p.status === tab);
+  const [search, setSearch] = useState("");
+  const statusParam = tab === "all" ? undefined : tab === "published" ? "PUBLISHED" : tab === "draft" ? "DRAFT" : "SCHEDULED";
+  const { data, isLoading, isError } = useBlogPosts({ status: statusParam, q: search || undefined, pageSize: 50 });
+  const del = useDeleteBlogPost();
+  const posts = data?.data ?? [];
+
+  const fmtDate = (iso: string | null) => iso ? iso.slice(0, 10) : "—";
+
   return (
     <div>
-      <Toolbar onNew={() => onEdit("")} newLabel="New Post">
+      <Toolbar onNew={() => onEdit(null)} newLabel="New Post" onSearch={setSearch}>
         <div className="flex bg-slate-100 rounded-lg p-0.5 text-xs">
           {(["all","published","draft","scheduled"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
@@ -572,6 +622,7 @@ function BlogView({ onEdit }: { onEdit: (title: string) => void }) {
           ))}
         </div>
       </Toolbar>
+      {isError && <p className="text-sm text-red-500 mb-3">Could not load blog posts.</p>}
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
@@ -582,7 +633,13 @@ function BlogView({ onEdit }: { onEdit: (title: string) => void }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(p => (
+            {isLoading && (
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-400">Loading…</td></tr>
+            )}
+            {!isLoading && posts.length === 0 && (
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-400">No posts yet.</td></tr>
+            )}
+            {posts.map(p => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50 group">
                 <td className="px-4 py-3">
                   {p.featured && (
@@ -592,24 +649,25 @@ function BlogView({ onEdit }: { onEdit: (title: string) => void }) {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <button onClick={() => onEdit(p.title)}
+                  <button onClick={() => onEdit(p.id)}
                     className="text-sm font-medium text-[#1B75BC] hover:underline text-left">{p.title}</button>
+                  {p.excerpt && <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{p.excerpt}</p>}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: CATEGORIES.find(c=>c.name===p.category)?.color+"15", color: CATEGORIES.find(c=>c.name===p.category)?.color }}>
-                    {p.category}
-                  </span>
+                  {p.categoryName ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{p.categoryName}</span>
+                  ) : "—"}
                 </td>
                 <td className="px-4 py-3"><StatusChip status={p.status} /></td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.author}</td>
-                <td className="px-4 py-3 text-sm text-slate-400">{p.date}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.authorName ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-400">{fmtDate(p.publishedAt ?? p.createdAt)}</td>
                 <td className="px-4 py-3 text-sm text-slate-600 font-mono">{p.views > 0 ? p.views.toLocaleString() : "—"}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                    <button onClick={() => onEdit(p.title)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={13} /></button>
-                    <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Eye size={13} /></button>
-                    <button className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={13} /></button>
+                    <button onClick={() => onEdit(p.id)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={13} /></button>
+                    <button
+                      onClick={() => { if (confirm("Delete this post?")) del.mutate(p.id); }}
+                      className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={13} /></button>
                   </div>
                 </td>
               </tr>
@@ -933,22 +991,84 @@ function CategoriesView() {
 }
 
 // ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
+function TestimonialFormDrawer({ open, onClose, item }: { open: boolean; onClose: () => void; item?: TestimonialDto | null }) {
+  const create = useCreateTestimonial();
+  const update = useUpdateTestimonial();
+  const editing = !!item;
+  const [name, setName] = useState(item?.name ?? "");
+  const [text, setText] = useState(item?.text ?? "");
+  const [rating, setRating] = useState(item?.rating ?? 5);
+  const [approved, setApproved] = useState(item?.approved ?? false);
+
+  useEffect(() => {
+    setName(item?.name ?? "");
+    setText(item?.text ?? "");
+    setRating(item?.rating ?? 5);
+    setApproved(item?.approved ?? false);
+  }, [item, open]);
+
+  const submit = async () => {
+    const payload = { name: name.trim(), text: text.trim(), rating, approved };
+    if (editing && item) await update.mutateAsync({ id: item.id, ...payload });
+    else await create.mutateAsync(payload);
+    onClose();
+  };
+
+  const busy = create.isPending || update.isPending;
+
+  return (
+    <Drawer open={open} onClose={onClose}
+      title={editing ? "Edit Testimonial" : "New Testimonial"}
+      subtitle="Customer review shown on the website"
+      footer={<>
+        <GhostBtn onClick={onClose}>Cancel</GhostBtn>
+        <PrimaryBtn onClick={submit} disabled={busy || !name.trim() || !text.trim()}>Save</PrimaryBtn>
+      </>}>
+      <div className="space-y-4">
+        <Field label="Name" required>
+          <input className={inputCls} value={name} onChange={e => setName(e.target.value)} placeholder="Customer name" />
+        </Field>
+        <Field label="Review" required>
+          <textarea className={inputCls} rows={4} value={text} onChange={e => setText(e.target.value)} placeholder="What they said…" />
+        </Field>
+        <Field label="Rating">
+          <select className={selectCls} value={rating} onChange={e => setRating(Number(e.target.value))}>
+            {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} star{n !== 1 ? "s" : ""}</option>)}
+          </select>
+        </Field>
+        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <input type="checkbox" checked={approved} onChange={e => setApproved(e.target.checked)} className="rounded" />
+          Approved — show on website
+        </label>
+      </div>
+    </Drawer>
+  );
+}
+
 function TestimonialsView() {
-  const [items, setItems] = useState(TESTIMONIALS);
+  const [search, setSearch] = useState("");
+  const [drawer, setDrawer] = useState<{ open: boolean; item?: TestimonialDto | null }>({ open: false });
+  const { data, isLoading, isError } = useTestimonials({ q: search || undefined, pageSize: 50 });
+  const del = useDeleteTestimonial();
+  const update = useUpdateTestimonial();
+  const items = data?.data ?? [];
+
   return (
     <div>
-      <Toolbar onNew={() => {}} newLabel="Add Testimonial" />
+      <Toolbar onNew={() => setDrawer({ open: true, item: null })} newLabel="Add Testimonial" onSearch={setSearch} />
+      {isError && <p className="text-sm text-red-500 mb-3">Could not load testimonials.</p>}
+      {isLoading && <p className="text-sm text-slate-400 mb-3">Loading…</p>}
       <div className="grid grid-cols-2 gap-4">
         {items.map(t => (
           <div key={t.id} className={cn("bg-white rounded-xl border p-4", t.approved ? "border-slate-200" : "border-amber-200 bg-amber-50/30")}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-sm font-bold">
-                  {t.name.slice(0, 2)}
+                  {t.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-800">{t.name}</p>
-                  <p className="text-xs text-slate-400">{t.role}</p>
+                  {t.location && <p className="text-xs text-slate-400">{t.location}</p>}
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -956,8 +1076,8 @@ function TestimonialsView() {
                   <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">Pending</span>
                 )}
                 <ActionMenu
-                  onEdit={() => {}}
-                  onDelete={() => setItems(x => x.filter(i => i.id !== t.id))}
+                  onEdit={() => setDrawer({ open: true, item: t })}
+                  onDelete={() => { if (confirm("Delete this testimonial?")) del.mutate(t.id); }}
                 />
               </div>
             </div>
@@ -968,7 +1088,7 @@ function TestimonialsView() {
             </div>
             <p className="text-sm text-slate-600 leading-relaxed mb-3">"{t.text}"</p>
             {!t.approved && (
-              <button onClick={() => setItems(x => x.map(i => i.id === t.id ? { ...i, approved: true } : i))}
+              <button onClick={() => update.mutate({ id: t.id, approved: true })}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
                 <Check size={11} /> Approve & Publish
               </button>
@@ -976,71 +1096,112 @@ function TestimonialsView() {
           </div>
         ))}
       </div>
+      {!isLoading && items.length === 0 && (
+        <p className="text-sm text-slate-400 text-center py-8">No testimonials yet.</p>
+      )}
+      <TestimonialFormDrawer open={drawer.open} item={drawer.item} onClose={() => setDrawer({ open: false })} />
     </div>
   );
 }
 
 // ─── FAQs ────────────────────────────────────────────────────────────────────
-function FaqsView() {
-  const [faqs, setFaqs] = useState(FAQS);
-  const [dragging, setDragging] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState<number | null>(null);
+function FaqFormDrawer({ open, onClose, item }: { open: boolean; onClose: () => void; item?: FaqDto | null }) {
+  const create = useCreateFaq();
+  const update = useUpdateFaq();
+  const editing = !!item;
+  const [question, setQuestion] = useState(item?.question ?? "");
+  const [answer, setAnswer] = useState(item?.answer ?? "");
+  const [published, setPublished] = useState(item?.published ?? true);
 
-  const move = (from: number, dir: -1 | 1) => {
-    const arr = [...faqs];
-    const to = from + dir;
-    if (to < 0 || to >= arr.length) return;
-    [arr[from], arr[to]] = [arr[to], arr[from]];
-    setFaqs(arr.map((f, i) => ({ ...f, order: i + 1 })));
+  useEffect(() => {
+    setQuestion(item?.question ?? "");
+    setAnswer(item?.answer ?? "");
+    setPublished(item?.published ?? true);
+  }, [item, open]);
+
+  const submit = async () => {
+    const payload = { question: question.trim(), answer: answer.trim(), published };
+    if (editing && item) await update.mutateAsync({ id: item.id, ...payload });
+    else await create.mutateAsync(payload);
+    onClose();
   };
+
+  const busy = create.isPending || update.isPending;
+
+  return (
+    <Drawer open={open} onClose={onClose}
+      title={editing ? "Edit FAQ" : "New FAQ"}
+      subtitle="Question & answer shown on the website"
+      footer={<>
+        <GhostBtn onClick={onClose}>Cancel</GhostBtn>
+        <PrimaryBtn onClick={submit} disabled={busy || !question.trim() || !answer.trim()}>Save</PrimaryBtn>
+      </>}>
+      <div className="space-y-4">
+        <Field label="Question" required>
+          <input className={inputCls} value={question} onChange={e => setQuestion(e.target.value)} placeholder="What do customers ask?" />
+        </Field>
+        <Field label="Answer" required>
+          <textarea className={inputCls} rows={5} value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Clear, helpful answer…" />
+        </Field>
+        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} className="rounded" />
+          Published — visible on website
+        </label>
+      </div>
+    </Drawer>
+  );
+}
+
+function FaqsView() {
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [drawer, setDrawer] = useState<{ open: boolean; item?: FaqDto | null }>({ open: false });
+  const { data, isLoading, isError } = useFaqs({ q: search || undefined, pageSize: 100 });
+  const del = useDeleteFaq();
+  const update = useUpdateFaq();
+  const faqs = data?.data ?? [];
 
   return (
     <div>
-      <Toolbar onNew={() => {}} newLabel="Add FAQ" />
+      <Toolbar onNew={() => setDrawer({ open: true, item: null })} newLabel="Add FAQ" onSearch={setSearch} />
+      {isError && <p className="text-sm text-red-500 mb-3">Could not load FAQs.</p>}
+      {isLoading && <p className="text-sm text-slate-400 mb-3">Loading…</p>}
       <div className="space-y-2">
         {faqs.map((faq, idx) => (
-          <div key={faq.id}
-            className={cn("bg-white rounded-xl border overflow-hidden transition-all",
-              dragging === faq.id ? "opacity-50 border-[#1B75BC]" : "border-slate-200")}>
+          <div key={faq.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div
-              draggable onDragStart={() => setDragging(faq.id)} onDragEnd={() => setDragging(null)}
               className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50"
               onClick={() => setExpanded(expanded === faq.id ? null : faq.id)}>
-              <GripVertical size={14} className="text-slate-300 cursor-grab flex-shrink-0" />
               <span className="text-xs font-mono text-slate-400 w-5">#{idx + 1}</span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-slate-700">{faq.question}</p>
-                <span className="text-xs text-slate-400">{faq.category}</span>
+                {faq.category && <span className="text-xs text-slate-400">{faq.category}</span>}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={e => { e.stopPropagation(); setFaqs(f => f.map(x => x.id === faq.id ? { ...x, published: !x.published } : x)); }}
+                <button onClick={e => { e.stopPropagation(); update.mutate({ id: faq.id, published: !faq.published }); }}
                   className={cn("text-xs px-2 py-0.5 rounded-full border",
                     faq.published ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200")}>
                   {faq.published ? "Published" : "Draft"}
                 </button>
-                <button onClick={e => { e.stopPropagation(); move(idx, -1); }} disabled={idx===0}
-                  className="p-1 hover:bg-slate-100 rounded text-slate-400 disabled:opacity-30"><ChevronUp size={12} /></button>
-                <button onClick={e => { e.stopPropagation(); move(idx, 1); }} disabled={idx===faqs.length-1}
-                  className="p-1 hover:bg-slate-100 rounded text-slate-400 disabled:opacity-30"><ChevronDown size={12} /></button>
-                <button onClick={e => e.stopPropagation()} className="p-1 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={12} /></button>
-                <button onClick={e => { e.stopPropagation(); setFaqs(f => f.filter(x => x.id !== faq.id)); }}
+                <button onClick={e => { e.stopPropagation(); setDrawer({ open: true, item: faq }); }}
+                  className="p-1 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={12} /></button>
+                <button onClick={e => { e.stopPropagation(); if (confirm("Delete this FAQ?")) del.mutate(faq.id); }}
                   className="p-1 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={12} /></button>
                 <ChevronRight size={14} className={cn("text-slate-300 transition-transform", expanded === faq.id && "rotate-90")} />
               </div>
             </div>
             {expanded === faq.id && (
               <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                <textarea rows={3} placeholder="Type the answer here…"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none resize-none" />
-                <div className="flex gap-2 mt-2">
-                  <button className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save Answer</button>
-                  <button onClick={() => setExpanded(null)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-100">Cancel</button>
-                </div>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{faq.answer}</p>
               </div>
             )}
           </div>
         ))}
       </div>
+      {!isLoading && faqs.length === 0 && (
+        <p className="text-sm text-slate-400 text-center py-8">No FAQs yet.</p>
+      )}
+      <FaqFormDrawer open={drawer.open} item={drawer.item} onClose={() => setDrawer({ open: false })} />
     </div>
   );
 }
@@ -1412,6 +1573,7 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
 export function CmsModule() {
   const [view, setView] = useState<CmsView>("pages");
   const [editTarget, setEditTarget] = useState("");
+  const [editPostId, setEditPostId] = useState<string | null>(null);
   const [editType, setEditType] = useState<"page" | "blog">("page");
 
   const isEditor = view === "page-editor" || view === "blog-editor";
@@ -1419,7 +1581,15 @@ export function CmsModule() {
   const openEditor = (type: "page" | "blog", title: string) => {
     setEditType(type);
     setEditTarget(title);
+    setEditPostId(null);
     setView(type === "page" ? "page-editor" : "blog-editor");
+  };
+
+  const openBlogEditor = (id: string | null) => {
+    setEditType("blog");
+    setEditPostId(id);
+    setEditTarget("");
+    setView("blog-editor");
   };
 
   return (
@@ -1463,6 +1633,7 @@ export function CmsModule() {
           <ContentEditor
             type={editType}
             title={editTarget}
+            postId={editType === "blog" ? editPostId : null}
             onBack={() => setView(editType === "page" ? "pages" : "blog")}
           />
         ) : (
@@ -1470,13 +1641,14 @@ export function CmsModule() {
             {view === "pages" && (
               <>
                 <SectionHeader title="Pages" subtitle="Manage static pages on your website" />
+                <SampleBadge />
                 <PagesView onEdit={t => openEditor("page", t)} />
               </>
             )}
             {view === "blog" && (
               <>
                 <SectionHeader title="Blog" subtitle="Write and manage blog posts" />
-                <BlogView onEdit={t => openEditor("blog", t)} />
+                <BlogView onEdit={openBlogEditor} />
               </>
             )}
             {view === "categories" && (
@@ -1493,31 +1665,35 @@ export function CmsModule() {
             )}
             {view === "faqs" && (
               <>
-                <SectionHeader title="FAQs" subtitle="Frequently asked questions · drag to reorder" />
+                <SectionHeader title="FAQs" subtitle="Frequently asked questions" />
                 <FaqsView />
               </>
             )}
             {view === "menus" && (
               <>
                 <SectionHeader title="Menus" subtitle="Configure navigation menus and structure" />
+                <SampleBadge />
                 <MenusView />
               </>
             )}
             {view === "sliders" && (
               <>
                 <SectionHeader title="Sliders" subtitle="Manage homepage hero sliders · drag to reorder" />
+                <SampleBadge />
                 <SlidersView />
               </>
             )}
             {view === "banners" && (
               <>
                 <SectionHeader title="Banners" subtitle="Promotional banners and announcement bars" />
+                <SampleBadge />
                 <BannersView />
               </>
             )}
             {view === "media" && (
               <>
                 <SectionHeader title="Media Library" subtitle="Upload and manage images, PDFs, and documents" />
+                <SampleBadge />
                 <MediaView />
               </>
             )}

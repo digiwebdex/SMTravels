@@ -5,6 +5,14 @@
  * tiers, services, sample packages, and a demo customer (PII auto-encrypted).
  *
  * Run: npm run prisma:seed   (uses the PII-encrypting Prisma client)
+ *
+ * Phases:
+ *   seedStructural() — always runs; safe on production (upserts only, no demo users).
+ *   seedDemo()       — skipped when NODE_ENV=production or SEED_STRUCTURAL_ONLY=1.
+ *
+ * Structural-only on any environment:
+ *   SEED_STRUCTURAL_ONLY=1 npx tsx prisma/seed.ts
+ *   # or: npm run prisma:seed  (production auto-skips demo)
  */
 import { prisma } from "../src/lib/prisma";
 import { deterministicHash } from "../src/lib/password";
@@ -155,7 +163,8 @@ async function seedStructural() {
     { code: "1000", name: "Assets", cls: "ASSET", role: "HEADER" },
     { code: "1100", name: "Current Assets", parent: "1000", cls: "ASSET", role: "HEADER" },
     { code: "1110", name: "Cash in Hand", parent: "1100", cls: "ASSET", role: "DETAIL" },
-    { code: "1120", name: "Dutch-Bangla Bank – Current", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1120", name: "Dutch-Bangla Bank – Current (NPSB receiving account)", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1121", name: "Islami Bank Bangladesh – Current (NPSB receiving account)", parent: "1100", cls: "ASSET", role: "DETAIL" },
     { code: "1200", name: "Accounts Receivable", parent: "1000", cls: "ASSET", role: "DETAIL" },
     { code: "2000", name: "Liabilities", cls: "LIABILITY", role: "HEADER" },
     { code: "2100", name: "Accounts Payable", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
@@ -178,16 +187,35 @@ async function seedStructural() {
     });
     acctIdByCode[a.code] = row.id;
   }
-  // 12) A couple of bank accounts linked to COA cash/bank accounts.
+  // 12) Bank accounts linked to COA — NPSB receiving accounts for client payments.
   await prisma.bankAccount.upsert({
     where: { id: "bank_dbbl" },
-    create: { id: "bank_dbbl", name: "Dutch-Bangla Bank Ltd.", bankName: "DBBL", type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Agrabad", currency: "BDT", coaAccountId: acctIdByCode["1120"], balance: 12400000 },
-    update: { name: "Dutch-Bangla Bank Ltd." },
+    create: {
+      id: "bank_dbbl", name: "DBBL – NPSB receiving account", bankName: "Dutch-Bangla Bank Ltd. (DBBL)",
+      type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Motijheel", currency: "BDT",
+      coaAccountId: acctIdByCode["1120"], balance: 12400000, active: true,
+    },
+    update: {
+      name: "DBBL – NPSB receiving account", bankName: "Dutch-Bangla Bank Ltd. (DBBL)",
+      accountNumber: "1021 0110 0000 234", branchName: "Motijheel", active: true,
+    },
+  });
+  await prisma.bankAccount.upsert({
+    where: { id: "bank_ibbl" },
+    create: {
+      id: "bank_ibbl", name: "Islami Bank – NPSB receiving account", bankName: "Islami Bank Bangladesh Ltd. (IBBL)",
+      type: "CURRENT", accountNumber: "2051 0210 0000 567", branchName: "Gulshan", currency: "BDT",
+      coaAccountId: acctIdByCode["1121"], balance: 8750000, active: true,
+    },
+    update: {
+      name: "Islami Bank – NPSB receiving account", bankName: "Islami Bank Bangladesh Ltd. (IBBL)",
+      accountNumber: "2051 0210 0000 567", branchName: "Gulshan", active: true,
+    },
   });
   await prisma.bankAccount.upsert({
     where: { id: "bank_cash" },
-    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000 },
-    update: { name: "Cash in Hand" },
+    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000, active: true },
+    update: { name: "Cash in Hand", active: true },
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -808,6 +836,10 @@ async function seedDemo() {
 
 async function main() {
   await seedStructural();
+  if (process.env.SEED_STRUCTURAL_ONLY === "1" || process.env.SEED_STRUCTURAL_ONLY === "true") {
+    console.log("[seed] SEED_STRUCTURAL_ONLY set -> demo phase SKIPPED.");
+    return;
+  }
   if (process.env.NODE_ENV === "production") {
     console.log("[seed] NODE_ENV=production -> demo phase SKIPPED (structural only).");
     return;

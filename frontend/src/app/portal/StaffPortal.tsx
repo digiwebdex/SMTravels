@@ -408,69 +408,51 @@ function StaffCustomers() {
 // ─── REPORTS ─────────────────────────────────────────────────────────────────
 function StaffReports() {
   const { t } = useTranslation("portalStaff");
-  const months = ["Feb","Mar","Apr","May","Jun","Jul"];
-  const vals = [3,5,4,6,5,4];
-  const max = Math.max(...vals);
+  const dashQ = useStaffDashboard();
+  const bookingsQ = useStaffBookings();
+  const d = dashQ.data;
+  const bookings = bookingsQ.data ?? [];
+  const completed = bookings.filter(b => b.status === "COMPLETED").length;
+  const doneTasks = d?.tasksByStatus.find(s => s.status === "DONE")?.count ?? 0;
 
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("nav.myReports")}</h2>
 
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:t("reports.kpi.bookings"),  val:"4",    delta:"+1", up:true  },
-          { label:t("reports.kpi.tasksDone"),      val:"7",    delta:"+3", up:true  },
-          { label:t("reports.kpi.customersServed"),val:"12",   delta:"+2", up:true  },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-2xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-              <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5",
-                s.up ? "text-emerald-600 bg-emerald-50" : "text-red-500 bg-red-50")}>
-                {s.up ? <TrendingUp size={10}/> : <TrendingDown size={10}/>}{s.delta}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500">{s.label}</p>
+      <PLoad q={dashQ}>
+        {d && (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: t("reports.kpi.bookings"), val: String(d.counts.assignedBookings) },
+              { label: t("reports.kpi.tasksDone"), val: String(doneTasks) },
+              { label: t("reports.kpi.customersServed"), val: String(d.counts.branchCustomers) },
+            ].map(s => (
+              <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
+                <p className="text-2xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </PLoad>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <p className="font-bold text-slate-800 mb-4">{t("reports.bookingsClosed")}</p>
-        <div className="flex items-end gap-2 h-28">
-          {vals.map((v,i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-t-lg" style={{ height:`${(v/max)*100}%`, background: i===vals.length-1?"#1B75BC":"#1B75BC33" }} />
-              <p className="text-xs text-slate-400">{months[i]}</p>
-            </div>
-          ))}
+      <PLoad q={bookingsQ}>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <p className="font-bold text-slate-800 mb-3">{t("reports.bookingsClosed")}</p>
+          <p className="text-sm text-slate-600">
+            {completed} of {bookings.length} assigned bookings completed.
+          </p>
         </div>
-      </div>
+      </PLoad>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-slate-800">{t("reports.performanceSummary")}</p>
-          <button className="flex items-center gap-1.5 text-xs text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-lg hover:bg-[#1B75BC]/5 whitespace-nowrap">
-            <Download size={12}/> {t("reports.export")}
-          </button>
+      <div className="flex items-start gap-3 p-5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl">
+        <Info size={18} className="text-[#2563EB] flex-shrink-0 mt-0.5"/>
+        <div>
+          <p className="text-sm font-semibold text-slate-800">Use ERP Reports for full analytics</p>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            Detailed sales, branch, and financial reports are available in the main ERP under Reports. This portal view shows your personal activity summary only.
+          </p>
         </div>
-        {[
-          { label:t("reports.rows.taskCompletion"), val:"78%",   bar:78,  color:"#1B75BC" },
-          { label:t("reports.rows.bookingClose"),   val:"64%",   bar:64,  color:"#0E7C66" },
-          { label:t("reports.rows.customerSatisfaction"),val:"4.7★",  bar:94,  color:"#F15A24" },
-          { label:t("reports.rows.responseTime"),  val:"1.8h",  bar:75,  color:"#7C3AED" },
-        ].map(r => (
-          <div key={r.label} className="mb-3 last:mb-0">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-500">{r.label}</span>
-              <span className="font-bold text-slate-700">{r.val}</span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full" style={{ width:`${r.bar}%`, background:r.color }} />
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -619,82 +619,81 @@ function TeamView() {
 
 // ─── ANALYTICS ───────────────────────────────────────────────────────────────
 function AnalyticsView() {
-  const months = ["Feb","Mar","Apr","May","Jun","Jul"];
-  const booking = [4,7,5,6,8,12];
-  const commiss  = [18000,31000,22000,27000,36000,55000];
-  const maxB = Math.max(...booking);
-  const maxC = Math.max(...commiss);
-
   const { t } = useTranslation("portalAgent");
+  const dashQ = useAgentDashboard();
+  const commQ = useAgentCommissions();
+  const d = dashQ.data;
+  const commissions = commQ.data ?? [];
+  const totalComm = commissions.reduce((s, c) => s + c.amount, 0);
+  const paidComm = commissions.filter(c => c.status === "PAID" || c.status === "paid").reduce((s, c) => s + c.amount, 0);
+  const pendingComm = commissions.filter(c => c.status === "PENDING" || c.status === "pending").reduce((s, c) => s + c.amount, 0);
+  const conversion = d && d.counts.leads > 0 ? Math.round((d.counts.bookings / d.counts.leads) * 100) : 0;
+  const avgTicket = d && d.counts.bookings > 0 ? d.commissionEarned / d.counts.bookings : 0;
+
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("nav.analytics")}</h2>
 
-      {/* Summary tiles */}
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard label={t("analytics.conversionRate")} value="58%"  sub={t("analytics.leadsToBookings")} icon={Target}     iconBg="bg-purple-500" delta="+8%" deltaUp/>
-        <StatCard label={t("analytics.avgTicket")}      value="৳2.4L" sub={t("analytics.perBooking")}      icon={Briefcase}  iconBg="bg-[#1B75BC]"  delta="+12%" deltaUp/>
-        <StatCard label={t("analytics.returnClients")}  value="62%"  sub={t("analytics.repeatBookings")}  icon={RefreshCw}  iconBg="bg-[#0E7C66]"  delta="+5%" deltaUp/>
-        <StatCard label={t("analytics.responseTime")}   value="1.4h" sub={t("analytics.avgLeadResponse")} icon={Zap}        iconBg="bg-amber-500"  delta="-18%" deltaUp/>
-      </div>
+      <PLoad q={dashQ}>
+        {d && (
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard label={t("analytics.conversionRate")} value={`${conversion}%`} sub={t("analytics.leadsToBookings")} icon={Target} iconBg="bg-purple-500"/>
+            <StatCard label={t("analytics.avgTicket")} value={fmtBDT2(avgTicket)} sub={t("analytics.perBooking")} icon={Briefcase} iconBg="bg-[#1B75BC]"/>
+            <StatCard label={t("portalCommon:nav.bookings")} value={String(d.counts.bookings)} sub={t("dashboard.mine")} icon={RefreshCw} iconBg="bg-[#0E7C66]"/>
+            <StatCard label={t("portalCommon:nav.leads")} value={String(d.counts.leads)} sub={t("dashboard.assignedToMe")} icon={Zap} iconBg="bg-amber-500"/>
+          </div>
+        )}
+      </PLoad>
 
-      {/* Booking trend chart */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-slate-800">{t("analytics.bookingsTrend")}</p>
-          <span className="text-xs text-slate-400">{t("analytics.last6Months")}</span>
-        </div>
-        <div className="flex items-end gap-2 h-32">
-          {booking.map((v,i)=>(
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-t-lg transition-all"
-                style={{ height:`${(v/maxB)*100}%`, background: i===months.length-1?"#1B75BC":"#1B75BC33" }}/>
-              <p className="text-xs text-slate-400">{months[i]}</p>
+      <PLoad q={commQ}>
+        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <p className="font-bold text-slate-800">{t("analytics.commissionTrend")}</p>
+            <span className="text-xs text-slate-400">৳ (BDT)</span>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-slate-50 rounded-xl p-3 text-center">
+              <p className="text-lg font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(totalComm)}</p>
+              <p className="text-xs text-slate-400">Total</p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Commission trend */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-slate-800">{t("analytics.commissionTrend")}</p>
-          <span className="text-xs text-slate-400">৳ (BDT)</span>
-        </div>
-        <div className="flex items-end gap-2 h-32">
-          {commiss.map((v,i)=>(
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-t-lg transition-all"
-                style={{ height:`${(v/maxC)*100}%`, background: i===months.length-1?"#0E7C66":"#0E7C6633" }}/>
-              <p className="text-xs text-slate-400">{months[i]}</p>
+            <div className="bg-emerald-50 rounded-xl p-3 text-center">
+              <p className="text-lg font-black text-emerald-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(paidComm)}</p>
+              <p className="text-xs text-slate-400">Paid</p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Service breakdown */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-4">{t("analytics.bookingsByService")}</p>
-        <div className="space-y-3">
-          {[
-            { label:"Hajj Packages",  pct:42, color:"#1B75BC" },
-            { label:"Umrah",          pct:28, color:"#0E7C66" },
-            { label:"Tour Packages",  pct:18, color:"#F15A24" },
-            { label:"Visa Services",  pct:12, color:"#7C3AED" },
-          ].map(s=>(
-            <div key={s.label}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-600 font-medium">{s.label}</span>
-                <span className="font-bold text-slate-800">{s.pct}%</span>
+            <div className="bg-amber-50 rounded-xl p-3 text-center">
+              <p className="text-lg font-black text-amber-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(pendingComm)}</p>
+              <p className="text-xs text-slate-400">{t("portalCommon:status.pending")}</p>
+            </div>
+          </div>
+          {commissions.length === 0 && <p className="text-sm text-slate-400 text-center py-4">{t("portalCommon:empty.nothing")}</p>}
+          <div className="space-y-2">
+            {commissions.slice(0, 8).map(c => (
+              <div key={c.id} className="flex items-center justify-between text-sm py-2 border-b border-slate-50 last:border-0">
+                <span className="text-slate-500">{c.period ?? "—"} · {c.rate}%</span>
+                <span className="font-bold text-slate-800 font-mono">{fmtBDT2(c.amount)}</span>
               </div>
-              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width:`${s.pct}%`, background:s.color }}/>
+            ))}
+          </div>
+        </div>
+      </PLoad>
+
+      <PLoad q={dashQ}>
+        {d && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <p className="font-bold text-slate-800 mb-4">{t("analytics.bookingsTrend")}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[#1B75BC]/5 rounded-xl p-4">
+                <p className="text-2xl font-black text-[#1B75BC]" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(d.commissionEarned)}</p>
+                <p className="text-xs text-slate-500">{t("dashboard.earned")}</p>
+              </div>
+              <div className="bg-amber-50 rounded-xl p-4">
+                <p className="text-2xl font-black text-amber-600" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT2(d.commissionPending)}</p>
+                <p className="text-xs text-slate-500">{t("portalCommon:status.pending")}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        )}
+      </PLoad>
     </div>
   );
 }
