@@ -18,7 +18,7 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
   const [videoFailed, setVideoFailed] = useState(false);
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden home-kenburns">
       {/* poster / fallback still — always present beneath the video */}
       <img src={posterImg} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
 
@@ -40,10 +40,10 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
         </video>
       )}
 
-      {/* Cinematic scrim: dark top & bottom for text legibility, lighter middle
-          so the footage stays visible — a subtle brand-blue tint, not a flat wash. */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A2E4D]/80 via-[#0A2E4D]/45 to-[#0A2E4D]/90" />
-      <div className="absolute inset-0 bg-[#1B75BC]/15" />
+      {/* Cinematic scrim: readable text, sacred image still vivid. */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#061828]/75 via-[#0A2E4D]/28 to-[#061828]/88" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#061828]/25 via-transparent to-[#061828]/20" />
+      <div className="absolute inset-0 bg-[#1B75BC]/08" />
     </div>
   );
 }
