@@ -1,2 +1,2 @@
-Hero video: Wikimedia Commons — Time lapse of Masjid al-Ḥarām (kaaba) & hajj rites.webm
-Re-encoded for web: H.264 1280x720 @24fps, ~12s loop, muted.
+Hero video: smooth Kaaba/tawaf clip (web-optimized H.264 1280x726 @24fps, ~5s muted loop).
+Replaced previous Wikimedia timelapse for cleaner playback.
