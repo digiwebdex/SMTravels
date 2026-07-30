@@ -3,13 +3,15 @@ import { Outlet, Link, useLocation } from "react-router";
 import {
   Menu, X, ChevronDown, Globe, Star, MapPin, Shield, Plane,
   Briefcase, Hotel, Phone, Mail, Facebook, Instagram, Youtube,
-  Twitter, ChevronRight, Clock, MessageCircle, ArrowRight,
+  Twitter, ChevronRight, Clock, MessageCircle, ArrowRight, Calendar,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
 import { AiChatWidget } from "./AiChatWidget";
+import { PwaInstallBanner } from "./PwaInstallBanner";
 import { useLang } from "../i18n/useLang";
+import { CONTACT, telUrl, whatsappUrl } from "../lib/contact";
 
 // ─── WhatsApp Icon ────────────────────────────────────────────────────────────
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
@@ -437,7 +439,7 @@ function WhatsAppFloat() {
           {t("whatsapp.tooltip")}
         </div>
       )}
-      <a href="https://wa.me/8801712345678?text=Hello%20SMTravel"
+      <a href={whatsappUrl()}
         target="_blank" rel="noopener noreferrer"
         onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}
         className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all"
@@ -448,26 +450,42 @@ function WhatsAppFloat() {
   );
 }
 
-// ─── MOBILE STICKY BOTTOM BAR ─────────────────────────────────────────────────
+// ─── MOBILE STICKY CTA BAR — Call / WhatsApp / Book ───────────────────────────
 function MobileBottomBar() {
   const { t } = useTranslation("layout");
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E5E7EB] px-4 py-3 safe-area-inset-bottom">
-      <div className="flex gap-3">
-        {/* WhatsApp */}
-        <a href="https://wa.me/8801712345678?text=Hello%20SMTravel"
-          target="_blank" rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#25D366] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#1da855] transition-colors">
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(10,46,77,0.08)]"
+      aria-label={t("mobileCta.aria")}
+    >
+      <div className="flex gap-2 max-w-lg mx-auto">
+        <a
+          href={telUrl()}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl border border-[#1B75BC]/25 bg-[#E8F2FA] text-[#17456B] font-bold text-[11px] hover:bg-[#1B75BC]/10 transition-colors"
+          aria-label={t("mobileCta.callAria", { phone: CONTACT.phoneDisplay })}
+        >
+          <Phone size={18} className="text-[#1B75BC]" />
+          {t("mobileCta.call")}
+        </a>
+        <a
+          href={whatsappUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-[1.15] flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl bg-[#25D366] text-white font-bold text-[11px] hover:bg-[#1da855] transition-colors shadow-sm"
+          aria-label={t("aria.whatsapp")}
+        >
           <WhatsAppIcon size={18} />
           {t("whatsapp.label")}
         </a>
-        {/* Book Now */}
-        <Link to="/book"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#1B75BC] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#14588F] transition-colors">
-          {t("common:actions.bookNow")}
+        <Link
+          to="/book"
+          className="flex-[1.15] flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl bg-[#F15A24] text-white font-bold text-[11px] hover:bg-[#CC3C17] transition-colors shadow-sm"
+        >
+          <Calendar size={18} />
+          {t("mobileCta.book")}
         </Link>
       </div>
-    </div>
+    </nav>
   );
 }
 
@@ -485,11 +503,12 @@ export function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      {/* Bottom spacing on mobile for sticky bar */}
-      <div className="md:hidden h-[72px]" />
       <Footer />
+      {/* Bottom spacing on mobile for sticky CTA bar */}
+      <div className="md:hidden h-[76px] safe-area-inset-bottom" aria-hidden />
       <WhatsAppFloat />
       <AiChatWidget />
+      <PwaInstallBanner />
       <MobileBottomBar />
     </div>
   );

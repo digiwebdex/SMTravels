@@ -6,6 +6,7 @@ import {
   ArrowRight, CheckCircle, Phone, Quote, Clock, Heart, Headphones, TrendingUp,
 } from "lucide-react";
 import { img, fmtPrice } from "../lib/utils";
+import { whatsappUrl } from "../lib/contact";
 import { HeroBackground } from "../components/HeroBackground";
 import { usePublicPackages, usePublicBlogPosts, usePublicTestimonials, contentLinkKey } from "../hooks/publicContent";
 
@@ -47,7 +48,7 @@ function HeroCtas() {
         {t("hero.cta.contact")}
       </Link>
       <a
-        href="https://wa.me/8801712345678?text=Hello%20SMTravel"
+        href={whatsappUrl()}
         target="_blank"
         rel="noopener noreferrer"
         className="flex-1 py-3.5 px-6 border border-white/45 hover:border-white hover:bg-white/10 text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center gap-2 hover:-translate-y-0.5"
