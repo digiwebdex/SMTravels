@@ -52,7 +52,27 @@ export async function passportOcrHandler(req: Request, res: Response): Promise<v
   }
   try {
     const result = await ocrPassport(file.path, file.mimetype);
+    const conf01 = Math.max(0, Math.min(1, (result.confidence ?? 0) / 100));
+    const gender =
+      result.gender?.toUpperCase().startsWith("F") ? "FEMALE" as const
+        : result.gender?.toUpperCase().startsWith("M") ? "MALE" as const
+          : null;
     res.json({
+      provider: "cloud",
+      confidence: conf01,
+      warning: "Review and correct extracted fields before Apply. OCR is never authoritative.",
+      fields: {
+        fullName: result.fullName,
+        passportNo: result.passportNumber,
+        dateOfBirth: result.dateOfBirth,
+        expiryDate: result.dateOfExpiry,
+        dateOfIssue: result.dateOfIssue,
+        nationality: result.nationality,
+        gender,
+        issueCountry: result.nationality,
+        mrz: result.mrz,
+      },
+      // flat aliases (backward compatible)
       fullText: result.fullText,
       passportNumber: result.passportNumber,
       fullName: result.fullName,
@@ -63,10 +83,9 @@ export async function passportOcrHandler(req: Request, res: Response): Promise<v
       dateOfExpiry: result.dateOfExpiry,
       placeOfBirth: result.placeOfBirth,
       mrz: result.mrz,
-      confidence: result.confidence,
+      issueCountry: result.nationality,
     });
   } finally {
-    // Temp upload — remove after OCR (do not persist passport scan unless via documents API)
     try {
       if (file.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
     } catch {

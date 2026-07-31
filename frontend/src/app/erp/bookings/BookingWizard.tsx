@@ -646,8 +646,12 @@ function StepTravelers({ service, travelers, setTravelers }: { service: ServiceT
         if (f.expiryDate) patch.passportExpiry = f.expiryDate;
         if (f.nationality) patch.nationality = f.nationality;
         if (f.gender) patch.gender = f.gender === "FEMALE" ? "Female" : "Male";
-        patchTraveler(id, patch); // OCR output PRE-FILLS the editable form — never authoritative
-        setOcrNotes(n => ({ ...n, [id]: r.warning || tb("ocr.reviewNote") }));
+        // Keep issue country / MRZ in note for staff review (TravelerForm has no mrz field)
+        const extras = [f.issueCountry ? `Issue: ${f.issueCountry}` : null, f.mrz ? "MRZ captured" : null, r.confidence != null ? `Confidence ${Math.round(r.confidence * 100)}%` : null]
+          .filter(Boolean)
+          .join(" · ");
+        patchTraveler(id, patch);
+        setOcrNotes(n => ({ ...n, [id]: extras || r.warning || tb("ocr.reviewNote") }));
         toast.warning(tb("ocr.reviewNote"));
       },
       onError: (e: Error) => toast.error(e.message || "Passport scan failed"),

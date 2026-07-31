@@ -1,0 +1,12 @@
+-- Milestone C: OCR apply persistence fields
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "passportExpiry" DATE;
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "nationality" TEXT;
+
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrGender" TEXT;
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrIssueCountry" TEXT;
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrMrz" TEXT;
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrOriginalFields" JSONB;
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrCorrectedFields" JSONB;
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrReviewedById" TEXT;
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrReviewedAt" TIMESTAMPTZ(6);
+ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "ocrAppliedAt" TIMESTAMPTZ(6);

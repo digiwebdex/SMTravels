@@ -5,13 +5,19 @@ import {
   CheckCircle, AlertTriangle, XCircle, Clock, Plus, X, Search,
   Filter, Tag, Star, Lock, Link2, Copy, RotateCcw, ZoomIn,
   ChevronRight, ChevronDown, ChevronLeft, Layers, RefreshCw,
-  Users, UserPlus, Grid, List, FilePlus, FolderOpen, Loader2,
+  Users, UserPlus, Grid, List, FilePlus, FolderOpen, Loader2, Scan,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useErpDocuments, useUploadDocument, downloadDocumentFile } from "../hooks/documents";
 import { useCustomers } from "../hooks/crm";
+import {
+  useOcrPending, useDocumentOcr, useRunDocumentOcr, useCorrectDocumentOcr, useApplyOcr, useOcrHistory,
+} from "../hooks/ocr";
 import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (no vite alias; bundling backend code is deliberate off-limits)
 import type { DocumentTypeDto, DocumentDto } from "@contracts/document.contract";
+import { toast } from "sonner";
+import { apiFetch } from "../lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type DocView =
@@ -67,6 +73,7 @@ function DocLibrary() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [search, setSearch] = useState("");
   const q = useErpDocuments({ q: search || undefined, pageSize: 50 });
+  const runOcr = useRunDocumentOcr();
   const rows: DocumentDto[] = q.data?.data ?? [];
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
@@ -120,12 +127,25 @@ function DocLibrary() {
                 </td>
                 <td className="px-4 py-3 text-sm text-slate-500">{doc.ownerLabel ?? prettyType(doc.ownerType)}</td>
                 <td className="px-4 py-3">
-                  {doc.hasFile && (
-                    <button onClick={() => void downloadDocumentFile(doc)} title="Download"
-                      className="p-1 hover:bg-slate-100 rounded cursor-pointer">
-                      <Download size={13} className="text-slate-400" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {doc.hasFile && (
+                      <button type="button" onClick={() => void downloadDocumentFile(doc)} title="Download"
+                        className="p-1 hover:bg-slate-100 rounded cursor-pointer">
+                        <Download size={13} className="text-slate-400" />
+                      </button>
+                    )}
+                    {doc.hasFile && (doc.type === "PASSPORT" || doc.type === "NID" || doc.type === "VISA") && (
+                      <button
+                        type="button"
+                        title="Run OCR"
+                        disabled={runOcr.isPending}
+                        onClick={() => runOcr.mutate(doc.id)}
+                        className="p-1 hover:bg-slate-100 rounded cursor-pointer disabled:opacity-50"
+                      >
+                        {runOcr.isPending ? <Loader2 size={13} className="animate-spin text-[#1B75BC]" /> : <Scan size={13} className="text-[#1B75BC]" />}
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -302,286 +322,362 @@ function UploadView() {
   );
 }
 
-// ─── OCR VALIDATION ───────────────────────────────────────────────────────────
-const OCR_FIELDS = [
-  { field:"Document Type",   extracted:"PASSPORT",          expected:"Passport",  confidence:98, ok:true  },
-  { field:"Surname",         extracted:"AL-MAMUN",          expected:"Al-Mamun",  confidence:97, ok:true  },
-  { field:"Given Names",     extracted:"ABDULIAH",          expected:"ABDULLAH",  confidence:61, ok:false },
-  { field:"Nationality",     extracted:"BANGLADESHI",       expected:"—",         confidence:99, ok:true  },
-  { field:"Passport No.",    extracted:"A 12345678",        expected:"—",         confidence:95, ok:true  },
-  { field:"Date of Birth",   extracted:"05 JAN 1982",       expected:"—",         confidence:93, ok:true  },
-  { field:"Issue Date",      extracted:"14 JUN 2023",       expected:"—",         confidence:96, ok:true  },
-  { field:"Expiry Date",     extracted:"14 JUN 2028",       expected:"2028-06-14",confidence:98, ok:true  },
-  { field:"MRZ Line 1",      extracted:"P<BGDAL-MAMUN<<ABDULIAH<<<<<<<<<<<<<<<", expected:"—", confidence:72, ok:false },
-];
+// ─── OCR VALIDATION (live) ────────────────────────────────────────────────────
+type OcrFieldRow = { key: string; label: string; value: string; confidence: number; uncertain: boolean };
+
+function buildOcrRows(doc: {
+  ocrName: string | null;
+  ocrPassportNo: string | null;
+  ocrDob: string | null;
+  ocrExpiry: string | null;
+  ocrNationality: string | null;
+  ocrGender?: string | null;
+  ocrIssueCountry?: string | null;
+  ocrMrz?: string | null;
+  ocrConfidence: number | null;
+  ocrCorrectedFields?: Record<string, { original: string | null; corrected: string }> | null;
+}): OcrFieldRow[] {
+  const conf = doc.ocrConfidence ?? 0;
+  const fieldConf = (key: string, base: number) => {
+    if (doc.ocrCorrectedFields?.[key]) return 100;
+    return base;
+  };
+  const rows: OcrFieldRow[] = [
+    { key: "fullName", label: "Full Name", value: doc.ocrName ?? "", confidence: fieldConf("fullName", conf), uncertain: conf < 80 && !doc.ocrCorrectedFields?.fullName },
+    { key: "passportNumber", label: "Passport No.", value: doc.ocrPassportNo ?? "", confidence: fieldConf("passportNumber", conf), uncertain: conf < 80 && !doc.ocrCorrectedFields?.passportNumber },
+    { key: "dateOfBirth", label: "Date of Birth", value: doc.ocrDob ?? "", confidence: fieldConf("dateOfBirth", Math.max(0, conf - 5)), uncertain: conf < 85 },
+    { key: "dateOfExpiry", label: "Expiry Date", value: doc.ocrExpiry ?? "", confidence: fieldConf("dateOfExpiry", conf), uncertain: conf < 80 },
+    { key: "nationality", label: "Nationality", value: doc.ocrNationality ?? "", confidence: fieldConf("nationality", conf), uncertain: conf < 80 },
+    { key: "gender", label: "Gender", value: doc.ocrGender ?? "", confidence: fieldConf("gender", Math.max(0, conf - 10)), uncertain: conf < 75 },
+    { key: "issueCountry", label: "Issue Country", value: doc.ocrIssueCountry ?? "", confidence: fieldConf("issueCountry", Math.max(0, conf - 10)), uncertain: conf < 75 },
+    { key: "mrz", label: "MRZ", value: doc.ocrMrz ?? "", confidence: fieldConf("mrz", Math.max(0, conf - 15)), uncertain: conf < 70 },
+  ];
+  return rows;
+}
 
 function OcrView() {
-  const [selected, setSelected] = useState("DOC-001");
-  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const { data: pending, isLoading, isError, error, refetch } = useOcrPending({ page: 1, pageSize: 50 });
+  const docs = pending?.data ?? [];
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data: detail, refetch: refetchDetail } = useDocumentOcr(selectedId);
+  const runOcr = useRunDocumentOcr();
+  const correct = useCorrectDocumentOcr();
+  const apply = useApplyOcr();
+  const qc = useQueryClient();
+  const statusMut = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "VERIFIED" | "FAILED" }) =>
+      apiFetch(`/documents/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+    onSuccess: () => { toast.success("Document status updated"); void qc.invalidateQueries({ queryKey: ["ocr"] }); void qc.invalidateQueries({ queryKey: ["documents"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  React.useEffect(() => {
+    if (!selectedId && docs.length) setSelectedId(docs[0]!.id);
+  }, [docs, selectedId]);
+
+  const [editKey, setEditKey] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
-  const fields = OCR_FIELDS;
-  const failed = fields.filter(f => !f.ok).length;
+  const [phone, setPhone] = useState("");
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    if (!detail) return;
+    setDraft({
+      fullName: detail.ocrName ?? "",
+      passportNumber: detail.ocrPassportNo ?? "",
+      dateOfBirth: detail.ocrDob ?? "",
+      dateOfExpiry: detail.ocrExpiry ?? "",
+      nationality: detail.ocrNationality ?? "",
+      gender: detail.ocrGender ?? "",
+      issueCountry: detail.ocrIssueCountry ?? "",
+      mrz: detail.ocrMrz ?? "",
+    });
+  }, [detail?.id, detail?.ocrReviewedAt, detail?.ocrName, detail?.ocrPassportNo]);
+
+  const rows = detail ? buildOcrRows({ ...detail, ...Object.fromEntries(Object.entries(draft).map(([k, v]) => {
+    const map: Record<string, string> = {
+      fullName: "ocrName", passportNumber: "ocrPassportNo", dateOfBirth: "ocrDob",
+      dateOfExpiry: "ocrExpiry", nationality: "ocrNationality", gender: "ocrGender",
+      issueCountry: "ocrIssueCountry", mrz: "ocrMrz",
+    };
+    return [map[k] ?? k, v];
+  })) } as never) : [];
+  // Rebuild rows from draft for display
+  const displayRows: OcrFieldRow[] = detail ? [
+    { key: "fullName", label: "Full Name", value: draft.fullName ?? "", confidence: detail.ocrConfidence ?? 0, uncertain: (detail.ocrConfidence ?? 0) < 80 && !detail.ocrCorrectedFields?.fullName },
+    { key: "passportNumber", label: "Passport No.", value: draft.passportNumber ?? "", confidence: detail.ocrConfidence ?? 0, uncertain: (detail.ocrConfidence ?? 0) < 80 && !detail.ocrCorrectedFields?.passportNumber },
+    { key: "dateOfBirth", label: "Date of Birth", value: draft.dateOfBirth ?? "", confidence: Math.max(0, (detail.ocrConfidence ?? 0) - 5), uncertain: (detail.ocrConfidence ?? 0) < 85 },
+    { key: "dateOfExpiry", label: "Expiry Date", value: draft.dateOfExpiry ?? "", confidence: detail.ocrConfidence ?? 0, uncertain: (detail.ocrConfidence ?? 0) < 80 },
+    { key: "nationality", label: "Nationality", value: draft.nationality ?? "", confidence: detail.ocrConfidence ?? 0, uncertain: (detail.ocrConfidence ?? 0) < 80 },
+    { key: "gender", label: "Gender", value: draft.gender ?? "", confidence: Math.max(0, (detail.ocrConfidence ?? 0) - 10), uncertain: (detail.ocrConfidence ?? 0) < 75 },
+    { key: "issueCountry", label: "Issue Country", value: draft.issueCountry ?? "", confidence: Math.max(0, (detail.ocrConfidence ?? 0) - 10), uncertain: (detail.ocrConfidence ?? 0) < 75 },
+    { key: "mrz", label: "MRZ", value: draft.mrz ?? "", confidence: Math.max(0, (detail.ocrConfidence ?? 0) - 15), uncertain: (detail.ocrConfidence ?? 0) < 70 },
+  ].map((r) => ({
+    ...r,
+    uncertain: r.uncertain || !r.value,
+    confidence: detail.ocrCorrectedFields?.[r.key] ? 100 : r.confidence,
+  })) : [];
+
+  const failed = displayRows.filter((f) => f.uncertain).length;
+  const conf = detail?.ocrConfidence ?? 0;
+
+  const saveCorrections = async () => {
+    if (!selectedId) return;
+    await correct.mutateAsync({ id: selectedId, fields: draft });
+    void refetchDetail();
+  };
+
+  const onApply = async () => {
+    if (!selectedId || !detail) return;
+    if (!phone.trim() && !detail.customerId) {
+      toast.error("Enter customer phone to create/link customer on Apply");
+      return;
+    }
+    const corrected: Record<string, string> = {};
+    for (const [k, v] of Object.entries(draft)) {
+      const orig = (detail.ocrOriginalFields?.[k] as string | undefined)
+        ?? (detail as never)[`ocr${k[0]!.toUpperCase()}${k.slice(1)}` as never];
+      if (v && String(orig ?? "") !== v) corrected[k] = v;
+    }
+    await apply.mutateAsync({
+      target: "customer",
+      documentId: selectedId,
+      customerId: detail.customerId ?? undefined,
+      phone: phone.trim() || undefined,
+      createCustomer: true,
+      fields: {
+        fullName: draft.fullName,
+        passportNumber: draft.passportNumber,
+        dateOfBirth: draft.dateOfBirth,
+        dateOfExpiry: draft.dateOfExpiry,
+        nationality: draft.nationality,
+        gender: draft.gender,
+        issueCountry: draft.issueCountry,
+        mrz: draft.mrz,
+        confidence: conf,
+      },
+      correctedFields: Object.keys(corrected).length ? corrected : undefined,
+    });
+    void refetch();
+    void refetchDetail();
+  };
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">OCR Validation</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Review and correct extracted field data</p>
+          <p className="text-sm text-slate-500 mt-0.5">Review extracted fields · correct · Apply to customer / booking</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-            <RefreshCw size={14} /> Re-run OCR
+          <button
+            type="button"
+            disabled={!selectedId || runOcr.isPending}
+            onClick={() => selectedId && runOcr.mutate(selectedId)}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50"
+          >
+            {runOcr.isPending ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Re-run OCR
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-            <CheckCircle size={14} /> Approve Document
+          <button
+            type="button"
+            disabled={!selectedId || apply.isPending}
+            onClick={() => void onApply()}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {apply.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />} Apply to Customer
           </button>
         </div>
       </div>
 
+      {isError && <div className="p-4 bg-red-50 text-red-700 text-sm rounded-xl">{(error as Error)?.message || "Failed to load OCR queue"} <button type="button" className="underline ml-2" onClick={() => refetch()}>Retry</button></div>}
+
       <div className="grid grid-cols-5 gap-5">
-        {/* Document preview pane */}
         <div className="col-span-2 space-y-3">
-          <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-700">Document Preview</p>
-              <div className="flex gap-1">
-                <button className="p-1.5 hover:bg-slate-100 rounded"><ZoomIn size={13} className="text-slate-400" /></button>
-                <button className="p-1.5 hover:bg-slate-100 rounded"><Download size={13} className="text-slate-400" /></button>
-              </div>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <p className="text-sm font-semibold text-slate-700">OCR Queue · {pending?.total ?? 0}</p>
             </div>
-            {/* Simulated passport preview */}
-            <div className="bg-[#1a2e1a] p-6 m-4 rounded-xl font-mono text-xs relative" style={{ minHeight: 280 }}>
-              <div className="text-emerald-400 mb-4 text-center font-bold tracking-widest text-sm">
-                PEOPLE'S REPUBLIC OF BANGLADESH
-              </div>
-              <div className="text-emerald-300 mb-4 text-center text-xs tracking-wider">PASSPORT</div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-green-200 text-xs mb-6">
-                {[
-                  ["Surname","AL-MAMUN"],["Given Names","ABDULIAH"],
-                  ["Nationality","BANGLADESHI"],["No.","A 12345678"],
-                  ["Date of Birth","05 JAN 1982"],["Sex","M"],
-                  ["Place of Birth","CHATTOGRAM"],["Expiry","14 JUN 2028"],
-                ].map(([l, v]) => (
-                  <div key={l}>
-                    <div className="text-green-500 text-xs mb-0.5">{l}</div>
-                    <div className="font-bold tracking-widest">{v}</div>
-                  </div>
+            {isLoading ? (
+              <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-slate-300" /></div>
+            ) : docs.length === 0 ? (
+              <div className="p-8 text-center text-sm text-slate-400">No OCR results yet. Upload a passport and run OCR from the library.</div>
+            ) : (
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
+                {docs.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setSelectedId(d.id)}
+                    className={cn("w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors", selectedId === d.id && "bg-[#1B75BC]/5")}
+                  >
+                    <p className="text-sm font-medium text-slate-800 truncate">{d.name}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {d.ocrStatus} · {d.ocrConfidence ?? 0}% · {d.customerName || d.travelerName || d.bookingNo || "unlinked"}
+                    </p>
+                  </button>
                 ))}
               </div>
-              {/* OCR highlight overlay */}
-              <div className="absolute top-[155px] left-[114px] right-6 h-5 bg-red-500/20 border border-red-400/50 rounded pointer-events-none" />
-              <div className="mt-2 border-t border-green-700 pt-2">
-                <div className="text-green-500 text-xs mb-1 tracking-widest">MRZ</div>
-                <div className="text-green-300 text-xs tracking-widest leading-relaxed break-all">
-                  P&lt;BGDAL-MAMUN&lt;&lt;ABDULIAH&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
-                </div>
-              </div>
-            </div>
-            {/* OCR confidence badge */}
-            <div className="px-4 pb-4 flex items-center justify-between">
-              <span className="text-xs text-slate-500">Overall confidence</span>
-              <div className="flex items-center gap-2">
-                <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-400 rounded-full" style={{ width: "87%" }} />
-                </div>
-                <span className="text-xs font-semibold text-amber-600">87%</span>
-              </div>
-            </div>
+            )}
           </div>
-          {/* Validation summary */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              {failed > 0 ? (
-                <AlertTriangle size={18} className="text-red-500" />
-              ) : (
-                <CheckCircle size={18} className="text-emerald-500" />
+
+          {detail && (
+            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-700">Document</p>
+                {detail.hasFile && (
+                  <button type="button" onClick={() => downloadDocumentFile(detail)} className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
+                    <Download size={12} /> Download / Preview
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 font-mono">{detail.id}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-500">Overall confidence</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={cn("h-full rounded-full", conf >= 90 ? "bg-emerald-500" : conf >= 70 ? "bg-amber-400" : "bg-red-400")} style={{ width: `${conf}%` }} />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-700">{conf}%</span>
+                </div>
+              </div>
+              <div className="text-xs text-slate-500 space-y-1">
+                <p>Customer: {detail.customerName || "—"}</p>
+                <p>Booking: {detail.bookingNo || "—"}</p>
+                <p>Reviewer: {detail.ocrReviewedById || "—"}</p>
+                <p>Applied: {detail.ocrAppliedAt ? detail.ocrAppliedAt.slice(0, 19).replace("T", " ") : "—"}</p>
+              </div>
+              {!detail.customerId && (
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Customer phone (for Apply)</label>
+                  <input className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+8801…" />
+                </div>
               )}
-              <div>
-                <p className="text-sm font-semibold text-slate-800">
-                  {failed > 0 ? `${failed} field${failed > 1 ? "s" : ""} need review` : "All fields validated"}
-                </p>
-                <p className="text-xs text-slate-400">{fields.length - failed}/{fields.length} fields extracted correctly</p>
+              <div className="flex items-center gap-3">
+                {failed > 0 ? <AlertTriangle size={18} className="text-red-500" /> : <CheckCircle size={18} className="text-emerald-500" />}
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {failed > 0 ? `${failed} field${failed > 1 ? "s" : ""} need review` : "Fields look complete"}
+                  </p>
+                  <p className="text-xs text-slate-400">{displayRows.length - failed}/{displayRows.length} confident</p>
+                </div>
               </div>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${((fields.length - failed) / fields.length) * 100}%` }} />
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Extracted fields */}
         <div className="col-span-3 bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-3.5 border-b border-slate-100">
             <p className="text-sm font-semibold text-slate-800">Extracted Fields</p>
-            <p className="text-xs text-slate-400 mt-0.5">Click any row to correct a value</p>
+            <p className="text-xs text-slate-400 mt-0.5">Uncertain values highlighted · click to correct</p>
           </div>
-          <table className="w-full min-w-[680px] md:min-w-0">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                {["Field","Extracted Value","Confidence","Status",""].map(h => (
-                  <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-2.5">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {fields.map((f, i) => (
-                <tr key={i} className={cn("border-b border-slate-50 hover:bg-slate-50 transition-colors",
-                  !f.ok && "bg-red-50/30")}>
-                  <td className="px-4 py-3 text-sm text-slate-600 font-medium whitespace-nowrap">{f.field}</td>
-                  <td className="px-4 py-3 font-mono text-sm">
-                    {editIdx === i ? (
-                      <div className="flex items-center gap-2">
-                        <input value={editVal} onChange={e => setEditVal(e.target.value)}
-                          className="border border-[#1B75BC] rounded px-2 py-1 text-sm font-mono w-full focus:outline-none" />
-                        <button onClick={() => setEditIdx(null)} className="text-emerald-600 hover:text-emerald-700">
-                          <CheckCircle size={14} />
+          {!detail ? (
+            <div className="py-16 text-center text-sm text-slate-400">Select a document from the OCR queue</div>
+          ) : (
+            <>
+              <table className="w-full min-w-[680px] md:min-w-0">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    {["Field", "Extracted Value", "Confidence", "Status", ""].map((h) => (
+                      <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-2.5">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayRows.map((f) => (
+                    <tr key={f.key} className={cn("border-b border-slate-50 hover:bg-slate-50", f.uncertain && "bg-red-50/30")}>
+                      <td className="px-4 py-3 text-sm text-slate-600 font-medium whitespace-nowrap">{f.label}</td>
+                      <td className="px-4 py-3 font-mono text-sm">
+                        {editKey === f.key ? (
+                          <div className="flex items-center gap-2">
+                            <input value={editVal} onChange={(e) => setEditVal(e.target.value)}
+                              className="border border-[#1B75BC] rounded px-2 py-1 text-sm font-mono w-full focus:outline-none" />
+                            <button type="button" onClick={() => { setDraft((d) => ({ ...d, [f.key]: editVal })); setEditKey(null); }} className="text-emerald-600">
+                              <CheckCircle size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={f.uncertain ? "text-red-600 font-semibold" : "text-slate-800"}>{f.value || "—"}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className={cn("h-full rounded-full", f.confidence >= 90 ? "bg-emerald-500" : f.confidence >= 70 ? "bg-amber-400" : "bg-red-400")}
+                              style={{ width: `${Math.min(100, f.confidence)}%` }} />
+                          </div>
+                          <span className="text-xs font-mono font-medium">{f.confidence}%</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {f.uncertain ? <XCircle size={15} className="text-red-500" /> : <CheckCircle size={15} className="text-emerald-500" />}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button type="button" onClick={() => { setEditKey(f.key); setEditVal(f.value); }} className="p-1 hover:bg-slate-100 rounded">
+                          <Edit2 size={13} className="text-slate-400" />
                         </button>
-                      </div>
-                    ) : (
-                      <span className={f.ok ? "text-slate-800" : "text-red-600 font-semibold"}>{f.extracted}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={cn("h-full rounded-full", f.confidence >= 90 ? "bg-emerald-500" : f.confidence >= 70 ? "bg-amber-400" : "bg-red-400")}
-                          style={{ width: `${f.confidence}%` }} />
-                      </div>
-                      <span className={cn("text-xs font-mono font-medium",
-                        f.confidence >= 90 ? "text-emerald-600" : f.confidence >= 70 ? "text-amber-600" : "text-red-600")}>
-                        {f.confidence}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {f.ok ? (
-                      <CheckCircle size={15} className="text-emerald-500" />
-                    ) : (
-                      <XCircle size={15} className="text-red-500" />
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => { setEditIdx(i); setEditVal(f.extracted); }}
-                      className="p-1 hover:bg-slate-100 rounded">
-                      <Edit2 size={13} className="text-slate-400" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="px-5 py-4 border-t border-slate-100 flex gap-3">
-            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-              Save Corrections
-            </button>
-            <button className="px-4 py-2 text-sm border border-emerald-300 text-emerald-700 rounded-lg hover:bg-emerald-50">
-              Approve & Verify
-            </button>
-            <button className="px-4 py-2 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50 ml-auto">
-              Reject Document
-            </button>
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-5 py-4 border-t border-slate-100 flex gap-3">
+                <button type="button" disabled={correct.isPending} onClick={() => void saveCorrections()} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50">
+                  Save Corrections
+                </button>
+                <button type="button" disabled={statusMut.isPending || !selectedId} onClick={() => selectedId && statusMut.mutate({ id: selectedId, status: "VERIFIED" })} className="px-4 py-2 text-sm border border-emerald-300 text-emerald-700 rounded-lg hover:bg-emerald-50">
+                  Approve & Verify
+                </button>
+                <button type="button" disabled={statusMut.isPending || !selectedId} onClick={() => selectedId && statusMut.mutate({ id: selectedId, status: "FAILED" })} className="px-4 py-2 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50 ml-auto">
+                  Reject Document
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── VERSION CONTROL ──────────────────────────────────────────────────────────
-const VERSIONS = [
-  { v:"v3.0", date:"Jul 14, 2024  10:42 AM", user:"Admin (System)", size:"2.4 MB", note:"OCR auto-corrected Given Names field", current:true  },
-  { v:"v2.1", date:"Jul 12, 2024  03:15 PM", user:"Rahim Khan",     size:"2.4 MB", note:"Metadata tags updated",                current:false },
-  { v:"v2.0", date:"Jul 10, 2024  09:00 AM", user:"OCR Engine",     size:"2.4 MB", note:"Initial OCR extraction applied",       current:false },
-  { v:"v1.0", date:"Jul 8, 2024   11:30 AM", user:"Abdullah Chowdhury", size:"2.2 MB", note:"Original upload",                  current:false },
-];
-
+// ─── OCR / DOCUMENT HISTORY (live audit) ──────────────────────────────────────
 function VersionsView() {
-  const [selected, setSelected] = useState(0);
+  const { data, isLoading, isError, error, refetch } = useOcrHistory({ page: 1, pageSize: 50 });
+  const rows = data?.data ?? [];
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold text-slate-800">Version Control</h2>
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-1 bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-800">Version History</p>
-            <p className="text-xs text-slate-400">Passport_Abdullah_Al-Mamun.pdf</p>
-          </div>
-          <div className="p-4 space-y-0 relative">
-            {/* Vertical spine */}
-            <div className="absolute left-[30px] top-8 bottom-8 w-px bg-slate-200" />
-            {VERSIONS.map((v, i) => (
-              <div key={i} onClick={() => setSelected(i)}
-                className={cn("relative flex gap-3 pb-5 cursor-pointer", i === VERSIONS.length - 1 && "pb-0")}>
-                <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 z-10 mt-0.5 transition-all",
-                  v.current ? "border-[#1B75BC] bg-[#1B75BC]" : selected === i ? "border-[#1B75BC] bg-white" : "border-slate-300 bg-white")}>
-                  {v.current && <div className="w-2 h-2 rounded-full bg-white" />}
-                </div>
-                <div className={cn("flex-1 p-3 rounded-lg border transition-all",
-                  selected === i ? "border-[#1B75BC]/30 bg-[#1B75BC]/5" : "border-transparent hover:bg-slate-50")}>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-bold text-[#1B75BC] font-mono">{v.v}</span>
-                    {v.current && <span className="text-xs bg-[#1B75BC] text-white px-1.5 rounded-full">current</span>}
-                  </div>
-                  <p className="text-xs text-slate-700 font-medium">{v.note}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{v.user}</p>
-                  <p className="text-xs text-slate-400">{v.date}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-semibold text-slate-800">{VERSIONS[selected].v} — {VERSIONS[selected].note}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{VERSIONS[selected].date} · {VERSIONS[selected].user} · {VERSIONS[selected].size}</p>
-              </div>
-              <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-                  <Eye size={13} /> Preview
-                </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-                  <Download size={13} /> Download
-                </button>
-                {!VERSIONS[selected].current && (
-                  <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-                    <RotateCcw size={13} /> Restore
-                  </button>
-                )}
-              </div>
-            </div>
-            {/* Diff view placeholder */}
-            <div className="bg-slate-50 rounded-xl p-4 font-mono text-xs space-y-1.5">
-              <p className="text-slate-400 mb-2">— Field diff vs previous version —</p>
-              <div className="flex gap-3">
-                <span className="w-32 text-slate-500 shrink-0">Given Names</span>
-                <div className="flex gap-3">
-                  <span className="line-through text-red-500 bg-red-50 px-1 rounded">ABDULIAH</span>
-                  <ChevronRight size={12} className="text-slate-300 self-center" />
-                  <span className="text-emerald-700 bg-emerald-50 px-1 rounded">ABDULLAH</span>
-                </div>
-              </div>
-              <div className="flex gap-3 text-slate-400">
-                <span className="w-32 shrink-0">All other fields</span>
-                <span>unchanged</span>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label:"Total Versions", value:"4" },
-              { label:"Last Modified", value:"Jul 14" },
-              { label:"Total Changes", value:"3" },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-white rounded-xl border border-slate-200 p-4 text-center">
-                <p className="text-2xl font-bold text-slate-800">{value}</p>
-                <p className="text-xs text-slate-500 mt-1">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">OCR History</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Uploader / reviewer audit trail from activity log</p>
+      </div>
+      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        {isError ? (
+          <div className="p-6 text-sm text-red-600">{(error as Error)?.message} <button type="button" className="underline" onClick={() => refetch()}>Retry</button></div>
+        ) : isLoading ? (
+          <div className="p-10 flex justify-center"><Loader2 className="animate-spin text-slate-300" /></div>
+        ) : (
+          <table className="w-full min-w-[680px]">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                {["When", "Action", "Document / Target", "User"].map((h) => (
+                  <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="px-4 py-3 text-sm text-slate-500 font-mono">{r.createdAt.slice(0, 19).replace("T", " ")}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-slate-800">{r.action}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.target || "—"}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.userId || "—"}</td>
+                </tr>
+              ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-400">No OCR audit events yet</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

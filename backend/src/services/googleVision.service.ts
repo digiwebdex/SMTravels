@@ -518,12 +518,17 @@ export function mapOcrToFormDraft(
   const str = (k: string) => (typeof fields[k] === "string" ? (fields[k] as string) : null);
   if (target === "customer" || target === "traveler") {
     return {
-      name: str("fullName") ?? str("passengerName") ?? str("guestName") ?? str("patientName"),
-      passportNo: str("passportNumber"),
+      name: str("fullName") ?? str("name") ?? str("passengerName") ?? str("guestName") ?? str("patientName"),
+      passportNo: str("passportNumber") ?? str("passportNo"),
       nationality: str("nationality"),
       gender: str("gender"),
-      dob: str("dateOfBirth"),
+      dob: str("dateOfBirth") ?? str("dob"),
+      passportExpiry: str("dateOfExpiry") ?? str("expiryDate") ?? str("passportExpiry"),
+      dateOfIssue: str("dateOfIssue"),
+      issueCountry: str("issueCountry") ?? str("issuingCountry") ?? str("placeOfBirth"),
+      mrz: str("mrz"),
       nidNo: str("nidNumber"),
+      confidence: fields.confidence ?? null,
     };
   }
   if (target === "visa") {
@@ -534,16 +539,24 @@ export function mapOcrToFormDraft(
       visaType: str("visaType"),
       dateOfIssue: str("dateOfIssue"),
       dateOfExpiry: str("dateOfExpiry"),
-      passportNo: str("passportNumber"),
+      passportNo: str("passportNumber") ?? str("passportNo"),
+      mrz: str("mrz"),
     };
   }
   return {
-    passengerName: str("passengerName") ?? str("fullName") ?? str("guestName"),
+    passengerName: str("passengerName") ?? str("fullName") ?? str("guestName") ?? str("name"),
     pnr: str("pnr"),
     flightNumber: str("flightNumber"),
     hotelName: str("hotelName"),
     confirmationNo: str("confirmationNo"),
     departureDate: str("departureDate") ?? str("checkIn"),
+    passportNo: str("passportNumber") ?? str("passportNo"),
+    nationality: str("nationality"),
+    gender: str("gender"),
+    dob: str("dateOfBirth"),
+    passportExpiry: str("dateOfExpiry") ?? str("expiryDate"),
+    mrz: str("mrz"),
+    issueCountry: str("issueCountry") ?? str("placeOfBirth"),
   };
 }
 

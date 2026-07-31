@@ -581,6 +581,8 @@ model Customer {
   nidHash      String?
   passportNo   String?
   passportHash String?
+  passportExpiry DateTime?  @db.Date
+  nationality  String?
   piiKeyId     Int?
   dob          DateTime?    @db.Date
   addressLine  String?
@@ -1141,6 +1143,16 @@ model Document {
   ocrDob        DateTime?         @db.Date
   ocrExpiry     DateTime?         @db.Date
   ocrNationality String?
+  ocrGender     String?
+  ocrIssueCountry String?
+  ocrMrz        String?           @db.Text
+  /// Snapshot of fields as extracted (before reviewer edits)
+  ocrOriginalFields Json?
+  /// Map of field → { original, corrected } for reviewer edits
+  ocrCorrectedFields Json?
+  ocrReviewedById String?
+  ocrReviewedAt DateTime?         @db.Timestamptz(6)
+  ocrAppliedAt  DateTime?         @db.Timestamptz(6)
   piiKeyId      Int?
   uploadedById  String?
   verifiedById  String?

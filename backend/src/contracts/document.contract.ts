@@ -119,4 +119,7 @@ export interface DocumentOcrResultDto {
   ocrDob: string | null;
   ocrExpiry: string | null;
   ocrNationality: string | null;
+  ocrGender?: string | null;
+  ocrIssueCountry?: string | null;
+  ocrMrz?: string | null;
 }
