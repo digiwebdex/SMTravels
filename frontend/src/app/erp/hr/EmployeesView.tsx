@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Building2, Phone, Mail, Briefcase, User, Edit3, Clock3 } from "lucide-react";
 import { DataTable, type DataColumn } from "../../design-system";
+import { AiInsightCard } from "../../design-system/ai/AiInsightCard";
 import { ErrorBanner, SkeletonTable } from "../../lib/ds";
 import { useBranches } from "../../hooks/bookings";
 import {
@@ -220,6 +221,21 @@ function EmployeeDetailDrawer({ employeeId, onClose }: { employeeId: string; onC
             <KV label="Manager" value={e.managerName} icon={User} />
             <KV label="Joining Date" value={fmtDate(e.joiningDate)} />
           </div>
+
+          <AiInsightCard title="Employee Insights" collapsedByDefault>
+            <ul className="text-xs space-y-1.5 list-disc pl-4">
+              {e.status === "PROBATION" && e.confirmationDate && (
+                <li>Probation ends {fmtDate(e.confirmationDate)} — prepare confirmation review.</li>
+              )}
+              {e.documentsCount === 0 && <li>No HR documents on file yet — collect NID / contract / photo.</li>}
+              {e.leaveBalances.length === 0 && <li>Leave balances not initialized for this employee.</li>}
+              {e.status === "JOINED" || e.status === "CONFIRMED" || e.status === "PROBATION" ? (
+                <li>Active employee on {e.branchName}{e.departmentName ? ` · ${e.departmentName}` : ""}.</li>
+              ) : (
+                <li>Lifecycle status is {e.status.replace(/_/g, " ")} — check timeline for history.</li>
+              )}
+            </ul>
+          </AiInsightCard>
 
           <div className="flex items-center gap-1 border-b border-[var(--color-border-subtle)]">
             {(["overview", "timeline"] as const).map((t) => (

@@ -13,7 +13,7 @@ import { HttpError } from "../middleware/errorHandler";
 import { mapUniqueError } from "../lib/prismaErrors";
 import { allocateSequence, formatDocNo } from "../lib/sequence";
 import { moveIntoStore, removeQuietly, absoluteStorePath } from "../lib/uploads";
-import { inApp } from "./notification.service";
+import { notifyHrUsers, type HrNotificationEvent } from "./hr.notification";
 import {
   orgUnitCreateSchema,
   employeeStatusSchema,
@@ -89,14 +89,17 @@ async function requireHrManage(auth: AuthCtx): Promise<void> {
   if (!(await hasHrAccess(auth, "manage"))) throw new HttpError(403, "Forbidden", { detail: "Requires HR manage permission." });
 }
 
-/** In-app ping to every user holding hr.manage (HR staff / admins). */
-async function notifyHrManagers(n: { title: string; body?: string; type?: string; color?: string }): Promise<void> {
+/** Ping every user holding hr.manage (HR staff / admins). */
+async function notifyHrManagers(
+  event: HrNotificationEvent,
+  n: { title: string; body?: string; type?: string; color?: string },
+): Promise<void> {
   const rows = await prisma.rolePermission.findMany({
     where: { access: "full", permission: { module: "hr" } },
     select: { role: { select: { users: { select: { userId: true } } } } },
   });
   const userIds = Array.from(new Set(rows.flatMap((r) => r.role.users.map((u) => u.userId))));
-  await inApp(userIds, n);
+  await notifyHrUsers(userIds, event, n);
 }
 
 /** Resolve the caller's own Employee row (portal "/hr/me" endpoints). */
@@ -427,13 +430,13 @@ export async function createEmployee(auth: AuthCtx, input: EmployeeCreateInput) 
   await addTimelineEvent(employeeId, "CREATED", "Employee record created", null, auth.userId);
 
   if (input.userId) {
-    await inApp([input.userId], {
+    await notifyHrUsers([input.userId], "new_employee", {
       title: "Welcome to SM Travels",
       body: "Your employee profile has been created. You can view your HR portal now.",
       type: "hr",
     });
   }
-  await notifyHrManagers({ title: "New employee added", body: `${input.firstName} ${input.lastName} was added to HR.`, type: "hr" });
+  await notifyHrManagers("new_employee", { title: "New employee added", body: `${input.firstName} ${input.lastName} was added to HR.`, type: "hr" });
 
   return getEmployee(auth, employeeId);
 }
@@ -738,9 +741,9 @@ export async function createLeaveRequest(auth: AuthCtx, input: LeaveRequestInput
   });
 
   if (status === "SUBMITTED") {
-    await notifyHrManagers({ title: "Leave request submitted", body: `${created.employee.firstName} ${created.employee.lastName} requested ${days} day(s) of ${leaveType.name}.`, type: "hr" });
+    await notifyHrManagers("leave_submitted", { title: "Leave request submitted", body: `${created.employee.firstName} ${created.employee.lastName} requested ${days} day(s) of ${leaveType.name}.`, type: "hr" });
     if (created.employee.manager?.userId) {
-      await inApp([created.employee.manager.userId], { title: "Leave request awaiting your approval", body: `${created.employee.firstName} ${created.employee.lastName} requested ${days} day(s) of ${leaveType.name}.`, type: "hr" });
+      await notifyHrUsers([created.employee.manager.userId], "leave_submitted", { title: "Leave request awaiting your approval", body: `${created.employee.firstName} ${created.employee.lastName} requested ${days} day(s) of ${leaveType.name}.`, type: "hr" });
     }
   }
   return toLeaveRequestDto(created);
@@ -758,9 +761,9 @@ export async function submitLeaveRequest(auth: AuthCtx, id: string) {
   if (!isOwner && !(await hasHrAccess(auth, "manage"))) throw new HttpError(403, "Forbidden");
   if (r.status !== "DRAFT") throw new HttpError(409, "InvalidTransition", { detail: `Cannot submit a request in ${r.status} status.` });
   const updated = await prisma.hrLeaveRequest.update({ where: { id }, data: { status: "SUBMITTED", updatedById: auth.userId }, include: leaveRequestInclude });
-  await notifyHrManagers({ title: "Leave request submitted", body: `${updated.employee.firstName} ${updated.employee.lastName} submitted a leave request.`, type: "hr" });
+  await notifyHrManagers("leave_submitted", { title: "Leave request submitted", body: `${updated.employee.firstName} ${updated.employee.lastName} submitted a leave request.`, type: "hr" });
   if (updated.employee.manager?.userId) {
-    await inApp([updated.employee.manager.userId], { title: "Leave request awaiting your approval", body: `${updated.employee.firstName} ${updated.employee.lastName} submitted a leave request.`, type: "hr" });
+    await notifyHrUsers([updated.employee.manager.userId], "leave_submitted", { title: "Leave request awaiting your approval", body: `${updated.employee.firstName} ${updated.employee.lastName} submitted a leave request.`, type: "hr" });
   }
   return toLeaveRequestDto(updated);
 }
@@ -781,8 +784,10 @@ export async function managerApproveLeave(auth: AuthCtx, id: string, input: Leav
     data: { status: "MANAGER_APPROVED", managerId: auth.userId, managerNote: input.note ?? null, managerAt: new Date(), updatedById: auth.userId },
     include: leaveRequestInclude,
   });
-  await notifyHrManagers({ title: "Leave approved by manager", body: `${updated.employee.firstName} ${updated.employee.lastName}'s leave was manager-approved; HR approval pending.`, type: "hr" });
-  if (updated.employee.userId) await inApp([updated.employee.userId], { title: "Leave approved by manager", body: "Your leave request was approved by your manager and is now awaiting HR approval.", type: "hr" });
+  await notifyHrManagers("leave_approved", { title: "Leave approved by manager", body: `${updated.employee.firstName} ${updated.employee.lastName}'s leave was manager-approved; HR approval pending.`, type: "hr" });
+  if (updated.employee.userId) {
+    await notifyHrUsers([updated.employee.userId], "leave_approved", { title: "Leave approved by manager", body: "Your leave request was approved by your manager and is now awaiting HR approval.", type: "hr" });
+  }
   return toLeaveRequestDto(updated);
 }
 
@@ -805,7 +810,9 @@ export async function hrApproveLeave(auth: AuthCtx, id: string, input: LeaveDeci
       include: leaveRequestInclude,
     });
   });
-  if (updated.employee.userId) await inApp([updated.employee.userId], { title: "Leave approved", body: `Your ${updated.leaveType.name} request (${dOnly(updated.fromDate)} → ${dOnly(updated.toDate)}) has been approved.`, type: "hr" });
+  if (updated.employee.userId) {
+    await notifyHrUsers([updated.employee.userId], "leave_approved", { title: "Leave approved", body: `Your ${updated.leaveType.name} request (${dOnly(updated.fromDate)} → ${dOnly(updated.toDate)}) has been approved.`, type: "hr" });
+  }
   return toLeaveRequestDto(updated);
 }
 
@@ -823,7 +830,9 @@ export async function rejectLeaveRequest(auth: AuthCtx, id: string, input: Leave
       : { status: "REJECTED", managerId: auth.userId, managerNote: input.note ?? null, managerAt: new Date(), updatedById: auth.userId },
     include: leaveRequestInclude,
   });
-  if (updated.employee.userId) await inApp([updated.employee.userId], { title: "Leave request rejected", body: input.note ?? "Your leave request was rejected.", type: "hr" });
+  if (updated.employee.userId) {
+    await notifyHrUsers([updated.employee.userId], "leave_rejected", { title: "Leave request rejected", body: input.note ?? "Your leave request was rejected.", type: "hr" });
+  }
   return toLeaveRequestDto(updated);
 }
 
@@ -1011,9 +1020,9 @@ export async function createAttendanceCorrection(auth: AuthCtx, input: Attendanc
     },
     include: correctionInclude,
   });
-  await notifyHrManagers({ title: "Attendance correction submitted", body: `${created.employee.firstName} ${created.employee.lastName} requested an attendance correction.`, type: "hr" });
+  await notifyHrManagers("attendance_correction", { title: "Attendance correction submitted", body: `${created.employee.firstName} ${created.employee.lastName} requested an attendance correction.`, type: "hr" });
   if (created.employee.manager?.userId) {
-    await inApp([created.employee.manager.userId], { title: "Attendance correction awaiting your approval", body: `${created.employee.firstName} ${created.employee.lastName} requested an attendance correction.`, type: "hr" });
+    await notifyHrUsers([created.employee.manager.userId], "attendance_correction", { title: "Attendance correction awaiting your approval", body: `${created.employee.firstName} ${created.employee.lastName} requested an attendance correction.`, type: "hr" });
   }
   return toCorrectionDto(created);
 }
@@ -1058,7 +1067,9 @@ export async function hrApproveCorrection(auth: AuthCtx, id: string, note?: stri
       include: correctionInclude,
     });
   });
-  if (updated.employee.userId) await inApp([updated.employee.userId], { title: "Attendance correction approved", body: "Your attendance correction request was approved.", type: "hr" });
+  if (updated.employee.userId) {
+    await notifyHrUsers([updated.employee.userId], "attendance_correction", { title: "Attendance correction approved", body: "Your attendance correction request was approved.", type: "hr" });
+  }
   return toCorrectionDto(updated);
 }
 
@@ -1076,7 +1087,9 @@ export async function rejectCorrection(auth: AuthCtx, id: string, note?: string 
       : { status: "REJECTED", managerId: auth.userId, managerNote: note ?? null, managerAt: new Date(), updatedById: auth.userId },
     include: correctionInclude,
   });
-  if (updated.employee.userId) await inApp([updated.employee.userId], { title: "Attendance correction rejected", body: note ?? "Your attendance correction request was rejected.", type: "hr" });
+  if (updated.employee.userId) {
+    await notifyHrUsers([updated.employee.userId], "attendance_correction", { title: "Attendance correction rejected", body: note ?? "Your attendance correction request was rejected.", type: "hr" });
+  }
   return toCorrectionDto(updated);
 }
 
