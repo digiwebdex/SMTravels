@@ -1,14 +1,7 @@
 [Unit]
-# ============================================================================
-#  SMTravels API — bare Node (Express/Prisma), loopback only. TEMPLATE.
-#  Do NOT install/enable/start until the backend has actually been deployed,
-#  otherwise Restart= would crash-loop against a missing entrypoint and fill disk.
-#  Install steps: see DEPLOYMENT.md.
-# ============================================================================
 Description=SMTravels API (Express/Prisma) — bare Node, 127.0.0.1:4030
 After=network.target postgresql.service
 Wants=network.target
-# Bounded start attempts so a broken app can NOT crash-loop forever (unlike mailserver):
 StartLimitIntervalSec=60
 StartLimitBurst=3
 
@@ -20,26 +13,18 @@ WorkingDirectory=/var/www/SMTravels/backend
 EnvironmentFile=/var/www/SMTravels/.env.production
 # >>> ADJUST entrypoint to your build output (dist/main.js | dist/server.js | dist/index.js) <<<
 ExecStart=/usr/bin/node dist/main.js
-
 Restart=on-failure
 RestartSec=5
-
-# --- memory cap (shared box; must not OOM a neighbour's DB) ---
 MemoryMax=512M
 MemoryHigh=448M
 OOMPolicy=stop
-
-# --- logging to journald ---
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=smtravels-api
-
-# --- security hardening ---
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-# app may only write these two paths:
 ReadWritePaths=/var/www/SMTravels/uploads /var/www/SMTravels/backups
 ProtectKernelTunables=true
 ProtectKernelModules=true
@@ -51,7 +36,6 @@ RestrictSUIDSGID=true
 RemoveIPC=true
 CapabilityBoundingSet=
 AmbientCapabilities=
-# NOTE: Node's JIT needs writable+executable memory, so MemoryDenyWriteExecute is intentionally NOT set.
 
 [Install]
 WantedBy=multi-user.target

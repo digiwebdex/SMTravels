@@ -8,9 +8,8 @@ import {
   ChevronRight, Bell, Search, ChevronDown, Globe, LogOut, UserCircle,
   HelpCircle, Building2, X, Menu, Briefcase, Star, TrendingUp,
   AlertTriangle, RefreshCw, FolderOpen, MessageSquare, LineChart,
-  Moon, Plane, Stamp, ClipboardList,
-  Handshake, Truck, UsersRound, Hotel, Bus, Tag, Megaphone, Smartphone,
-  MessageCircle, ScanLine, Plug, Sparkles, BadgeDollarSign,
+  Moon, Plane, Stamp,
+  Handshake, BadgeDollarSign,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
@@ -53,28 +52,18 @@ const NAV_GROUPS = [
     { icon: Layers,       labelKey: "services",   path: "/erp/services", module: "packages" },
   ] },
   { key: "operations", items: [
-    { icon: ClipboardList, labelKey: "hajjOps",    path: "/erp/hajj-ops",  module: "ops" },
     { icon: FolderOpen,    labelKey: "documents",  path: "/erp/documents", module: "documents" },
-    { icon: ScanLine,      labelKey: "ocr",        path: "/erp/ocr",       module: "documents", soon: true },
     { icon: Settings2,     labelKey: "operations", path: "/erp/ops",       module: "ops" },
   ] },
   { key: "partners", items: [
     { icon: Handshake,   labelKey: "partners",  path: "/erp/partners",  module: "partners" },
-    { icon: Truck,       labelKey: "suppliers", path: "/erp/suppliers", module: "suppliers" },
-    { icon: UsersRound,  labelKey: "opsTeam",   path: "/erp/ops-team",  module: "operations_team" },
-    { icon: Hotel,       labelKey: "hotels",    path: "/erp/hotels",    module: "ops", soon: true },
-    { icon: Bus,         labelKey: "transport", path: "/erp/transport", module: "ops", soon: true },
   ] },
   { key: "finance", items: [
     { icon: Wallet,  labelKey: "accounts", path: "/erp/accounts", module: "accounts" },
     { icon: Receipt, labelKey: "invoices", path: "/erp/invoices", module: "invoices" },
-    { icon: Tag,     labelKey: "sales",    path: "/erp/sales",    module: "sales" },
   ] },
   { key: "communication", items: [
     { icon: MessageSquare, labelKey: "communications", path: "/erp/communications", module: "crm" },
-    { icon: Megaphone,     labelKey: "marketing",      path: "/erp/marketing",      module: "crm", soon: true },
-    { icon: Smartphone,    labelKey: "sms",            path: "/erp/sms",            module: "communication" },
-    { icon: MessageCircle, labelKey: "whatsapp",       path: "/erp/whatsapp",       module: "crm", soon: true },
   ] },
   { key: "reports", items: [
     { icon: BarChart3, labelKey: "reports",   path: "/erp/reports",    module: "reports" },
@@ -82,9 +71,7 @@ const NAV_GROUPS = [
   ] },
   { key: "admin", items: [
     { icon: FileEdit,         labelKey: "cms",          path: "/erp/cms",          module: "cms" },
-    { icon: BadgeDollarSign,  labelKey: "hr",           path: "/erp/hr",           module: "settings", soon: true },
-    { icon: Plug,             labelKey: "integrations", path: "/erp/integrations", module: "settings", soon: true },
-    { icon: Sparkles,         labelKey: "ai",           path: "/erp/ai",           module: "settings", soon: true },
+    { icon: BadgeDollarSign,  labelKey: "hr",           path: "/erp/hr",           module: "hr" },
     { icon: Settings,         labelKey: "settings",     path: "/erp/settings",     module: "settings" },
   ] },
 ];

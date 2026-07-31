@@ -28,6 +28,7 @@ export interface PortalProfile {
 export interface PortalBooking {
   id: string; bookingNo: string | null; serviceType: string; status: string;
   amount: number; paidAmount: number; dueAmount: number; currency: string;
+  travelersCount: number;
   departureDate: string | null; returnDate: string | null; createdAt: string;
 }
 export interface PortalTimelineStep { label: string; date: string | null; done: boolean }
@@ -53,6 +54,14 @@ export interface PortalPayment {
   amount: number; currency: string; method: string; paidAt: string; status: string; reversed: boolean;
 }
 
+export interface PortalBankAccount {
+  id: string; name: string; bankName: string | null; accountNumber: string | null;
+  iban: string | null; branchName: string | null; currency: string;
+}
+
+export { paymentProofSubmitSchema, type PaymentProofSubmitInput } from "./finance.contract";
+export { integrationTestSchema, type IntegrationTestInput, type IntegrationsStatusDto } from "./integrations.contract";
+
 export interface PortalInstallment { number: number; label: string | null; amountDue: number; dueDate: string; paidDate: string | null; paidAmount: number; status: string }
 export interface PortalInstallmentPlan {
   id: string; bookingNo: string | null; total: number; downAmount: number; paid: number; remaining: number; status: string;
@@ -60,6 +69,26 @@ export interface PortalInstallmentPlan {
 }
 
 export interface PortalDocument { id: string; name: string; type: string; status: string; required: boolean; hasFile: boolean; expiryAt: string | null; createdAt: string }
+
+/** Visa bookings for the customer portal Visa Status view. */
+export interface PortalVisa {
+  id: string; bookingNo: string | null; status: string; stageStatus: string | null;
+  destinationCountry: string | null; visaType: string | null; visaNumber: string | null;
+  departureDate: string | null; createdAt: string;
+}
+
+/** Aggregated downloadable items (ticket / visa / voucher / invoice). */
+export interface PortalDownloadItem {
+  id: string;
+  kind: "document" | "invoice" | "voucher";
+  category: "ticket" | "visa" | "voucher" | "invoice";
+  name: string;
+  type: string;
+  status: string;
+  hasFile: boolean;
+  bookingId: string | null;
+  createdAt: string;
+}
 
 export interface PortalTicket { id: string; ticketNo: string; subject: string; status: string; category: string | null; messageCount: number; lastMessage: string | null; createdAt: string }
 export interface PortalTicketMessage { id: string; fromLabel: string | null; mine: boolean; body: string; createdAt: string }
@@ -98,11 +127,20 @@ export interface AgentCommissionRow { id: string; period: string | null; grossAm
 export interface AgentWalletTxn { id: string; type: string; description: string | null; amount: number; reference: string | null; reversed: boolean; postedAt: string }
 export interface AgentWalletView { balance: number; currency: string; transactions: AgentWalletTxn[] }   // READ-ONLY ledger
 export interface AgentTeamMember { id: string; agentCode: string; name: string; tier: string; status: string; bookings: number; commission: number }
+export interface AgentCustomer {
+  id: string; name: string; phone: string; bookingsCount: number;
+  totalValue: number; lastBookingAt: string | null; status: string;
+}
 export interface AgentDashboard {
   agentName: string; tier: string; walletBalance: number;
   counts: { leads: number; bookings: number; customers: number; teamSize: number };
   commissionEarned: number; commissionPending: number;
   recentLeads: AgentLead[];
+}
+export interface AgentDocument { id: string; name: string; type: string; status: string; hasFile: boolean; bookingNo: string | null; createdAt: string }
+export interface AgentPayment {
+  id: string; receiptNo: string | null; invoiceNo: string | null; customerName: string | null;
+  amount: number; currency: string; method: string; paidAt: string; status: string; reversed: boolean;
 }
 
 // ════════════════════════════════════════════════════════════════════════════

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middleware/auth";
-import { loginRateLimiter, forgotPasswordRateLimiter, otpRateLimiter } from "../middleware/rateLimit";
+import { loginRateLimiter, forgotPasswordRateLimiter, otpRateLimiter, refreshRateLimiter } from "../middleware/rateLimit";
 import {
   loginHandler,
   refreshHandler,
@@ -15,7 +15,7 @@ import {
 export const authRouter = Router();
 
 authRouter.post("/auth/login", loginRateLimiter, asyncHandler(loginHandler));
-authRouter.post("/auth/refresh", asyncHandler(refreshHandler));
+authRouter.post("/auth/refresh", refreshRateLimiter, asyncHandler(refreshHandler));
 authRouter.post("/auth/logout", asyncHandler(logoutHandler));
 authRouter.get("/auth/me", requireAuth, asyncHandler(meHandler));
 

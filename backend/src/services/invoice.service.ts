@@ -31,7 +31,12 @@ function computeTotals(items: InvoiceCreateInput["items"], discountAmount = 0, t
   return { subtotal, discountAmount: round4(discountAmount), taxAmount, total, baseAmount: m.baseAmount, exchangeRate: m.exchangeRate };
 }
 
-type InvRow = Prisma.InvoiceGetPayload<{ include: { branch: true; customer: true } }>;
+type InvRow = Prisma.InvoiceGetPayload<{
+  include: {
+    branch: { select: { name: true } };
+    customer: { select: { name: true; phone: true; email: true } };
+  };
+}>;
 function toListItem(inv: InvRow): InvoiceListItem {
   const total = num(inv.total), paid = num(inv.paidAmount);
   return {
@@ -57,7 +62,16 @@ export async function listInvoices(auth: AuthCtx, q: InvoiceListQuery): Promise<
   const orderBy: Prisma.InvoiceOrderByWithRelationInput = q.sort === "amount" ? { total: q.dir } : q.sort === "due" ? { dueDate: q.dir } : { createdAt: q.dir };
 
   const [rows, total, agg, overdue] = await Promise.all([
-    prisma.invoice.findMany({ where, include: { branch: true, customer: true }, orderBy, skip: (q.page - 1) * q.pageSize, take: q.pageSize }),
+    prisma.invoice.findMany({
+      where,
+      include: {
+        branch: { select: { name: true } },
+        customer: { select: { name: true, phone: true, email: true } },
+      },
+      orderBy,
+      skip: (q.page - 1) * q.pageSize,
+      take: q.pageSize,
+    }),
     prisma.invoice.count({ where }),
     prisma.invoice.aggregate({ where, _sum: { total: true, paidAmount: true } }),
     prisma.invoice.count({ where: { ...where, status: "OVERDUE" } }),

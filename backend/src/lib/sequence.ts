@@ -12,7 +12,7 @@ import type { Prisma } from "@prisma/client";
  */
 export type SequenceScope =
   | "BOOKING" | "INVOICE" | "RECEIPT" | "JOURNAL" | "PACKAGE"
-  | "PAYMENT" | "REFUND" | "EXPENSE" | "INCOME" | "BATCH" | "SUPPLIER" | "OPS_MEMBER" | "QUOTE";
+  | "PAYMENT" | "REFUND" | "EXPENSE" | "INCOME" | "EMPLOYEE";
 
 /** Format a document number, e.g. "INV-DHK-2026-0001". */
 export function formatDocNo(prefix: string, branchCode: string, year: number, seq: number): string {

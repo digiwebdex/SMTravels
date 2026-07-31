@@ -2,10 +2,12 @@ import type { Request, Response } from "express";
 import {
   invoiceCreateSchema, invoiceUpdateSchema, invoiceListQuerySchema,
   paymentRecordSchema, paymentListQuerySchema, refundCreateSchema, refundStatusUpdateSchema,
-  installmentPlanCreateSchema, ledgerListQuerySchema,
+  installmentPlanCreateSchema, ledgerListQuerySchema, paymentVerifySchema,
 } from "../contracts/finance.contract";
 import * as invoices from "../services/invoice.service";
 import * as payments from "../services/payment.service";
+import * as paymentProof from "../services/paymentProof.service";
+import { clientIp } from "../lib/audit";
 
 // invoices
 export async function listInvoicesHandler(req: Request, res: Response) { res.json(await invoices.listInvoices(req.auth!, invoiceListQuerySchema.parse(req.query))); }
@@ -29,3 +31,8 @@ export async function updateRefundHandler(req: Request, res: Response) { res.jso
 // installment plans
 export async function listPlansHandler(req: Request, res: Response) { res.json(await payments.listInstallmentPlans(req.auth!, ledgerListQuerySchema.parse(req.query))); }
 export async function createPlanHandler(req: Request, res: Response) { res.status(201).json(await payments.createInstallmentPlan(req.auth!, installmentPlanCreateSchema.parse(req.body))); }
+
+export async function listPendingVerifyHandler(req: Request, res: Response) { res.json(await paymentProof.listPendingVerify(req.auth!)); }
+export async function verifyPaymentHandler(req: Request, res: Response) {
+  res.json(await paymentProof.verifyPayment(req.auth!, req.params.id, paymentVerifySchema.parse(req.body), clientIp(req)));
+}

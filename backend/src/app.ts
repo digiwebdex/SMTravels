@@ -34,7 +34,8 @@ export function createApp(): Express {
       origin(origin, cb) {
         // Non-browser callers (curl, server-to-server) send no Origin — allow them.
         if (!origin || allowedOrigins.has(origin)) return cb(null, true);
-        return cb(new Error(`Origin not allowed by CORS: ${origin}`));
+        // Reject without throwing — cors package maps Error to 500.
+        return cb(null, false);
       },
       credentials: true,
     }),
@@ -52,6 +53,14 @@ export function createApp(): Express {
     pinoHttp({
       logger,
       genReqId: (req) => (req as unknown as { id: string }).id,
+      redact: {
+        paths: [
+          "req.headers.authorization",
+          "req.headers.cookie",
+          "res.headers[\"set-cookie\"]",
+        ],
+        remove: true,
+      },
     }),
   );
 

@@ -3,7 +3,6 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { SkeletonPage } from "./lib/ds";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { ERP_ROLES, type Role } from "./auth/roles";
-import { ComingSoon } from "./erp/ComingSoon"; // tiny placeholder; direct import keeps its props typed
 
 // ── Eager: public website (the landing path — must load fast) ────────────────
 import { Layout } from "./components/Layout";
@@ -41,13 +40,10 @@ const CommunicationsModule = lazyNamed(() => import("./erp/CommunicationsModule"
 const ReportsBIModule      = lazyNamed(() => import("./erp/ReportsBIModule"), "ReportsBIModule");
 const CmsModule            = lazyNamed(() => import("./erp/CmsModule"), "CmsModule");
 const OperationsModule     = lazyNamed(() => import("./erp/OperationsModule"), "OperationsModule");
-const HajjOpsModule        = lazyNamed(() => import("./erp/HajjOpsModule"), "HajjOpsModule");
 const PartnersModule       = lazyNamed(() => import("./erp/PartnersModule"), "PartnersModule");
-const SuppliersModule      = lazyNamed(() => import("./erp/SuppliersModule"), "SuppliersModule");
-const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"), "OperationsTeamModule");
-const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
-const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
+const HrModule             = lazyNamed(() => import("./erp/HrModule"), "HrModule");
+const EmployeePortal       = lazyNamed(() => import("./portal/EmployeePortal"), "EmployeePortal");
 
 // Portals
 const CustomerPortal   = lazyNamed(() => import("./portal/CustomerPortal"), "CustomerPortal");
@@ -98,22 +94,9 @@ export const router = createBrowserRouter([
       { path: "reports-bi", element: withSuspense(<ReportsBIModule />) },
       { path: "cms", element: withSuspense(<CmsModule />) },
       { path: "ops", element: withSuspense(<OperationsModule />) },
-      { path: "hajj-ops", element: withSuspense(<HajjOpsModule />) },
       { path: "settings", element: withSuspense(<SettingsModule />) },
       { path: "partners", element: withSuspense(<PartnersModule />) },
-      // Step 3 placeholders — nav home + RBAC module, no functionality yet.
-      { path: "suppliers", element: withSuspense(<SuppliersModule />) },
-      { path: "ops-team", element: withSuspense(<OperationsTeamModule />) },
-      { path: "hotels", element: <ComingSoon k="hotels" group="partners" /> },
-      { path: "transport", element: <ComingSoon k="transport" group="partners" /> },
-      { path: "sales", element: withSuspense(<SalesModule />) },
-      { path: "marketing", element: <ComingSoon k="marketing" group="communication" /> },
-      { path: "sms", element: withSuspense(<SmsCenterModule />) },
-      { path: "whatsapp", element: <ComingSoon k="whatsapp" group="communication" /> },
-      { path: "ocr", element: <ComingSoon k="ocr" group="operations" /> },
-      { path: "hr", element: <ComingSoon k="hr" group="admin" /> },
-      { path: "integrations", element: <ComingSoon k="integrations" group="admin" /> },
-      { path: "ai", element: <ComingSoon k="ai" group="admin" /> },
+      { path: "hr", element: withSuspense(<HrModule />) },
     ],
   },
   { path: "/sitemap", element: withSuspense(<SitemapWorkflow />) },
@@ -123,6 +106,7 @@ export const router = createBrowserRouter([
   { path: "/supplier", element: guard(["SUPPLIER"], <SupplierPortal />) },
   { path: "/staff", element: guard(["STAFF"], <StaffPortal />) },
   { path: "/accountant", element: guard(["ACCOUNTANT"], <AccountantPortal />) },
+  { path: "/employee", element: guard(ERP_ROLES, <EmployeePortal />) },
   {
     path: "/",
     Component: Layout,

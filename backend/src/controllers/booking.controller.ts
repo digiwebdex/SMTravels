@@ -4,7 +4,6 @@ import {
   bookingUpdateSchema,
   bookingDraftSchema,
   bookingListQuerySchema,
-  visaWindowSchema,
 } from "../contracts/booking.contract";
 import * as bookings from "../services/booking.service";
 
@@ -34,11 +33,6 @@ export async function saveDraftHandler(req: Request, res: Response): Promise<voi
 
 export async function confirmBookingHandler(req: Request, res: Response): Promise<void> {
   res.json(await bookings.confirmBooking(req.auth!, req.params.id));
-}
-
-export async function setVisaWindowHandler(req: Request, res: Response): Promise<void> {
-  const input = visaWindowSchema.parse(req.body);
-  res.json(await bookings.setVisaWindow(req.auth!, req.params.id, input));
 }
 
 export async function deleteBookingHandler(req: Request, res: Response): Promise<void> {

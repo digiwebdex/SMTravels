@@ -1,5 +1,5 @@
 /**
- * Outbound messaging (email + SMS) behind tiny interfaces.
+ * Outbound messaging (email + SMS + WhatsApp) behind tiny interfaces.
  *
  * Safety contract (the reason this file exists):
  *   - Missing credentials NEVER crash the app or an endpoint. Each sender
@@ -11,9 +11,9 @@
  *   - SMS goes through BulkSMSBD (plain HTTP gateway, manual-ops scope). No
  *     other third-party API is wired — see project scope.
  */
-import nodemailer, { type Transporter } from "nodemailer";
 import { env } from "./env";
 import { logger } from "./logger";
+import { isSmtpConfigured, sendEmail } from "../services/email.service";
 
 // ── email ────────────────────────────────────────────────────────────────────
 export interface EmailSender {
@@ -21,18 +21,8 @@ export interface EmailSender {
 }
 
 class SmtpEmailSender implements EmailSender {
-  private transporter: Transporter;
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE,
-      auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS } : undefined,
-    });
-  }
   async send(to: string, subject: string, text: string): Promise<void> {
-    await this.transporter.sendMail({ from: env.SMTP_FROM, to, subject, text });
-    logger.info({ to, subject }, "email sent");
+    await sendEmail({ to, subject, text });
   }
 }
 
@@ -48,10 +38,10 @@ export interface SmsSender {
   send(phone: string, message: string): Promise<void>;
 }
 
-/** BulkSMSBD — simple HTTP GET/POST gateway (http://bulksmsbd.net/api/smsapi). */
+/** BulkSMSBD — HTTPS gateway (api key must not travel over cleartext HTTP). */
 class BulkSmsBdSender implements SmsSender {
   async send(phone: string, message: string): Promise<void> {
-    const res = await fetch("http://bulksmsbd.net/api/smsapi", {
+    const res = await fetch("https://bulksmsbd.net/api/smsapi", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -77,37 +67,61 @@ class LogSmsSender implements SmsSender {
   }
 }
 
-// ── whatsapp ───────────────────────────────────────────────────────────────────
+// ── whatsapp ─────────────────────────────────────────────────────────────────
 export interface WhatsAppSender {
   send(phone: string, message: string): Promise<void>;
 }
 
-/** WhatsApp Cloud API (Meta Graph). Env-gated; falls back to log-only. */
-class CloudWhatsAppSender implements WhatsAppSender {
+/** Wasender — POST {to,text} to /api/send-message with Bearer token. */
+class WasenderWhatsAppSender implements WhatsAppSender {
   async send(phone: string, message: string): Promise<void> {
-    const res = await fetch(`https://graph.facebook.com/v20.0/${env.WHATSAPP_PHONE_ID}/messages`, {
+    const base = env.WASENDER_API_URL!.replace(/\/$/, "");
+    const res = await fetch(`${base}/api/send-message`, {
       method: "POST",
-      headers: { authorization: `Bearer ${env.WHATSAPP_TOKEN}`, "content-type": "application/json" },
-      body: JSON.stringify({ messaging_product: "whatsapp", to: phone, type: "text", text: { body: message } }),
+      headers: {
+        Authorization: `Bearer ${env.WASENDER_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: phone,
+        text: message,
+        ...(env.WASENDER_PHONE_NUMBER_ID ? { phone_number_id: env.WASENDER_PHONE_NUMBER_ID } : {}),
+      }),
     });
-    if (!res.ok) throw new Error(`WhatsApp API rejected the message: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
+    const body = await res.text();
+    if (!res.ok) {
+      throw new Error(`Wasender rejected the message: HTTP ${res.status} ${body.slice(0, 200)}`);
+    }
+    let parsed: { success?: boolean };
+    try {
+      parsed = JSON.parse(body) as { success?: boolean };
+    } catch {
+      parsed = {};
+    }
+    if (parsed.success === false) {
+      throw new Error(`Wasender rejected the message: ${body.slice(0, 200)}`);
+    }
     logger.info({ phone }, "whatsapp sent");
   }
 }
 
-/** No WhatsApp credentials — log the intent (never the body). */
+/** No Wasender credentials — log the intent (never the body). */
 class LogWhatsAppSender implements WhatsAppSender {
   async send(phone: string): Promise<void> {
-    logger.info({ phone }, "whatsapp NOT sent (WhatsApp not configured) — logged only");
+    logger.info({ phone }, "whatsapp NOT sent (Wasender not configured) — logged only");
   }
 }
 
 // ── singletons, chosen once at boot ──────────────────────────────────────────
-export const emailSender: EmailSender = env.SMTP_HOST ? new SmtpEmailSender() : new LogEmailSender();
-export const smsConfigured = !!(env.BULKSMSBD_API_KEY && env.BULKSMSBD_SENDER_ID);
-export const smsSender: SmsSender = smsConfigured ? new BulkSmsBdSender() : new LogSmsSender();
+export const emailSender: EmailSender = isSmtpConfigured()
+  ? new SmtpEmailSender()
+  : new LogEmailSender();
+export const smsSender: SmsSender =
+  env.BULKSMSBD_API_KEY && env.BULKSMSBD_SENDER_ID ? new BulkSmsBdSender() : new LogSmsSender();
 export const whatsappSender: WhatsAppSender =
-  env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_ID ? new CloudWhatsAppSender() : new LogWhatsAppSender();
+  env.WASENDER_API_URL && env.WASENDER_API_TOKEN && env.WASENDER_PHONE_NUMBER_ID
+    ? new WasenderWhatsAppSender()
+    : new LogWhatsAppSender();
 
 /** Fire-and-forget wrapper — messaging failures never reach the request path. */
 export function notifySafe(label: string, p: Promise<unknown>): void {
