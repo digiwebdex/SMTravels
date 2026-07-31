@@ -222,8 +222,8 @@ function LeaveView() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {balances.map((b) => (
-          <div key={b.leaveTypeId} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-md)] p-3.5">
-            <p className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-wide">{b.leaveTypeName}</p>
+          <div key={`${b.leaveTypeId}-${b.year ?? "y"}`} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-md)] p-3.5">
+            <p className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-wide">{b.leaveTypeName}{b.year != null ? ` · ${b.year}` : ""}</p>
             <p className="text-[18px] font-black text-[var(--color-text)]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{b.available}</p>
             <p className="text-[10px] text-[var(--color-text-faint)]">available · {b.used} used</p>
           </div>

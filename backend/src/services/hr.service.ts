@@ -354,12 +354,18 @@ export async function listEmployees(auth: AuthCtx, q: EmployeeListQuery) {
 export async function getEmployee(auth: AuthCtx, id: string) {
   const e = await prisma.employee.findFirst({ where: { id, ...branchWhere(auth), deletedAt: null }, include: employeeInclude });
   if (!e) throw new HttpError(404, "NotFound");
+  // Current + next calendar year so portal reflects future-dated leave approvals.
   const year = new Date().getUTCFullYear();
-  await ensureBalances(id, year);
+  const years = [year, year + 1];
+  await Promise.all(years.map((y) => ensureBalances(id, y)));
   const [documents, timeline, balances] = await Promise.all([
     prisma.hrEmployeeDocument.findMany({ where: { employeeId: id, deletedAt: null }, orderBy: { createdAt: "desc" } }),
     prisma.employeeTimelineEvent.findMany({ where: { employeeId: id }, orderBy: { occurredAt: "desc" }, take: 30 }),
-    prisma.hrLeaveBalance.findMany({ where: { employeeId: id, year }, include: { leaveType: { select: { name: true, code: true } } } }),
+    prisma.hrLeaveBalance.findMany({
+      where: { employeeId: id, year: { in: years } },
+      include: { leaveType: { select: { name: true, code: true } } },
+      orderBy: [{ year: "asc" }, { leaveType: { name: "asc" } }],
+    }),
   ]);
   return {
     ...toEmployeeListItem(e),
@@ -376,7 +382,7 @@ export async function getEmployee(auth: AuthCtx, id: string) {
     })),
     timeline: timeline.map((t) => ({ id: t.id, eventType: t.eventType, title: t.title, detail: t.detail, occurredAt: dIso(t.occurredAt)! })),
     leaveBalances: balances.map((b) => ({
-      leaveTypeId: b.leaveTypeId, leaveTypeName: b.leaveType.name, leaveTypeCode: b.leaveType.code,
+      leaveTypeId: b.leaveTypeId, leaveTypeName: b.leaveType.name, leaveTypeCode: b.leaveType.code, year: b.year,
       opening: num(b.opening), accrued: num(b.accrued), used: num(b.used), carried: num(b.carried),
       available: num(b.opening) + num(b.accrued) + num(b.carried) - num(b.used),
     })),

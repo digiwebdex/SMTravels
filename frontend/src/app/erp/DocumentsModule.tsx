@@ -307,7 +307,7 @@ function UploadView() {
               <input type="date" value={expiryAt} onChange={e => setExpiryAt(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
-            <p className="text-xs text-slate-400">OCR fields are manual entry — review documents after upload.</p>
+            <p className="text-xs text-slate-400">Upload a passport (PDF/JPG/PNG), run OCR, correct fields, then Apply to customer/booking.</p>
             <button onClick={() => void startUpload()} disabled={!customerId || pending === 0}
               className={cn("w-full py-2 text-sm rounded-lg mt-1",
                 customerId && pending > 0 ? "bg-[#1B75BC] text-white hover:bg-[#14588F] cursor-pointer" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>

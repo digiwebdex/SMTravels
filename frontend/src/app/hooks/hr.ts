@@ -85,7 +85,7 @@ export interface EmployeeDocumentDto {
   sizeBytes: number | null; version: number; expiryDate: string | null; notes: string | null; createdAt: string;
 }
 export interface EmployeeLeaveBalanceMini {
-  leaveTypeId: string; leaveTypeName: string; leaveTypeCode: string;
+  leaveTypeId: string; leaveTypeName: string; leaveTypeCode: string; year?: number;
   opening: number; accrued: number; used: number; carried: number; available: number;
 }
 export interface EmployeeDetail extends EmployeeListItem {
