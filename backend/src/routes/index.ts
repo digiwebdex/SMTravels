@@ -33,11 +33,15 @@ import { cmsRouter } from "./cms.route";
 import { communicationsRouter } from "./communications.route";
 import { opsRouter } from "./ops.route";
 import { receiptsRouter } from "./receipts.route";
+import { systemRouter, ocrRouter } from "./system.route";
+import { hrRouter } from "./hr.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
 
 apiRouter.use(healthRouter);
+apiRouter.use(systemRouter);
+apiRouter.use(ocrRouter);
 apiRouter.use(authRouter);
 apiRouter.use(customerRouter);
 apiRouter.use(bookingRouter);
@@ -71,3 +75,4 @@ apiRouter.use(integrationsRouter);
 apiRouter.use(aiRouter);
 apiRouter.use(communicationsRouter);
 apiRouter.use(opsRouter);
+apiRouter.use(hrRouter);
