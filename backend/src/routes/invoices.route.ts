@@ -2,7 +2,7 @@ import { Router } from "express";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth, requirePermission } from "../middleware/auth";
 import {
-  listInvoicesHandler, getInvoiceHandler, createInvoiceHandler, updateInvoiceHandler,
+  listInvoicesHandler, getInvoiceHandler, createInvoiceHandler, createInvoiceFromBookingHandler, updateInvoiceHandler,
   issueInvoiceHandler, cancelInvoiceHandler, deleteInvoiceHandler,
   listPaymentsHandler, recordPaymentHandler, reversePaymentHandler,
   listRefundsHandler, createRefundHandler, updateRefundHandler,
@@ -19,6 +19,7 @@ const manage = requirePermission("invoices", "manage");
 invoicesRouter.get("/invoices", requireAuth, view, asyncHandler(listInvoicesHandler));
 invoicesRouter.get("/invoices/:id", requireAuth, view, asyncHandler(getInvoiceHandler));
 invoicesRouter.post("/invoices", requireAuth, manage, asyncHandler(createInvoiceHandler));
+invoicesRouter.post("/invoices/from-booking/:bookingId", requireAuth, manage, asyncHandler(createInvoiceFromBookingHandler));
 invoicesRouter.post("/invoices/:id/issue", requireAuth, manage, asyncHandler(issueInvoiceHandler));
 invoicesRouter.post("/invoices/:id/cancel", requireAuth, manage, asyncHandler(cancelInvoiceHandler));
 invoicesRouter.patch("/invoices/:id", requireAuth, manage, asyncHandler(updateInvoiceHandler));

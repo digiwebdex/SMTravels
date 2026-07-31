@@ -16,6 +16,7 @@ import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import {
   useAccounts, buildCoaTree, useBankAccounts, useIncome, useExpenses,
   useJournal, useCreateJournal, useReverseJournal,
+  usePayments, useInstallmentPlans, useInvoices,
 } from "../hooks/finance";
 import { Loader2 } from "lucide-react";
 
@@ -783,6 +784,13 @@ function TransferView() {
 
 // ─── Installments ─────────────────────────────────────────────────────────────
 function InstallmentsView() {
+  const { data, isLoading, isError, error, refetch } = useInstallmentPlans({ page: 1, pageSize: 50 });
+  const plans = data?.data ?? [];
+  const active = plans.filter((p) => p.status === "active").length;
+  const collected = plans.reduce((s, p) => s + p.installments.reduce((a, i) => a + i.paidAmount, 0), 0);
+  const overdueAmt = plans.reduce((s, p) => {
+    return s + p.installments.filter((i) => i.status === "OVERDUE").reduce((a, i) => a + Math.max(0, i.amountDue - i.paidAmount), 0);
+  }, 0);
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -790,55 +798,61 @@ function InstallmentsView() {
           <h2 className="text-xl font-bold text-slate-800">Installment Plans</h2>
           <p className="text-sm text-slate-500 mt-0.5">Track all active payment schedules</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={15} /> New Plan
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Active Plans" value="23" trend={5} icon={Calendar} color="bg-blue-500" />
-        <KpiCard label="Collected This Month" value={fmtCurrency(4180000)} trend={12} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Overdue" value={fmtCurrency(2400000)} trend={-3} icon={AlertTriangle} color="bg-red-500" />
+        <KpiCard label="Active Plans" value={String(active)} icon={Calendar} color="bg-blue-500" />
+        <KpiCard label="Collected" value={fmtCurrency(collected)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Overdue" value={fmtCurrency(overdueAmt)} icon={AlertTriangle} color="bg-red-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load plans."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={6} cols={8} /></div>
+        ) : (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Plan ID", "Customer", "Service", "Progress", "Total", "Paid", "Remaining", "Next Due", "Status", ""].map(h => (
+              {["Plan", "Customer", "Progress", "Total", "Paid", "Remaining", "Next Due", "Status"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {INSTALLMENT_PLANS.map(plan => {
-              const pct = Math.round((plan.paid / plan.total) * 100);
+            {plans.map(plan => {
+              const paid = plan.installments.reduce((s, i) => s + i.paidAmount, 0);
+              const paidN = plan.installments.filter((i) => i.status === "PAID").length;
+              const remaining = Math.max(0, plan.total - paid);
+              const pct = plan.total > 0 ? Math.round((paid / plan.total) * 100) : 0;
+              const next = plan.installments.find((i) => i.status !== "PAID");
               return (
                 <tr key={plan.id} className="border-b border-slate-50 hover:bg-slate-50">
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{plan.id}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-700">{plan.customer}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{plan.service}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{plan.id.slice(0, 8)}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-slate-700">{plan.customerName || "—"}</td>
                   <td className="px-4 py-3 w-40">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={cn("h-full rounded-full", plan.status === "completed" ? "bg-emerald-500" : plan.status === "overdue" ? "bg-red-400" : "bg-[#1B75BC]")}
+                        <div className={cn("h-full rounded-full", plan.status === "completed" ? "bg-emerald-500" : "bg-[#1B75BC]")}
                           style={{ width: `${pct}%` }} />
                       </div>
                       <span className="text-xs text-slate-500 font-mono">{pct}%</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{plan.paid_n}/{plan.installments} installments</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{paidN}/{plan.installments.length} installments</p>
                   </td>
-                  <td className="px-4 py-3 text-sm font-mono text-slate-700">{fmtCurrency(plan.total)}</td>
-                  <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(plan.paid)}</td>
-                  <td className="px-4 py-3 text-sm font-mono text-red-500">{plan.remaining > 0 ? fmtCurrency(plan.remaining) : "—"}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{plan.next_date}</td>
+                  <td className="px-4 py-3 text-sm font-mono text-slate-700">{fmtCurrency(plan.total, plan.currency as Currency)}</td>
+                  <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(paid, plan.currency as Currency)}</td>
+                  <td className="px-4 py-3 text-sm font-mono text-red-500">{remaining > 0 ? fmtCurrency(remaining, plan.currency as Currency) : "—"}</td>
+                  <td className="px-4 py-3 text-sm text-slate-500">{next?.dueDate || "—"}</td>
                   <td className="px-4 py-3"><StatusChip status={plan.status} /></td>
-                  <td className="px-4 py-3">
-                    <button className="text-xs text-[#1B75BC] hover:underline">Collect</button>
-                  </td>
                 </tr>
               );
             })}
+            {plans.length === 0 && (
+              <tr><td colSpan={8} className="py-12 text-center text-sm text-slate-400">No installment plans yet</td></tr>
+            )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );
@@ -900,6 +914,11 @@ function SupplierPaymentsView() {
 
 // ─── Customer Payments ────────────────────────────────────────────────────────
 function CustomerPaymentsView() {
+  const { data: payData, isLoading, isError, error, refetch } = usePayments({ page: 1, pageSize: 50 });
+  const { data: invData } = useInvoices({ page: 1, pageSize: 1 });
+  const rows = (payData?.data ?? []).filter((p) => p.direction === "IN" && !p.isReversed);
+  const stats = payData?.stats ?? { totalIn: 0, totalOut: 0, total: 0 };
+  const outstanding = invData?.stats?.totalDue ?? 0;
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -907,42 +926,44 @@ function CustomerPaymentsView() {
           <h2 className="text-xl font-bold text-slate-800">Customer Payments</h2>
           <p className="text-sm text-slate-500 mt-0.5">Receivables from customers and agencies</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={15} /> Collect Payment
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Received" value={fmtCurrency(1440000)} trend={14} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Outstanding" value={fmtCurrency(1283000)} trend={-5} icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Transactions" value={String(CUSTOMER_PAYMENTS.length)} icon={Receipt} color="bg-blue-500" />
+        <KpiCard label="Total Received" value={fmtCurrency(stats.totalIn)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Outstanding" value={fmtCurrency(outstanding)} icon={Clock} color="bg-amber-500" />
+        <KpiCard label="Transactions" value={String(stats.total)} icon={Receipt} color="bg-blue-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load payments."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={6} cols={7} /></div>
+        ) : (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Ref", "Customer", "Booking", "Total", "Received", "Method", "Date", "Status", ""].map(h => (
+              {["Ref", "Customer", "Invoice", "Received", "Method", "Date", "Status"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {CUSTOMER_PAYMENTS.map(cp => (
+            {rows.map(cp => (
               <tr key={cp.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.id}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{cp.customer}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.booking}</td>
-                <td className="px-4 py-3 text-sm font-mono text-slate-700">{fmtCurrency(cp.amount)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(cp.received)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{cp.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{cp.date}</td>
-                <td className="px-4 py-3"><StatusChip status={cp.status} /></td>
-                <td className="px-4 py-3">
-                  <button className="p-1 hover:bg-slate-100 rounded"><Eye size={13} className="text-slate-400" /></button>
-                </td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.paymentNo || cp.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{cp.customerName || "—"}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.invoiceNo || "—"}</td>
+                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(cp.amount, cp.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{cp.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{cp.paidAt.slice(0, 10)}</td>
+                <td className="px-4 py-3"><StatusChip status={cp.status.toLowerCase()} /></td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={7} className="py-12 text-center text-sm text-slate-400">No customer payments yet</td></tr>
+            )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

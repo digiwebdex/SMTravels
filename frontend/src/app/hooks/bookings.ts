@@ -108,7 +108,17 @@ export function mapDetail(x: BookingDetailResponse): Booking {
       nationality: t.nationality ?? "Bangladeshi", passportNo: t.passportNo ?? "", passportExpiry: t.passportExpiry ?? "",
       phone: t.phone ?? "", email: t.email ?? "", isPrimary: t.isPrimary, mahram: t.mahramRelation ?? undefined,
     })),
-    installments: [], // payment schedule belongs to the Finance module (later)
+    installments: (x.installments ?? []).map((i) => ({
+      id: String(i.number),
+      label: i.label || `Installment ${i.number}`,
+      amount: i.amount,
+      dueDate: i.dueDate,
+      paidDate: i.paidDate ?? undefined,
+      status: i.status === "PAID" ? "Paid" : i.status === "OVERDUE" ? "Overdue" : i.status === "DUE" ? "Due" : "Upcoming",
+    })),
+    invoiceId: x.invoices?.[0]?.id,
+    invoiceStatus: x.invoices?.[0]?.status,
+    invoiceDue: x.invoices?.[0]?.dueAmount,
     serviceDetails: buildServiceDetails(x.serviceType, x.detail),
     activityLog: x.activities.map((a) => ({
       time: a.createdAt.replace("T", " ").slice(0, 16), actor: a.actor ?? "System", action: a.action, note: a.note ?? undefined,

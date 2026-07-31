@@ -13,6 +13,10 @@ import { clientIp } from "../lib/audit";
 export async function listInvoicesHandler(req: Request, res: Response) { res.json(await invoices.listInvoices(req.auth!, invoiceListQuerySchema.parse(req.query))); }
 export async function getInvoiceHandler(req: Request, res: Response) { res.json(await invoices.getInvoice(req.auth!, req.params.id)); }
 export async function createInvoiceHandler(req: Request, res: Response) { res.status(201).json(await invoices.createInvoice(req.auth!, invoiceCreateSchema.parse(req.body))); }
+export async function createInvoiceFromBookingHandler(req: Request, res: Response) {
+  const issue = req.body?.issue !== false && req.query?.issue !== "false";
+  res.status(201).json(await invoices.createInvoiceFromBooking(req.auth!, req.params.bookingId, { issue }));
+}
 export async function updateInvoiceHandler(req: Request, res: Response) { res.json(await invoices.updateInvoice(req.auth!, req.params.id, invoiceUpdateSchema.parse(req.body))); }
 export async function issueInvoiceHandler(req: Request, res: Response) { res.json(await invoices.issueInvoice(req.auth!, req.params.id)); }
 export async function cancelInvoiceHandler(req: Request, res: Response) { res.json(await invoices.cancelInvoice(req.auth!, req.params.id)); }

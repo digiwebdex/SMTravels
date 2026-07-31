@@ -284,6 +284,19 @@ export async function getBooking(auth: AuthCtx, id: string): Promise<BookingDeta
     orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
   });
 
+  const [invoices, plans] = await Promise.all([
+    prisma.invoice.findMany({
+      where: { bookingId: id, deletedAt: null, status: { not: "CANCELLED" } },
+      select: { id: true, invoiceNo: true, status: true, total: true, paidAmount: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.installmentPlan.findFirst({
+      where: { bookingId: id, deletedAt: null, status: { in: ["active", "completed"] } },
+      include: { installments: { orderBy: { number: "asc" } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
   const base = toListItem(b as unknown as BookingWithRels);
   return {
     ...base,
@@ -303,6 +316,21 @@ export async function getBooking(auth: AuthCtx, id: string): Promise<BookingDeta
     documents: b.documents.map((d) => ({ id: d.id, type: d.type, name: d.name, status: d.status, required: d.required, expiryAt: dOnly(d.expiryAt) })),
     stageEvents: b.stageEvents.map((e) => ({ id: e.id, stage: e.stage, status: e.status, note: e.note, createdAt: dIso(e.createdAt)! })),
     activities: b.activities.map((a) => ({ id: a.id, action: a.action, note: a.note, actor: a.actor?.name ?? null, createdAt: dIso(a.createdAt)! })),
+    invoices: invoices.map((inv) => {
+      const total = num(inv.total) ?? 0;
+      const paid = num(inv.paidAmount) ?? 0;
+      return { id: inv.id, invoiceNo: inv.invoiceNo, status: inv.status, total, paidAmount: paid, dueAmount: Math.max(0, total - paid) };
+    }),
+    installments: (plans?.installments ?? []).map((i) => ({
+      id: i.id,
+      number: i.number,
+      label: i.label,
+      amount: num(i.amountDue) ?? 0,
+      paidAmount: num(i.paidAmount) ?? 0,
+      dueDate: dOnly(i.dueDate)!,
+      paidDate: dOnly(i.paidDate),
+      status: i.status,
+    })),
   };
 }
 

@@ -196,3 +196,51 @@ export async function deleteInvoice(auth: AuthCtx, id: string): Promise<void> {
   if (inv.status !== "DRAFT") throw new HttpError(409, "CannotDelete", { detail: "Only a DRAFT invoice can be deleted; issued invoices are cancelled via status." });
   await prisma.invoice.update({ where: { id }, data: { deletedAt: new Date() } });
 }
+
+/**
+ * Create (and optionally issue) an invoice from a confirmed booking.
+ * Reuses booking amount/customer/branch — no redesign of invoice lifecycle.
+ */
+export async function createInvoiceFromBooking(
+  auth: AuthCtx,
+  bookingId: string,
+  opts: { issue?: boolean } = {},
+): Promise<InvoiceDetail> {
+  const booking = await prisma.booking.findFirst({
+    where: { id: bookingId, ...branchWhere(auth), deletedAt: null },
+    include: { package: { select: { name: true } }, customer: { select: { name: true } } },
+  });
+  if (!booking) throw new HttpError(404, "BookingNotFound");
+  if (!booking.customerId) throw new HttpError(400, "BookingHasNoCustomer");
+  if (booking.status === "DRAFT" || booking.status === "CANCELLED") {
+    throw new HttpError(409, "BookingNotInvoiceable", { detail: `Cannot invoice a ${booking.status} booking.` });
+  }
+
+  const existing = await prisma.invoice.findFirst({
+    where: { bookingId, deletedAt: null, status: { not: "CANCELLED" } },
+    select: { id: true, status: true, invoiceNo: true },
+  });
+  if (existing) {
+    if (opts.issue !== false && existing.status === "DRAFT") return issueInvoice(auth, existing.id);
+    return getInvoice(auth, existing.id);
+  }
+
+  const desc =
+    booking.package?.name ||
+    `${booking.serviceType.replace(/_/g, " ")} booking${booking.bookingNo ? ` ${booking.bookingNo}` : ""}`;
+  const amount = num(booking.amount);
+  if (amount <= 0) throw new HttpError(400, "ZeroBookingAmount");
+
+  const draft = await createInvoice(auth, {
+    branchId: booking.branchId,
+    customerId: booking.customerId,
+    bookingId: booking.id,
+    currency: booking.currency as CurrencyCode,
+    exchangeRate: num(booking.exchangeRate),
+    items: [{ description: desc, qty: 1, unitPrice: amount, bookingId: booking.id }],
+    notes: `Auto-generated from booking ${booking.bookingNo ?? booking.id}`,
+  });
+
+  if (opts.issue === false) return draft;
+  return issueInvoice(auth, draft.id);
+}

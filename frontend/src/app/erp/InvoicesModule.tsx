@@ -14,6 +14,7 @@ import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
 import {
   useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
+  usePayments, useRefunds, useUpdateRefund, useInstallmentPlans,
 } from "../hooks/finance";
 import { useCustomers } from "../hooks/crm";
 import { Loader2 } from "lucide-react";
@@ -603,44 +604,57 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
 
 // ─── Receipts ─────────────────────────────────────────────────────────────────
 function ReceiptsView() {
+  const { data, isLoading, isError, error, refetch } = usePayments({ page: 1, pageSize: 50 });
+  const rows = (data?.data ?? []).filter((p) => p.receiptNo && !p.isReversed && p.direction === "IN");
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Receipts</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Issued payment receipts</p>
+          <p className="text-sm text-slate-500 mt-0.5">Issued payment receipts · {rows.length} shown</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> Issue Receipt
-        </button>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load receipts."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={6} cols={6} /></div>
+        ) : (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Receipt #", "Invoice", "Customer", "Amount", "Method", "Date", ""].map(h => (
+              {["Receipt #", "Payment #", "Invoice", "Customer", "Amount", "Method", "Date", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.filter(p => p.status === "confirmed").map((p, i) => (
+            {rows.map((p) => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">REC-{(9000 + i + 1).toString()}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoice}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{p.customer}</td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-700 font-semibold">{p.receiptNo}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.paymentNo || "—"}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoiceNo || "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{p.customerName || "—"}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount, p.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.paidAt.slice(0, 10)}</td>
                 <td className="px-4 py-3">
-                  <button className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline"
+                  >
                     <Printer size={12} /> Print
                   </button>
                 </td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={8} className="py-12 text-center text-sm text-slate-400">No receipts yet</td></tr>
+            )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );
@@ -963,120 +977,113 @@ function DueManagementView() {
 
 // ─── Payment History ──────────────────────────────────────────────────────────
 function PaymentHistoryView() {
+  const { data, isLoading, isError, error, refetch } = usePayments({ page: 1, pageSize: 50 });
+  const rows = data?.data ?? [];
+  const stats = data?.stats ?? { total: 0, totalIn: 0, totalOut: 0 };
+  const failed = rows.filter((p) => p.status === "FAILED").length;
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Payment History</h2>
-          <p className="text-sm text-slate-500 mt-0.5">All payment transactions</p>
+          <p className="text-sm text-slate-500 mt-0.5">All payment transactions from the ledger</p>
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-          <Download size={14} /> Export
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Received (Jul)" value={fmtC(743500)} trend={14} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Transactions" value={String(PAYMENT_HISTORY.length)} icon={Receipt} color="bg-blue-500" />
-        <KpiCard label="Failed" value="1" icon={XCircle} color="bg-red-500" />
+        <KpiCard label="Total Received" value={fmtC(stats.totalIn)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Transactions" value={String(stats.total)} icon={Receipt} color="bg-blue-500" />
+        <KpiCard label="Total Out / Refunds" value={fmtC(stats.totalOut)} icon={RotateCcw} color="bg-red-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load payments."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={8} cols={8} /></div>
+        ) : (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              {["Txn ID", "Invoice", "Customer", "Amount", "Method", "Gateway", "Date", "Status"].map(h => (
+              {["Payment #", "Invoice", "Customer", "Amount", "Method", "Gateway", "Date", "Status"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.map(p => (
+            {rows.map(p => {
+              const st = p.isReversed ? "refunded" : p.status.toLowerCase() as PayStatus;
+              return (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.id}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoice}</td>
-                <td className="px-4 py-3 text-sm text-slate-700">{p.customer}</td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.gateway}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.paymentNo || p.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoiceNo || "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-700">{p.customerName || "—"}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount, p.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.gateway || "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.paidAt.slice(0, 10)}</td>
                 <td className="px-4 py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status])}>
-                    {p.status}
+                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[st] || PAY_STATUS_CFG.confirmed)}>
+                    {p.direction === "OUT" ? "out" : st}
                   </span>
                 </td>
               </tr>
-            ))}
+            );})}
+            {rows.length === 0 && (
+              <tr><td colSpan={8} className="py-12 text-center text-sm text-slate-400">No payments yet</td></tr>
+            )}
           </tbody>
         </table>
+        )}
       </div>
+      {failed > 0 && <p className="text-xs text-slate-400">{failed} failed transaction(s) in this page.</p>}
     </div>
   );
 }
 
 // ─── Online Payments ──────────────────────────────────────────────────────────
 function OnlinePaymentsView() {
+  const { data, isLoading, isError, error, refetch } = usePayments({ page: 1, pageSize: 50 });
+  const rows = (data?.data ?? []).filter((p) => !!p.gateway);
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Online Payments</h2>
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { name: "bKash", logo: "bK", color: "#E2136E", vol: 3200000, txn: 148, rate: "98.6%" },
-          { name: "Nagad", logo: "Na", color: "#F05A28", vol: 1850000, txn: 97, rate: "99.1%" },
-          { name: "SSLCommerz", logo: "SSL", color: "#0065BD", vol: 2100000, txn: 62, rate: "97.8%" },
-        ].map(gw => (
-          <div key={gw.name} className="bg-white rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: gw.color }}>{gw.logo}</div>
-              <div>
-                <p className="font-semibold text-slate-800">{gw.name}</p>
-                <span className="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Active</span>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Monthly Volume</span>
-                <span className="font-mono font-semibold text-slate-800">{fmtC(gw.vol)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Transactions</span>
-                <span className="font-mono font-semibold text-slate-800">{gw.txn}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Success Rate</span>
-                <span className="font-semibold text-emerald-600">{gw.rate}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <p className="text-sm text-slate-500 -mt-3">Gateway-tagged payments from the live ledger (no gateway integrations in this milestone).</p>
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <h3 className="font-semibold text-slate-800 mb-4">Recent Online Transactions</h3>
+        {isError ? (
+          <ErrorBanner message={(error as Error)?.message || "Failed to load."} onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <SkeletonTable rows={5} cols={7} />
+        ) : (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="border-b border-slate-100">
-              {["Txn ID", "Customer", "Invoice", "Gateway", "Amount", "Time", "Status"].map(h => (
+              {["Payment #", "Customer", "Invoice", "Gateway", "Amount", "Date", "Status"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 pb-2 pr-4">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.map(p => (
+            {rows.map(p => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.id}</td>
-                <td className="py-3 pr-4 text-sm text-slate-700">{p.customer}</td>
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.invoice}</td>
+                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.paymentNo || p.id.slice(0, 8)}</td>
+                <td className="py-3 pr-4 text-sm text-slate-700">{p.customerName || "—"}</td>
+                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.invoiceNo || "—"}</td>
                 <td className="py-3 pr-4 text-sm text-slate-500">{p.gateway}</td>
-                <td className="py-3 pr-4 text-sm font-mono font-semibold text-slate-800">{fmtC(p.amount)}</td>
-                <td className="py-3 pr-4 text-sm text-slate-400">{p.date}, 10:41 AM</td>
+                <td className="py-3 pr-4 text-sm font-mono font-semibold text-slate-800">{fmtC(p.amount, p.currency as Currency)}</td>
+                <td className="py-3 pr-4 text-sm text-slate-400">{p.paidAt.slice(0, 16).replace("T", " ")}</td>
                 <td className="py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status])}>
-                    {p.status}
+                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status.toLowerCase() as PayStatus] || PAY_STATUS_CFG.confirmed)}>
+                    {p.status.toLowerCase()}
                   </span>
                 </td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={7} className="py-10 text-center text-sm text-slate-400">No gateway-tagged payments yet</td></tr>
+            )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );
@@ -1084,6 +1091,12 @@ function OnlinePaymentsView() {
 
 // ─── Refunds ──────────────────────────────────────────────────────────────────
 function RefundsView() {
+  const { data, isLoading, isError, error, refetch } = useRefunds({ page: 1, pageSize: 50 });
+  const update = useUpdateRefund();
+  const rows = data?.data ?? [];
+  const pending = rows.filter((r) => r.status === "PENDING").length;
+  const processed = rows.filter((r) => r.status === "PROCESSED").length;
+  const totalRefunded = rows.filter((r) => r.status === "PROCESSED").reduce((s, r) => s + r.amount, 0);
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -1091,16 +1104,18 @@ function RefundsView() {
           <h2 className="text-xl font-bold text-slate-800">Refunds</h2>
           <p className="text-sm text-slate-500 mt-0.5">Process and track customer refunds</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> New Refund
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Refunded (Jul)" value={fmtC(210000)} icon={RotateCcw} color="bg-red-500" />
-        <KpiCard label="Pending Approval" value="1" icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Processed" value="2" icon={CheckCircle} color="bg-emerald-500" />
+        <KpiCard label="Total Refunded" value={fmtC(totalRefunded)} icon={RotateCcw} color="bg-red-500" />
+        <KpiCard label="Pending Approval" value={String(pending)} icon={Clock} color="bg-amber-500" />
+        <KpiCard label="Processed" value={String(processed)} icon={CheckCircle} color="bg-emerald-500" />
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        {isError ? (
+          <div className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load refunds."} onRetry={() => refetch()} /></div>
+        ) : isLoading ? (
+          <div className="p-4"><SkeletonTable rows={6} cols={8} /></div>
+        ) : (
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
@@ -1110,35 +1125,43 @@ function RefundsView() {
             </tr>
           </thead>
           <tbody>
-            {REFUNDS.map(r => (
+            {rows.map(r => (
               <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.id}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.invoice}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{r.customer}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.reason}</td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(r.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.date}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.refundNo || r.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.invoiceNo || "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{r.customerName || "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{r.reason || "—"}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(r.amount, r.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{(r.method || "—").toString().replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{r.createdAt.slice(0, 10)}</td>
                 <td className="px-4 py-3">
                   <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                    r.status === "processed" ? "bg-emerald-50 text-emerald-700" :
-                    r.status === "approved" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700")}>
-                    {r.status}
+                    r.status === "PROCESSED" ? "bg-emerald-50 text-emerald-700" :
+                    r.status === "APPROVED" ? "bg-blue-50 text-blue-700" :
+                    r.status === "REJECTED" ? "bg-slate-100 text-slate-500" : "bg-amber-50 text-amber-700")}>
+                    {r.status.toLowerCase()}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  {r.status === "pending" && (
+                  {r.status === "PENDING" && (
                     <div className="flex gap-1">
-                      <button className="text-xs text-emerald-600 hover:underline">Approve</button>
+                      <button type="button" disabled={update.isPending} onClick={() => update.mutate({ id: r.id, status: "APPROVED" })} className="text-xs text-emerald-600 hover:underline">Approve</button>
                       <span className="text-slate-300">·</span>
-                      <button className="text-xs text-red-500 hover:underline">Reject</button>
+                      <button type="button" disabled={update.isPending} onClick={() => update.mutate({ id: r.id, status: "REJECTED" })} className="text-xs text-red-500 hover:underline">Reject</button>
                     </div>
+                  )}
+                  {r.status === "APPROVED" && (
+                    <button type="button" disabled={update.isPending} onClick={() => update.mutate({ id: r.id, status: "PROCESSED" })} className="text-xs text-[#1B75BC] hover:underline">Process</button>
                   )}
                 </td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={9} className="py-12 text-center text-sm text-slate-400">No refunds yet</td></tr>
+            )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

@@ -91,6 +91,19 @@ export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (input: InvoiceCreateInput) => apiFetch<InvoiceDetail>("/invoices", { method: "POST", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["fin", "invoices"] }); toast.success("Draft invoice created"); }, onError: err });
 }
+export function useCreateInvoiceFromBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) =>
+      apiFetch<InvoiceDetail>(`/invoices/from-booking/${bookingId}`, { method: "POST", body: JSON.stringify({ issue: true }) }),
+    onSuccess: (inv) => {
+      qc.invalidateQueries({ queryKey: ["fin", "invoices"] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      toast.success(inv.invoiceNo ? `Invoice ${inv.invoiceNo} issued` : "Invoice created");
+    },
+    onError: err,
+  });
+}
 export function useIssueInvoice() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (id: string) => apiFetch<InvoiceDetail>(`/invoices/${id}/issue`, { method: "POST" }), onSuccess: (inv) => { qc.invalidateQueries({ queryKey: ["fin", "invoices"] }); qc.invalidateQueries({ queryKey: finKeys.invoice(inv.id) }); toast.success(`Issued ${inv.invoiceNo}`); }, onError: err });
@@ -112,7 +125,17 @@ export function useRecordPayment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: PaymentRecordInput) => apiFetch<{ payment: PaymentDto; invoiceStatus: string | null }>("/payments", { method: "POST", body: JSON.stringify(input) }),
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["fin", "invoices"] }); qc.invalidateQueries({ queryKey: ["fin", "invoice"] }); qc.invalidateQueries({ queryKey: ["fin", "payments"] }); toast.success(`Payment recorded — receipt ${r.payment.receiptNo}`); },
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["fin", "invoices"] });
+      qc.invalidateQueries({ queryKey: ["fin", "invoice"] });
+      qc.invalidateQueries({ queryKey: ["fin", "payments"] });
+      qc.invalidateQueries({ queryKey: ["fin", "refunds"] });
+      qc.invalidateQueries({ queryKey: ["fin", "plans"] });
+      qc.invalidateQueries({ queryKey: ["fin", "income"] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["partners"] });
+      toast.success(`Payment recorded — receipt ${r.payment.receiptNo}`);
+    },
     onError: err,
   });
 }
@@ -131,7 +154,19 @@ export function useCreateRefund() {
 }
 export function useUpdateRefund() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, status }: { id: string; status: string }) => apiFetch(`/refunds/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["fin", "refunds"] }); toast.success("Refund updated"); }, onError: err });
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiFetch(`/refunds/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fin", "refunds"] });
+      qc.invalidateQueries({ queryKey: ["fin", "invoices"] });
+      qc.invalidateQueries({ queryKey: ["fin", "payments"] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["partners"] });
+      toast.success("Refund updated");
+    },
+    onError: err,
+  });
 }
 
 // ── Installment plans ─────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ import { money, type CurrencyCode } from "../lib/money";
 import { allocateSequence, formatDocNo } from "../lib/sequence";
 import { moveIntoStore, removeQuietly } from "../lib/uploads";
 import { notifyPaymentRecorded } from "./notification.service";
+import { applyConfirmedPaymentEffects, num, round4 } from "./finance.effects";
 import type {
   PublicBankAccountDto,
   PaymentDto,
@@ -23,14 +24,6 @@ import type {
 
 const EPS = 0.0001;
 const dIso = (d: Date | null): string | null => (d ? d.toISOString() : null);
-const num = (v: Prisma.Decimal | number | null | undefined): number => (v == null ? 0 : typeof v === "number" ? v : Number(v));
-const round4 = (n: number): number => Math.round((n + Number.EPSILON) * 10000) / 10000;
-
-function invoiceStatusFor(total: number, paid: number, issued: boolean): "SENT" | "PARTIAL" | "PAID" {
-  if (paid >= total - EPS) return "PAID";
-  if (paid > EPS) return "PARTIAL";
-  return issued ? "SENT" : "SENT";
-}
 
 type PayRow = Prisma.PaymentGetPayload<{
   include: { invoice: { select: { invoiceNo: true; customer: { select: { name: true } } } }; receipt: { select: { receiptNo: true } } };
@@ -246,7 +239,7 @@ export async function verifyPayment(
 ): Promise<PaymentDto> {
   const p = await prisma.payment.findFirst({
     where: { id: paymentId, ...branchWhere(auth), status: "PENDING", gateway: "NPSB", direction: "IN" },
-    include: { invoice: true, receipt: true },
+    include: { invoice: { include: { customer: { select: { name: true } } } }, receipt: true },
   });
   if (!p) throw new HttpError(404, "NotFound", { detail: "Pending NPSB payment not found." });
   if (p.receipt) throw new HttpError(409, "AlreadyVerified");
@@ -308,13 +301,22 @@ export async function verifyPayment(
         issuedById: auth.userId,
       },
     });
-    if (p.invoice) {
-      const newPaid = round4(num(p.invoice.paidAmount) + num(p.amount));
-      await tx.invoice.update({
-        where: { id: p.invoice.id },
-        data: { paidAmount: newPaid, status: invoiceStatusFor(num(p.invoice.total), newPaid, true) },
-      });
-    }
+    await applyConfirmedPaymentEffects(tx, {
+      paymentId,
+      paymentNo: p.paymentNo,
+      invoiceId: p.invoiceId,
+      bookingId: p.bookingId ?? p.invoice?.bookingId ?? null,
+      amount: num(p.amount),
+      currency: p.currency,
+      exchangeRate: num(p.exchangeRate),
+      baseAmount: num(p.baseAmount),
+      method: p.method,
+      branchId: p.branchId,
+      branchCode: branch.code,
+      payerName: p.invoice?.customer?.name ?? null,
+      paidAt: p.paidAt,
+      userId: auth.userId,
+    });
     await tx.activityLog.create({
       data: {
         userId: auth.userId,

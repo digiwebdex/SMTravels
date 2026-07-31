@@ -5,6 +5,12 @@ import { HttpError } from "../middleware/errorHandler";
 import { money, type CurrencyCode } from "../lib/money";
 import { allocateSequence, formatDocNo } from "../lib/sequence";
 import { notifyPaymentRecorded } from "./notification.service";
+import {
+  applyConfirmedPaymentEffects,
+  applyPaymentUnwindEffects,
+  num,
+  round4,
+} from "./finance.effects";
 import type {
   PaymentRecordInput, PaymentListQuery, PaymentDto, PaymentListResponse,
   RefundCreateInput, RefundDto, RefundListResponse,
@@ -15,18 +21,11 @@ import type {
 const EPS = 0.0001;
 const dIso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 const dOnly = (d: Date | null): string | null => (d ? d.toISOString().slice(0, 10) : null);
-const num = (v: Prisma.Decimal | number | null | undefined): number => (v == null ? 0 : typeof v === "number" ? v : Number(v));
-const round4 = (n: number): number => Math.round((n + Number.EPSILON) * 10000) / 10000;
 function toDate(s?: string | null): Date | null {
   if (!s) return null;
   const iso = /^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T00:00:00.000Z` : s;
   const d = new Date(iso);
   return isNaN(d.getTime()) ? null : d;
-}
-function invoiceStatusFor(total: number, paid: number, issued: boolean): "SENT" | "PARTIAL" | "PAID" {
-  if (paid >= total - EPS) return "PAID";
-  if (paid > EPS) return "PARTIAL";
-  return issued ? "SENT" : "SENT";
 }
 
 type PayRow = Prisma.PaymentGetPayload<{ include: { invoice: { select: { invoiceNo: true; customer: { select: { name: true } } } }; receipt: { select: { receiptNo: true } } } }>;
@@ -58,14 +57,15 @@ export async function listPayments(auth: AuthCtx, q: PaymentListQuery): Promise<
 }
 
 /**
- * Record a customer payment. Payment + Receipt are created and the invoice's
- * paidAmount + status are updated ALL in one transaction. paymentNo + receiptNo
- * are gapless (allocated in-tx). Gateway (bKash/Nagad/SSLCommerz) is a hook point
- * for the integrations phase — for now payments are recorded manually.
+ * Record a customer payment. Payment + Receipt + invoice/booking sync +
+ * installment allocation + income ledger + commission side-effects run in one tx.
  */
 export async function recordPayment(auth: AuthCtx, input: PaymentRecordInput): Promise<{ payment: PaymentDto; invoiceStatus: string | null }> {
   const invoice = input.invoiceId
-    ? await prisma.invoice.findFirst({ where: { id: input.invoiceId, ...branchWhere(auth), deletedAt: null } })
+    ? await prisma.invoice.findFirst({
+      where: { id: input.invoiceId, ...branchWhere(auth), deletedAt: null },
+      include: { customer: { select: { name: true } } },
+    })
     : null;
   if (input.invoiceId && !invoice) throw new HttpError(404, "InvoiceNotFound");
   if (invoice && (invoice.status === "DRAFT" || invoice.status === "CANCELLED")) {
@@ -74,6 +74,7 @@ export async function recordPayment(auth: AuthCtx, input: PaymentRecordInput): P
 
   const branchId = invoice ? invoice.branchId : resolveBranchId(auth, input.branchId);
   const customerId = invoice ? invoice.customerId : input.customerId ?? null;
+  const bookingId = input.bookingId || invoice?.bookingId || null;
   const m = money(input.amount, (input.currency as CurrencyCode) ?? (invoice?.currency as CurrencyCode) ?? "BDT", input.exchangeRate);
 
   if (invoice) {
@@ -85,41 +86,58 @@ export async function recordPayment(auth: AuthCtx, input: PaymentRecordInput): P
   const year = paidAt.getUTCFullYear();
   const branch = await prisma.branch.findUniqueOrThrow({ where: { id: branchId }, select: { code: true } });
 
-  const paymentId = await prisma.$transaction(async (tx) => {
+  const { paymentId, invoiceStatus } = await prisma.$transaction(async (tx) => {
     const pseq = await allocateSequence(tx, "PAYMENT", branchId, year);
     const payment = await tx.payment.create({
       data: {
         paymentNo: formatDocNo("PAY", branch.code, year, pseq), direction: "IN", branchId, invoiceId: input.invoiceId || null,
-        bookingId: input.bookingId || invoice?.bookingId || null, customerId, amount: m.amount, currency: m.currency, exchangeRate: m.exchangeRate,
+        bookingId, customerId, amount: m.amount, currency: m.currency, exchangeRate: m.exchangeRate,
         baseAmount: m.baseAmount, method: input.method as PaymentMethod, gateway: input.gateway, reference: input.reference, status: "CONFIRMED",
         receivedById: auth.userId, paidAt,
       },
     });
     const rseq = await allocateSequence(tx, "RECEIPT", branchId, year);
-    await tx.receipt.create({ data: { receiptNo: formatDocNo("RCP", branch.code, year, rseq), paymentId: payment.id, branchId, amount: m.amount, currency: m.currency, baseAmount: m.baseAmount, issuedById: auth.userId } });
-    if (invoice) {
-      const newPaid = round4(num(invoice.paidAmount) + m.amount);
-      await tx.invoice.update({ where: { id: invoice.id }, data: { paidAmount: newPaid, status: invoiceStatusFor(num(invoice.total), newPaid, true) } });
-    }
+    await tx.receipt.create({
+      data: {
+        receiptNo: formatDocNo("RCP", branch.code, year, rseq), paymentId: payment.id, branchId,
+        amount: m.amount, currency: m.currency, baseAmount: m.baseAmount, issuedById: auth.userId,
+      },
+    });
+
+    const effects = await applyConfirmedPaymentEffects(tx, {
+      paymentId: payment.id,
+      paymentNo: payment.paymentNo,
+      invoiceId: input.invoiceId || null,
+      bookingId,
+      amount: m.amount,
+      currency: m.currency,
+      exchangeRate: m.exchangeRate,
+      baseAmount: m.baseAmount,
+      method: input.method as PaymentMethod,
+      branchId,
+      branchCode: branch.code,
+      payerName: invoice?.customer?.name ?? null,
+      paidAt,
+      userId: auth.userId,
+    });
+
     await tx.activityLog.create({ data: { userId: auth.userId, action: "PAYMENT_RECORDED", target: payment.id, module: "invoices" } });
-    return payment.id;
+    return { paymentId: payment.id, invoiceStatus: effects.invoiceStatus };
   });
 
-  // customer receipt (email/SMS/in-app) — after the tx commits, fire-and-forget
   notifyPaymentRecorded(paymentId);
 
   const p = await prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, include: payInclude });
-  const inv = input.invoiceId ? await prisma.invoice.findUnique({ where: { id: input.invoiceId }, select: { status: true } }) : null;
-  return { payment: toPaymentDto(p), invoiceStatus: inv?.status ?? null };
+  return { payment: toPaymentDto(p), invoiceStatus };
 }
 
-/** Reverse a payment: mirror payment (opposite direction, reversalOfId), original
- *  flagged REVERSED, invoice paidAmount/status rolled back. No hard delete. */
+/** Reverse a payment: mirror OUT payment, unwind invoice/booking/installments/commission/income. */
 export async function reversePayment(auth: AuthCtx, id: string): Promise<PaymentDto> {
   const p = await prisma.payment.findFirst({ where: { id, ...branchWhere(auth) }, include: { invoice: true } });
   if (!p) throw new HttpError(404, "NotFound");
   if (p.isReversed) throw new HttpError(409, "AlreadyReversed", { detail: `Already reversed by ${p.reversedById}.` });
   if (p.reversalOfId) throw new HttpError(409, "IsAReversal", { detail: "A reversal payment cannot itself be reversed." });
+  if (p.direction !== "IN") throw new HttpError(409, "NotInbound", { detail: "Only inbound customer payments can be reversed via this endpoint." });
 
   const year = new Date().getUTCFullYear();
   const branch = await prisma.branch.findUniqueOrThrow({ where: { id: p.branchId }, select: { code: true } });
@@ -128,17 +146,23 @@ export async function reversePayment(auth: AuthCtx, id: string): Promise<Payment
     const seq = await allocateSequence(tx, "PAYMENT", p.branchId, year);
     const mirror = await tx.payment.create({
       data: {
-        paymentNo: formatDocNo("PAY", branch.code, year, seq), direction: p.direction === "IN" ? "OUT" : "IN", branchId: p.branchId,
+        paymentNo: formatDocNo("PAY", branch.code, year, seq), direction: "OUT", branchId: p.branchId,
         invoiceId: p.invoiceId, bookingId: p.bookingId, customerId: p.customerId, amount: num(p.amount), currency: p.currency,
         exchangeRate: num(p.exchangeRate), baseAmount: num(p.baseAmount), method: p.method, reference: `Reversal of ${p.paymentNo ?? p.id}`,
         status: "CONFIRMED", reversalOfId: p.id, receivedById: auth.userId,
       },
     });
     await tx.payment.update({ where: { id: p.id }, data: { isReversed: true, reversedById: mirror.id, status: "REVERSED" } });
-    if (p.invoice) {
-      const newPaid = round4(Math.max(0, num(p.invoice.paidAmount) - num(p.amount)));
-      await tx.invoice.update({ where: { id: p.invoice.id }, data: { paidAmount: newPaid, status: invoiceStatusFor(num(p.invoice.total), newPaid, true) } });
-    }
+
+    await applyPaymentUnwindEffects(tx, {
+      invoiceId: p.invoiceId,
+      bookingId: p.bookingId,
+      amount: num(p.amount),
+      paymentNo: p.paymentNo,
+      paymentId: p.id,
+      userId: auth.userId,
+    });
+
     await tx.activityLog.create({ data: { userId: auth.userId, action: "PAYMENT_REVERSED", target: p.id, module: "invoices" } });
     return mirror.id;
   });
@@ -165,12 +189,20 @@ export async function createRefund(auth: AuthCtx, input: RefundCreateInput): Pro
   if (input.invoiceId && !invoice) throw new HttpError(404, "InvoiceNotFound");
   const branchId = invoice ? invoice.branchId : resolveBranchId(auth, input.branchId);
   const m = money(input.amount, (input.currency as CurrencyCode) ?? "BDT", input.exchangeRate);
+  if (invoice && m.amount > num(invoice.paidAmount) + EPS) {
+    throw new HttpError(400, "RefundExceedsPaid", { detail: `Refund ${m.amount} exceeds invoice paid amount ${num(invoice.paidAmount)}.` });
+  }
   const year = new Date().getUTCFullYear();
   const branch = await prisma.branch.findUniqueOrThrow({ where: { id: branchId }, select: { code: true } });
   const id = await prisma.$transaction(async (tx) => {
     const seq = await allocateSequence(tx, "REFUND", branchId, year);
     const r = await tx.refund.create({
-      data: { refundNo: formatDocNo("REF", branch.code, year, seq), branchId, invoiceId: input.invoiceId || null, customerId: input.customerId || invoice?.customerId || null, bookingId: input.bookingId || null, reason: input.reason, amount: m.amount, currency: m.currency, exchangeRate: m.exchangeRate, baseAmount: m.baseAmount, method: input.method as PaymentMethod | undefined, status: "PENDING", createdById: auth.userId },
+      data: {
+        refundNo: formatDocNo("REF", branch.code, year, seq), branchId, invoiceId: input.invoiceId || null,
+        customerId: input.customerId || invoice?.customerId || null, bookingId: input.bookingId || invoice?.bookingId || null,
+        reason: input.reason, amount: m.amount, currency: m.currency, exchangeRate: m.exchangeRate, baseAmount: m.baseAmount,
+        method: input.method as PaymentMethod | undefined, status: "PENDING", createdById: auth.userId,
+      },
     });
     await tx.activityLog.create({ data: { userId: auth.userId, action: "REFUND_CREATED", target: r.id, module: "invoices" } });
     return r.id;
@@ -178,11 +210,94 @@ export async function createRefund(auth: AuthCtx, input: RefundCreateInput): Pro
   const r = await prisma.refund.findUniqueOrThrow({ where: { id }, include: { invoice: { select: { invoiceNo: true, customer: { select: { name: true } } } } } });
   return toRefundDto(r);
 }
+
+/**
+ * Refund status transitions. PROCESSED creates an OUT payment + receipt and
+ * unwinds invoice/booking/installment/commission/income aggregates.
+ */
 export async function updateRefundStatus(auth: AuthCtx, id: string, status: "PENDING" | "APPROVED" | "PROCESSED" | "REJECTED"): Promise<RefundDto> {
-  const r = await prisma.refund.findFirst({ where: { id, ...branchWhere(auth), deletedAt: null }, select: { id: true } });
+  const r = await prisma.refund.findFirst({
+    where: { id, ...branchWhere(auth), deletedAt: null },
+    include: { invoice: { include: { customer: { select: { name: true } } } } },
+  });
   if (!r) throw new HttpError(404, "NotFound");
-  await prisma.refund.update({ where: { id }, data: { status, approvedById: status === "APPROVED" || status === "PROCESSED" ? auth.userId : undefined } });
-  await prisma.activityLog.create({ data: { userId: auth.userId, action: `REFUND_${status}`, target: id, module: "invoices" } });
+  if (r.status === "PROCESSED") throw new HttpError(409, "AlreadyProcessed");
+  if (r.status === "REJECTED") throw new HttpError(409, "AlreadyRejected");
+
+  if (status !== "PROCESSED") {
+    await prisma.refund.update({
+      where: { id },
+      data: { status, approvedById: status === "APPROVED" ? auth.userId : undefined },
+    });
+    await prisma.activityLog.create({ data: { userId: auth.userId, action: `REFUND_${status}`, target: id, module: "invoices" } });
+    const row = await prisma.refund.findUniqueOrThrow({ where: { id }, include: { invoice: { select: { invoiceNo: true, customer: { select: { name: true } } } } } });
+    return toRefundDto(row);
+  }
+
+  // PROCESSED — full money-path unwind
+  if (r.invoice && num(r.amount) > num(r.invoice.paidAmount) + EPS) {
+    throw new HttpError(400, "RefundExceedsPaid", { detail: `Refund ${num(r.amount)} exceeds invoice paid amount ${num(r.invoice.paidAmount)}.` });
+  }
+
+  const year = new Date().getUTCFullYear();
+  const branch = await prisma.branch.findUniqueOrThrow({ where: { id: r.branchId }, select: { code: true } });
+  const method = (r.method ?? "BANK_TRANSFER") as PaymentMethod;
+  const now = new Date();
+
+  await prisma.$transaction(async (tx) => {
+    const pseq = await allocateSequence(tx, "PAYMENT", r.branchId, year);
+    const payment = await tx.payment.create({
+      data: {
+        paymentNo: formatDocNo("PAY", branch.code, year, pseq),
+        direction: "OUT",
+        branchId: r.branchId,
+        invoiceId: r.invoiceId,
+        bookingId: r.bookingId,
+        customerId: r.customerId,
+        amount: num(r.amount),
+        currency: r.currency,
+        exchangeRate: num(r.exchangeRate),
+        baseAmount: num(r.baseAmount),
+        method,
+        reference: `Refund ${r.refundNo ?? r.id}`,
+        status: "CONFIRMED",
+        receivedById: auth.userId,
+        paidAt: now,
+      },
+    });
+    const rseq = await allocateSequence(tx, "RECEIPT", r.branchId, year);
+    await tx.receipt.create({
+      data: {
+        receiptNo: formatDocNo("RCP", branch.code, year, rseq),
+        paymentId: payment.id,
+        branchId: r.branchId,
+        amount: num(r.amount),
+        currency: r.currency,
+        baseAmount: num(r.baseAmount),
+        issuedById: auth.userId,
+      },
+    });
+
+    await applyPaymentUnwindEffects(tx, {
+      invoiceId: r.invoiceId,
+      bookingId: r.bookingId,
+      amount: num(r.amount),
+      paymentNo: null, // do not void original collection income — refund is a separate OUT
+      paymentId: undefined,
+      userId: auth.userId,
+    });
+
+    // Post expense-style income void is not needed; post a negative income? Better: create Income CONFIRMED with category Refund (negative amount not allowed).
+    // Ledger trail: OUT payment + receipt already records the cash movement; activity log below.
+    await tx.refund.update({
+      where: { id },
+      data: { status: "PROCESSED", approvedById: auth.userId },
+    });
+    await tx.activityLog.create({
+      data: { userId: auth.userId, action: "REFUND_PROCESSED", target: id, module: "invoices" },
+    });
+  });
+
   const row = await prisma.refund.findUniqueOrThrow({ where: { id }, include: { invoice: { select: { invoiceNo: true, customer: { select: { name: true } } } } } });
   return toRefundDto(row);
 }
@@ -212,15 +327,40 @@ export async function createInstallmentPlan(auth: AuthCtx, input: InstallmentPla
   const invoice = input.invoiceId ? await prisma.invoice.findFirst({ where: { id: input.invoiceId, ...branchWhere(auth), deletedAt: null } }) : null;
   if (input.invoiceId && !invoice) throw new HttpError(404, "InvoiceNotFound");
   const branchId = invoice ? invoice.branchId : resolveBranchId(auth, input.branchId);
-  const currency = (input.currency as CurrencyCode) ?? "BDT";
-  const total = round4((input.downAmount ?? 0) + input.installments.reduce((s, i) => s + i.amountDue, 0));
+  const currency = (input.currency as CurrencyCode) ?? (invoice?.currency as CurrencyCode) ?? "BDT";
+  const down = input.downAmount ?? 0;
+  const total = round4(down + input.installments.reduce((s, i) => s + i.amountDue, 0));
   const m = money(total, currency);
+  const customerId = input.customerId || invoice?.customerId;
+  if (!customerId) throw new HttpError(400, "CustomerRequired");
+
   const id = await prisma.$transaction(async (tx) => {
-    const plan = await tx.installmentPlan.create({ data: { branchId, invoiceId: input.invoiceId || null, bookingId: input.bookingId || invoice?.bookingId || null, customerId: input.customerId, total: m.amount, currency: m.currency, baseAmount: m.baseAmount, downAmount: input.downAmount ?? 0, status: "active", createdById: auth.userId } });
-    for (let i = 0; i < input.installments.length; i++) {
-      const inst = input.installments[i];
+    const plan = await tx.installmentPlan.create({
+      data: {
+        branchId, invoiceId: input.invoiceId || null, bookingId: input.bookingId || invoice?.bookingId || null,
+        customerId, total: m.amount, currency: m.currency, baseAmount: m.baseAmount, downAmount: down,
+        status: "active", createdById: auth.userId,
+      },
+    });
+    let number = 1;
+    // Materialize down payment as installment #1 so FIFO allocation covers it.
+    if (down > EPS) {
+      const im = money(down, currency);
+      await tx.installment.create({
+        data: {
+          planId: plan.id, number: number++, label: "Down payment", amountDue: im.amount,
+          currency: im.currency, baseAmount: im.baseAmount, dueDate: new Date(), status: "DUE",
+        },
+      });
+    }
+    for (const inst of input.installments) {
       const im = money(inst.amountDue, currency);
-      await tx.installment.create({ data: { planId: plan.id, number: i + 1, label: inst.label, amountDue: im.amount, currency: im.currency, baseAmount: im.baseAmount, dueDate: toDate(inst.dueDate)!, status: "UPCOMING" } });
+      await tx.installment.create({
+        data: {
+          planId: plan.id, number: number++, label: inst.label, amountDue: im.amount,
+          currency: im.currency, baseAmount: im.baseAmount, dueDate: toDate(inst.dueDate)!, status: "UPCOMING",
+        },
+      });
     }
     await tx.activityLog.create({ data: { userId: auth.userId, action: "INSTALLMENT_PLAN_CREATED", target: plan.id, module: "invoices" } });
     return plan.id;

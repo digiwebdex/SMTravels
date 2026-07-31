@@ -332,4 +332,8 @@ export interface BookingDetailResponse extends BookingListItem {
   documents: DocumentDto[];
   stageEvents: StageEventDto[];
   activities: ActivityDto[];
+  /** Linked invoices (non-cancelled) for money-path CTAs. */
+  invoices: { id: string; invoiceNo: string | null; status: string; total: number; paidAmount: number; dueAmount: number }[];
+  /** Active installment schedule from Finance module. */
+  installments: { id: string; number: number; label: string | null; amount: number; paidAmount: number; dueDate: string; paidDate: string | null; status: string }[];
 }

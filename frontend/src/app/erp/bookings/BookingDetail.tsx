@@ -5,12 +5,15 @@ import {
   AlertCircle, FileText, Camera, Upload, Eye, Globe, Star, Plane,
   Hotel, Briefcase, Map, RefreshCw, Wallet, Receipt, Activity,
   ChevronDown, ChevronRight, ExternalLink, Copy, Shield, Scan,
-  PauseCircle, BarChart3, CreditCard, Banknote, Building2, MessageSquare,
+  PauseCircle, BarChart3, CreditCard, Banknote, Building2, MessageSquare, Loader2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn, fmtPrice } from "../../lib/utils";
 import { Booking, ServiceType, SERVICE_CFG, STATUS_CFG, ServiceBadge, StatusBadge } from "./BookingsModule";
 import { useSetVisaWindow } from "../../hooks/bookings";
+import { useCreateInvoiceFromBooking, useRecordPayment } from "../../hooks/finance";
+import { toast } from "sonner";
+import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "../crm/ui";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface DetailProps {
@@ -263,11 +266,73 @@ function UmrahVisaWindow({ booking }: { booking: Booking }) {
 }
 
 // ─── Overview tab ──────────────────────────────────────────────────────────────
-function OverviewTab({ booking }: { booking: Booking }) {
-  const cfg = SERVICE_CFG[booking.service];
-  const statusCfg = STATUS_CFG[booking.status];
-  const due = booking.amount - booking.paid;
-  const paidPct = Math.round((booking.paid / booking.amount) * 100);
+function BookingPayDrawer({
+  booking,
+  onClose,
+}: {
+  booking: Booking;
+  onClose: () => void;
+}) {
+  const record = useRecordPayment();
+  const due = booking.invoiceDue ?? Math.max(0, booking.amount - booking.paid);
+  const [amount, setAmount] = useState(String(due > 0 ? due : ""));
+  const [method, setMethod] = useState("BANK_TRANSFER");
+  const [reference, setReference] = useState("");
+  const submit = async () => {
+    if (!booking.invoiceId) {
+      toast.error("Generate an invoice first");
+      return;
+    }
+    try {
+      await record.mutateAsync({
+        invoiceId: booking.invoiceId,
+        bookingId: booking.id,
+        amount: Number(amount),
+        method: method as never,
+        reference: reference || undefined,
+      });
+      onClose();
+    } catch { /* toast via hook */ }
+  };
+  return (
+    <Drawer
+      open
+      onClose={onClose}
+      title="Record Payment"
+      subtitle={booking.invoiceId ? `Invoice linked · due ${fmtPrice(due)}` : "No invoice yet"}
+      footer={
+        <>
+          <button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button>
+          <PrimaryBtn onClick={submit} disabled={record.isPending || !(Number(amount) > 0) || !booking.invoiceId}>
+            {record.isPending && <Loader2 size={13} className="animate-spin" />} Record Payment
+          </PrimaryBtn>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <Field label="Amount" required>
+          <input type="number" className={inputCls} value={amount} onChange={(e) => setAmount(e.target.value)} />
+        </Field>
+        <Field label="Method" required>
+          <select className={selectCls} value={method} onChange={(e) => setMethod(e.target.value)}>
+            {["CASH", "BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "CHEQUE", "CARD"].map((m) => (
+              <option key={m} value={m}>{m.replace(/_/g, " ")}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Reference">
+          <input className={inputCls} placeholder="Txn / cheque no." value={reference} onChange={(e) => setReference(e.target.value)} />
+        </Field>
+      </div>
+    </Drawer>
+  );
+}
+
+function OverviewTab({ booking, onEdit }: { booking: Booking; onEdit: () => void }) {
+  const [payOpen, setPayOpen] = useState(false);
+  const genInv = useCreateInvoiceFromBooking();
+  const due = Math.max(0, booking.amount - booking.paid);
+  const paidPct = booking.amount > 0 ? Math.min(100, Math.round((booking.paid / booking.amount) * 100)) : 0;
 
   const serviceDetails = Object.entries(booking.serviceDetails)
     .filter(([, v]) => v !== "" && v !== undefined)
@@ -276,6 +341,7 @@ function OverviewTab({ booking }: { booking: Booking }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {payOpen && <BookingPayDrawer booking={booking} onClose={() => setPayOpen(false)} />}
       {/* Status timeline */}
       <Card className="p-5">
         <StatusTimeline booking={booking} />
@@ -367,7 +433,17 @@ function OverviewTab({ booking }: { booking: Booking }) {
                 )}
               </div>
               {due > 0 && (
-                <button className="w-full py-2.5 bg-[#0E7C66] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!booking.invoiceId) {
+                      toast.error("Generate an invoice first");
+                      return;
+                    }
+                    setPayOpen(true);
+                  }}
+                  className="w-full py-2.5 bg-[#0E7C66] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
                   <CreditCard size={13} /> Record Payment
                 </button>
               )}
@@ -378,23 +454,36 @@ function OverviewTab({ booking }: { booking: Booking }) {
           <Card>
             <SectionHeader title="Actions" />
             <div className="p-4 flex flex-col gap-2">
-              {[
-                { icon: Printer,      label: "Print Voucher",    color: "#374151" },
-                { icon: Download,     label: "Download PDF",     color: "#374151" },
-                { icon: Receipt,      label: "Generate Invoice", color: "#1B75BC" },
-                { icon: MessageSquare,label: "Send SMS",         color: "#0E7C66" },
-                { icon: Share2,       label: "Share Booking",    color: "#7C3AED" },
-                { icon: Edit3,        label: "Edit Booking",     color: "#F15A24" },
-              ].map(a => {
-                const Icon = a.icon;
-                return (
-                  <button key={a.label}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left">
-                    <Icon size={14} style={{ color: a.color }} />
-                    {a.label}
-                  </button>
-                );
-              })}
+              <button
+                type="button"
+                onClick={() => genInv.mutate(booking.id)}
+                disabled={genInv.isPending || booking.status === "Draft" || booking.status === "Cancelled"}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left disabled:opacity-50"
+              >
+                {genInv.isPending ? <Loader2 size={14} className="animate-spin text-[#1B75BC]" /> : <Receipt size={14} style={{ color: "#1B75BC" }} />}
+                {booking.invoiceId ? "View / Re-issue Invoice" : "Generate Invoice"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!booking.invoiceId) {
+                    toast.error("Generate an invoice first");
+                    return;
+                  }
+                  setPayOpen(true);
+                }}
+                disabled={due <= 0}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left disabled:opacity-50"
+              >
+                <CreditCard size={14} style={{ color: "#0E7C66" }} /> Record Payment
+              </button>
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left"
+              >
+                <Edit3 size={14} style={{ color: "#F15A24" }} /> Edit Booking
+              </button>
             </div>
           </Card>
         </div>
@@ -624,16 +713,27 @@ function DocumentsTab({ booking }: { booking: Booking }) {
 
 // ─── Payments tab ──────────────────────────────────────────────────────────────
 function PaymentsTab({ booking }: { booking: Booking }) {
-  const pct = Math.round((booking.paid / booking.amount) * 100);
+  const [payOpen, setPayOpen] = useState(false);
+  const genInv = useCreateInvoiceFromBooking();
+  const pct = booking.amount > 0 ? Math.min(100, Math.round((booking.paid / booking.amount) * 100)) : 0;
+  const due = Math.max(0, booking.amount - booking.paid);
   const INST_CFG: Record<string, { color: string; bg: string }> = {
     "Paid":     { color: "#065F46", bg: "#D1FAE5" },
     "Due":      { color: "#92400E", bg: "#FEF3C7" },
     "Overdue":  { color: "#991B1B", bg: "#FEE2E2" },
     "Upcoming": { color: "#6B7280", bg: "#F3F4F6" },
   };
+  const openPay = () => {
+    if (!booking.invoiceId) {
+      toast.error("Generate an invoice first");
+      return;
+    }
+    setPayOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-4">
+      {payOpen && <BookingPayDrawer booking={booking} onClose={() => setPayOpen(false)} />}
       {/* Summary bar */}
       <Card className="p-5">
         <div className="grid grid-cols-3 gap-6 mb-4">
@@ -647,8 +747,8 @@ function PaymentsTab({ booking }: { booking: Booking }) {
           </div>
           <div>
             <div className="text-[10px] text-[#9CA3AF] font-bold uppercase tracking-wide mb-1">Remaining Due</div>
-            <div className="text-[22px] font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color: booking.paid === booking.amount ? "#0E7C66" : "#DC2626" }}>
-              {fmtPrice(booking.amount - booking.paid)}
+            <div className="text-[22px] font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color: due <= 0 ? "#0E7C66" : "#DC2626" }}>
+              {fmtPrice(due)}
             </div>
           </div>
         </div>
@@ -656,9 +756,15 @@ function PaymentsTab({ booking }: { booking: Booking }) {
           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: pct === 100 ? "#0E7C66" : "#1B75BC" }} />
         </div>
         <div className="flex items-center justify-between mt-1.5">
-          <span className="text-[10px] text-[#9CA3AF]">{pct}% paid</span>
-          <button className="text-[11px] text-[#1B75BC] font-bold hover:underline cursor-pointer flex items-center gap-1">
-            <Receipt size={11} /> Generate Invoice
+          <span className="text-[10px] text-[#9CA3AF]">{pct}% paid{booking.invoiceId ? ` · invoice ${booking.invoiceStatus}` : ""}</span>
+          <button
+            type="button"
+            onClick={() => genInv.mutate(booking.id)}
+            disabled={genInv.isPending}
+            className="text-[11px] text-[#1B75BC] font-bold hover:underline cursor-pointer flex items-center gap-1 disabled:opacity-50"
+          >
+            {genInv.isPending ? <Loader2 size={11} className="animate-spin" /> : <Receipt size={11} />}
+            {booking.invoiceId ? "Invoice Linked" : "Generate Invoice"}
           </button>
         </div>
       </Card>
@@ -668,9 +774,15 @@ function PaymentsTab({ booking }: { booking: Booking }) {
         <Card className="overflow-hidden">
           <SectionHeader title="Payment Schedule"
             action={
-              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B75BC] text-white rounded-[7px] text-[11px] font-bold cursor-pointer hover:bg-[#14588F] transition-colors">
-                <CreditCard size={11} /> Record Payment
-              </button>
+              due > 0 ? (
+                <button
+                  type="button"
+                  onClick={openPay}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B75BC] text-white rounded-[7px] text-[11px] font-bold cursor-pointer hover:bg-[#14588F] transition-colors"
+                >
+                  <CreditCard size={11} /> Record Payment
+                </button>
+              ) : undefined
             }
           />
           <div className="divide-y divide-[#F3F4F6]">
@@ -692,7 +804,7 @@ function PaymentsTab({ booking }: { booking: Booking }) {
                     {inst.status}
                   </span>
                   {inst.status !== "Paid" && (
-                    <button className="text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer whitespace-nowrap">
+                    <button type="button" onClick={openPay} className="text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer whitespace-nowrap">
                       Record
                     </button>
                   )}
@@ -705,6 +817,15 @@ function PaymentsTab({ booking }: { booking: Booking }) {
         <Card className="py-12 text-center">
           <Wallet size={28} className="text-[#E5E7EB] mx-auto mb-2" />
           <p className="text-[12px] text-[#9CA3AF]">No installments set up.</p>
+          {due > 0 && booking.invoiceId && (
+            <button
+              type="button"
+              onClick={openPay}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0E7C66] text-white rounded-[7px] text-[11px] font-bold cursor-pointer"
+            >
+              <CreditCard size={11} /> Record Payment
+            </button>
+          )}
         </Card>
       )}
     </div>
@@ -846,7 +967,7 @@ export function BookingDetail({ booking, onBack, onEdit }: DetailProps) {
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="p-5 md:p-7">
-          {tab === "overview"  && <OverviewTab booking={booking} />}
+          {tab === "overview"  && <OverviewTab booking={booking} onEdit={onEdit} />}
           {tab === "travelers" && <TravelersTab booking={booking} />}
           {tab === "documents" && <DocumentsTab booking={booking} />}
           {tab === "payments"  && <PaymentsTab booking={booking} />}

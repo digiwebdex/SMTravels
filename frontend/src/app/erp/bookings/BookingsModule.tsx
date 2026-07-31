@@ -62,6 +62,10 @@ export interface Booking {
   installments: Installment[];
   serviceDetails: Record<string, string | number | boolean | string[]>;
   activityLog: { time: string; actor: string; action: string; note?: string; }[];
+  /** Linked finance invoice (first non-cancelled), when present. */
+  invoiceId?: string;
+  invoiceStatus?: string;
+  invoiceDue?: number;
 }
 
 export const SERVICE_CFG: Record<ServiceType, { icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>; color: string; bg: string; light: string; }> = {

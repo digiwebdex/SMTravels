@@ -74,19 +74,27 @@ export async function createAgent(auth: AuthCtx, input: AgentCreateInput): Promi
   const branchId = resolveBranchId(auth, input.branchId ?? auth.branchId);
   const agentCode = input.agentCode?.trim() || await nextAgentCode(input.name);
   try {
-    const a = await prisma.agent.create({
-      data: {
-        agentCode,
-        name: input.name,
-        branchId,
-        phone: input.phone ?? null,
-        email: input.email || null,
-        tier: input.tier ?? "SILVER",
-        commissionRate: input.commissionRate ?? 0,
-        parentAgentId: input.parentAgentId ?? null,
-        status: "active",
-      },
-      include: { _count: { select: { bookings: true } } },
+    const a = await prisma.$transaction(async (tx) => {
+      const agent = await tx.agent.create({
+        data: {
+          agentCode,
+          name: input.name,
+          branchId,
+          phone: input.phone ?? null,
+          email: input.email || null,
+          tier: input.tier ?? "SILVER",
+          commissionRate: input.commissionRate ?? 0,
+          parentAgentId: input.parentAgentId ?? null,
+          status: "active",
+        },
+        include: { _count: { select: { bookings: true } } },
+      });
+      // Every agent gets a zero-balance wallet so commission settlement can credit it.
+      await tx.agentWallet.create({ data: { agentId: agent.id, balance: 0, currency: "BDT" } });
+      await tx.activityLog.create({
+        data: { userId: auth.userId, action: "AGENT_CREATED", target: agent.id, module: "settings" },
+      });
+      return agent;
     });
     const branches = await branchNames([a.branchId]);
     return toItem(a, branches);
