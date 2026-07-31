@@ -10,13 +10,7 @@ import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { About } from "./pages/About";
 import { ServicePage } from "./pages/ServicePage";
-import { PackagesPage, PackageDetailPage } from "./pages/Packages";
-import { BlogPage, BlogDetailPage } from "./pages/Blog";
-import { GalleryPage } from "./pages/Gallery";
-import { FAQPage } from "./pages/FAQ";
 import { ContactPage } from "./pages/Contact";
-import { BookingPage } from "./pages/Booking";
-import { LoginPage, RegisterPage } from "./pages/Auth";
 import { NotFoundPage } from "./pages/NotFound";
 
 // ── Lazy: heavy app sections (each becomes its own chunk, loaded on demand) ──
@@ -48,6 +42,7 @@ const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
 const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
+const HrModule             = lazyNamed(() => import("./erp/HrModule"), "HrModule");
 
 // Portals
 const CustomerPortal   = lazyNamed(() => import("./portal/CustomerPortal"), "CustomerPortal");
@@ -55,10 +50,29 @@ const AgentPortal      = lazyNamed(() => import("./portal/AgentPortal"), "AgentP
 const SupplierPortal   = lazyNamed(() => import("./portal/SupplierPortal"), "SupplierPortal");
 const StaffPortal      = lazyNamed(() => import("./portal/StaffPortal"), "StaffPortal");
 const AccountantPortal = lazyNamed(() => import("./portal/AccountantPortal"), "AccountantPortal");
+const EmployeePortal   = lazyNamed(() => import("./portal/EmployeePortal"), "EmployeePortal");
 
 // Standalone heavy pages
 const SitemapWorkflow  = lazyNamed(() => import("./pages/Sitemap"), "SitemapWorkflow");
 const DesignSystemPage = lazyNamed(() => import("./pages/DesignSystem"), "DesignSystemPage");
+const PackagesPage = lazyNamed(() => import("./pages/Packages"), "PackagesPage");
+const PackageDetailPage = lazyNamed(() => import("./pages/Packages"), "PackageDetailPage");
+const BlogPage = lazyNamed(() => import("./pages/Blog"), "BlogPage");
+const BlogDetailPage = lazyNamed(() => import("./pages/Blog"), "BlogDetailPage");
+const GalleryPage = lazyNamed(() => import("./pages/Gallery"), "GalleryPage");
+const FAQPage = lazyNamed(() => import("./pages/FAQ"), "FAQPage");
+const BookingPage = lazyNamed(() => import("./pages/Booking"), "BookingPage");
+const LoginPage = lazyNamed(() => import("./pages/Auth"), "LoginPage");
+const RegisterPage = lazyNamed(() => import("./pages/Auth"), "RegisterPage");
+const PrivacyPage = lazyNamed(() => import("./pages/CmsPages"), "PrivacyPage");
+const TermsPage = lazyNamed(() => import("./pages/CmsPages"), "TermsPage");
+const RefundPage = lazyNamed(() => import("./pages/CmsPages"), "RefundPage");
+const CareerPage = lazyNamed(() => import("./pages/CmsPages"), "CareerPage");
+const BranchesPage = lazyNamed(() => import("./pages/CmsPages"), "BranchesPage");
+const TestimonialsPage = lazyNamed(() => import("./pages/CmsPages"), "TestimonialsPage");
+const HotelsInfoPage = lazyNamed(() => import("./pages/CmsPages"), "HotelsInfoPage");
+const TransportPage = lazyNamed(() => import("./pages/CmsPages"), "TransportPage");
+
 
 // Suspense wrapper using the app's EXISTING full-page skeleton (no new spinner)
 const withSuspense = (el: ReactNode): ReactNode => (
@@ -111,7 +125,8 @@ export const router = createBrowserRouter([
       { path: "sms", element: withSuspense(<SmsCenterModule />) },
       { path: "whatsapp", element: <ComingSoon k="whatsapp" group="communication" /> },
       { path: "ocr", element: <ComingSoon k="ocr" group="operations" /> },
-      { path: "hr", element: <ComingSoon k="hr" group="admin" /> },
+      // HR: use the real HrModule from the RC branch (supersedes the ComingSoon placeholder).
+      { path: "hr", element: withSuspense(<HrModule />) },
       { path: "integrations", element: <ComingSoon k="integrations" group="admin" /> },
       { path: "ai", element: <ComingSoon k="ai" group="admin" /> },
     ],
@@ -123,6 +138,8 @@ export const router = createBrowserRouter([
   { path: "/supplier", element: guard(["SUPPLIER"], <SupplierPortal />) },
   { path: "/staff", element: guard(["STAFF"], <StaffPortal />) },
   { path: "/accountant", element: guard(["ACCOUNTANT"], <AccountantPortal />) },
+  // Employee self-service: any internal role that can carry an HR employee link.
+  { path: "/employee", element: guard(ERP_ROLES, <EmployeePortal />) },
   {
     path: "/",
     Component: Layout,
@@ -136,16 +153,24 @@ export const router = createBrowserRouter([
       { path: "manpower", Component: ManpowerPage },
       { path: "tour-packages", Component: TourPackagesPage },
       { path: "hotel-booking", Component: HotelBookingPage },
-      { path: "packages", Component: PackagesPage },
-      { path: "packages/:id", Component: PackageDetailPage },
-      { path: "blog", Component: BlogPage },
-      { path: "blog/:id", Component: BlogDetailPage },
-      { path: "gallery", Component: GalleryPage },
-      { path: "faq", Component: FAQPage },
+      { path: "packages", element: withSuspense(<PackagesPage />) },
+      { path: "packages/:id", element: withSuspense(<PackageDetailPage />) },
+      { path: "blog", element: withSuspense(<BlogPage />) },
+      { path: "blog/:id", element: withSuspense(<BlogDetailPage />) },
+      { path: "gallery", element: withSuspense(<GalleryPage />) },
+      { path: "faq", element: withSuspense(<FAQPage />) },
       { path: "contact", Component: ContactPage },
-      { path: "book", Component: BookingPage },
-      { path: "login", Component: LoginPage },
-      { path: "register", Component: RegisterPage },
+      { path: "privacy", element: withSuspense(<PrivacyPage />) },
+      { path: "terms", element: withSuspense(<TermsPage />) },
+      { path: "refund", element: withSuspense(<RefundPage />) },
+      { path: "career", element: withSuspense(<CareerPage />) },
+      { path: "branches", element: withSuspense(<BranchesPage />) },
+      { path: "testimonials", element: withSuspense(<TestimonialsPage />) },
+      { path: "hotels", element: withSuspense(<HotelsInfoPage />) },
+      { path: "transport", element: withSuspense(<TransportPage />) },
+      { path: "book", element: withSuspense(<BookingPage />) },
+      { path: "login", element: withSuspense(<LoginPage />) },
+      { path: "register", element: withSuspense(<RegisterPage />) },
       { path: "*", Component: NotFoundPage },
     ],
   },
