@@ -361,6 +361,22 @@ enum TemplateChannel {
   WHATSAPP
 }
 
+enum OutboundChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  IN_APP
+}
+
+enum OutboundStatus {
+  PENDING
+  SCHEDULED
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
 enum TicketStatus {
   OPEN
   PENDING
@@ -429,6 +445,8 @@ model Branch {
   refunds   Refund[]
   expenses  Expense[]
   incomes   Income[]
+  employees Employee[]
+  hrHolidays HrHoliday[]
 
   @@index([companyId])
   @@index([managerId])
@@ -465,6 +483,7 @@ model User {
   agent           Agent?
   supplier        Supplier?
   customer        Customer?
+  employeeProfile Employee?         @relation("EmployeeUser")
 
   leadsAssigned     Lead[]              @relation("LeadAssignee")
   tasksAssigned     Task[]              @relation("TaskAssignee")
@@ -478,6 +497,9 @@ model User {
   notifications     Notification[]
   authChallenges    AuthChallenge[]
   refreshTokens     RefreshToken[]
+  hrEmployeesCreated Employee[]         @relation("EmployeeCreatedBy")
+  hrEmployeesUpdated Employee[]         @relation("EmployeeUpdatedBy")
+  hrEmployeesDeleted Employee[]         @relation("EmployeeDeletedBy")
 
   @@index([branchId])
   @@index([role])
@@ -2091,6 +2113,36 @@ model MessageTemplate {
   updatedAt DateTime        @updatedAt @db.Timestamptz(6)
 
   @@index([channel])
+  @@index([event, channel])
+}
+
+/** Queued outbound notifications (email / SMS / WhatsApp / in-app). */
+model OutboundNotification {
+  id           String          @id @default(cuid())
+  channel      OutboundChannel
+  event        String
+  to           String
+  subject      String?
+  body         String
+  templateId   String?
+  userId       String?
+  payload      Json?
+  status       OutboundStatus  @default(PENDING)
+  scheduledFor DateTime?       @db.Timestamptz(6)
+  attempts     Int             @default(0)
+  maxAttempts  Int             @default(5)
+  nextRetryAt  DateTime?       @db.Timestamptz(6)
+  lastError    String?
+  providerId   String?
+  sentAt       DateTime?       @db.Timestamptz(6)
+  createdAt    DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime        @updatedAt @db.Timestamptz(6)
+
+  @@index([status, nextRetryAt])
+  @@index([status, scheduledFor])
+  @@index([createdAt])
+  @@index([event, channel])
+  @@index([userId, createdAt])
 }
 
 // Outbound message audit trail (SMS now; channel-tagged for future WhatsApp/email).
@@ -2198,7 +2250,7 @@ model Setting {
 // Allocation uses SELECT ... FOR UPDATE inside the document's transaction.
 model DocumentSequence {
   id        String @id @default(cuid())
-  scope     String // INVOICE | RECEIPT | JOURNAL
+  scope     String // INVOICE | RECEIPT | JOURNAL | EMPLOYEE
   branchId  String
   year      Int
   lastValue Int    @default(0)
@@ -2341,4 +2393,413 @@ model PilgrimRegistration {
 
   @@index([branchId, season])
   @@index([bookingId])
+}
+// ─── HR MODULE (Phase 1) — branch-scoped, no tenantId ───────────────────────
+
+enum EmployeeLifecycle {
+  DRAFT
+  OFFERED
+  JOINED
+  PROBATION
+  CONFIRMED
+  TRANSFERRED
+  RESIGNED
+  TERMINATED
+  ARCHIVED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+  CONSULTANT
+}
+
+enum HrDocType {
+  OFFER_LETTER
+  APPOINTMENT_LETTER
+  CONTRACT
+  PASSPORT
+  NATIONAL_ID
+  CERTIFICATE
+  RESUME
+  MEDICAL
+  DRIVING_LICENSE
+  OTHER
+}
+
+enum HrLeaveRequestStatus {
+  DRAFT
+  SUBMITTED
+  MANAGER_APPROVED
+  HR_APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum HrHolidayScope {
+  NATIONAL
+  COMPANY
+  BRANCH
+  DEPARTMENT
+  OPTIONAL
+}
+
+enum HrAttendanceStatus {
+  PRESENT
+  LATE
+  EARLY_LEAVE
+  ABSENT
+  HALF_DAY
+  ON_LEAVE
+  HOLIDAY
+}
+
+enum HrCorrectionStatus {
+  SUBMITTED
+  MANAGER_APPROVED
+  HR_APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model HrDepartment {
+  id          String    @id @default(cuid())
+  name        String
+  code        String?
+  branchId    String? // null = company-wide
+  description String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String?
+  updatedById String?
+  deletedById String?
+
+  sections  HrSection[]
+  employees Employee[]
+  holidays  HrHoliday[]
+
+  @@index([branchId])
+  @@index([deletedAt])
+}
+
+model HrSection {
+  id           String    @id @default(cuid())
+  departmentId String
+  name         String
+  code         String?
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
+  createdById  String?
+  updatedById  String?
+  deletedById  String?
+
+  department HrDepartment @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  teams      HrTeam[]
+  employees  Employee[]
+
+  @@index([departmentId])
+  @@index([deletedAt])
+}
+
+model HrTeam {
+  id          String    @id @default(cuid())
+  sectionId   String
+  name        String
+  code        String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String?
+  updatedById String?
+  deletedById String?
+
+  section   HrSection @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  employees Employee[]
+
+  @@index([sectionId])
+  @@index([deletedAt])
+}
+
+model HrDesignation {
+  id          String    @id @default(cuid())
+  name        String
+  code        String?
+  level       Int?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String?
+  updatedById String?
+  deletedById String?
+
+  employees Employee[]
+
+  @@index([deletedAt])
+}
+
+model Employee {
+  id                   String            @id @default(cuid())
+  employeeCode         String            @unique
+  userId               String?           @unique
+  branchId             String
+  departmentId         String?
+  sectionId            String?
+  teamId               String?
+  designationId        String?
+  managerId            String?
+  photoUrl             String?
+  firstName            String
+  lastName             String
+  preferredName        String?
+  gender               String?
+  dateOfBirth          DateTime?         @db.Date
+  bloodGroup           String?
+  nationality          String?
+  religion             String?
+  maritalStatus        String?
+  phone                String?
+  email                String?
+  emergencyContactName String?
+  emergencyContactPhone String?
+  permanentAddress     String?
+  presentAddress       String?
+  employmentType       EmploymentType    @default(FULL_TIME)
+  joiningDate          DateTime?         @db.Date
+  probationMonths      Int?
+  confirmationDate     DateTime?         @db.Date
+  status               EmployeeLifecycle @default(DRAFT)
+  workLocation         String?
+  salaryStructureRef   String?
+  education            String?
+  experience           String?
+  skills               String?
+  languages            String?
+  notes                String?
+  createdAt            DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime          @updatedAt @db.Timestamptz(6)
+  deletedAt            DateTime?         @db.Timestamptz(6)
+  createdById          String?
+  updatedById          String?
+  deletedById          String?
+
+  branch       Branch         @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  user         User?          @relation("EmployeeUser", fields: [userId], references: [id], onDelete: Restrict)
+  department   HrDepartment?  @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  section      HrSection?     @relation(fields: [sectionId], references: [id], onDelete: Restrict)
+  team         HrTeam?        @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  designation  HrDesignation? @relation(fields: [designationId], references: [id], onDelete: Restrict)
+  manager      Employee?      @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: Restrict)
+  reports      Employee[]     @relation("EmployeeManager")
+  createdBy    User?          @relation("EmployeeCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User?          @relation("EmployeeUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  deletedBy    User?          @relation("EmployeeDeletedBy", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  timeline     EmployeeTimelineEvent[]
+  documents    HrEmployeeDocument[]
+  leaveBalances HrLeaveBalance[]
+  leaveRequests HrLeaveRequest[]
+  attendance   HrAttendanceRecord[]
+  corrections  HrAttendanceCorrection[]
+
+  @@index([branchId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([managerId])
+  @@index([joiningDate])
+}
+
+model EmployeeTimelineEvent {
+  id          String   @id @default(cuid())
+  employeeId  String
+  eventType   String
+  title       String
+  detail      String?
+  occurredAt  DateTime @default(now()) @db.Timestamptz(6)
+  createdById String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, occurredAt])
+}
+
+model HrEmployeeDocument {
+  id          String    @id @default(cuid())
+  employeeId  String
+  type        HrDocType
+  title       String
+  filePath    String
+  mimeType    String?
+  sizeBytes   Int?
+  version     Int       @default(1)
+  expiryDate  DateTime? @db.Date
+  notes       String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+  createdById String?
+  updatedById String?
+  deletedById String?
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([type])
+  @@index([expiryDate])
+  @@index([deletedAt])
+}
+
+model HrLeaveType {
+  id                   String    @id @default(cuid())
+  name                 String
+  code                 String    @unique
+  paid                 Boolean   @default(true)
+  openingBalance       Decimal   @default(0) @db.Decimal(8, 2)
+  maxPerYear           Decimal?  @db.Decimal(8, 2)
+  carryForward         Boolean   @default(false)
+  maxCarryForward      Decimal?  @db.Decimal(8, 2)
+  allowNegativeBalance Boolean   @default(false)
+  active               Boolean   @default(true)
+  createdAt            DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt            DateTime? @db.Timestamptz(6)
+  createdById          String?
+  updatedById          String?
+  deletedById          String?
+
+  balances  HrLeaveBalance[]
+  requests  HrLeaveRequest[]
+
+  @@index([deletedAt])
+}
+
+model HrLeaveBalance {
+  id           String   @id @default(cuid())
+  employeeId   String
+  leaveTypeId  String
+  year         Int
+  opening      Decimal  @default(0) @db.Decimal(8, 2)
+  accrued      Decimal  @default(0) @db.Decimal(8, 2)
+  used         Decimal  @default(0) @db.Decimal(8, 2)
+  carried      Decimal  @default(0) @db.Decimal(8, 2)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+  employee  Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType HrLeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@index([employeeId])
+}
+
+model HrLeaveRequest {
+  id              String               @id @default(cuid())
+  employeeId      String
+  leaveTypeId     String
+  fromDate        DateTime             @db.Date
+  toDate          DateTime             @db.Date
+  days            Decimal              @db.Decimal(8, 2)
+  reason          String?
+  status          HrLeaveRequestStatus @default(DRAFT)
+  managerId       String?
+  managerNote     String?
+  managerAt       DateTime?            @db.Timestamptz(6)
+  hrApproverId    String?
+  hrNote          String?
+  hrAt            DateTime?            @db.Timestamptz(6)
+  createdAt       DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime             @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?            @db.Timestamptz(6)
+  createdById     String?
+  updatedById     String?
+  deletedById     String?
+
+  employee  Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType HrLeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([fromDate, toDate])
+  @@index([deletedAt])
+}
+
+model HrHoliday {
+  id           String         @id @default(cuid())
+  name         String
+  date         DateTime       @db.Date
+  scope        HrHolidayScope @default(COMPANY)
+  branchId     String?
+  departmentId String?
+  optional     Boolean        @default(false)
+  createdAt    DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime       @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?      @db.Timestamptz(6)
+  createdById  String?
+  updatedById  String?
+  deletedById  String?
+
+  branch     Branch?       @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  department HrDepartment? @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  @@index([date])
+  @@index([branchId])
+  @@index([deletedAt])
+}
+
+model HrAttendanceRecord {
+  id           String              @id @default(cuid())
+  employeeId   String
+  date         DateTime            @db.Date
+  clockIn      DateTime?           @db.Timestamptz(6)
+  clockOut     DateTime?           @db.Timestamptz(6)
+  status       HrAttendanceStatus  @default(PRESENT)
+  note         String?
+  createdAt    DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime            @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?           @db.Timestamptz(6)
+  createdById  String?
+  updatedById  String?
+  deletedById  String?
+
+  employee    Employee                 @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  corrections HrAttendanceCorrection[]
+
+  @@unique([employeeId, date])
+  @@index([date])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model HrAttendanceCorrection {
+  id              String             @id @default(cuid())
+  attendanceId    String
+  employeeId      String
+  requestedClockIn  DateTime?        @db.Timestamptz(6)
+  requestedClockOut DateTime?        @db.Timestamptz(6)
+  requestedStatus HrAttendanceStatus?
+  reason          String?
+  status          HrCorrectionStatus @default(SUBMITTED)
+  managerId       String?
+  managerNote     String?
+  managerAt       DateTime?          @db.Timestamptz(6)
+  hrApproverId    String?
+  hrNote          String?
+  hrAt            DateTime?          @db.Timestamptz(6)
+  createdAt       DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?          @db.Timestamptz(6)
+  createdById     String?
+  updatedById     String?
+  deletedById     String?
+
+  attendance HrAttendanceRecord @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  employee   Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([deletedAt])
 }
