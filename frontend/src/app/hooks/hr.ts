@@ -37,6 +37,8 @@ export const hrKeys = {
   attendanceCorrections: (p: unknown) => ["hr", "attendanceCorrections", p] as const,
   me: ["hr", "me"] as const,
   myLeave: ["hr", "me", "leave"] as const,
+  myLeaveTypes: ["hr", "me", "leaveTypes"] as const,
+  myApprovals: ["hr", "me", "approvals"] as const,
   myAttendance: (p: unknown) => ["hr", "me", "attendance", p] as const,
 };
 
@@ -342,6 +344,10 @@ export function useDeleteEmployeeDocument() {
 export const downloadEmployeeDocument = (employeeId: string, doc: Pick<EmployeeDocumentDto, "id" | "title">) =>
   downloadViaApi(`/hr/employees/${employeeId}/documents/${doc.id}/file`, doc.title).catch(err);
 
+/** Portal self-service document download (owner-only route). */
+export const downloadMyDocument = (doc: Pick<EmployeeDocumentDto, "id" | "title">) =>
+  downloadViaApi(`/hr/me/documents/${doc.id}/file`, doc.title).catch(err);
+
 // ─── Leave ──────────────────────────────────────────────────────────────────
 export const useLeaveTypes = () =>
   useQuery({ queryKey: hrKeys.leaveTypes, queryFn: () => apiFetch<LeaveTypeDto[]>("/hr/leave/types") });
@@ -542,6 +548,16 @@ export function useUpdateHrMe() {
   });
 }
 
+export const useMyLeaveTypes = () =>
+  useQuery({ queryKey: hrKeys.myLeaveTypes, queryFn: () => apiFetch<LeaveTypeDto[]>("/hr/me/leave-types") });
+
+export interface MyApprovalsDto {
+  leave: LeaveRequestDto[];
+  corrections: AttendanceCorrectionDto[];
+}
+export const useMyApprovals = () =>
+  useQuery({ queryKey: hrKeys.myApprovals, queryFn: () => apiFetch<MyApprovalsDto>("/hr/me/approvals") });
+
 export const useMyLeaveRequests = () =>
   useQuery({ queryKey: hrKeys.myLeave, queryFn: () => apiFetch<LeaveRequestListResult>("/hr/me/leave") });
 
@@ -589,6 +605,15 @@ export function useCreateMyAttendanceCorrection() {
   return useMutation({
     mutationFn: (input: AttendanceCorrectionInput) => apiFetch<AttendanceCorrectionDto>("/hr/me/attendance/corrections", { method: "POST", body: JSON.stringify(input) }),
     onSuccess: () => { invalidateMyAttendance(qc); toast.success("Correction request submitted"); },
+    onError: err,
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (input: { currentPassword: string; newPassword: string }) =>
+      apiFetch<{ ok: boolean }>("/auth/change-password", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: () => toast.success("Password changed — please sign in again"),
     onError: err,
   });
 }

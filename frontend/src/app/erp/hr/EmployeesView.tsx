@@ -5,7 +5,7 @@ import { AiInsightCard } from "../../design-system/ai/AiInsightCard";
 import { ErrorBanner, SkeletonTable } from "../../lib/ds";
 import { useBranches } from "../../hooks/bookings";
 import {
-  useEmployees, useEmployee, useEmployeeTimeline, useCreateEmployee, useSetEmployeeStatus,
+  useEmployees, useEmployee, useEmployeeTimeline, useCreateEmployee, useUpdateEmployee, useSetEmployeeStatus,
   useDepartments, type EmployeeListItem, type EmployeeCreateInput,
 } from "../../hooks/hr";
 import { Card, Pagination, Pill, Drawer, Field, PrimaryBtn, GhostBtn, StatusPill, fmtDate, fmtDateTime, inputCls, selectCls } from "./ui";
@@ -179,10 +179,13 @@ function EmployeeDetailDrawer({ employeeId, onClose }: { employeeId: string; onC
   const { data: e, isLoading, isError, error, refetch } = useEmployee(employeeId);
   const { data: timeline } = useEmployeeTimeline(employeeId);
   const setStatusMut = useSetEmployeeStatus();
+  const updateMut = useUpdateEmployee(employeeId);
   const [tab, setTab] = useState<"overview" | "timeline">("overview");
   const [statusChangeOpen, setStatusChangeOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [note, setNote] = useState("");
+  const [portalUserId, setPortalUserId] = useState("");
+  const [linkOpen, setLinkOpen] = useState(false);
 
   return (
     <Drawer open onClose={onClose} width="max-w-[640px]" title={e ? e.fullName : "Employee"} subtitle={e ? `${e.employeeCode} · ${e.branchName}` : undefined}>
@@ -220,7 +223,28 @@ function EmployeeDetailDrawer({ employeeId, onClose }: { employeeId: string; onC
             <KV label="Designation" value={e.designationName} icon={Briefcase} />
             <KV label="Manager" value={e.managerName} icon={User} />
             <KV label="Joining Date" value={fmtDate(e.joiningDate)} />
+            <KV label="Portal User" value={e.userEmail ?? e.userId ?? "Not linked"} />
+            <div className="flex items-end">
+              <GhostBtn onClick={() => { setPortalUserId(e.userId ?? ""); setLinkOpen((v) => !v); }}>
+                {e.userId ? "Change portal link" : "Link portal user"}
+              </GhostBtn>
+            </div>
           </div>
+
+          {linkOpen && (
+            <Card className="p-4 space-y-3">
+              <Field label="User ID (auth account)">
+                <input className={inputCls} value={portalUserId} onChange={(ev) => setPortalUserId(ev.target.value)} placeholder="e.g. usr_staff" />
+              </Field>
+              <p className="text-[10px] text-[var(--color-text-faint)]">Links this employee to a login so they can use /employee portal. Leave blank to unlink.</p>
+              <div className="flex justify-end gap-2">
+                <GhostBtn onClick={() => setLinkOpen(false)}>Cancel</GhostBtn>
+                <PrimaryBtn disabled={updateMut.isPending} onClick={() => updateMut.mutate({ userId: portalUserId.trim() || null }, { onSuccess: () => setLinkOpen(false) })}>
+                  {updateMut.isPending ? "Saving…" : "Save link"}
+                </PrimaryBtn>
+              </div>
+            </Card>
+          )}
 
           <AiInsightCard title="Employee Insights" collapsedByDefault>
             <ul className="text-xs space-y-1.5 list-disc pl-4">
@@ -229,6 +253,7 @@ function EmployeeDetailDrawer({ employeeId, onClose }: { employeeId: string; onC
               )}
               {e.documentsCount === 0 && <li>No HR documents on file yet — collect NID / contract / photo.</li>}
               {e.leaveBalances.length === 0 && <li>Leave balances not initialized for this employee.</li>}
+              {!e.userId && <li>No portal login linked — assign a user ID to enable Employee Portal.</li>}
               {e.status === "JOINED" || e.status === "CONFIRMED" || e.status === "PROBATION" ? (
                 <li>Active employee on {e.branchName}{e.departmentName ? ` · ${e.departmentName}` : ""}.</li>
               ) : (

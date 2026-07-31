@@ -315,6 +315,18 @@ export async function meHandler(req: Request, res: Response): Promise<void> {
 export async function updateMeHandler(req: Request, res: Response): Promise<void> {
   res.json(await hr.updateMyProfile(req.auth!, employeeUpdateSchema.parse(req.body)));
 }
+export async function myLeaveTypesHandler(req: Request, res: Response): Promise<void> {
+  res.json(await hr.listMyLeaveTypes(req.auth!));
+}
+export async function myDocumentFileHandler(req: Request, res: Response): Promise<void> {
+  const f = await hr.getMyDocumentFile(req.auth!, req.params.docId);
+  res.setHeader("Content-Type", f.mimeType);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.download(f.absPath, f.name);
+}
+export async function myApprovalsHandler(req: Request, res: Response): Promise<void> {
+  res.json(await hr.listMyManagerApprovals(req.auth!));
+}
 export async function myLeaveRequestsHandler(req: Request, res: Response): Promise<void> {
   const me = await hr.getMyEmployee(req.auth!);
   res.json(await hr.listLeaveRequests(req.auth!, { employeeId: me.id }));

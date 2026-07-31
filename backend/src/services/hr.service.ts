@@ -354,10 +354,12 @@ export async function listEmployees(auth: AuthCtx, q: EmployeeListQuery) {
 export async function getEmployee(auth: AuthCtx, id: string) {
   const e = await prisma.employee.findFirst({ where: { id, ...branchWhere(auth), deletedAt: null }, include: employeeInclude });
   if (!e) throw new HttpError(404, "NotFound");
+  const year = new Date().getUTCFullYear();
+  await ensureBalances(id, year);
   const [documents, timeline, balances] = await Promise.all([
     prisma.hrEmployeeDocument.findMany({ where: { employeeId: id, deletedAt: null }, orderBy: { createdAt: "desc" } }),
     prisma.employeeTimelineEvent.findMany({ where: { employeeId: id }, orderBy: { occurredAt: "desc" }, take: 30 }),
-    prisma.hrLeaveBalance.findMany({ where: { employeeId: id, year: new Date().getUTCFullYear() }, include: { leaveType: { select: { name: true, code: true } } } }),
+    prisma.hrLeaveBalance.findMany({ where: { employeeId: id, year }, include: { leaveType: { select: { name: true, code: true } } } }),
   ]);
   return {
     ...toEmployeeListItem(e),
@@ -478,6 +480,13 @@ export async function updateEmployee(auth: AuthCtx, id: string, input: EmployeeU
   if (input.languages !== undefined) data.languages = input.languages ?? null;
   if (input.notes !== undefined) data.notes = input.notes ?? null;
   if (input.photoUrl !== undefined) data.photoUrl = input.photoUrl ?? null;
+  if (input.userId !== undefined) {
+    if (input.userId) {
+      const dup = await prisma.employee.findFirst({ where: { userId: input.userId, deletedAt: null, NOT: { id } }, select: { id: true } });
+      if (dup) throw new HttpError(409, "Conflict", { detail: "That user is already linked to another employee." });
+    }
+    data.userId = input.userId ?? null;
+  }
 
   const statusChanged = input.status !== undefined && input.status !== existing.status;
   if (input.status !== undefined) data.status = input.status;
@@ -589,6 +598,25 @@ export async function getEmployeeDocumentFile(auth: AuthCtx, employeeId: string,
   const d = await prisma.hrEmployeeDocument.findFirst({ where: { id: docId, employeeId, deletedAt: null } });
   if (!d) throw new HttpError(404, "NotFound", { detail: "Document not found." });
   return { absPath: absoluteStorePath(d.filePath), mimeType: d.mimeType ?? "application/octet-stream", name: d.title };
+}
+
+/** Portal owner-only document download (no hr.view required). */
+export async function getMyDocumentFile(auth: AuthCtx, docId: string) {
+  const me = await getMyEmployee(auth);
+  const d = await prisma.hrEmployeeDocument.findFirst({ where: { id: docId, employeeId: me.id, deletedAt: null } });
+  if (!d) throw new HttpError(404, "NotFound", { detail: "Document not found." });
+  return { absPath: absoluteStorePath(d.filePath), mimeType: d.mimeType ?? "application/octet-stream", name: d.title };
+}
+
+/** Active leave types for portal leave requests (auth-only, no hr.view). */
+export async function listMyLeaveTypes(_auth: AuthCtx) {
+  const rows = await prisma.hrLeaveType.findMany({ where: { deletedAt: null, active: true }, orderBy: { name: "asc" } });
+  return rows.map((t) => ({
+    id: t.id, name: t.name, code: t.code, paid: t.paid, openingBalance: num(t.openingBalance),
+    maxPerYear: t.maxPerYear == null ? null : num(t.maxPerYear), carryForward: t.carryForward,
+    maxCarryForward: t.maxCarryForward == null ? null : num(t.maxCarryForward),
+    allowNegativeBalance: t.allowNegativeBalance, active: t.active,
+  }));
 }
 
 // ─── Leave ──────────────────────────────────────────────────────────────────
@@ -799,6 +827,23 @@ export async function hrApproveLeave(auth: AuthCtx, id: string, input: LeaveDeci
   }
   const year = r.fromDate.getUTCFullYear();
   await ensureBalances(r.employeeId, year);
+  const leaveType = await prisma.hrLeaveType.findFirst({ where: { id: r.leaveTypeId, deletedAt: null } });
+  if (!leaveType) throw new HttpError(404, "NotFound", { detail: "Leave type not found." });
+  const bal = await prisma.hrLeaveBalance.findUnique({
+    where: { employeeId_leaveTypeId_year: { employeeId: r.employeeId, leaveTypeId: r.leaveTypeId, year } },
+  });
+  const available = bal ? num(bal.opening) + num(bal.accrued) + num(bal.carried) - num(bal.used) : 0;
+  const daysNeeded = num(r.days);
+  if (!leaveType.allowNegativeBalance && available < daysNeeded) {
+    throw new HttpError(409, "InsufficientBalance", {
+      detail: `Available balance is ${available} day(s); request needs ${daysNeeded}.`,
+    });
+  }
+  if (leaveType.maxPerYear != null && num(bal?.used ?? 0) + daysNeeded > num(leaveType.maxPerYear)) {
+    throw new HttpError(409, "MaxPerYearExceeded", {
+      detail: `Approving would exceed the max of ${num(leaveType.maxPerYear)} day(s) per year for ${leaveType.name}.`,
+    });
+  }
   const updated = await prisma.$transaction(async (tx) => {
     await tx.hrLeaveBalance.update({
       where: { employeeId_leaveTypeId_year: { employeeId: r.employeeId, leaveTypeId: r.leaveTypeId, year } },
@@ -1293,4 +1338,111 @@ export async function updateMyProfile(auth: AuthCtx, input: EmployeeUpdateInput)
   if (input.photoUrl !== undefined) data.photoUrl = input.photoUrl ?? null;
   await prisma.employee.update({ where: { id: me.id }, data });
   return getEmployee(auth, me.id);
+}
+
+/** Leave / attendance corrections awaiting this user as the direct manager. */
+export async function listMyManagerApprovals(auth: AuthCtx) {
+  const me = await getMyEmployee(auth);
+  const [leave, corrections] = await Promise.all([
+    prisma.hrLeaveRequest.findMany({
+      where: { deletedAt: null, status: "SUBMITTED", employee: { managerId: me.id, deletedAt: null } },
+      include: leaveRequestInclude,
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+    prisma.hrAttendanceCorrection.findMany({
+      where: { deletedAt: null, status: "SUBMITTED", employee: { managerId: me.id, deletedAt: null } },
+      include: correctionInclude,
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+  ]);
+  return {
+    leave: leave.map(toLeaveRequestDto),
+    corrections: corrections.map(toCorrectionDto),
+  };
+}
+
+/**
+ * Daily HR lifecycle reminders (document expiry, birthdays, confirmations).
+ * Dedupes against in-app notifications created in the last 6 days for the same title.
+ */
+export async function processHrLifecycleReminders(): Promise<number> {
+  const today = todayDateOnly();
+  const in30 = addDays(today, 30);
+  const since = addDays(today, -6);
+  let sent = 0;
+
+  async function notifyOnce(userIds: string[], event: HrNotificationEvent, n: { title: string; body?: string; type?: string }) {
+    const unique = Array.from(new Set(userIds.filter(Boolean)));
+    for (const userId of unique) {
+      const dup = await prisma.notification.findFirst({
+        where: { userId, type: "hr", title: n.title, createdAt: { gte: since } },
+        select: { id: true },
+      });
+      if (dup) continue;
+      await notifyHrUsers([userId], event, { ...n, type: n.type ?? "hr" });
+      sent += 1;
+    }
+  }
+
+  const docs = await prisma.hrEmployeeDocument.findMany({
+    where: { deletedAt: null, expiryDate: { gte: today, lte: in30 }, employee: { deletedAt: null } },
+    select: {
+      id: true, title: true, type: true, expiryDate: true,
+      employee: { select: { userId: true, firstName: true, lastName: true } },
+    },
+  });
+  for (const d of docs) {
+    const expiry = dOnly(d.expiryDate) ?? "";
+    const title = `Document expiring: ${d.title}`;
+    const body = `${d.employee.firstName} ${d.employee.lastName}'s ${d.type.replace(/_/g, " ").toLowerCase()} (${d.title}) expires on ${expiry}.`;
+    if (d.employee.userId) {
+      await notifyOnce([d.employee.userId], "document_expiring", { title, body });
+    }
+    const hrRows = await prisma.rolePermission.findMany({
+      where: { access: "full", permission: { module: "hr" } },
+      select: { role: { select: { users: { select: { userId: true } } } } },
+    });
+    const hrIds = Array.from(new Set(hrRows.flatMap((r) => r.role.users.map((u) => u.userId))));
+    await notifyOnce(hrIds, "document_expiring", { title, body });
+  }
+
+  const active = await prisma.employee.findMany({
+    where: { deletedAt: null, status: { notIn: ["RESIGNED", "TERMINATED", "ARCHIVED"] } },
+    select: { id: true, firstName: true, lastName: true, dateOfBirth: true, joiningDate: true, probationMonths: true, status: true, userId: true, manager: { select: { userId: true } } },
+  });
+
+  for (const e of active) {
+    if (e.dateOfBirth) {
+      const dob = e.dateOfBirth;
+      let next = new Date(Date.UTC(today.getUTCFullYear(), dob.getUTCMonth(), dob.getUTCDate()));
+      if (next.getTime() < today.getTime()) next = new Date(Date.UTC(today.getUTCFullYear() + 1, dob.getUTCMonth(), dob.getUTCDate()));
+      const daysAway = Math.round((next.getTime() - today.getTime()) / 86_400_000);
+      if (daysAway <= 7) {
+        const title = `Birthday reminder: ${e.firstName} ${e.lastName}`;
+        const body = daysAway === 0
+          ? `${e.firstName} ${e.lastName}'s birthday is today.`
+          : `${e.firstName} ${e.lastName}'s birthday is in ${daysAway} day(s).`;
+        const targets = [e.userId, e.manager?.userId].filter(Boolean) as string[];
+        await notifyOnce(targets, "birthday_reminder", { title, body });
+      }
+    }
+    if (e.status === "PROBATION" && e.joiningDate && e.probationMonths != null) {
+      const due = addMonths(e.joiningDate, e.probationMonths);
+      const daysAway = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+      if (daysAway >= 0 && daysAway <= 14) {
+        const title = `Confirmation due: ${e.firstName} ${e.lastName}`;
+        const body = `Probation confirmation for ${e.firstName} ${e.lastName} is due on ${dOnly(due)} (${daysAway} day(s)).`;
+        const hrRows = await prisma.rolePermission.findMany({
+          where: { access: "full", permission: { module: "hr" } },
+          select: { role: { select: { users: { select: { userId: true } } } } },
+        });
+        const hrIds = Array.from(new Set(hrRows.flatMap((r) => r.role.users.map((u) => u.userId))));
+        await notifyOnce(hrIds, "confirmation_reminder", { title, body });
+      }
+    }
+  }
+
+  return sent;
 }

@@ -156,6 +156,33 @@ async function seedStructural() {
     });
   }
 
+  // 4c) Default HR org units (production-safe structural seed)
+  await prisma.hrDepartment.upsert({
+    where: { id: "hrdept_ops" },
+    create: { id: "hrdept_ops", name: "Operations", code: "OPS", branchId: "brn_dhaka", description: "Branch operations" },
+    update: { name: "Operations", code: "OPS" },
+  });
+  await prisma.hrDepartment.upsert({
+    where: { id: "hrdept_hr" },
+    create: { id: "hrdept_hr", name: "Human Resources", code: "HR", branchId: "brn_dhaka", description: "People operations" },
+    update: { name: "Human Resources", code: "HR" },
+  });
+  await prisma.hrDesignation.upsert({
+    where: { id: "hrdes_exec" },
+    create: { id: "hrdes_exec", name: "Executive", code: "EXEC", level: 1 },
+    update: { name: "Executive", code: "EXEC" },
+  });
+  await prisma.hrDesignation.upsert({
+    where: { id: "hrdes_mgr" },
+    create: { id: "hrdes_mgr", name: "Manager", code: "MGR", level: 3 },
+    update: { name: "Manager", code: "MGR" },
+  });
+  await prisma.hrDesignation.upsert({
+    where: { id: "hrdes_hr_off" },
+    create: { id: "hrdes_hr_off", name: "HR Officer", code: "HRO", level: 2 },
+    update: { name: "HR Officer", code: "HRO" },
+  });
+
   // 6) Commission tiers (volume-driven)
   const tiers: { tier: AgentTier; rate: number; min: number; max: number | null }[] = [
     { tier: "SILVER", rate: 3, min: 0, max: 9 },
@@ -1040,6 +1067,103 @@ async function seedDemo() {
 
   // 20d) ACCOUNTANT — PII on usr_accountant (reuses finance/reports endpoints).
   await prisma.user.update({ where: { id: "usr_accountant" }, data: { nid: "1988555566667", employeeId: "EMP-0012", department: "Finance" } });
+
+  // 20e) HR Phase 1 demo employees linked to portal/ERP users for smoke workflows.
+  // Manager (branch manager) → reports: staff employee. COMPANY_ADMIN also gets an HR officer row.
+  await prisma.employee.upsert({
+    where: { id: "hremp_manager" },
+    create: {
+      id: "hremp_manager",
+      employeeCode: "EMP-MGR-01",
+      userId: "usr_branch_manager",
+      branchId: "brn_dhaka",
+      departmentId: "hrdept_ops",
+      designationId: "hrdes_mgr",
+      firstName: "Demo",
+      lastName: "Manager",
+      email: "branch_manager@smtravel.com.bd",
+      phone: "+880 1700-000101",
+      employmentType: "FULL_TIME",
+      status: "CONFIRMED",
+      joiningDate: dt("2022-01-15"),
+      confirmationDate: dt("2022-07-15"),
+    },
+    update: {
+      userId: "usr_branch_manager",
+      departmentId: "hrdept_ops",
+      designationId: "hrdes_mgr",
+      status: "CONFIRMED",
+    },
+  });
+  await prisma.employee.upsert({
+    where: { id: "hremp_staff" },
+    create: {
+      id: "hremp_staff",
+      employeeCode: "EMP-0047",
+      userId: "usr_staff",
+      branchId: "brn_dhaka",
+      departmentId: "hrdept_ops",
+      designationId: "hrdes_exec",
+      managerId: "hremp_manager",
+      firstName: "Demo",
+      lastName: "Staff",
+      email: "staff@smtravel.com.bd",
+      phone: "+880 1700-000047",
+      emergencyContactName: "Ayesha Rahman",
+      emergencyContactPhone: "+880 1800-000047",
+      employmentType: "FULL_TIME",
+      status: "PROBATION",
+      joiningDate: dt("2026-05-01"),
+      probationMonths: 6,
+      dateOfBirth: dt("1995-08-12"),
+    },
+    update: {
+      userId: "usr_staff",
+      managerId: "hremp_manager",
+      departmentId: "hrdept_ops",
+      designationId: "hrdes_exec",
+      status: "PROBATION",
+    },
+  });
+  await prisma.employee.upsert({
+    where: { id: "hremp_hr" },
+    create: {
+      id: "hremp_hr",
+      employeeCode: "EMP-HR-01",
+      userId: "usr_company_admin",
+      branchId: "brn_dhaka",
+      departmentId: "hrdept_hr",
+      designationId: "hrdes_hr_off",
+      firstName: "Demo",
+      lastName: "HR Admin",
+      email: "company_admin@smtravel.com.bd",
+      phone: "+880 1700-000201",
+      employmentType: "FULL_TIME",
+      status: "CONFIRMED",
+      joiningDate: dt("2021-03-01"),
+    },
+    update: {
+      userId: "usr_company_admin",
+      departmentId: "hrdept_hr",
+      designationId: "hrdes_hr_off",
+      status: "CONFIRMED",
+    },
+  });
+  // Expiring document for notification / report smoke (Scenario 4).
+  await prisma.hrEmployeeDocument.upsert({
+    where: { id: "hrdoc_staff_nid" },
+    create: {
+      id: "hrdoc_staff_nid",
+      employeeId: "hremp_staff",
+      type: "NATIONAL_ID",
+      title: "National ID — Demo Staff",
+      filePath: "hr/demo/staff-nid.txt",
+      mimeType: "text/plain",
+      sizeBytes: 12,
+      expiryDate: dt("2026-08-20"),
+    },
+    update: { expiryDate: dt("2026-08-20"), title: "National ID — Demo Staff" },
+  });
 
   // eslint-disable-next-line no-console
   console.log("[seed] demo done.");

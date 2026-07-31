@@ -246,3 +246,18 @@ export async function resetPassword(resetToken: string, newPassword: string, ctx
   await prisma.refreshToken.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
   await audit({ event: "PASSWORD_RESET", userId: user.id, ip: ctx.ip, severity: AuditSeverity.WARNING, detail: "password changed; all sessions revoked" });
 }
+
+/** Authenticated password change (portal / ERP account security). */
+export async function changePassword(userId: string, currentPassword: string, newPassword: string, ctx: Ctx): Promise<void> {
+  const user = await prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
+  if (!user) throw new HttpError(401, "Unauthorized");
+  if (!verifyPassword(currentPassword, user.passwordHash)) {
+    throw new HttpError(400, "InvalidPassword", { detail: "Current password is incorrect." });
+  }
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: hashPassword(newPassword), failedLoginCount: 0, lockedUntil: null },
+  });
+  await prisma.refreshToken.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
+  await audit({ event: "PASSWORD_CHANGED", userId: user.id, ip: ctx.ip, severity: AuditSeverity.WARNING, detail: "password changed; all sessions revoked" });
+}

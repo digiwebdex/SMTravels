@@ -13,6 +13,10 @@ const LoginSchema = z.object({ email: EmailSchema, password: z.string().min(1).m
 const ForgotSchema = z.object({ email: EmailSchema });
 const VerifyOtpSchema = z.object({ email: EmailSchema, otp: z.string().regex(/^\d{6}$/) });
 const ResetSchema = z.object({ resetToken: z.string().min(10), password: PasswordSchema });
+const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(200),
+  newPassword: PasswordSchema,
+});
 
 function ctx(req: Request) {
   return { ip: clientIp(req), ua: req.headers["user-agent"] ?? null };
@@ -90,5 +94,12 @@ export async function verifyOtpHandler(req: Request, res: Response): Promise<voi
 export async function resetPasswordHandler(req: Request, res: Response): Promise<void> {
   const { resetToken, password } = ResetSchema.parse(req.body);
   await auth.resetPassword(resetToken, password, ctx(req));
+  res.json({ ok: true });
+}
+
+export async function changePasswordHandler(req: Request, res: Response): Promise<void> {
+  const { currentPassword, newPassword } = ChangePasswordSchema.parse(req.body);
+  await auth.changePassword(req.auth!.userId, currentPassword, newPassword, ctx(req));
+  clearRefreshCookie(res);
   res.json({ ok: true });
 }

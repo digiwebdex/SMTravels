@@ -10,6 +10,7 @@ import {
   forgotPasswordHandler,
   verifyOtpHandler,
   resetPasswordHandler,
+  changePasswordHandler,
 } from "../controllers/auth.controller";
 
 export const authRouter = Router();
@@ -18,6 +19,7 @@ authRouter.post("/auth/login", loginRateLimiter, asyncHandler(loginHandler));
 authRouter.post("/auth/refresh", refreshRateLimiter, asyncHandler(refreshHandler));
 authRouter.post("/auth/logout", asyncHandler(logoutHandler));
 authRouter.get("/auth/me", requireAuth, asyncHandler(meHandler));
+authRouter.post("/auth/change-password", requireAuth, asyncHandler(changePasswordHandler));
 
 authRouter.post("/auth/forgot-password", forgotPasswordRateLimiter, asyncHandler(forgotPasswordHandler));
 authRouter.post("/auth/verify-otp", otpRateLimiter, asyncHandler(verifyOtpHandler));

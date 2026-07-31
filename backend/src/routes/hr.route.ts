@@ -22,7 +22,7 @@ import {
   managerApproveCorrectionHandler, hrApproveCorrectionHandler, rejectCorrectionHandler,
   exportHandler,
   meHandler, updateMeHandler, myLeaveRequestsHandler, createMyLeaveRequestHandler, myAttendanceHandler,
-  createMyAttendanceCorrectionHandler,
+  createMyAttendanceCorrectionHandler, myLeaveTypesHandler, myDocumentFileHandler, myApprovalsHandler,
 } from "../controllers/hr.controller";
 
 // HR module — branch-scoped via branchWhere() in the service. Admin/back-office
@@ -110,8 +110,11 @@ hrRouter.get("/hr/reports/export", requireAuth, view, asyncHandler(exportHandler
 // no hr RBAC grant required, matching the CUSTOMER/AGENT/SUPPLIER portal pattern.
 hrRouter.get("/hr/me", requireAuth, asyncHandler(meHandler));
 hrRouter.patch("/hr/me", requireAuth, asyncHandler(updateMeHandler));
+hrRouter.get("/hr/me/leave-types", requireAuth, asyncHandler(myLeaveTypesHandler));
 hrRouter.get("/hr/me/leave", requireAuth, asyncHandler(myLeaveRequestsHandler));
 hrRouter.post("/hr/me/leave", requireAuth, asyncHandler(createMyLeaveRequestHandler));
+hrRouter.get("/hr/me/documents/:docId/file", requireAuth, asyncHandler(myDocumentFileHandler));
+hrRouter.get("/hr/me/approvals", requireAuth, asyncHandler(myApprovalsHandler));
 hrRouter.get("/hr/me/attendance", requireAuth, asyncHandler(myAttendanceHandler));
 hrRouter.post("/hr/me/attendance/clock-in", requireAuth, asyncHandler(clockInHandler));
 hrRouter.post("/hr/me/attendance/clock-out", requireAuth, asyncHandler(clockOutHandler));

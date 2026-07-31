@@ -55,11 +55,11 @@ function ManualUpsertForm() {
 }
 
 function CorrectionsQueue() {
-  const { data, isLoading, isError, error } = useAttendanceCorrections({ status: "PENDING" });
+  const { data, isLoading, isError, error } = useAttendanceCorrections({});
   const managerApproveMut = useManagerApproveCorrection();
   const hrApproveMut = useHrApproveCorrection();
   const rejectMut = useRejectCorrection();
-  const rows = data?.data ?? [];
+  const rows = (data?.data ?? []).filter((c) => c.status === "SUBMITTED" || c.status === "MANAGER_APPROVED");
 
   return (
     <Card>
