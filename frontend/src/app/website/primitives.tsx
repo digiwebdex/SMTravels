@@ -280,19 +280,26 @@ export function TestimonialCard({ t }: { t: PublicTestimonialItem }) {
 }
 
 export function VideoCard({
-  title, youtubeId, duration, views, category,
-}: { title: string; youtubeId: string; duration?: string; views?: string; category?: string }) {
-  const thumb = `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
-  return (
-    <a
-      href={`https://www.youtube.com/watch?v=${youtubeId}`}
-      target="_blank"
-      rel="noreferrer"
-      className="group block rounded-lg overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
-    >
+  title, youtubeId, src, poster, duration, views, category, onPlay,
+}: {
+  title: string;
+  youtubeId?: string;
+  src?: string;
+  poster?: string;
+  duration?: string;
+  views?: string;
+  category?: string;
+  onPlay?: () => void;
+}) {
+  const thumb = poster
+    || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : "/hero-kaaba.jpg");
+  const playable = !!(src || youtubeId);
+
+  const inner = (
+    <>
       <div className="relative aspect-video overflow-hidden">
         <img src={thumb} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-        <div className="absolute inset-0 bg-black/25 group-hover:bg-black/35 transition-colors" />
+        <div className="absolute inset-0 bg-black/25 group-hover:bg-black/40 transition-colors" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-14 h-14 rounded-full bg-white/95 text-[#F15A24] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
             <Play size={22} className="ml-0.5 fill-current" />
@@ -307,6 +314,35 @@ export function VideoCard({
         <h3 className="font-semibold text-[#062D63] text-sm leading-snug line-clamp-2 group-hover:text-[#1B75BC]">{title}</h3>
         {views && <p className="text-xs text-[#9CA3AF] mt-1.5">{views}</p>}
       </div>
+    </>
+  );
+
+  const cls = "group block w-full text-left rounded-lg overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]";
+
+  if (onPlay && playable) {
+    return (
+      <button type="button" onClick={onPlay} className={cls}>
+        {inner}
+      </button>
+    );
+  }
+
+  if (src) {
+    return (
+      <a href={src} className={cls}>
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={youtubeId ? `https://www.youtube.com/watch?v=${youtubeId}` : "#"}
+      target={youtubeId ? "_blank" : undefined}
+      rel={youtubeId ? "noreferrer" : undefined}
+      className={cls}
+    >
+      {inner}
     </a>
   );
 }

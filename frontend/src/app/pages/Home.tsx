@@ -7,10 +7,11 @@ import {
   Play, ArrowRight, ChevronLeft, ChevronRight, Check, X,
   Clock, Headphones, Users, BadgeCheck, BookOpen,
 } from "lucide-react";
-import { Reveal, SkeletonBlock, EmptyState, ErrorState, StatCounter } from "../website/primitives";
+import { Reveal, SkeletonBlock, EmptyState, StatCounter } from "../website/primitives";
 import { usePublicPackages } from "../hooks/publicContent";
 import { GUIDES } from "../website/knowledge/guides";
-import { SITE_VIDEOS } from "../website/videos";
+import { SITE_VIDEOS, videoThumb, type SiteVideo } from "../website/videos";
+import { VideoPlayerModal } from "../website/VideoPlayerModal";
 import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn } from "../lib/utils";
 import type { PublicPackageItem } from "../hooks/publicContent";
 
@@ -53,38 +54,220 @@ const TRUST = [
 
 function PackageSlideCard({ pkg, bn }: { pkg: PublicPackageItem; bn: boolean }) {
   return (
-    <motion.div whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 320, damping: 22 }} className="snap-start shrink-0 w-[260px] sm:w-[280px]">
+    <motion.div
+      whileHover={{ y: -8 }}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+      className="snap-start shrink-0 w-[260px] sm:w-[280px] lg:w-[300px]"
+    >
       <Link
         to={`/packages/${pkg.slug || pkg.id}`}
-        className="block bg-white border border-[#E5E7EB] rounded-lg overflow-hidden hover:shadow-xl hover:border-[#1B75BC]/35 transition-shadow group h-full"
+        className="block bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-[#1B75BC]/40 transition-all group h-full"
       >
         <div className="relative aspect-[16/11] overflow-hidden">
-          <img src={mediaUrl(pkg.image, 600, 400)} alt={pkg.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+          <img
+            src={mediaUrl(pkg.image, 640, 420)}
+            alt={pkg.title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#062D63]/35 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           {pkg.badge && (
-            <span className="absolute top-3 left-0 bg-[#F15A24] text-white text-[10px] font-bold px-3 py-1 rounded-r-md shadow">
+            <span className="absolute top-3 left-3 bg-[#F15A24] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow">
               {pkg.badge}
             </span>
           )}
         </div>
-        <div className="p-4">
-          <h3 className="font-bold text-[#062D63] text-sm leading-snug line-clamp-2 mb-2 min-h-[2.5rem]">{pkg.title}</h3>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#6B7280] mb-3">
-            <span className="inline-flex items-center gap-1"><Clock size={11} className="text-[#1B75BC]" />{pkg.duration}</span>
-            <span className="inline-flex items-center gap-1"><Plane size={11} className="text-[#1B75BC]" />{pkg.flight || "—"}</span>
-            <span className="inline-flex items-center gap-1"><Hotel size={11} className="text-[#1B75BC]" />{pkg.hotel || "—"}</span>
-          </div>
-          <div className="flex items-end justify-between gap-2 pt-1 border-t border-[#F3F4F6]">
-            <p className="text-lg font-bold text-[#F15A24] leading-tight">
+        <div className="p-4 flex flex-col">
+          <h3 className="font-bold text-[#062D63] text-[15px] leading-snug line-clamp-2 mb-3 min-h-[2.5rem] group-hover:text-[#1B75BC] transition-colors">
+            {pkg.title}
+          </h3>
+          <ul className="space-y-1.5 text-[12px] text-[#6B7280] mb-4">
+            <li className="flex items-center gap-2">
+              <Clock size={13} className="text-[#1B75BC] flex-shrink-0" />
+              <span className="truncate">{pkg.duration}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Plane size={13} className="text-[#1B75BC] flex-shrink-0" />
+              <span className="truncate">{pkg.flight || "—"}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Hotel size={13} className="text-[#1B75BC] flex-shrink-0" />
+              <span className="truncate">{pkg.hotel || "—"}</span>
+            </li>
+          </ul>
+          <div className="mt-auto flex items-end justify-between gap-2 pt-3 border-t border-[#F3F4F6]">
+            <p className="text-xl font-bold text-[#F15A24] leading-none">
               {fmtPrice(pkg.price)}
-              <span className="block text-[10px] font-semibold text-[#9CA3AF]">{bn ? "থেকে" : "from"}</span>
+              <span className="block mt-1 text-[10px] font-semibold text-[#9CA3AF]">{bn ? "থেকে" : "from"}</span>
             </p>
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#1B75BC] text-[#1B75BC] text-xs font-bold group-hover:bg-[#EAF5FF] transition-colors">
-              {bn ? "বিস্তারিত দেখুন" : "Details"} <ArrowRight size={12} />
+            <span className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-[#1B75BC] text-[#1B75BC] text-xs font-bold bg-white group-hover:bg-[#1B75BC] group-hover:text-white transition-colors">
+              {bn ? "বিস্তারিত দেখুন" : "View Details"} <ArrowRight size={12} />
             </span>
           </div>
         </div>
       </Link>
     </motion.div>
+  );
+}
+
+function PackageCarouselSection({
+  title, seeAllLabel, seeAllTo, packages, loading, bn, accent = "hajj",
+}: {
+  title: string;
+  seeAllLabel: string;
+  seeAllTo: string;
+  packages: PublicPackageItem[];
+  loading?: boolean;
+  bn: boolean;
+  accent?: "hajj" | "umrah";
+}) {
+  const reduce = useReducedMotion();
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(true);
+  const [activeDot, setActiveDot] = useState(0);
+
+  const updateNav = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setCanPrev(el.scrollLeft > 8);
+    setCanNext(el.scrollLeft < max - 8);
+    const cardW = 300;
+    setActiveDot(Math.round(el.scrollLeft / cardW));
+  };
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateNav();
+    el.addEventListener("scroll", updateNav, { passive: true });
+    window.addEventListener("resize", updateNav);
+    return () => {
+      el.removeEventListener("scroll", updateNav);
+      window.removeEventListener("resize", updateNav);
+    };
+  }, [packages.length]);
+
+  const scrollBy = (dir: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (reduce || paused || packages.length < 2) return;
+    const id = window.setInterval(() => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 24;
+      if (atEnd) el.scrollTo({ left: 0, behavior: "smooth" });
+      else el.scrollBy({ left: 320, behavior: "smooth" });
+    }, accent === "hajj" ? 4800 : 5200);
+    return () => window.clearInterval(id);
+  }, [reduce, paused, packages.length, accent]);
+
+  const tone = accent === "hajj"
+    ? { chip: "bg-[#EAF5FF] text-[#1B75BC]", bar: "from-[#062D63] to-[#1B75BC]" }
+    : { chip: "bg-[#FFF3ED] text-[#F15A24]", bar: "from-[#F15A24] to-[#C89B3C]" };
+
+  const dots = Math.max(1, packages.length - 2);
+
+  return (
+    <div>
+      <div className="flex items-end justify-between gap-4 mb-7">
+        <div>
+          <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold mb-2", tone.chip)}>
+            {accent === "hajj" ? (bn ? "হজ্ব" : "Hajj") : (bn ? "উমরাহ" : "Umrah")}
+          </span>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#062D63]">{title}</h2>
+          <div className={cn("mt-2 h-1 w-16 rounded-full bg-gradient-to-r", tone.bar)} />
+        </div>
+        <Link
+          to={seeAllTo}
+          className="text-sm font-semibold text-[#1B75BC] hover:text-[#062D63] whitespace-nowrap inline-flex items-center gap-1 group"
+        >
+          {seeAllLabel}
+          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+
+      <div
+        className="relative"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={() => setPaused(false)}
+      >
+        <motion.button
+          type="button"
+          onClick={() => scrollBy(-1)}
+          disabled={!canPrev}
+          whileHover={reduce || !canPrev ? undefined : { scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          className={cn(
+            "hidden md:flex absolute -left-3 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[#1B75BC] text-white items-center justify-center shadow-lg transition-all",
+            canPrev ? "hover:bg-[#14588F]" : "opacity-35 cursor-not-allowed",
+          )}
+          aria-label="Previous packages"
+        >
+          <ChevronLeft size={20} />
+        </motion.button>
+        <motion.button
+          type="button"
+          onClick={() => scrollBy(1)}
+          disabled={!canNext}
+          whileHover={reduce || !canNext ? undefined : { scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          className={cn(
+            "hidden md:flex absolute -right-3 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[#1B75BC] text-white items-center justify-center shadow-lg transition-all",
+            canNext ? "hover:bg-[#14588F]" : "opacity-35 cursor-not-allowed",
+          )}
+          aria-label="Next packages"
+        >
+          <ChevronRight size={20} />
+        </motion.button>
+
+        {loading && (
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={i} className="h-80 w-[280px] shrink-0 rounded-xl" />)}
+          </div>
+        )}
+
+        {!loading && packages.length === 0 && (
+          <EmptyState message={bn ? "এই ধরনের প্যাকেজ এখনো নেই।" : "No packages in this category yet."} />
+        )}
+
+        {!loading && packages.length > 0 && (
+          <div
+            ref={scrollerRef}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 no-scrollbar scroll-smooth touch-pan-x"
+          >
+            {packages.map((pkg, i) => (
+              <Reveal key={pkg.id} delay={Math.min(i, 4) * 0.05}>
+                <PackageSlideCard pkg={pkg} bn={bn} />
+              </Reveal>
+            ))}
+          </div>
+        )}
+
+        {packages.length > 3 && (
+          <div className="mt-5 flex justify-center gap-1.5" aria-hidden>
+            {Array.from({ length: dots }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => scrollerRef.current?.scrollTo({ left: i * 320, behavior: "smooth" })}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i === activeDot ? "w-6 bg-[#F15A24]" : "w-1.5 bg-[#D1D5DB] hover:bg-[#9CA3AF]",
+                )}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -96,19 +279,19 @@ function KaabaHeroBackground() {
     <div className="absolute inset-0 overflow-hidden bg-[#EAF5FF]">
       <motion.img
         src="/hero-kaaba.jpg"
-        alt="কাবা শরীফ — Masjid al-Haram at night, Makkah"
-        className="absolute inset-0 w-full h-full object-cover object-[68%_40%]"
+        alt="কাবা শরীফ — Dhaka to Saudi Arabia Hajj & Umrah journey"
+        className="absolute inset-0 w-full h-full object-cover object-[55%_45%]"
         loading="eager"
-        initial={reduce ? false : { scale: 1.06 }}
-        animate={reduce ? undefined : { scale: [1.06, 1.0, 1.06] }}
+        initial={reduce ? false : { scale: 1.04 }}
+        animate={reduce ? undefined : { scale: [1.04, 1.0, 1.04] }}
         transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
         onError={(e) => {
-          (e.target as HTMLImageElement).src = "/hero-kaaba-never-still.jpg";
+          (e.target as HTMLImageElement).src = "/hero-kaaba.png";
         }}
       />
-      {/* Image A: bright left wash, Kaaba photo reads on the right */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/92 to-transparent md:via-white/75 md:to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-white/25" />
+      {/* Soft left wash so navy/orange headline stays readable */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent md:via-white/70 md:to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/55 via-transparent to-white/10" />
     </div>
   );
 }
@@ -118,36 +301,19 @@ export function Home() {
   const bn = i18n.language?.startsWith("bn");
   const reduce = useReducedMotion();
   const [ruleTab, setRuleTab] = useState<"hajj" | "umrah">("hajj");
-  const [videoOpen, setVideoOpen] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
-  const [carouselPaused, setCarouselPaused] = useState(false);
-  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const packagesQ = usePublicPackages({ limit: 12 });
-  const packages = packagesQ.data?.data ?? [];
+  const hajjQ = usePublicPackages({ type: "Hajj", limit: 12 });
+  const umrahQ = usePublicPackages({ type: "Umrah", limit: 12 });
+  const hajjPackages = hajjQ.data?.data ?? [];
+  const umrahPackages = umrahQ.data?.data ?? [];
 
   const ruleGuides = useMemo(() => {
     const slugs = ruleTab === "hajj" ? HAJJ_SLUGS : UMRAH_SLUGS;
     return slugs.map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean).slice(0, 8) as typeof GUIDES;
   }, [ruleTab]);
-
-  const scrollPackages = (dir: -1 | 1) => {
-    carouselRef.current?.scrollBy({ left: dir * 300, behavior: "smooth" });
-  };
-
-  // Auto-advance package carousel
-  useEffect(() => {
-    if (reduce || carouselPaused || packages.length < 2) return;
-    const id = window.setInterval(() => {
-      const el = carouselRef.current;
-      if (!el) return;
-      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 24;
-      if (atEnd) el.scrollTo({ left: 0, behavior: "smooth" });
-      else el.scrollBy({ left: 300, behavior: "smooth" });
-    }, 4200);
-    return () => window.clearInterval(id);
-  }, [reduce, carouselPaused, packages.length]);
 
   return (
     <div className="overflow-x-hidden">
@@ -208,7 +374,7 @@ export function Home() {
               </motion.div>
               <motion.button
                 type="button"
-                onClick={() => setVideoOpen(true)}
+                onClick={() => setActiveVideo(SITE_VIDEOS[0])}
                 whileHover={reduce ? undefined : { scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-2.5 px-5 py-3.5 bg-white border-2 border-[#F15A24] text-[#F15A24] font-bold text-sm rounded-md hover:bg-[#FFF7F4] transition-colors shadow-sm"
@@ -223,23 +389,8 @@ export function Home() {
         </div>
       </section>
 
-      {videoOpen && (
-        <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4" onClick={() => setVideoOpen(false)} role="dialog" aria-modal>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-3xl aspect-video bg-black rounded-lg overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <iframe
-              title="SM Travels video"
-              src={`https://www.youtube.com/embed/${SITE_VIDEOS[0].youtubeId}?autoplay=1`}
-              className="w-full h-full"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
-          </motion.div>
-        </div>
+      {activeVideo && (
+        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
       )}
 
       {/* ── Floating service bar (overlaps hero — Image A) ── */}
@@ -355,60 +506,33 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Popular packages carousel ── */}
-      <section className="bg-[#F7F8FA] py-14 md:py-20">
+      {/* ── Hajj packages carousel ── */}
+      <section className="bg-[#F7F8FA] py-14 md:py-16">
         <div className="max-w-[1240px] mx-auto px-4 md:px-5">
-          <div className="flex items-end justify-between gap-4 mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#062D63]">
-              {bn ? "জনপ্রিয় হজ্ব ও উমরাহ প্যাকেজ" : "Popular Hajj & Umrah Packages"}
-            </h2>
-            <Link to="/packages" className="text-sm font-semibold text-[#1B75BC] hover:underline whitespace-nowrap inline-flex items-center gap-1">
-              {bn ? "সব প্যাকেজ দেখুন" : "See all packages"} <ArrowRight size={14} />
-            </Link>
-          </div>
+          <PackageCarouselSection
+            accent="hajj"
+            bn={!!bn}
+            title={bn ? "জনপ্রিয় হজ্ব প্যাকেজ" : "Popular Hajj Packages"}
+            seeAllLabel={bn ? "সব হজ্ব প্যাকেজ দেখুন" : "See all Hajj packages"}
+            seeAllTo="/packages?type=Hajj"
+            packages={hajjPackages}
+            loading={hajjQ.isLoading}
+          />
+        </div>
+      </section>
 
-          <div
-            className="relative"
-            onMouseEnter={() => setCarouselPaused(true)}
-            onMouseLeave={() => setCarouselPaused(false)}
-          >
-            <button
-              type="button"
-              onClick={() => scrollPackages(-1)}
-              className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-[#1B75BC] text-white items-center justify-center shadow-lg hover:bg-[#14588F] hover:scale-110 transition-transform"
-              aria-label="Previous"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollPackages(1)}
-              className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-[#1B75BC] text-white items-center justify-center shadow-lg hover:bg-[#14588F] hover:scale-110 transition-transform"
-              aria-label="Next"
-            >
-              <ChevronRight size={20} />
-            </button>
-
-            {packagesQ.isLoading && (
-              <div className="flex gap-4 overflow-hidden">
-                {[1, 2, 3, 4].map((i) => <SkeletonBlock key={i} className="h-72 w-[280px] shrink-0" />)}
-              </div>
-            )}
-            {packagesQ.isError && packages.length === 0 && <ErrorState message={bn ? "প্যাকেজ লোড করা যায়নি।" : "Could not load packages."} />}
-            {!packagesQ.isLoading && packages.length === 0 && (
-              <EmptyState message={bn ? "এখনো কোনো প্যাকেজ নেই।" : "No packages yet."} />
-            )}
-            {packages.length > 0 && (
-              <div
-                ref={carouselRef}
-                className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 no-scrollbar scroll-smooth"
-              >
-                {packages.map((pkg) => (
-                  <PackageSlideCard key={pkg.id} pkg={pkg} bn={!!bn} />
-                ))}
-              </div>
-            )}
-          </div>
+      {/* ── Umrah packages carousel ── */}
+      <section className="bg-white py-14 md:py-16">
+        <div className="max-w-[1240px] mx-auto px-4 md:px-5">
+          <PackageCarouselSection
+            accent="umrah"
+            bn={!!bn}
+            title={bn ? "জনপ্রিয় উমরাহ প্যাকেজ" : "Popular Umrah Packages"}
+            seeAllLabel={bn ? "সব উমরাহ প্যাকেজ দেখুন" : "See all Umrah packages"}
+            seeAllTo="/packages?type=Umrah"
+            packages={umrahPackages}
+            loading={umrahQ.isLoading}
+          />
         </div>
       </section>
 
@@ -452,7 +576,7 @@ export function Home() {
                 animate={reduce ? undefined : { y: [0, -8, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <img src="/madinah-dome.jpg" alt="Green Dome, Madinah" className="w-full h-full object-cover" loading="lazy"
+                <img src="/hero-kaaba.jpg" alt="Masjid al-Haram, Makkah" className="w-full h-full object-cover object-center" loading="lazy"
                   onError={(e) => { (e.target as HTMLImageElement).src = img(SITE_IMAGES.madinah, 400, 400); }} />
               </motion.div>
             </Reveal>
@@ -501,16 +625,15 @@ export function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
             {SITE_VIDEOS.slice(0, 5).map((v, i) => (
               <Reveal key={v.id} delay={i * 0.04}>
-                <motion.a
-                  href={`https://www.youtube.com/watch?v=${v.youtubeId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group block"
+                <motion.button
+                  type="button"
+                  onClick={() => setActiveVideo(v)}
+                  className="group block w-full text-left"
                   whileHover={reduce ? undefined : { y: -4 }}
                 >
                   <div className="relative aspect-video rounded-lg overflow-hidden bg-[#062D63]">
                     <img
-                      src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`}
+                      src={videoThumb(v)}
                       alt={bn ? v.titleBn : v.titleEn}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       loading="lazy"
@@ -528,7 +651,7 @@ export function Home() {
                   <p className="mt-2 text-xs md:text-sm font-semibold text-[#062D63] leading-snug line-clamp-2">
                     {bn ? v.titleBn : v.titleEn}
                   </p>
-                </motion.a>
+                </motion.button>
               </Reveal>
             ))}
           </div>

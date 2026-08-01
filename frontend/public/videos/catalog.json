@@ -1,0 +1,56 @@
+[
+  {
+    "id": "hajj-guide",
+    "file": "hajj-complete-guide.mp4",
+    "poster": "hajj-complete-guide.jpg",
+    "duration_label": "0:15",
+    "titleBn": "হজ্ব সম্পূর্ণ গাইড — এ থেকে জেড",
+    "titleEn": "Complete Hajj Guide A to Z",
+    "category": "Hajj"
+  },
+  {
+    "id": "umrah-steps",
+    "file": "umrah-steps.mp4",
+    "poster": "umrah-steps.jpg",
+    "duration_label": "0:15",
+    "titleBn": "উমরাহ পদক্ষেপসমূহ",
+    "titleEn": "Umrah Step by Step",
+    "category": "Umrah"
+  },
+  {
+    "id": "saudi-visa",
+    "file": "saudi-visa.mp4",
+    "poster": "saudi-visa.jpg",
+    "duration_label": "0:15",
+    "titleBn": "সৌদি ভিসা প্রক্রিয়া",
+    "titleEn": "Saudi Visa Process",
+    "category": "Visa"
+  },
+  {
+    "id": "air-ticket-tips",
+    "file": "air-ticket-tips.mp4",
+    "poster": "air-ticket-tips.jpg",
+    "duration_label": "0:15",
+    "titleBn": "বিমান টিকিট কেনার টিপস",
+    "titleEn": "Air Ticket Buying Tips",
+    "category": "Air Ticket"
+  },
+  {
+    "id": "packing-checklist",
+    "file": "packing-checklist.mp4",
+    "poster": "packing-checklist.jpg",
+    "duration_label": "0:15",
+    "titleBn": "হজ্ব-উমরাহ প্যাকিং চেকলিস্ট",
+    "titleEn": "Hajj-Umrah Packing Checklist",
+    "category": "Travel Tips"
+  },
+  {
+    "id": "ihram-how",
+    "file": "ihram-how.mp4",
+    "poster": "ihram-how.jpg",
+    "duration_label": "0:15",
+    "titleBn": "ইহরাম কিভাবে পরবেন",
+    "titleEn": "How to Wear Ihram",
+    "category": "Umrah"
+  }
+]

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,7 +9,8 @@ import {
   AccordionFAQ, VideoCard, EmptyState,
 } from "../website/primitives";
 import { GUIDES, getGuide, getRelatedGuides } from "../website/knowledge/guides";
-import { SITE_VIDEOS } from "../website/videos";
+import { SITE_VIDEOS, type SiteVideo } from "../website/videos";
+import { VideoPlayerModal } from "../website/VideoPlayerModal";
 
 export function KnowledgePage() {
   const { i18n } = useTranslation();
@@ -66,6 +67,7 @@ export function KnowledgeDetailPage() {
   const { slug } = useParams();
   const { i18n } = useTranslation();
   const bn = i18n.language?.startsWith("bn");
+  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
   const guide = slug ? getGuide(slug) : undefined;
 
   if (!guide) {
@@ -188,7 +190,17 @@ export function KnowledgeDetailPage() {
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {videos.map((v) => (
-                    <VideoCard key={v.id} title={bn ? v.titleBn : v.titleEn} youtubeId={v.youtubeId} duration={v.duration} views={v.views} category={v.category} />
+                    <VideoCard
+                      key={v.id}
+                      title={bn ? v.titleBn : v.titleEn}
+                      src={v.src}
+                      poster={v.poster}
+                      youtubeId={v.youtubeId}
+                      duration={v.duration}
+                      views={v.views}
+                      category={v.category}
+                      onPlay={() => setActiveVideo(v)}
+                    />
                   ))}
                 </div>
               </Reveal>
@@ -227,6 +239,9 @@ export function KnowledgeDetailPage() {
           ))}
         </div>
       </Section>
+      {activeVideo && (
+        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
+      )}
     </div>
   );
 }

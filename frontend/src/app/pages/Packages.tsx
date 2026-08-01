@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useParams } from "react-router";
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Star, Clock, MapPin, CheckCircle, XCircle, Users, Hotel, Plane, Phone, Search,
@@ -12,11 +12,23 @@ import { fmtPrice, cn, mediaUrl } from "../lib/utils";
 
 const TYPES = ["All", "HAJJ", "UMRAH", "TOUR"] as const;
 
+function normalizeTypeParam(raw: string | null): (typeof TYPES)[number] {
+  if (!raw) return "All";
+  const u = raw.toUpperCase();
+  if (u === "HAJJ" || u === "UMRAH" || u === "TOUR") return u;
+  return "All";
+}
+
 export function PackagesPage() {
   const { t, i18n } = useTranslation("packages");
   const bn = i18n.language?.startsWith("bn");
-  const [type, setType] = useState<(typeof TYPES)[number]>("All");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [type, setType] = useState<(typeof TYPES)[number]>(() => normalizeTypeParam(searchParams.get("type")));
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setType(normalizeTypeParam(searchParams.get("type")));
+  }, [searchParams]);
 
   const { data, isLoading, isError } = usePublicPackages({
     type: type === "All" ? undefined : type,
@@ -55,7 +67,11 @@ export function PackagesPage() {
               <button
                 key={tp}
                 type="button"
-                onClick={() => setType(tp)}
+                onClick={() => {
+                  setType(tp);
+                  if (tp === "All") setSearchParams({});
+                  else setSearchParams({ type: tp });
+                }}
                 className={cn(
                   "px-4 py-2.5 rounded-full text-xs font-bold transition-all min-h-[44px]",
                   type === tp ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/40",
