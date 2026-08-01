@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import {
   Menu, X, ChevronDown, Phone, Mail, MapPin, Facebook, Instagram, Youtube, Twitter,
-  Umbrella, LogIn, Linkedin,
+  LogIn, Linkedin,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
