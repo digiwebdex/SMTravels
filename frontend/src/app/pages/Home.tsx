@@ -56,15 +56,9 @@ export function Home() {
     <div className="overflow-x-hidden">
       {/* ── Premium Hero ── */}
       <section className="relative min-h-[92vh] flex items-end md:items-center overflow-hidden bg-[#062D63]">
-        <HeroBackground />
-        <img
-          src={img(SITE_IMAGES.kaaba, 1920, 1080)}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-45"
-          loading="eager"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/75 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#041E42] via-transparent to-[#062D63]/40" />
+        <HeroBackground posterImg={img(SITE_IMAGES.kaaba, 1920, 1080)} alt="Masjid al-Haram, Makkah" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/80 to-[#062D63]/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#041E42] via-transparent to-[#062D63]/30" />
 
         <div className="relative max-w-[1200px] w-full mx-auto px-4 md:px-6 pt-32 pb-20 md:py-28">
           <Reveal>
