@@ -19,16 +19,20 @@
   --color-text-muted: #6B7280;
   --color-text-faint: #9CA3AF;
 
-  /* Brand */
+  /* Brand — Website V2 (logo colors) */
   --color-primary: #1B75BC;
   --color-primary-hover: #14588F;
   --color-primary-fg: #FFFFFF;
-  --color-primary-tint: #E8F2FA;
-  --color-secondary: #4338CA;
-  --color-secondary-hover: #3730A3;
-  --color-secondary-tint: #EEF2FF;
-  --color-accent: #0E7C66;
-  --color-accent-hover: #0A5C4C;
+  --color-primary-tint: #EAF5FF;
+  --color-navy: #062D63;
+  --color-navy-deep: #041E42;
+  --color-gold: #C89B3C;
+  --color-gold-tint: #F7F0E0;
+  --color-secondary: #062D63;
+  --color-secondary-hover: #041E42;
+  --color-secondary-tint: #EAF5FF;
+  --color-accent: #16A34A;
+  --color-accent-hover: #15803D;
   --color-accent-tint: #ECFDF5;
   --color-brand-mark: #F15A24;
   --color-brand-mark-hover: #CC3C17;
@@ -112,12 +116,17 @@
 
   --brand-blue: var(--color-primary);
   --brand-blue-hover: var(--color-primary-hover);
-  --brand-navy: var(--color-sidebar-mid);
+  --brand-navy: var(--color-navy);
   --brand-orange: var(--color-brand-mark);
   --brand-orange-hover: var(--color-brand-mark-hover);
   --brand-orange-text: #D64A12;
+  --brand-gold: var(--color-gold);
   --tint-blue: var(--color-primary-tint);
   --tint-orange: var(--color-brand-mark-tint);
+
+  /* Marketing type */
+  --font-display: "Cormorant Garamond", "Noto Serif Bengali", Georgia, serif;
+  --font-body: "Noto Sans Bengali", "DM Sans", system-ui, sans-serif;
 }
 
 .dark {
