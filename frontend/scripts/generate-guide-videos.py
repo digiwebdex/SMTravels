@@ -16,7 +16,7 @@ FONT_R = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansBengali-Regu
 FONT_S = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansBengali-Regular.ttf", 18)
 
 IMGS = [
-    ROOT / "public/hero-kaaba.jpg",
+    ROOT / "public/hero-journey.jpg",
 ]
 W, H = 960, 540
 

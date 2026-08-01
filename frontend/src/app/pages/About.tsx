@@ -39,7 +39,7 @@ export function About() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-journey.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "আমাদের সম্পর্কে" : "About" },
@@ -72,7 +72,7 @@ export function About() {
           </Reveal>
           <Reveal delay={0.1}>
             <div className="grid grid-cols-2 gap-4">
-              <img src="/hero-kaaba.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
+              <img src="/hero-journey.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
               <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg mt-8" />
             </div>
           </Reveal>

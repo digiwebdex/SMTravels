@@ -254,7 +254,7 @@ function BrandPanel({ view }: { view: AuthView }) {
     <div className="relative hidden md:flex flex-col w-[42%] flex-shrink-0 overflow-hidden">
       {/* Background image */}
       <img
-        src="/hero-kaaba.jpg"
+        src="/hero-journey.jpg"
         alt="Kaaba Makkah"
         className="absolute inset-0 w-full h-full object-cover"
       />

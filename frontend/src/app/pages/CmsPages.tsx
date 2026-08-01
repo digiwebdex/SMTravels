@@ -12,7 +12,7 @@ import { cn } from "../lib/utils";
 import { BRANCHES } from "../lib/data";
 
 function CmsBodyPage({
-  slug, fallbackTitle, fallbackBody, image = "/hero-kaaba.jpg",
+  slug, fallbackTitle, fallbackBody, image = "/hero-journey.jpg",
 }: {
   slug: string; fallbackTitle: string; fallbackBody: string; image?: string;
 }) {
@@ -56,7 +56,7 @@ export function PrivacyPage() {
   return (
     <CmsBodyPage
       slug="privacy"
-      image="/hero-kaaba.jpg"
+      image="/hero-journey.jpg"
       fallbackTitle={bn ? "গোপনীয়তা নীতি" : "Privacy Policy"}
       fallbackBody={bn
         ? "এসএম ট্রাভেলস আপনার ব্যক্তিগত তথ্য সুরক্ষিত রাখে। আমরা শুধুমাত্র সেবা প্রদানের জন্য প্রয়োজনীয় তথ্য সংগ্রহ করি এবং তৃতীয় পক্ষের সাথে অননুমোদিতভাবে শেয়ার করি না।"
@@ -71,7 +71,7 @@ export function TermsPage() {
   return (
     <CmsBodyPage
       slug="terms"
-      image="/hero-kaaba.jpg"
+      image="/hero-journey.jpg"
       fallbackTitle={bn ? "সেবার শর্তাবলি" : "Terms of Service"}
       fallbackBody={bn
         ? "আমাদের সেবা ব্যবহারের অর্থ আপনি এসএম ট্রাভেলসের বুকিং, বাতিলকরণ এবং পেমেন্ট নীতিমালা মেনে নিয়েছেন। প্যাকেজ-নির্দিষ্ট শর্ত প্রযোজ্য।"
@@ -86,7 +86,7 @@ export function RefundPage() {
   return (
     <CmsBodyPage
       slug="refund"
-      image="/hero-kaaba.jpg"
+      image="/hero-journey.jpg"
       fallbackTitle={bn ? "রিফান্ড নীতি" : "Refund Policy"}
       fallbackBody={bn
         ? "রিফান্ড এয়ারলাইন, হোটেল এবং ভিসা নিয়ম অনুযায়ী নির্ধারিত হয়। বাতিলের সময়সীমা প্যাকেজ নিশ্চিতকরণে উল্লেখ থাকে। বিস্তারিত জানতে আমাদের সাথে যোগাযোগ করুন।"
@@ -102,7 +102,7 @@ export function CareerPage() {
     <div>
       <CmsBodyPage
         slug="career"
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
         fallbackTitle={bn ? "ক্যারিয়ার" : "Careers"}
         fallbackBody={bn
           ? "এসএম ট্রাভেলসে যোগ দিন — হজ্ব, উমরাহ, ভিসা ও কস্টমার সার্ভিস টিমে প্রতিভাবান মানুষ খুঁজছি। সিভি পাঠান: hr@smtravel.com.bd"
@@ -130,7 +130,7 @@ export function BranchesPage() {
         eyebrow={bn ? "যোগাযোগ" : "Visit us"}
         title={data?.title || (bn ? "আমাদের শাখা" : "Our Branches")}
         subtitle={data?.metaDesc || (bn ? "সারা বাংলাদেশে সেবা।" : "Serving pilgrims across Bangladesh.")}
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -181,7 +181,7 @@ export function TestimonialsPage() {
         eyebrow={bn ? "আস্থা" : "Trust"}
         title={bn ? "হাজিরদের মতামত" : "Pilgrim Testimonials"}
         subtitle={bn ? "যারা আমাদের সাথে হজ্ব ও উমরাহ করেছেন।" : "From those who travelled with us."}
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -228,7 +228,7 @@ export function VideosPage() {
         eyebrow={bn ? "শেখা" : "Learn"}
         title={bn ? "ভিডিও গ্যালারি" : "Video Gallery"}
         subtitle={bn ? "হজ্ব, উমরাহ ও ভ্রমণ গাইড — সাইটেই দেখুন।" : "Hajj, Umrah & travel guides — play on site."}
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },

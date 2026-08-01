@@ -43,7 +43,7 @@ export function PackagesPage() {
         eyebrow={t("hero.eyebrow")}
         title={t("hero.heading")}
         subtitle={t("hero.subtitle")}
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -128,7 +128,7 @@ export function PackageDetailPage() {
   if (isError || !pkg) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image="/hero-kaaba.jpg" compact>
+        <PageHero title={t("detail.notFound")} image="/hero-journey.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "প্যাকেজ" : "Packages", to: "/packages" },

@@ -23,7 +23,7 @@ export const fmtPrice = (n: number) =>
 /** Curated premium Unsplash photo ids + local hero asset for Website V2. */
 export const SITE_IMAGES = {
   /** Local Kaaba Sharif hero (matches approved Image A photo style). */
-  kaabaHero: "/hero-kaaba.jpg",
+  kaabaHero: "/hero-journey.jpg",
   kaaba: "photo-1564769625905-50e93615e769",
   kaabaNight: "photo-1591604129939-f1efa4d9f7fa",
   madinah: "photo-1591604129939-f1efa4d9f7fa",

@@ -28,7 +28,7 @@ export function KnowledgePage() {
         eyebrow={bn ? "ইসলামী গাইডেন্স সেন্টার" : "Islamic Guidance Center"}
         title={bn ? "হজ্ব ও উমরাহ জ্ঞান কেন্দ্র" : "Hajj & Umrah Knowledge Center"}
         subtitle={bn ? "বিশ্বস্ত গাইড — ইহরাম থেকে বিদায়ী তাওয়াফ পর্যন্ত।" : "Trusted guides — from Ihram to farewell Tawaf."}
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -73,7 +73,7 @@ export function KnowledgeDetailPage() {
   if (!guide) {
     return (
       <div>
-        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-kaaba.jpg" compact>
+        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-journey.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "জ্ঞান কেন্দ্র" : "Knowledge", to: "/knowledge" },
@@ -98,7 +98,7 @@ export function KnowledgeDetailPage() {
         eyebrow={bn ? "জ্ঞান কেন্দ্র" : "Knowledge Center"}
         title={bn ? guide.titleBn : guide.titleEn}
         subtitle={bn ? guide.summaryBn : guide.summaryEn}
-        image={guide.image || "/hero-kaaba.jpg"}
+        image={guide.image || "/hero-journey.jpg"}
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },

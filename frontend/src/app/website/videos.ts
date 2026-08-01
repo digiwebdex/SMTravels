@@ -17,7 +17,7 @@ export interface SiteVideo {
 export function videoThumb(v: SiteVideo): string {
   if (v.poster) return v.poster;
   if (v.youtubeId) return `https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`;
-  return "/hero-kaaba.jpg";
+  return "/hero-journey.jpg";
 }
 
 export const SITE_VIDEOS: SiteVideo[] = [

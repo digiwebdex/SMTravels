@@ -25,7 +25,7 @@ export function BlogPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-journey.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "ব্লগ" : "Blog" },
@@ -116,7 +116,7 @@ export function BlogDetailPage() {
   if (isError || !blog) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image="/hero-kaaba.jpg" compact>
+        <PageHero title={t("detail.notFound")} image="/hero-journey.jpg" compact>
           <Breadcrumbs items={[{ label: bn ? "হোম" : "Home", to: "/" }, { label: "Blog", to: "/blog" }, { label: "404" }]} />
         </PageHero>
         <Section>

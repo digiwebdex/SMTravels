@@ -278,7 +278,7 @@ function KaabaHeroBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#EAF5FF]">
       <motion.img
-        src="/hero-kaaba.jpg"
+        src="/hero-journey.jpg"
         alt="কাবা শরীফ — Dhaka to Saudi Arabia Hajj & Umrah journey"
         className="absolute inset-0 w-full h-full object-cover object-[55%_45%]"
         loading="eager"
@@ -286,7 +286,7 @@ function KaabaHeroBackground() {
         animate={reduce ? undefined : { scale: [1.04, 1.0, 1.04] }}
         transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
         onError={(e) => {
-          (e.target as HTMLImageElement).src = "/hero-kaaba.png";
+          (e.target as HTMLImageElement).src = "/hero-journey.png";
         }}
       />
       {/* Soft left wash so navy/orange headline stays readable */}
@@ -576,7 +576,7 @@ export function Home() {
                 animate={reduce ? undefined : { y: [0, -8, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <img src="/hero-kaaba.jpg" alt="Masjid al-Haram, Makkah" className="w-full h-full object-cover object-center" loading="lazy"
+                <img src="/hero-journey.jpg" alt="Masjid al-Haram, Makkah" className="w-full h-full object-cover object-center" loading="lazy"
                   onError={(e) => { (e.target as HTMLImageElement).src = img(SITE_IMAGES.madinah, 400, 400); }} />
               </motion.div>
             </Reveal>

@@ -12,7 +12,7 @@ export function NotFoundPage() {
         eyebrow="404"
         title={t("notFound.title")}
         subtitle={t("notFound.message")}
-        image="/hero-kaaba.jpg"
+        image="/hero-journey.jpg"
         compact
       />
       <Section>

@@ -99,7 +99,7 @@ export function PageHero({
 }) {
   const src = image
     ? (image.startsWith("/") || image.startsWith("http") ? image : mediaUrl(image, 1920, 1080))
-    : "/hero-kaaba.jpg";
+    : "/hero-journey.jpg";
   return (
     <div className={cn("relative overflow-hidden bg-[#062D63]", compact ? "min-h-[36vh]" : "min-h-[48vh]")}>
       <img
@@ -292,7 +292,7 @@ export function VideoCard({
   onPlay?: () => void;
 }) {
   const thumb = poster
-    || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : "/hero-kaaba.jpg");
+    || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : "/hero-journey.jpg");
   const playable = !!(src || youtubeId);
 
   const inner = (
