@@ -237,22 +237,24 @@ function ApproveHeroBackground() {
     <div className="absolute inset-0 overflow-hidden bg-[#001F45]">
       <motion.img
         src={SITE_IMAGES.kaabaHero}
-        alt="কাবা শরীফ — Masjid al-Haram"
-        className="absolute inset-0 w-full h-full object-cover object-[center_40%]"
+        alt="কাবা শরীফ — Masjid al-Haram, Makkah"
+        className="absolute inset-0 w-full h-full object-cover object-[center_45%]"
         loading="eager"
         initial={reduce ? false : { scale: 1.04 }}
         animate={reduce ? undefined : { scale: [1.04, 1.0, 1.04] }}
         transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
         onError={(e) => {
-          (e.target as HTMLImageElement).src = img(SITE_IMAGES.kaabaNight, 1920, 1080);
+          const el = e.target as HTMLImageElement;
+          if (!el.src.endsWith("hero-approve.png")) el.src = "/hero-approve.png";
+          else el.src = img(SITE_IMAGES.kaabaNight, 1920, 1080);
         }}
       />
-      {/* Soft left gradient so Bangla headline stays readable — image stays dominant */}
+      {/* Soft left wash so Bangla headline stays readable over golden sky */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,20,48,0.72) 0%, rgba(0,20,48,0.45) 38%, rgba(0,20,48,0.15) 62%, transparent 78%)",
+            "linear-gradient(90deg, rgba(0,20,48,0.55) 0%, rgba(0,20,48,0.28) 42%, rgba(0,20,48,0.08) 68%, transparent 82%)",
         }}
         aria-hidden
       />
