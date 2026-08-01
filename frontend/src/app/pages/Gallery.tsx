@@ -25,14 +25,14 @@ export function GalleryPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-journey.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "গ্যালারি" : "Gallery" },
         ]} />
       </PageHero>
 
-      <Section tone="soft">
+      <Section tone="mint">
         <div className="flex gap-2 flex-wrap mb-8">
           {categories.map((c) => (
             <button key={c} type="button" onClick={() => setActive(c)}

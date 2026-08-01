@@ -12,7 +12,7 @@ import { cn } from "../lib/utils";
 import { BRANCHES } from "../lib/data";
 
 function CmsBodyPage({
-  slug, fallbackTitle, fallbackBody, image = "/hero-journey.jpg",
+  slug, fallbackTitle, fallbackBody, image = "/hero-approve.jpg",
 }: {
   slug: string; fallbackTitle: string; fallbackBody: string; image?: string;
 }) {
@@ -56,7 +56,7 @@ export function PrivacyPage() {
   return (
     <CmsBodyPage
       slug="privacy"
-      image="/hero-journey.jpg"
+      image="/hero-approve.jpg"
       fallbackTitle={bn ? "গোপনীয়তা নীতি" : "Privacy Policy"}
       fallbackBody={bn
         ? "এসএম ট্রাভেলস আপনার ব্যক্তিগত তথ্য সুরক্ষিত রাখে। আমরা শুধুমাত্র সেবা প্রদানের জন্য প্রয়োজনীয় তথ্য সংগ্রহ করি এবং তৃতীয় পক্ষের সাথে অননুমোদিতভাবে শেয়ার করি না।"
@@ -71,7 +71,7 @@ export function TermsPage() {
   return (
     <CmsBodyPage
       slug="terms"
-      image="/hero-journey.jpg"
+      image="/hero-approve.jpg"
       fallbackTitle={bn ? "সেবার শর্তাবলি" : "Terms of Service"}
       fallbackBody={bn
         ? "আমাদের সেবা ব্যবহারের অর্থ আপনি এসএম ট্রাভেলসের বুকিং, বাতিলকরণ এবং পেমেন্ট নীতিমালা মেনে নিয়েছেন। প্যাকেজ-নির্দিষ্ট শর্ত প্রযোজ্য।"
@@ -86,7 +86,7 @@ export function RefundPage() {
   return (
     <CmsBodyPage
       slug="refund"
-      image="/hero-journey.jpg"
+      image="/hero-approve.jpg"
       fallbackTitle={bn ? "রিফান্ড নীতি" : "Refund Policy"}
       fallbackBody={bn
         ? "রিফান্ড এয়ারলাইন, হোটেল এবং ভিসা নিয়ম অনুযায়ী নির্ধারিত হয়। বাতিলের সময়সীমা প্যাকেজ নিশ্চিতকরণে উল্লেখ থাকে। বিস্তারিত জানতে আমাদের সাথে যোগাযোগ করুন।"
@@ -102,7 +102,7 @@ export function CareerPage() {
     <div>
       <CmsBodyPage
         slug="career"
-        image="/hero-journey.jpg"
+        image="/hero-approve.jpg"
         fallbackTitle={bn ? "ক্যারিয়ার" : "Careers"}
         fallbackBody={bn
           ? "এসএম ট্রাভেলসে যোগ দিন — হজ্ব, উমরাহ, ভিসা ও কস্টমার সার্ভিস টিমে প্রতিভাবান মানুষ খুঁজছি। সিভি পাঠান: hr@smtravel.com.bd"
@@ -130,28 +130,28 @@ export function BranchesPage() {
         eyebrow={bn ? "যোগাযোগ" : "Visit us"}
         title={data?.title || (bn ? "আমাদের শাখা" : "Our Branches")}
         subtitle={data?.metaDesc || (bn ? "সারা বাংলাদেশে সেবা।" : "Serving pilgrims across Bangladesh.")}
-        image="/hero-journey.jpg"
+        image="/hero-approve.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "শাখা" : "Branches" },
         ]} />
       </PageHero>
-      <Section tone="soft">
+      <Section tone="sky">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {BRANCHES.map((branch, i) => (
             <Reveal key={branch.city} delay={i * 0.05}>
               <div className={cn(
-                "bg-white rounded-lg border p-6 h-full",
-                i === 0 ? "border-[#F15A24]" : "border-[#E5E7EB]",
+                "bg-white rounded-xl border p-6 h-full shadow-sm hover:shadow-lg transition-shadow",
+                i === 0 ? "border-[#F37021]" : "border-[#E5E7EB]",
               )}>
-                {i === 0 && <p className="text-[10px] font-bold text-[#F15A24] uppercase tracking-widest mb-2">{bn ? "প্রধান কার্যালয়" : "Head Office"}</p>}
-                <h3 className="text-lg font-semibold text-[#062D63] mb-3" style={{ fontFamily: "var(--font-display)" }}>{branch.city}</h3>
+                {i === 0 && <p className="text-[10px] font-bold text-[#F37021] uppercase tracking-widest mb-2">{bn ? "প্রধান কার্যালয়" : "Head Office"}</p>}
+                <h3 className="text-lg font-bold text-[#002D62] mb-3" style={{ fontFamily: "var(--font-display)" }}>{branch.city}</h3>
                 <ul className="space-y-2.5 text-sm text-[#6B7280]">
-                  <li className="flex gap-2"><MapPin size={14} className="text-[#F15A24] mt-0.5 flex-shrink-0" />{branch.address}</li>
-                  <li><a href={`tel:${branch.phone}`} className="flex gap-2 hover:text-[#1B75BC]"><Phone size={14} className="text-[#F15A24]" />{branch.phone}</a></li>
-                  <li><a href={`mailto:${branch.email}`} className="flex gap-2 hover:text-[#1B75BC]"><Mail size={14} className="text-[#F15A24]" />{branch.email}</a></li>
-                  <li className="flex gap-2"><Clock size={14} className="text-[#F15A24]" />{branch.hours}</li>
+                  <li className="flex gap-2"><MapPin size={14} className="text-[#F37021] mt-0.5 flex-shrink-0" />{branch.address}</li>
+                  <li><a href={`tel:${branch.phone}`} className="flex gap-2 hover:text-[#1B75BC]"><Phone size={14} className="text-[#F37021]" />{branch.phone}</a></li>
+                  <li><a href={`mailto:${branch.email}`} className="flex gap-2 hover:text-[#1B75BC]"><Mail size={14} className="text-[#F37021]" />{branch.email}</a></li>
+                  <li className="flex gap-2"><Clock size={14} className="text-[#F37021]" />{branch.hours}</li>
                 </ul>
               </div>
             </Reveal>
@@ -181,14 +181,14 @@ export function TestimonialsPage() {
         eyebrow={bn ? "আস্থা" : "Trust"}
         title={bn ? "হাজিরদের মতামত" : "Pilgrim Testimonials"}
         subtitle={bn ? "যারা আমাদের সাথে হজ্ব ও উমরাহ করেছেন।" : "From those who travelled with us."}
-        image="/hero-journey.jpg"
+        image="/hero-approve.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "প্রশংসাপত্র" : "Testimonials" },
         ]} />
       </PageHero>
-      <Section tone="soft">
+      <Section tone="mint">
         {isLoading && <div className="grid md:grid-cols-3 gap-6">{Array.from({ length: 6 }).map((_, i) => <SkeletonBlock key={i} className="h-48" />)}</div>}
         {isError && <ErrorState message={bn ? "লোড হয়নি।" : "Could not load testimonials."} />}
         {!isLoading && !isError && items.length === 0 && <EmptyState message={bn ? "এখনো কোনো মতামত নেই।" : "No testimonials yet."} />}
@@ -200,7 +200,7 @@ export function TestimonialsPage() {
           ))}
         </div>
       </Section>
-      <Section>
+      <Section tone="warm">
         <CtaBand
           title={bn ? "আপনার যাত্রা শুরু করুন" : "Start your journey"}
           primary={{ label: bn ? "বুকিং" : "Book", to: "/book" }}
@@ -228,14 +228,14 @@ export function VideosPage() {
         eyebrow={bn ? "শেখা" : "Learn"}
         title={bn ? "ভিডিও গ্যালারি" : "Video Gallery"}
         subtitle={bn ? "হজ্ব, উমরাহ ও ভ্রমণ গাইড — সাইটেই দেখুন।" : "Hajj, Umrah & travel guides — play on site."}
-        image="/hero-journey.jpg"
+        image="/hero-approve.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "ভিডিও" : "Videos" },
         ]} />
       </PageHero>
-      <Section tone="soft">
+      <Section tone="sky">
         <SectionHeader title={bn ? "সব ভিডিও" : "All videos"} subtitle={`${filtered.length} ${bn ? "টি" : ""}`} />
         <div className="flex flex-wrap gap-2 mb-8">
           {categories.map((c) => (

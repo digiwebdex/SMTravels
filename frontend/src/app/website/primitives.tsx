@@ -23,19 +23,27 @@ export function Reveal({
   );
 }
 
+export type SectionTone = "white" | "soft" | "sky" | "tint" | "mint" | "warm" | "navy" | "orange";
+
 export function Section({
   children, className, id, tone = "white",
 }: {
   children: React.ReactNode; className?: string; id?: string;
-  tone?: "white" | "tint" | "navy" | "soft";
+  tone?: SectionTone;
 }) {
-  const bg =
-    tone === "tint" ? "bg-[#EAF5FF]" :
-    tone === "navy" ? "bg-[#062D63] text-white" :
-    tone === "soft" ? "bg-[#F7F8FA]" : "bg-white";
+  const tones: Record<SectionTone, string> = {
+    white: "bg-white",
+    soft: "bg-[#EEF3F8]",
+    sky: "bg-gradient-to-b from-[#EAF5FF] via-[#F7FBFF] to-white",
+    tint: "bg-[#EAF5FF]",
+    mint: "bg-gradient-to-b from-[#E8F8F1] via-[#F3FAF7] to-[#EEF6FF]",
+    warm: "bg-gradient-to-b from-[#FFF4ED] via-[#FFE8D9] to-[#FFF7F2]",
+    navy: "bg-gradient-to-br from-[#001F45] via-[#002D62] to-[#0B3D6E] text-white",
+    orange: "bg-gradient-to-r from-[#F37021] via-[#E85A12] to-[#CC3C17] text-white",
+  };
   return (
-    <section id={id} className={cn("py-14 md:py-20", bg, className)}>
-      <div className="max-w-[1240px] mx-auto px-4 md:px-5">{children}</div>
+    <section id={id} className={cn("relative py-14 md:py-20 overflow-hidden", tones[tone], className)}>
+      <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">{children}</div>
     </section>
   );
 }
@@ -47,20 +55,21 @@ export function SectionHeader({
   action?: React.ReactNode; light?: boolean;
 }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10 md:mb-14">
+    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10 md:mb-12">
       <div className="max-w-2xl">
         {eyebrow && (
           <p className={cn(
             "text-xs font-bold uppercase tracking-[0.2em] mb-3",
-            light ? "text-[#C89B3C]" : "text-[#F15A24]",
+            light ? "text-[#F37021]" : "text-[#F37021]",
           )}>{eyebrow}</p>
         )}
         <h2 className={cn(
-          "text-3xl md:text-4xl lg:text-[2.75rem] font-semibold leading-tight tracking-tight",
-          light ? "text-white" : "text-[#062D63]",
+          "text-2xl md:text-3xl lg:text-[2.5rem] font-bold leading-tight tracking-tight",
+          light ? "text-white" : "text-[#002D62]",
         )} style={{ fontFamily: "var(--font-display)" }}>{title}</h2>
+        {!light && <div className="mt-2.5 h-1 w-14 rounded-full bg-gradient-to-r from-[#002D62] to-[#F37021]" />}
         {subtitle && (
-          <p className={cn("mt-3 text-base md:text-lg leading-relaxed", light ? "text-white/75" : "text-[#6B7280]")}>
+          <p className={cn("mt-3 text-base md:text-lg leading-relaxed", light ? "text-white/80" : "text-[#6B7280]")}>
             {subtitle}
           </p>
         )}
@@ -142,10 +151,10 @@ export function Btn({
   const sizes = { sm: "px-4 py-2 text-sm", md: "px-6 py-3 text-[15px]", lg: "px-8 py-3.5 text-base" };
   const variants = {
     primary: "bg-[#1B75BC] text-white hover:bg-[#14588F] shadow-lg shadow-[#1B75BC]/25",
-    orange: "bg-[#F15A24] text-white hover:bg-[#CC3C17] shadow-lg shadow-[#F15A24]/25",
-    ghost: "bg-white/10 text-white hover:bg-white/20 backdrop-blur",
+    orange: "bg-[#F37021] text-white hover:bg-[#D85A12] shadow-lg shadow-[#F37021]/25",
+    ghost: "bg-white/10 text-white hover:bg-white/20 backdrop-blur border border-white/25",
     outline: "border-2 border-[#1B75BC] text-[#1B75BC] hover:bg-[#EAF5FF]",
-    white: "bg-white text-[#062D63] hover:bg-[#EAF5FF]",
+    white: "bg-white text-[#002D62] hover:bg-[#EAF5FF]",
   };
   const cls = cn(
     "inline-flex items-center justify-center gap-2 font-semibold rounded-md transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1B75BC] disabled:opacity-50",
@@ -223,12 +232,12 @@ export function PackageCard({ pkg }: { pkg: PublicPackageItem }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         {pkg.badge && (
-          <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-[#F15A24] text-white">
+          <span className="absolute top-3 left-3 px-3 py-1 rounded-md text-[11px] font-bold bg-[#F37021] text-white uppercase tracking-wide">
             {pkg.badge}
           </span>
         )}
         {pkg.seats > 0 && pkg.seats <= 12 && (
-          <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 text-[#062D63]">
+          <span className="absolute top-3 right-3 px-2.5 py-1 rounded-md text-[11px] font-bold bg-white/95 text-[#002D62]">
             {pkg.seats} seats left
           </span>
         )}
@@ -263,7 +272,7 @@ export function PackageCard({ pkg }: { pkg: PublicPackageItem }) {
             <Star size={12} className="text-[#C89B3C] fill-[#C89B3C]" /> {pkg.rating.toFixed(1)}
             <span className="text-[#9CA3AF]">({pkg.reviews})</span>
           </span>
-          <span className="text-sm font-semibold text-[#F15A24] inline-flex items-center gap-1">
+          <span className="text-sm font-semibold text-[#F37021] inline-flex items-center gap-1">
             বিস্তারিত <ArrowRight size={14} />
           </span>
         </div>
@@ -316,7 +325,7 @@ export function VideoCard({
         <img src={thumb} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
         <div className="absolute inset-0 bg-black/25 group-hover:bg-black/40 transition-colors" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-white/95 text-[#F15A24] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+          <div className="w-14 h-14 rounded-full bg-[#F37021] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
             <Play size={22} className="ml-0.5 fill-current" />
           </div>
         </div>
@@ -433,11 +442,12 @@ export function CtaBand({ title, subtitle, primary, secondary }: {
   secondary?: { label: string; to: string };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#062D63] via-[#1B75BC] to-[#062D63] p-8 md:p-12 text-center">
-      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#F15A24]/20 blur-3xl" aria-hidden />
-      <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-[#C89B3C]/15 blur-3xl" aria-hidden />
-      <h3 className="relative text-2xl md:text-3xl font-semibold text-white" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
-      {subtitle && <p className="relative mt-3 text-white/75 max-w-xl mx-auto">{subtitle}</p>}
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#001F45] via-[#002D62] to-[#1B75BC] p-8 md:p-12 text-center border border-white/10 shadow-xl">
+      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#F37021]/25 blur-3xl" aria-hidden />
+      <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-[#7EB8E3]/20 blur-3xl" aria-hidden />
+      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#1B75BC] via-[#F37021] to-[#C89B3C]" aria-hidden />
+      <h3 className="relative text-2xl md:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
+      {subtitle && <p className="relative mt-3 text-white/80 max-w-xl mx-auto">{subtitle}</p>}
       <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
         <Btn to={primary.to} variant="orange" size="lg">{primary.label}</Btn>
         {secondary && <Btn to={secondary.to} variant="ghost" size="lg">{secondary.label}</Btn>}

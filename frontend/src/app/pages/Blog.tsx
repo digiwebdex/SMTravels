@@ -25,14 +25,14 @@ export function BlogPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-journey.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "ব্লগ" : "Blog" },
         ]} />
       </PageHero>
 
-      <Section tone="soft">
+      <Section tone="sky">
         {isLoading && <SkeletonBlock className="h-64 mb-8" />}
         {isError && <ErrorState message={bn ? "ব্লগ লোড হয়নি।" : "Could not load blog posts."} />}
 
@@ -42,7 +42,7 @@ export function BlogPage() {
               <div className="grid md:grid-cols-2">
                 <div className="relative h-56 md:h-auto min-h-[260px] overflow-hidden">
                   <img src={mediaUrl(featured.image, 900, 600)} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <span className="absolute top-4 left-4 bg-[#F15A24] text-white text-[10px] font-bold px-3 py-1 rounded-full">{t("featured")}</span>
+                  <span className="absolute top-4 left-4 bg-[#F37021] text-white text-[10px] font-bold px-3 py-1 rounded-full">{t("featured")}</span>
                 </div>
                 <div className="p-8 flex flex-col justify-center">
                   <span className="text-[11px] font-bold text-[#1B75BC] bg-[#EAF5FF] rounded-full px-3 py-1 w-fit mb-3">{featured.category}</span>
@@ -116,7 +116,7 @@ export function BlogDetailPage() {
   if (isError || !blog) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image="/hero-journey.jpg" compact>
+        <PageHero title={t("detail.notFound")} image="/hero-approve.jpg" compact>
           <Breadcrumbs items={[{ label: bn ? "হোম" : "Home", to: "/" }, { label: "Blog", to: "/blog" }, { label: "404" }]} />
         </PageHero>
         <Section>
@@ -144,7 +144,7 @@ export function BlogDetailPage() {
         </div>
       </div>
 
-      <Section tone="soft">
+      <Section tone="sky">
         <div className="grid lg:grid-cols-3 gap-8">
           <article className="lg:col-span-2 bg-white rounded-lg border border-[#E5E7EB] p-7">
             <div className="flex flex-wrap gap-4 items-center mb-6 pb-5 border-b border-[#F3F4F6] text-sm text-[#6B7280]">
@@ -161,7 +161,7 @@ export function BlogDetailPage() {
             {(blog.tags?.length ?? 0) > 0 && (
               <div className="flex flex-wrap gap-2 mt-8 pt-5 border-t border-[#F3F4F6]">
                 {blog.tags.map((tag) => (
-                  <span key={tag} className="inline-flex items-center gap-1 text-xs bg-[#F7F8FA] border border-[#E5E7EB] rounded-full px-3 py-1 text-[#6B7280]">
+                  <span key={tag} className="inline-flex items-center gap-1 text-xs bg-[#EEF3F8] border border-[#E5E7EB] rounded-full px-3 py-1 text-[#6B7280]">
                     <Tag size={10} />{tag}
                   </span>
                 ))}

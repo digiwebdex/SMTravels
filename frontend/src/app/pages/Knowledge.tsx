@@ -28,7 +28,7 @@ export function KnowledgePage() {
         eyebrow={bn ? "ইসলামী গাইডেন্স সেন্টার" : "Islamic Guidance Center"}
         title={bn ? "হজ্ব ও উমরাহ জ্ঞান কেন্দ্র" : "Hajj & Umrah Knowledge Center"}
         subtitle={bn ? "বিশ্বস্ত গাইড — ইহরাম থেকে বিদায়ী তাওয়াফ পর্যন্ত।" : "Trusted guides — from Ihram to farewell Tawaf."}
-        image="/hero-journey.jpg"
+        image="/hero-approve.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -40,7 +40,7 @@ export function KnowledgePage() {
         const items = GUIDES.filter((g) => g.category === cat.id);
         if (!items.length) return null;
         return (
-          <Section key={cat.id} tone={cat.id === "ritual" ? "white" : cat.id === "rules" ? "tint" : "soft"}>
+          <Section key={cat.id} tone={cat.id === "ritual" ? "sky" : cat.id === "rules" ? "mint" : cat.id === "checklist" ? "warm" : "soft"}>
             <Reveal>
               <SectionHeader title={cat.label} subtitle={bn ? `${items.length}টি গাইড` : `${items.length} guides`} />
             </Reveal>
@@ -73,7 +73,7 @@ export function KnowledgeDetailPage() {
   if (!guide) {
     return (
       <div>
-        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-journey.jpg" compact>
+        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-approve.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "জ্ঞান কেন্দ্র" : "Knowledge", to: "/knowledge" },
@@ -98,7 +98,7 @@ export function KnowledgeDetailPage() {
         eyebrow={bn ? "জ্ঞান কেন্দ্র" : "Knowledge Center"}
         title={bn ? guide.titleBn : guide.titleEn}
         subtitle={bn ? guide.summaryBn : guide.summaryEn}
-        image={guide.image || "/hero-journey.jpg"}
+        image={guide.image || "/hero-approve.jpg"}
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -151,7 +151,7 @@ export function KnowledgeDetailPage() {
               </h2>
               <ol className="space-y-3">
                 {(bn ? guide.stepsBn : guide.stepsEn).map((step, i) => (
-                  <li key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-[#F7F8FA] border border-[#E5E7EB]">
+                  <li key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-[#EEF3F8] border border-[#E5E7EB]">
                     <span className="w-8 h-8 rounded-full bg-[#1B75BC] text-white text-sm font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                     <span className="text-[#374151] pt-1">{step}</span>
                   </li>
@@ -231,7 +231,7 @@ export function KnowledgeDetailPage() {
         </div>
       </Section>
 
-      <Section tone="tint">
+      <Section tone="warm">
         <SectionHeader title={bn ? "সম্পর্কিত গাইড" : "Related guides"} />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {related.map((g) => (

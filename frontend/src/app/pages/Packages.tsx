@@ -43,7 +43,7 @@ export function PackagesPage() {
         eyebrow={t("hero.eyebrow")}
         title={t("hero.heading")}
         subtitle={t("hero.subtitle")}
-        image="/hero-journey.jpg"
+        image="/hero-approve.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -51,7 +51,7 @@ export function PackagesPage() {
         ]} />
       </PageHero>
 
-      <Section tone="soft">
+      <Section tone="sky">
         <div className="flex flex-col md:flex-row gap-3 mb-8">
           <div className="relative flex-1">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
@@ -128,7 +128,7 @@ export function PackageDetailPage() {
   if (isError || !pkg) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image="/hero-journey.jpg" compact>
+        <PageHero title={t("detail.notFound")} image="/hero-approve.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "প্যাকেজ" : "Packages", to: "/packages" },
@@ -165,7 +165,7 @@ export function PackageDetailPage() {
         </div>
       </div>
 
-      <Section tone="soft">
+      <Section tone="warm">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-5">
             <div className="flex gap-1 bg-white rounded-2xl p-1 border border-[#E5E7EB] w-fit max-w-full overflow-x-auto">

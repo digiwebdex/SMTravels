@@ -69,29 +69,30 @@ export function ContactPage() {
 
   return (
     <>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-journey.jpg" compact>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg" compact>
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "যোগাযোগ" : "Contact" },
         ]} />
       </PageHero>
 
-      <section className="py-10 md:py-14 bg-[#F7F8FA]">
+      <section className="py-10 md:py-14 bg-gradient-to-b from-[#EAF5FF] via-[#F7FBFF] to-white">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
           <div className="text-center mb-8 md:mb-10">
-            <div className="text-[#F15A24] text-[12px] font-bold uppercase tracking-widest mb-2">{t("branches.eyebrow")}</div>
-            <h2 className="text-2xl md:text-3xl font-semibold text-[#062D63]" style={{ fontFamily: "var(--font-display)" }}>{t("branches.title")}</h2>
+            <div className="text-[#F37021] text-[12px] font-bold uppercase tracking-widest mb-2">{t("branches.eyebrow")}</div>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]" style={{ fontFamily: "var(--font-display)" }}>{t("branches.title")}</h2>
+            <div className="mt-3 mx-auto h-1 w-14 rounded-full bg-gradient-to-r from-[#002D62] to-[#F37021]" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10 md:mb-14">
             {BRANCHES.map((branch, i) => (
               <div key={branch.city} className={cn(
                 "bg-white rounded-lg border p-5 hover:shadow-md transition-shadow",
-                i === 0 ? "border-[#F15A24]" : "border-[#E5E7EB]"
+                i === 0 ? "border-[#F37021]" : "border-[#E5E7EB]"
               )}>
                 {i === 0 && (
-                  <div className="text-[10px] font-black text-[#F15A24] uppercase tracking-widest mb-2">{t("branches.headOffice")}</div>
+                  <div className="text-[10px] font-black text-[#F37021] uppercase tracking-widest mb-2">{t("branches.headOffice")}</div>
                 )}
-                <h3 className="text-[15px] font-semibold text-[#062D63] mb-3">{branch.city}</h3>
+                <h3 className="text-[15px] font-bold text-[#002D62] mb-3">{branch.city}</h3>
                 <ul className="flex flex-col gap-2.5">
                   <li className="flex items-start gap-2 text-[12px] text-[#6B7280]">
                     <MapPin size={13} className="text-[#D64A12] flex-shrink-0 mt-0.5" />
@@ -128,7 +129,7 @@ export function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg border border-[#E5E7EB] p-7 shadow-sm">
-                <h2 className="text-xl font-semibold text-[#062D63] mb-1" style={{ fontFamily: "var(--font-display)" }}>{t("form.title")}</h2>
+                <h2 className="text-xl font-bold text-[#002D62] mb-1" style={{ fontFamily: "var(--font-display)" }}>{t("form.title")}</h2>
                 <p className="text-[12px] text-[#9CA3AF] mb-6">{t("form.subtitle")}</p>
 
                 {sent ? (
@@ -187,7 +188,7 @@ export function ContactPage() {
 
             {/* Quick contact */}
             <div className="flex flex-col gap-4">
-              <div className="bg-[#062D63] rounded-lg p-6 text-white">
+              <div className="bg-gradient-to-br from-[#001F45] to-[#002D62] rounded-xl p-6 text-white border border-white/10">
                 <h3 className="text-[15px] font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>{t("quick.title")}</h3>
                 <ul className="flex flex-col gap-4">
                   <li>
@@ -212,7 +213,7 @@ export function ContactPage() {
                   <div className="text-[11px] text-white/40 mb-2">{t("quick.social")}</div>
                   <div className="flex gap-3">
                     {[Facebook, Instagram].map((Icon, i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F15A24] transition-colors">
+                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F37021] transition-colors">
                         <Icon size={14} />
                       </a>
                     ))}

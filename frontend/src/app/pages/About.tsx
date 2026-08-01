@@ -39,18 +39,18 @@ export function About() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-journey.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "আমাদের সম্পর্কে" : "About" },
         ]} />
       </PageHero>
 
-      <Section>
+      <Section tone="sky">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <Reveal>
-            <p className="text-[#F15A24] text-xs font-bold uppercase tracking-[0.2em] mb-3">{t("story.eyebrow")}</p>
-            <h2 className="text-3xl md:text-4xl font-semibold text-[#062D63] mb-5" style={{ fontFamily: "var(--font-display)" }}>{t("story.heading")}</h2>
+            <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.2em] mb-3">{t("story.eyebrow")}</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#002D62] mb-5" style={{ fontFamily: "var(--font-display)" }}>{t("story.heading")}</h2>
             <div className="space-y-4 text-[#374151] leading-relaxed">
               <p>SMTravel International was founded in 1998 in Dhaka&apos;s Motijheel commercial district with a single mission: to make the sacred Hajj pilgrimage accessible, affordable, and stress-free for every Bangladeshi Muslim.</p>
               <p>Over 25 years, we have grown from a single-room office to a multi-branch, full-service travel management company — trusted by over 10,000 pilgrims, families, and corporate clients across Bangladesh.</p>
@@ -72,20 +72,20 @@ export function About() {
           </Reveal>
           <Reveal delay={0.1}>
             <div className="grid grid-cols-2 gap-4">
-              <img src="/hero-journey.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
+              <img src="/hero-approve.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
               <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg mt-8" />
             </div>
           </Reveal>
         </div>
       </Section>
 
-      <Section tone="soft">
+      <Section tone="mint">
         <SectionHeader eyebrow={t("foundation.eyebrow")} title={t("foundation.heading")} />
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { icon: Target, title: t("mission.title"), color: "#1B75BC", text: "To provide the highest quality Hajj, Umrah and travel services that honor the sacred trust our clients place in us." },
             { icon: Globe, title: t("vision.title"), color: "#16A34A", text: "To be South Asia's most respected Islamic travel management company by 2030." },
-            { icon: Heart, title: t("values.title"), color: "#F15A24", text: "Integrity, Compassion, Excellence, Accountability — every pilgrim as family." },
+            { icon: Heart, title: t("values.title"), color: "#F37021", text: "Integrity, Compassion, Excellence, Accountability — every pilgrim as family." },
           ].map((v, i) => (
             <Reveal key={v.title} delay={i * 0.06}>
               <div className="bg-white rounded-lg p-7 border border-[#E5E7EB] h-full">
@@ -100,7 +100,7 @@ export function About() {
         </div>
       </Section>
 
-      <Section>
+      <Section tone="soft">
         <SectionHeader eyebrow={t("milestones.eyebrow")} title={t("milestones.heading")} />
         <div className="max-w-3xl mx-auto relative">
           <div className="absolute left-6 top-0 bottom-0 w-px bg-[#E5E7EB]" />
@@ -111,8 +111,8 @@ export function About() {
                   <div className="w-12 h-12 rounded-full bg-[#062D63] text-white text-[11px] font-bold flex items-center justify-center border-4 border-white shadow z-10 flex-shrink-0">
                     {m.year.slice(2)}
                   </div>
-                  <div className="flex-1 bg-[#F7F8FA] rounded-2xl p-4 border border-[#E5E7EB]">
-                    <div className="text-xs font-bold text-[#F15A24] mb-0.5">{m.year}</div>
+                  <div className="flex-1 bg-[#EEF3F8] rounded-2xl p-4 border border-[#E5E7EB]">
+                    <div className="text-xs font-bold text-[#F37021] mb-0.5">{m.year}</div>
                     <div className="text-sm text-[#374151]">{m.event}</div>
                   </div>
                 </div>
@@ -122,7 +122,7 @@ export function About() {
         </div>
       </Section>
 
-      <Section tone="tint">
+      <Section tone="warm">
         <SectionHeader eyebrow={t("certs.eyebrow")} title={t("certs.heading")} />
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {CERTS.map((c) => (
@@ -134,15 +134,15 @@ export function About() {
         </div>
       </Section>
 
-      <Section>
+      <Section tone="sky">
         <SectionHeader eyebrow={t("team.eyebrow")} title={t("team.heading")} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {TEAM.map((member) => (
-            <div key={member.name} className="bg-[#F7F8FA] rounded-lg p-6 text-center border border-[#E5E7EB]">
+            <div key={member.name} className="bg-white rounded-xl p-6 text-center border border-[#E5E7EB] shadow-sm">
               <div className="w-16 h-16 bg-[#EAF5FF] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-semibold text-[#1B75BC]">
                 {member.name[0]}
               </div>
-              <h3 className="text-sm font-semibold text-[#062D63] mb-1">{member.name}</h3>
+              <h3 className="text-sm font-bold text-[#002D62] mb-1">{member.name}</h3>
               <div className="text-xs font-semibold text-[#1B75BC] mb-1">{member.role}</div>
               <div className="text-[11px] text-[#9CA3AF]">{member.exp}</div>
             </div>
@@ -150,7 +150,7 @@ export function About() {
         </div>
       </Section>
 
-      <Section>
+      <Section tone="warm">
         <CtaBand
           title={t("cta.heading")}
           subtitle={t("cta.subtitle")}
