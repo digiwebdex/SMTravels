@@ -13,7 +13,10 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:migrate": "prisma migrate deploy",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "seed:demo-catalog": "tsx scripts/seed-demo-catalog.ts",
+    "test:e2e-workflow": "tsx scripts/e2e-full-workflow.ts",
+    "test:money-smoke": "tsx src/services/milestone-b-money-smoke.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
