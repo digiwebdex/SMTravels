@@ -5,6 +5,7 @@ import type {
   PublicFaqItem, PublicTestimonialItem, PublicGalleryItem, PublicCmsPageDto,
   PublicMenuDto, PublicBannerDto,
 } from "@contracts/cms.contract";
+import { getDemoPackage, listDemoPackages } from "../website/demoPackages";
 
 const pub = <T,>(path: string) => apiFetch<T>(path, {}, { auth: false });
 
@@ -35,7 +36,15 @@ export function usePublicPackages(opts?: { featured?: boolean; type?: string; q?
   const query = qs({ featured: opts?.featured, type: opts?.type, q: opts?.q, limit: opts?.limit ?? 50 });
   return useQuery({
     queryKey: publicKeys.packages(query),
-    queryFn: () => pub<{ data: PublicPackageItem[]; total: number }>(`/public/packages${query}`),
+    queryFn: async () => {
+      try {
+        const res = await pub<{ data: PublicPackageItem[]; total: number }>(`/public/packages${query}`);
+        if (res.data?.length) return res;
+      } catch {
+        /* use demo catalog when API is down or empty */
+      }
+      return listDemoPackages(opts);
+    },
     staleTime: 60_000,
   });
 }
@@ -43,7 +52,15 @@ export function usePublicPackages(opts?: { featured?: boolean; type?: string; q?
 export function usePublicPackage(slugOrId: string | undefined) {
   return useQuery({
     queryKey: publicKeys.package(slugOrId ?? ""),
-    queryFn: () => pub<PublicPackageDetail>(`/public/packages/${slugOrId}`),
+    queryFn: async () => {
+      try {
+        return await pub<PublicPackageDetail>(`/public/packages/${slugOrId}`);
+      } catch {
+        const demo = getDemoPackage(slugOrId);
+        if (demo) return demo;
+        throw new Error("Package not found");
+      }
+    },
     enabled: !!slugOrId,
     staleTime: 60_000,
   });
