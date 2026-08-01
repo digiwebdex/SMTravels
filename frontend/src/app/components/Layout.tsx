@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import {
-  Menu, X, ChevronDown, Phone, Mail, MapPin, Facebook, Instagram, Youtube,
-  Plane, Star, Shield, Hotel, Globe, Briefcase, Car, Umbrella,
-  BookOpen, PlayCircle, MessageCircle,
+  Menu, X, ChevronDown, Phone, Mail, MapPin, Facebook, Instagram, Youtube, Twitter,
+  Umbrella, LogIn, Linkedin,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
 import { useLang } from "../i18n/useLang";
-import { Btn } from "../website/primitives";
 
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
   return (
@@ -20,46 +18,44 @@ function WhatsAppIcon({ size = 24 }: { size?: number }) {
   );
 }
 
-const SERVICE_NAV = [
-  { labelKey: "serviceNav.hajj.label", path: "/hajj", icon: Star, color: "#F15A24" },
-  { labelKey: "serviceNav.umrah.label", path: "/umrah", icon: MapPin, color: "#1B75BC" },
-  { labelKey: "serviceNav.visa.label", path: "/visa", icon: Shield, color: "#16A34A" },
-  { labelKey: "serviceNav.airTicket.label", path: "/air-ticket", icon: Plane, color: "#062D63" },
-  { labelKey: "serviceNav.tour.label", path: "/tour-packages", icon: Globe, color: "#C89B3C" },
-  { labelKey: "serviceNav.hotel.label", path: "/hotel-booking", icon: Hotel, color: "#0891B2" },
-  { labelKey: "serviceNav.transport.label", path: "/transport", icon: Car, color: "#7C3AED" },
-  { labelKey: "serviceNav.insurance.label", path: "/faq", icon: Umbrella, color: "#0E7C66" },
+const PRIMARY_NAV = [
+  { labelBn: "হজ্ব ও উমরাহ", labelEn: "Hajj & Umrah", path: "/hajj" },
+  { labelBn: "ভিসা সার্ভিস", labelEn: "Visa Service", path: "/visa" },
+  { labelBn: "এয়ার টিকেট", labelEn: "Air Ticket", path: "/air-ticket" },
+  { labelBn: "ট্যুর প্যাকেজ", labelEn: "Tour Packages", path: "/tour-packages" },
+  { labelBn: "হোটেল", labelEn: "Hotel", path: "/hotel-booking" },
+  { labelBn: "পরিবহন", labelEn: "Transport", path: "/transport" },
 ];
 
-const MAIN_NAV = [
-  { i18nKey: "common:nav.home", path: "/" },
-  { i18nKey: "common:nav.about", path: "/about" },
-  { i18nKey: "common:nav.packages", path: "/packages" },
-  { i18nKey: "common:nav.knowledge", path: "/knowledge" },
-  { i18nKey: "common:nav.videos", path: "/videos" },
-  { i18nKey: "common:nav.blog", path: "/blog" },
-  { i18nKey: "common:nav.contact", path: "/contact" },
+const OTHERS_NAV = [
+  { labelBn: "ম্যানপাওয়ার", labelEn: "Manpower", path: "/manpower" },
+  { labelBn: "জ্ঞান কেন্দ্র", labelEn: "Knowledge", path: "/knowledge" },
+  { labelBn: "ভিডিও", labelEn: "Videos", path: "/videos" },
+  { labelBn: "গ্যালারি", labelEn: "Gallery", path: "/gallery" },
+  { labelBn: "জিজ্ঞাসা", labelEn: "FAQ", path: "/faq" },
+  { labelBn: "বীমা", labelEn: "Insurance", path: "/faq" },
 ];
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
+  const [othersOpen, setOthersOpen] = useState(false);
+  const [branchesOpen, setBranchesOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [servicesExpanded, setServicesExpanded] = useState(false);
   const { t } = useTranslation("layout");
   const { lang, toggle } = useLang();
+  const bn = lang === "bn";
   const location = useLocation();
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
+    const handler = () => setScrolled(window.scrollY > 12);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
   useEffect(() => {
     setDrawerOpen(false);
-    setServicesOpen(false);
-    setServicesExpanded(false);
+    setOthersOpen(false);
+    setBranchesOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -72,99 +68,104 @@ export function Header() {
 
   return (
     <>
-      {/* Top bar */}
-      <div className="hidden lg:block bg-[#062D63] text-white/80 text-xs">
-        <div className="max-w-[1200px] mx-auto px-6 h-9 flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            <a href="tel:+8801712345678" className="inline-flex items-center gap-1.5 hover:text-white transition-colors">
-              <Phone size={12} /> +880 1712-345678
+      {/* Top utility bar — Image A */}
+      <div className="hidden lg:block bg-[#062D63] text-white text-[12px]">
+        <div className="max-w-[1240px] mx-auto px-5 h-10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-5 min-w-0">
+            <a href="tel:+8801211190022" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors whitespace-nowrap">
+              <Phone size={12} className="text-[#F15A24]" /> +880 1211 190 022
             </a>
-            <a href="mailto:info@smtravelsinternational.com" className="inline-flex items-center gap-1.5 hover:text-white transition-colors">
-              <Mail size={12} /> info@smtravelsinternational.com
+            <a href="mailto:info@smtravelsinternational.com" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors truncate">
+              <Mail size={12} className="text-[#F15A24]" /> info@smtravelsinternational.com
             </a>
-            <span className="inline-flex items-center gap-1.5"><MapPin size={12} /> ঢাকা, বাংলাদেশ</span>
+            <span className="inline-flex items-center gap-1.5 text-white/85 whitespace-nowrap">
+              <MapPin size={12} className="text-[#F15A24]" /> {bn ? "ঢাকা, বাংলাদেশ" : "Dhaka, Bangladesh"}
+            </span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link to="/about" className="hover:text-white transition-colors">{t("common:nav.about")}</Link>
-            <Link to="/career" className="hover:text-white transition-colors">ক্যারিয়ার</Link>
-            <Link to="/contact" className="hover:text-white transition-colors">{t("common:nav.contact")}</Link>
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <Link to="/about" className="hover:text-[#F15A24] transition-colors">{bn ? "আমাদের সম্পর্কে" : "About Us"}</Link>
+            <Link to="/blog" className="hover:text-[#F15A24] transition-colors">{bn ? "ব্লগ" : "Blog"}</Link>
+            <Link to="/portal" className="hover:text-[#F15A24] transition-colors">{bn ? "পোর্টাল" : "Portal"}</Link>
+            <div className="relative" onMouseEnter={() => setBranchesOpen(true)} onMouseLeave={() => setBranchesOpen(false)}>
+              <button type="button" className="inline-flex items-center gap-1 hover:text-[#F15A24] transition-colors">
+                {bn ? "শাখা" : "Branches"} <ChevronDown size={12} />
+              </button>
+              {branchesOpen && (
+                <div className="absolute right-0 top-full pt-2 z-50">
+                  <div className="bg-white text-[#062D63] rounded-md shadow-xl border border-[#E5E7EB] py-1 min-w-[160px]">
+                    <Link to="/branches" className="block px-4 py-2 text-xs hover:bg-[#EAF5FF]">{bn ? "সব শাখা" : "All branches"}</Link>
+                    <Link to="/contact" className="block px-4 py-2 text-xs hover:bg-[#EAF5FF]">{bn ? "যোগাযোগ" : "Contact"}</Link>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={toggle}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-white/25 hover:bg-white/10 transition-colors"
+              aria-label={bn ? "Switch to English" : "বাংলায় দেখুন"}>
+              {bn ? "EN" : "বাং"}
+            </button>
           </div>
         </div>
       </div>
 
       <header className={cn(
-        "sticky top-0 z-50 transition-all duration-300 border-b",
-        scrolled
-          ? "bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(6,45,99,0.08)] border-[#E5E7EB]/80"
-          : "bg-white border-transparent",
+        "sticky top-0 z-50 bg-white border-b border-[#E5E7EB] transition-shadow",
+        scrolled && "shadow-[0_4px_20px_rgba(6,45,99,0.08)]",
       )}>
-        <div className="max-w-[1200px] mx-auto px-4 md:px-6 h-[68px] md:h-[76px] flex items-center gap-4">
+        <div className="max-w-[1240px] mx-auto px-4 md:px-5 h-[70px] md:h-[76px] flex items-center gap-3">
           <Link to="/" className="flex-shrink-0" aria-label="SM Travels International">
-            <BrandLogo className="h-11 md:h-12 w-auto" />
+            <BrandLogo className="h-10 md:h-12 w-auto" />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
-            {MAIN_NAV.slice(0, 2).map((item) => (
-              <Link key={item.path} to={item.path}
+          <nav className="hidden xl:flex items-center gap-0.5 flex-1 justify-center">
+            {PRIMARY_NAV.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
                 className={cn(
-                  "px-3 py-2 rounded-full text-[13px] font-medium transition-colors",
-                  isActive(item.path) ? "text-[#1B75BC] bg-[#EAF5FF]" : "text-[#374151] hover:text-[#1B75BC] hover:bg-[#F7F8FA]",
-                )}>
-                {t(item.i18nKey)}
+                  "px-2.5 py-2 text-[13px] font-semibold whitespace-nowrap transition-colors",
+                  isActive(item.path) ? "text-[#1B75BC]" : "text-[#062D63] hover:text-[#1B75BC]",
+                )}
+              >
+                {bn ? item.labelBn : item.labelEn}
               </Link>
             ))}
-
-            <div className="relative" onMouseEnter={() => setServicesOpen(true)} onMouseLeave={() => setServicesOpen(false)}>
+            <div className="relative" onMouseEnter={() => setOthersOpen(true)} onMouseLeave={() => setOthersOpen(false)}>
               <button type="button"
-                className={cn(
-                  "px-3 py-2 rounded-full text-[13px] font-medium inline-flex items-center gap-1 transition-colors",
-                  SERVICE_NAV.some((s) => isActive(s.path)) ? "text-[#1B75BC] bg-[#EAF5FF]" : "text-[#374151] hover:text-[#1B75BC] hover:bg-[#F7F8FA]",
-                )}
-                aria-expanded={servicesOpen}
-              >
-                {t("common:nav.services")} <ChevronDown size={14} className={cn("transition-transform", servicesOpen && "rotate-180")} />
+                className="px-2.5 py-2 text-[13px] font-semibold text-[#062D63] hover:text-[#1B75BC] inline-flex items-center gap-0.5"
+                aria-expanded={othersOpen}>
+                {bn ? "অন্যান্য" : "Others"} <ChevronDown size={14} className={cn("transition-transform", othersOpen && "rotate-180")} />
               </button>
-              {servicesOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-[520px]">
-                  <div className="bg-white rounded-3xl shadow-2xl border border-[#E5E7EB] p-3 grid grid-cols-2 gap-1">
-                    {SERVICE_NAV.map((s) => (
-                      <Link key={s.path} to={s.path}
-                        className="flex items-center gap-3 p-3 rounded-2xl hover:bg-[#EAF5FF] transition-colors">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${s.color}18`, color: s.color }}>
-                          <s.icon size={18} />
-                        </div>
-                        <span className="text-sm font-semibold text-[#062D63]">{t(s.labelKey)}</span>
+              {othersOpen && (
+                <div className="absolute top-full left-0 pt-2 w-52 z-50">
+                  <div className="bg-white rounded-md shadow-xl border border-[#E5E7EB] py-1">
+                    {OTHERS_NAV.map((s) => (
+                      <Link key={s.path + s.labelEn} to={s.path}
+                        className="block px-4 py-2.5 text-sm text-[#062D63] hover:bg-[#EAF5FF] hover:text-[#1B75BC]">
+                        {bn ? s.labelBn : s.labelEn}
                       </Link>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-
-            {MAIN_NAV.slice(2).map((item) => (
-              <Link key={item.path} to={item.path}
-                className={cn(
-                  "px-3 py-2 rounded-full text-[13px] font-medium transition-colors",
-                  isActive(item.path) ? "text-[#1B75BC] bg-[#EAF5FF]" : "text-[#374151] hover:text-[#1B75BC] hover:bg-[#F7F8FA]",
-                )}>
-                {t(item.i18nKey)}
-              </Link>
-            ))}
           </nav>
 
           <div className="flex items-center gap-2 ml-auto">
-            <button type="button" onClick={toggle}
-              className="hidden sm:inline-flex px-3 py-2 rounded-full text-xs font-bold border border-[#E5E7EB] text-[#062D63] hover:bg-[#EAF5FF] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
-              aria-label={lang === "bn" ? "Switch to English" : "বাংলায় দেখুন"}>
-              {lang === "bn" ? "EN" : "বাং"}
-            </button>
-            <Link to="/login" className="hidden md:inline-flex text-sm font-semibold text-[#062D63] hover:text-[#1B75BC] px-2">
-              {t("common:actions.login")}
+            <Link
+              to="/login"
+              className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold text-[#1B75BC] border border-[#1B75BC] rounded-md hover:bg-[#EAF5FF] transition-colors"
+            >
+              <LogIn size={15} />
+              {bn ? "লগইন / রেজিস্টার" : "Login / Register"}
             </Link>
-            <Btn to="/book" variant="orange" size="sm" className="hidden sm:inline-flex !py-2.5">
-              {t("common:actions.bookNow")}
-            </Btn>
-            <button type="button" className="lg:hidden p-2.5 rounded-xl hover:bg-[#F3F4F6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
+            <Link
+              to="/book"
+              className="hidden sm:inline-flex items-center px-4 py-2.5 text-[13px] font-bold text-white bg-[#F15A24] rounded-md hover:bg-[#CC3C17] transition-colors shadow-sm"
+            >
+              {bn ? "যাত্রা শুরু" : "Start Journey"}
+            </Link>
+            <button type="button" className="xl:hidden p-2.5 rounded-md hover:bg-[#F3F4F6]"
               onClick={() => setDrawerOpen(true)} aria-label="Open menu">
               <Menu size={22} className="text-[#062D63]" />
             </button>
@@ -173,7 +174,7 @@ export function Header() {
       </header>
 
       {/* Mobile drawer */}
-      <div className={cn("fixed inset-0 z-[60] lg:hidden transition-opacity", drawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
+      <div className={cn("fixed inset-0 z-[60] xl:hidden transition-opacity", drawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
         <button type="button" className="absolute inset-0 bg-black/40" aria-label="Close menu" onClick={() => setDrawerOpen(false)} />
         <div className={cn(
           "absolute top-0 right-0 h-full w-[min(100%,360px)] bg-white shadow-2xl transition-transform duration-300 flex flex-col",
@@ -181,33 +182,26 @@ export function Header() {
         )}>
           <div className="flex items-center justify-between px-5 h-16 border-b border-[#E5E7EB]">
             <BrandLogo className="h-10 w-auto" />
-            <button type="button" onClick={() => setDrawerOpen(false)} className="p-2 rounded-xl hover:bg-[#F3F4F6]" aria-label="Close">
+            <button type="button" onClick={() => setDrawerOpen(false)} className="p-2 rounded-md hover:bg-[#F3F4F6]" aria-label="Close">
               <X size={20} />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
-            {MAIN_NAV.map((item) => (
-              <Link key={item.path} to={item.path}
-                className={cn("block px-4 py-3 rounded-2xl text-sm font-semibold", isActive(item.path) ? "bg-[#EAF5FF] text-[#1B75BC]" : "text-[#062D63] hover:bg-[#F7F8FA]")}>
-                {t(item.i18nKey)}
+            {[...PRIMARY_NAV, ...OTHERS_NAV].map((item) => (
+              <Link key={item.path + item.labelEn} to={item.path}
+                className={cn("block px-4 py-3 rounded-md text-sm font-semibold", isActive(item.path) ? "bg-[#EAF5FF] text-[#1B75BC]" : "text-[#062D63] hover:bg-[#F7F8FA]")}>
+                {bn ? item.labelBn : item.labelEn}
               </Link>
             ))}
-            <button type="button" onClick={() => setServicesExpanded((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold text-[#062D63] hover:bg-[#F7F8FA]">
-              {t("common:nav.services")}
-              <ChevronDown size={16} className={cn("transition-transform", servicesExpanded && "rotate-180")} />
+            <Link to="/about" className="block px-4 py-3 rounded-md text-sm font-semibold text-[#062D63]">{bn ? "আমাদের সম্পর্কে" : "About"}</Link>
+            <Link to="/contact" className="block px-4 py-3 rounded-md text-sm font-semibold text-[#062D63]">{bn ? "যোগাযোগ" : "Contact"}</Link>
+            <button type="button" onClick={toggle} className="w-full text-left px-4 py-3 rounded-md text-sm font-semibold text-[#062D63]">
+              {bn ? "English" : "বাংলা"}
             </button>
-            {servicesExpanded && SERVICE_NAV.map((s) => (
-              <Link key={s.path} to={s.path} className="flex items-center gap-3 pl-8 pr-4 py-2.5 text-sm text-[#374151]">
-                <s.icon size={16} style={{ color: s.color }} /> {t(s.labelKey)}
-              </Link>
-            ))}
-            <Link to="/gallery" className="block px-4 py-3 rounded-2xl text-sm font-semibold text-[#062D63]">{t("common:nav.gallery")}</Link>
-            <Link to="/faq" className="block px-4 py-3 rounded-2xl text-sm font-semibold text-[#062D63]">{t("common:nav.faq")}</Link>
           </div>
           <div className="p-4 border-t border-[#E5E7EB] space-y-2">
-            <Btn to="/book" variant="orange" className="w-full">{t("common:actions.bookNow")}</Btn>
-            <Btn to="/login" variant="outline" className="w-full">{t("common:actions.login")}</Btn>
+            <Link to="/book" className="block text-center py-3 bg-[#F15A24] text-white font-bold rounded-md text-sm">{bn ? "যাত্রা শুরু" : "Start Journey"}</Link>
+            <Link to="/login" className="block text-center py-3 border border-[#1B75BC] text-[#1B75BC] font-bold rounded-md text-sm">{bn ? "লগইন / রেজিস্টার" : "Login / Register"}</Link>
           </div>
         </div>
       </div>
@@ -216,75 +210,83 @@ export function Header() {
 }
 
 export function Footer() {
-  const { t } = useTranslation("layout");
+  const { t, i18n } = useTranslation("layout");
+  const bn = i18n.language?.startsWith("bn");
+
   return (
     <footer className="bg-[#041E42] text-white">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-16 md:py-20">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-10">
+      <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-14 md:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
             <BrandLogo className="h-12 w-auto brightness-0 invert mb-4" />
-            <p className="text-white/65 text-sm leading-relaxed max-w-sm mb-5">
-              {t("footer.aboutBlurb", { defaultValue: "২০১১ সাল থেকে বিশ্বস্ত হজ্ব, উমরাহ, ভিসা ও ভ্রমণ সেবা — প্রযুক্তি, স্বচ্ছতা ও ইসলামী শিষ্টাচারের সমন্বয়ে।" })}
+            <p className="text-white/65 text-sm leading-relaxed max-w-xs mb-5">
+              {bn
+                ? "২০১১ সাল থেকে বিশ্বস্ত হজ্ব, উমরাহ, ভিসা ও ভ্রমণ সেবা — স্বচ্ছতা ও ইসলামী শিষ্টাচারের সাথে।"
+                : "Trusted Hajj, Umrah, visa and travel services since 2011 — with transparency and Islamic elegance."}
             </p>
             <div className="flex gap-2">
-              {[Facebook, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#F15A24] flex items-center justify-center transition-colors" aria-label="Social">
-                  <Icon size={16} />
+              {[Facebook, Instagram, Youtube, Twitter, Linkedin].map((Icon, i) => (
+                <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F15A24] hover:border-[#F15A24] flex items-center justify-center transition-colors" aria-label="Social">
+                  <Icon size={15} />
                 </a>
               ))}
             </div>
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-[#C89B3C] uppercase tracking-wider mb-4">সেবাসমূহ</h4>
+            <h4 className="text-sm font-bold text-white mb-4">{bn ? "দ্রুত লিংক" : "Quick Links"}</h4>
             <ul className="space-y-2.5 text-sm text-white/70">
-              {SERVICE_NAV.slice(0, 6).map((s) => (
-                <li key={s.path}><Link to={s.path} className="hover:text-white transition-colors">{t(s.labelKey)}</Link></li>
-              ))}
+              <li><Link to="/about" className="hover:text-white">About</Link></li>
+              <li><Link to="/packages" className="hover:text-white">{bn ? "প্যাকেজ" : "Packages"}</Link></li>
+              <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
+              <li><Link to="/branches" className="hover:text-white">{bn ? "শাখা" : "Branches"}</Link></li>
+              <li><Link to="/career" className="hover:text-white">{bn ? "ক্যারিয়ার" : "Career"}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-[#C89B3C] uppercase tracking-wider mb-4">দ্রুত লিংক</h4>
+            <h4 className="text-sm font-bold text-white mb-4">{bn ? "আমাদের সেবা" : "Our Services"}</h4>
             <ul className="space-y-2.5 text-sm text-white/70">
-              <li><Link to="/packages" className="hover:text-white">প্যাকেজ</Link></li>
-              <li><Link to="/about" className="hover:text-white">আমাদের সম্পর্কে</Link></li>
-              <li><Link to="/branches" className="hover:text-white">শাখা</Link></li>
-              <li><Link to="/testimonials" className="hover:text-white">প্রশংসাপত্র</Link></li>
-              <li><Link to="/career" className="hover:text-white">ক্যারিয়ার</Link></li>
-              <li><Link to="/contact" className="hover:text-white">যোগাযোগ</Link></li>
+              <li><Link to="/hajj" className="hover:text-white">{bn ? "হজ্ব" : "Hajj"}</Link></li>
+              <li><Link to="/umrah" className="hover:text-white">{bn ? "উমরাহ" : "Umrah"}</Link></li>
+              <li><Link to="/visa" className="hover:text-white">{bn ? "ভিসা" : "Visa"}</Link></li>
+              <li><Link to="/air-ticket" className="hover:text-white">{bn ? "এয়ার টিকেট" : "Air Ticket"}</Link></li>
+              <li><Link to="/hotel-booking" className="hover:text-white">{bn ? "হোটেল" : "Hotel"}</Link></li>
+              <li><Link to="/transport" className="hover:text-white">{bn ? "পরিবহন" : "Transport"}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-[#C89B3C] uppercase tracking-wider mb-4">জ্ঞান কেন্দ্র</h4>
+            <h4 className="text-sm font-bold text-white mb-4">{bn ? "সহায়তা" : "Support"}</h4>
             <ul className="space-y-2.5 text-sm text-white/70">
-              <li><Link to="/knowledge" className="hover:text-white inline-flex items-center gap-1.5"><BookOpen size={14} /> ইসলামী গাইড</Link></li>
-              <li><Link to="/videos" className="hover:text-white inline-flex items-center gap-1.5"><PlayCircle size={14} /> ভিডিও</Link></li>
-              <li><Link to="/blog" className="hover:text-white">ব্লগ</Link></li>
-              <li><Link to="/faq" className="hover:text-white">জিজ্ঞাসা</Link></li>
-              <li><Link to="/gallery" className="hover:text-white">গ্যালারি</Link></li>
+              <li><Link to="/faq" className="hover:text-white">FAQ</Link></li>
+              <li><Link to="/contact" className="hover:text-white">{bn ? "যোগাযোগ" : "Contact"}</Link></li>
+              <li><Link to="/knowledge" className="hover:text-white">{bn ? "জ্ঞান কেন্দ্র" : "Knowledge"}</Link></li>
+              <li><Link to="/privacy" className="hover:text-white">{bn ? "গোপনীয়তা" : "Privacy"}</Link></li>
+              <li><Link to="/terms" className="hover:text-white">{bn ? "শর্তাবলি" : "Terms"}</Link></li>
+              <li><Link to="/refund" className="hover:text-white">{bn ? "রিফান্ড" : "Refund"}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-[#C89B3C] uppercase tracking-wider mb-4">যোগাযোগ</h4>
+            <h4 className="text-sm font-bold text-white mb-4">{bn ? "যোগাযোগ" : "Contact"}</h4>
             <ul className="space-y-3 text-sm text-white/70">
-              <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F15A24]" /> +880 1712-345678</li>
-              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F15A24]" /> info@smtravelsinternational.com</li>
-              <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F15A24]" /> আগ্রাবাদ, চট্টগ্রাম ও ঢাকা</li>
-              <li className="flex gap-2"><MessageCircle size={14} className="mt-0.5 text-[#25D366]" /> ২৪/৭ হোয়াটসঅ্যাপ</li>
+              <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> +880 1211 190 022</li>
+              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> info@smtravelsinternational.com</li>
+              <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> {bn ? "ঢাকা ও চট্টগ্রাম, বাংলাদেশ" : "Dhaka & Chittagong, Bangladesh"}</li>
             </ul>
           </div>
         </div>
+      </div>
 
-        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <p className="text-xs text-white/40">{t("footer.copyright")}</p>
-          <div className="flex flex-wrap gap-4 text-xs text-white/45">
-            <Link to="/privacy" className="hover:text-white">গোপনীয়তা</Link>
-            <Link to="/terms" className="hover:text-white">শর্তাবলি</Link>
-            <Link to="/refund" className="hover:text-white">রিফান্ড</Link>
-            <span className="text-white/30">Visa · Mastercard · bKash · Nagad</span>
+      <div className="border-t border-white/10 bg-[#031632]">
+        <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-white/45">{t("footer.copyright")}</p>
+          <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-white/55">
+            <span className="px-2 py-1 rounded bg-white/10">VISA</span>
+            <span className="px-2 py-1 rounded bg-white/10">Mastercard</span>
+            <span className="px-2 py-1 rounded bg-white/10 text-[#E2136E]">bKash</span>
+            <span className="px-2 py-1 rounded bg-white/10 text-[#F15A24]">Nagad</span>
           </div>
         </div>
       </div>
@@ -296,7 +298,7 @@ function WhatsAppFloat() {
   return (
     <a href="https://wa.me/8801712345678?text=Assalamu%20Alaikum%20SM%20Travels"
       target="_blank" rel="noopener noreferrer"
-      className="hidden md:flex fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#25D366] text-white rounded-full items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all"
+      className="hidden md:flex fixed bottom-6 right-5 z-40 w-14 h-14 bg-[#25D366] text-white rounded-full items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all"
       aria-label="WhatsApp">
       <WhatsAppIcon size={26} />
     </a>
@@ -304,17 +306,18 @@ function WhatsAppFloat() {
 }
 
 function MobileBottomBar() {
-  const { t } = useTranslation("layout");
+  const { i18n } = useTranslation("layout");
+  const bn = i18n.language?.startsWith("bn");
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-[#E5E7EB] px-4 py-3 safe-area-inset-bottom">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-[#E5E7EB] px-4 py-3">
       <div className="flex gap-3">
         <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#25D366] text-white font-bold rounded-full text-sm">
+          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#25D366] text-white font-bold rounded-md text-sm">
           <WhatsAppIcon size={18} /> WhatsApp
         </a>
         <Link to="/book"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#F15A24] text-white font-bold rounded-full text-sm">
-          {t("common:actions.bookNow")}
+          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#F15A24] text-white font-bold rounded-md text-sm">
+          {bn ? "যাত্রা শুরু" : "Book"}
         </Link>
       </div>
     </div>
