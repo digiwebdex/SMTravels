@@ -259,7 +259,7 @@ function BrandPanel({ view }: { view: AuthView }) {
         className="absolute inset-0 w-full h-full object-cover"
       />
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1B75BC]/95 via-[#1B75BC]/80 to-[#0a1e3d]/95" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#062D63]/95 via-[#1B75BC]/75 to-[#041E42]/95" />
       {/* Geometric texture */}
       <div className="absolute inset-0 opacity-[0.04]"
         style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)", backgroundSize: "20px 20px" }} />
@@ -276,7 +276,7 @@ function BrandPanel({ view }: { view: AuthView }) {
 
         {/* Center copy */}
         <div className="my-auto">
-          <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight mb-3">{copy.headline}</h2>
+          <h2 className="text-3xl xl:text-4xl font-semibold text-white leading-tight mb-3" style={{ fontFamily: "var(--font-display)" }}>{copy.headline}</h2>
           <p className="text-white/60 text-[14px] leading-relaxed max-w-xs">{copy.sub}</p>
 
           {/* Trust pills */}
@@ -325,7 +325,7 @@ function MobileBrandStrip({ view }: { view: AuthView }) {
   const { t } = useTranslation("auth");
   void view;
   return (
-    <div className="md:hidden bg-[#1B75BC] px-5 py-4 flex items-center justify-between flex-shrink-0">
+    <div className="md:hidden bg-[#062D63] px-5 py-4 flex items-center justify-between flex-shrink-0">
       <Link to="/" className="flex items-center gap-2.5">
         <BrandLogo variant="tile" className="w-9 h-9" />
         <div>

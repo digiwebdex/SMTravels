@@ -151,11 +151,12 @@ export function BookingPage() {
 
   return (
     <>
-      <section className="bg-[#1B75BC] py-12 text-white text-center">
-        <div className="max-w-[700px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
-          <h1 className="text-2xl font-black mb-1">{t("hero.title")}</h1>
-          <p className="text-white/50 text-sm">{t("hero.subtitle")}</p>
+      <section className="relative overflow-hidden bg-[#062D63] py-14 text-white text-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#062D63] via-[#1B75BC]/40 to-[#062D63]" />
+        <div className="relative max-w-[700px] mx-auto px-6">
+          <div className="text-[#C89B3C] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
+          <h1 className="text-3xl font-semibold mb-1" style={{ fontFamily: "var(--font-display)" }}>{t("hero.title")}</h1>
+          <p className="text-white/60 text-sm">{t("hero.subtitle")}</p>
         </div>
       </section>
 
@@ -163,7 +164,7 @@ export function BookingPage() {
         <div className="max-w-[700px] mx-auto px-4 md:px-6">
           <StepIndicator current={step} />
 
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5 md:p-7">
+          <div className="bg-white rounded-3xl border border-[#E5E7EB] shadow-sm p-5 md:p-7">
 
             {/* Step 0: Select Service */}
             {step === 0 && (
