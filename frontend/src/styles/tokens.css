@@ -24,8 +24,8 @@
   --color-primary-hover: #14588F;
   --color-primary-fg: #FFFFFF;
   --color-primary-tint: #EAF5FF;
-  --color-navy: #062D63;
-  --color-navy-deep: #041E42;
+  --color-navy: #002D62;
+  --color-navy-deep: #001F45;
   --color-gold: #C89B3C;
   --color-gold-tint: #F7F0E0;
   --color-secondary: #062D63;
@@ -34,9 +34,9 @@
   --color-accent: #16A34A;
   --color-accent-hover: #15803D;
   --color-accent-tint: #ECFDF5;
-  --color-brand-mark: #F15A24;
-  --color-brand-mark-hover: #CC3C17;
-  --color-brand-mark-tint: #FDEDE8;
+  --color-brand-mark: #F37021;
+  --color-brand-mark-hover: #D85A12;
+  --color-brand-mark-tint: #FFF1E8;
 
   /* Semantic */
   --color-success: #16A34A;
@@ -124,9 +124,9 @@
   --tint-blue: var(--color-primary-tint);
   --tint-orange: var(--color-brand-mark-tint);
 
-  /* Marketing type */
-  --font-display: "Cormorant Garamond", "Noto Serif Bengali", Georgia, serif;
-  --font-body: "Noto Sans Bengali", "DM Sans", system-ui, sans-serif;
+  /* Marketing type — Approve design uses Hind Siliguri for Bangla UI */
+  --font-display: "Hind Siliguri", "Noto Sans Bengali", "DM Sans", system-ui, sans-serif;
+  --font-body: "Hind Siliguri", "Noto Sans Bengali", "DM Sans", system-ui, sans-serif;
 }
 
 .dark {

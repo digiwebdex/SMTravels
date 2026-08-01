@@ -68,23 +68,24 @@ export function Header() {
   return (
     <>
       {/* Top utility bar — Image A */}
-      <div className="hidden lg:block bg-[#062D63] text-white text-[12px]">
+      <div className="hidden lg:block bg-[#002D62] text-white text-[12px]">
         <div className="max-w-[1240px] mx-auto px-5 h-10 flex items-center justify-between gap-4">
           <div className="flex items-center gap-5 min-w-0">
-            <a href="tel:+8801211190022" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors whitespace-nowrap">
-              <Phone size={12} className="text-[#F15A24]" /> +880 1211 190 022
+            <span className="font-semibold text-[#F37021] whitespace-nowrap">{bn ? "২৪/৭ সাপোর্ট" : "24/7 Support"}</span>
+            <a href="tel:+8801211190022" className="inline-flex items-center gap-1.5 hover:text-[#F37021] transition-colors whitespace-nowrap">
+              <Phone size={12} className="text-[#F37021]" /> +880 1211 190 022
             </a>
-            <a href="mailto:support@smtravels.com" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors truncate">
-              <Mail size={12} className="text-[#F15A24]" /> support@smtravels.com
+            <a href="mailto:support@smtravels.com" className="inline-flex items-center gap-1.5 hover:text-[#F37021] transition-colors truncate">
+              <Mail size={12} className="text-[#F37021]" /> support@smtravels.com
             </a>
             <span className="inline-flex items-center gap-1.5 text-white/85 whitespace-nowrap">
-              <MapPin size={12} className="text-[#F15A24]" /> {bn ? "ঢাকা, বাংলাদেশ" : "Dhaka, Bangladesh"}
+              <MapPin size={12} className="text-[#F37021]" /> {bn ? "ঢাকা, বাংলাদেশ" : "Dhaka, Bangladesh"}
             </span>
           </div>
           <div className="flex items-center gap-4 flex-shrink-0">
-            <Link to="/about" className="hover:text-[#F15A24] transition-colors">{bn ? "আমাদের সম্পর্কে" : "About Us"}</Link>
-            <Link to="/blog" className="hover:text-[#F15A24] transition-colors">{bn ? "ব্লগ" : "Blog"}</Link>
-            <Link to="/login" className="hover:text-[#F15A24] transition-colors">{bn ? "পোর্টাল" : "Portal"}</Link>
+            <Link to="/about" className="hover:text-[#F37021] transition-colors">{bn ? "আমাদের সম্পর্কে" : "About Us"}</Link>
+            <Link to="/blog" className="hover:text-[#F37021] transition-colors">{bn ? "ব্লগ" : "Blog"}</Link>
+            <Link to="/contact" className="hover:text-[#F37021] transition-colors">{bn ? "হেল্পলাইন" : "Helpline"}</Link>
             <button type="button" onClick={toggle}
               className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded border border-white/25 hover:bg-white/10 transition-colors"
               aria-label={bn ? "Switch to English" : "বাংলায় দেখুন"}>
@@ -110,7 +111,7 @@ export function Header() {
                 to={item.path}
                 className={cn(
                   "px-2.5 py-2 text-[13px] font-semibold whitespace-nowrap transition-colors",
-                  isActive(item.path) ? "text-[#1B75BC]" : "text-[#062D63] hover:text-[#1B75BC]",
+                  isActive(item.path) ? "text-[#1B75BC]" : "text-[#002D62] hover:text-[#1B75BC]",
                 )}
               >
                 {bn ? item.labelBn : item.labelEn}
@@ -118,7 +119,7 @@ export function Header() {
             ))}
             <div className="relative" onMouseEnter={() => setOthersOpen(true)} onMouseLeave={() => setOthersOpen(false)}>
               <button type="button"
-                className="px-2.5 py-2 text-[13px] font-semibold text-[#062D63] hover:text-[#1B75BC] inline-flex items-center gap-0.5"
+                className="px-2.5 py-2 text-[13px] font-semibold text-[#002D62] hover:text-[#1B75BC] inline-flex items-center gap-0.5"
                 aria-expanded={othersOpen}>
                 {bn ? "অন্যান্য" : "Others"} <ChevronDown size={14} className={cn("transition-transform", othersOpen && "rotate-180")} />
               </button>
@@ -127,7 +128,7 @@ export function Header() {
                   <div className="bg-white rounded-md shadow-xl border border-[#E5E7EB] py-1">
                     {OTHERS_NAV.map((s) => (
                       <Link key={s.path + s.labelEn} to={s.path}
-                        className="block px-4 py-2.5 text-sm text-[#062D63] hover:bg-[#EAF5FF] hover:text-[#1B75BC]">
+                        className="block px-4 py-2.5 text-sm text-[#002D62] hover:bg-[#EAF5FF] hover:text-[#1B75BC]">
                         {bn ? s.labelBn : s.labelEn}
                       </Link>
                     ))}
@@ -147,13 +148,13 @@ export function Header() {
             </Link>
             <Link
               to="/book"
-              className="hidden sm:inline-flex items-center px-4 py-2.5 text-[13px] font-bold text-white bg-[#F15A24] rounded-md hover:bg-[#CC3C17] transition-colors shadow-sm"
+              className="hidden sm:inline-flex items-center px-4 py-2.5 text-[13px] font-bold text-white bg-[#F37021] rounded-md hover:bg-[#D85A12] transition-colors shadow-sm"
             >
-              {bn ? "বুক করুন" : "Book Now"}
+              {bn ? "যাত্রা শুরু করুন" : "Start Journey"}
             </Link>
             <button type="button" className="xl:hidden p-2.5 rounded-md hover:bg-[#F3F4F6]"
               onClick={() => setDrawerOpen(true)} aria-label="Open menu">
-              <Menu size={22} className="text-[#062D63]" />
+              <Menu size={22} className="text-[#002D62]" />
             </button>
           </div>
         </div>
@@ -175,18 +176,18 @@ export function Header() {
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
             {[...PRIMARY_NAV, ...OTHERS_NAV].map((item) => (
               <Link key={item.path + item.labelEn} to={item.path}
-                className={cn("block px-4 py-3 rounded-md text-sm font-semibold", isActive(item.path) ? "bg-[#EAF5FF] text-[#1B75BC]" : "text-[#062D63] hover:bg-[#F7F8FA]")}>
+                className={cn("block px-4 py-3 rounded-md text-sm font-semibold", isActive(item.path) ? "bg-[#EAF5FF] text-[#1B75BC]" : "text-[#002D62] hover:bg-[#F7F8FA]")}>
                 {bn ? item.labelBn : item.labelEn}
               </Link>
             ))}
-            <Link to="/about" className="block px-4 py-3 rounded-md text-sm font-semibold text-[#062D63]">{bn ? "আমাদের সম্পর্কে" : "About"}</Link>
-            <Link to="/contact" className="block px-4 py-3 rounded-md text-sm font-semibold text-[#062D63]">{bn ? "যোগাযোগ" : "Contact"}</Link>
-            <button type="button" onClick={toggle} className="w-full text-left px-4 py-3 rounded-md text-sm font-semibold text-[#062D63]">
+            <Link to="/about" className="block px-4 py-3 rounded-md text-sm font-semibold text-[#002D62]">{bn ? "আমাদের সম্পর্কে" : "About"}</Link>
+            <Link to="/contact" className="block px-4 py-3 rounded-md text-sm font-semibold text-[#002D62]">{bn ? "যোগাযোগ" : "Contact"}</Link>
+            <button type="button" onClick={toggle} className="w-full text-left px-4 py-3 rounded-md text-sm font-semibold text-[#002D62]">
               {bn ? "English" : "বাংলা"}
             </button>
           </div>
           <div className="p-4 border-t border-[#E5E7EB] space-y-2">
-            <Link to="/book" className="block text-center py-3 bg-[#F15A24] text-white font-bold rounded-md text-sm">{bn ? "বুক করুন" : "Book Now"}</Link>
+            <Link to="/book" className="block text-center py-3 bg-[#F37021] text-white font-bold rounded-md text-sm">{bn ? "যাত্রা শুরু করুন" : "Start Journey"}</Link>
             <Link to="/login" className="block text-center py-3 border border-[#1B75BC] text-[#1B75BC] font-bold rounded-md text-sm">{bn ? "লগইন / রেজিস্টার" : "Login / Register"}</Link>
           </div>
         </div>
@@ -200,7 +201,7 @@ export function Footer() {
   const bn = i18n.language?.startsWith("bn");
 
   return (
-    <footer className="bg-[#041E42] text-white">
+    <footer className="bg-[#001F45] text-white">
       <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-14 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
@@ -214,7 +215,7 @@ export function Footer() {
             </p>
             <div className="flex gap-2">
               {[Facebook, Instagram, Youtube, Twitter, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F15A24] hover:border-[#F15A24] flex items-center justify-center transition-colors" aria-label="Social">
+                <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F37021] hover:border-[#F37021] flex items-center justify-center transition-colors" aria-label="Social">
                   <Icon size={15} />
                 </a>
               ))}
@@ -259,9 +260,9 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-white mb-4">{bn ? "যোগাযোগ" : "Contact"}</h4>
             <ul className="space-y-3 text-sm text-white/70">
-              <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> +880 1211 190 022</li>
-              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> support@smtravels.com</li>
-              <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> {bn ? "ঢাকা ও চট্টগ্রাম, বাংলাদেশ" : "Dhaka & Chittagong, Bangladesh"}</li>
+              <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> +880 1211 190 022</li>
+              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> support@smtravels.com</li>
+              <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> {bn ? "ঢাকা ও চট্টগ্রাম, বাংলাদেশ" : "Dhaka & Chittagong, Bangladesh"}</li>
             </ul>
           </div>
         </div>
@@ -299,8 +300,8 @@ function MobileBottomBar() {
           <WhatsAppIcon size={18} /> WhatsApp
         </a>
         <Link to="/book"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#F15A24] text-white font-bold rounded-md text-sm">
-          {bn ? "বুক করুন" : "Book Now"}
+          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#F37021] text-white font-bold rounded-md text-sm">
+          {bn ? "যাত্রা শুরু করুন" : "Start Journey"}
         </Link>
       </div>
     </div>
