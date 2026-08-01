@@ -40,7 +40,6 @@ const OTHERS_NAV = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [othersOpen, setOthersOpen] = useState(false);
-  const [branchesOpen, setBranchesOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { t } = useTranslation("layout");
   const { lang, toggle } = useLang();
@@ -56,7 +55,6 @@ export function Header() {
   useEffect(() => {
     setDrawerOpen(false);
     setOthersOpen(false);
-    setBranchesOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -76,8 +74,8 @@ export function Header() {
             <a href="tel:+8801211190022" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors whitespace-nowrap">
               <Phone size={12} className="text-[#F15A24]" /> +880 1211 190 022
             </a>
-            <a href="mailto:info@smtravelsinternational.com" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors truncate">
-              <Mail size={12} className="text-[#F15A24]" /> info@smtravelsinternational.com
+            <a href="mailto:support@smtravels.com" className="inline-flex items-center gap-1.5 hover:text-[#F15A24] transition-colors truncate">
+              <Mail size={12} className="text-[#F15A24]" /> support@smtravels.com
             </a>
             <span className="inline-flex items-center gap-1.5 text-white/85 whitespace-nowrap">
               <MapPin size={12} className="text-[#F15A24]" /> {bn ? "ঢাকা, বাংলাদেশ" : "Dhaka, Bangladesh"}
@@ -86,24 +84,11 @@ export function Header() {
           <div className="flex items-center gap-4 flex-shrink-0">
             <Link to="/about" className="hover:text-[#F15A24] transition-colors">{bn ? "আমাদের সম্পর্কে" : "About Us"}</Link>
             <Link to="/blog" className="hover:text-[#F15A24] transition-colors">{bn ? "ব্লগ" : "Blog"}</Link>
-            <Link to="/portal" className="hover:text-[#F15A24] transition-colors">{bn ? "পোর্টাল" : "Portal"}</Link>
-            <div className="relative" onMouseEnter={() => setBranchesOpen(true)} onMouseLeave={() => setBranchesOpen(false)}>
-              <button type="button" className="inline-flex items-center gap-1 hover:text-[#F15A24] transition-colors">
-                {bn ? "শাখা" : "Branches"} <ChevronDown size={12} />
-              </button>
-              {branchesOpen && (
-                <div className="absolute right-0 top-full pt-2 z-50">
-                  <div className="bg-white text-[#062D63] rounded-md shadow-xl border border-[#E5E7EB] py-1 min-w-[160px]">
-                    <Link to="/branches" className="block px-4 py-2 text-xs hover:bg-[#EAF5FF]">{bn ? "সব শাখা" : "All branches"}</Link>
-                    <Link to="/contact" className="block px-4 py-2 text-xs hover:bg-[#EAF5FF]">{bn ? "যোগাযোগ" : "Contact"}</Link>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Link to="/login" className="hover:text-[#F15A24] transition-colors">{bn ? "পোর্টাল" : "Portal"}</Link>
             <button type="button" onClick={toggle}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-white/25 hover:bg-white/10 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded border border-white/25 hover:bg-white/10 transition-colors"
               aria-label={bn ? "Switch to English" : "বাংলায় দেখুন"}>
-              {bn ? "EN" : "বাং"}
+              {bn ? "বাংলা - ৳" : "English - $"} <ChevronDown size={12} />
             </button>
           </div>
         </div>
@@ -164,7 +149,7 @@ export function Header() {
               to="/book"
               className="hidden sm:inline-flex items-center px-4 py-2.5 text-[13px] font-bold text-white bg-[#F15A24] rounded-md hover:bg-[#CC3C17] transition-colors shadow-sm"
             >
-              {bn ? "যাত্রা শুরু" : "Start Journey"}
+              {bn ? "বুক করুন" : "Book Now"}
             </Link>
             <button type="button" className="xl:hidden p-2.5 rounded-md hover:bg-[#F3F4F6]"
               onClick={() => setDrawerOpen(true)} aria-label="Open menu">
@@ -201,7 +186,7 @@ export function Header() {
             </button>
           </div>
           <div className="p-4 border-t border-[#E5E7EB] space-y-2">
-            <Link to="/book" className="block text-center py-3 bg-[#F15A24] text-white font-bold rounded-md text-sm">{bn ? "যাত্রা শুরু" : "Start Journey"}</Link>
+            <Link to="/book" className="block text-center py-3 bg-[#F15A24] text-white font-bold rounded-md text-sm">{bn ? "বুক করুন" : "Book Now"}</Link>
             <Link to="/login" className="block text-center py-3 border border-[#1B75BC] text-[#1B75BC] font-bold rounded-md text-sm">{bn ? "লগইন / রেজিস্টার" : "Login / Register"}</Link>
           </div>
         </div>
@@ -219,12 +204,9 @@ export function Footer() {
       <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-14 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
-            <Link to="/" className="inline-flex mb-4" aria-label="SM Travels International">
-              <BrandLogo variant="tile" className="h-14 w-14 rounded-xl shadow-lg shadow-black/20" />
+            <Link to="/" className="inline-flex items-center mb-4 bg-white rounded-xl px-3 py-2.5 shadow-lg" aria-label="SM Travels International">
+              <img src="/logo.png" alt="SM Travels International" className="h-12 w-auto object-contain" />
             </Link>
-            <p className="text-lg font-bold text-white mb-1">
-              <span className="text-[#F15A24]">SM</span> Travels <span className="text-white/90 font-semibold text-sm">International</span>
-            </p>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs mb-5">
               {bn
                 ? "২০১১ সাল থেকে বিশ্বস্ত হজ্ব, উমরাহ, ভিসা ও ভ্রমণ সেবা — স্বচ্ছতা ও ইসলামী শিষ্টাচারের সাথে।"
@@ -278,7 +260,7 @@ export function Footer() {
             <h4 className="text-sm font-bold text-white mb-4">{bn ? "যোগাযোগ" : "Contact"}</h4>
             <ul className="space-y-3 text-sm text-white/70">
               <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> +880 1211 190 022</li>
-              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> info@smtravelsinternational.com</li>
+              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> support@smtravels.com</li>
               <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F15A24] flex-shrink-0" /> {bn ? "ঢাকা ও চট্টগ্রাম, বাংলাদেশ" : "Dhaka & Chittagong, Bangladesh"}</li>
             </ul>
           </div>
@@ -318,7 +300,7 @@ function MobileBottomBar() {
         </a>
         <Link to="/book"
           className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#F15A24] text-white font-bold rounded-md text-sm">
-          {bn ? "যাত্রা শুরু" : "Book"}
+          {bn ? "বুক করুন" : "Book Now"}
         </Link>
       </div>
     </div>

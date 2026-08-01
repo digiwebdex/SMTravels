@@ -5,7 +5,7 @@ import { usePublicGallery } from "../hooks/publicContent";
 import {
   PageHero, Breadcrumbs, Section, SkeletonBlock, EmptyState, ErrorState, Reveal,
 } from "../website/primitives";
-import { SITE_IMAGES, mediaUrl, cn } from "../lib/utils";
+import { mediaUrl, cn } from "../lib/utils";
 
 export function GalleryPage() {
   const { t, i18n } = useTranslation("gallery");
@@ -25,7 +25,7 @@ export function GalleryPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image={SITE_IMAGES.madinah}>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "গ্যালারি" : "Gallery" },

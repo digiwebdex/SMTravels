@@ -34,8 +34,8 @@ export function Section({
     tone === "navy" ? "bg-[#062D63] text-white" :
     tone === "soft" ? "bg-[#F7F8FA]" : "bg-white";
   return (
-    <section id={id} className={cn("py-16 md:py-24", bg, className)}>
-      <div className="max-w-[1200px] mx-auto px-4 md:px-6">{children}</div>
+    <section id={id} className={cn("py-14 md:py-20", bg, className)}>
+      <div className="max-w-[1240px] mx-auto px-4 md:px-5">{children}</div>
     </section>
   );
 }
@@ -94,26 +94,29 @@ export function Breadcrumbs({ items }: { items: { label: string; to?: string }[]
 export function PageHero({
   eyebrow, title, subtitle, image, children, compact,
 }: {
-  eyebrow?: string; title: string; subtitle?: string; image: string;
+  eyebrow?: string; title: string; subtitle?: string; image?: string;
   children?: React.ReactNode; compact?: boolean;
 }) {
+  const src = image
+    ? (image.startsWith("/") || image.startsWith("http") ? image : mediaUrl(image, 1920, 1080))
+    : "/hero-kaaba.jpg";
   return (
-    <div className={cn("relative overflow-hidden bg-[#062D63]", compact ? "min-h-[42vh]" : "min-h-[56vh]")}>
+    <div className={cn("relative overflow-hidden bg-[#062D63]", compact ? "min-h-[36vh]" : "min-h-[48vh]")}>
       <img
-        src={mediaUrl(image, 1920, 1080)}
+        src={src}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-40"
+        className="absolute inset-0 w-full h-full object-cover"
         loading="eager"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#041E42] via-[#062D63]/70 to-[#062D63]/40" />
-      <div className={cn("relative max-w-[1200px] mx-auto px-4 md:px-6 pt-28 pb-16 md:pt-36", compact ? "md:pb-16" : "md:pb-24")}>
-        {eyebrow && <p className="text-[#C89B3C] text-xs font-bold uppercase tracking-[0.22em] mb-3">{eyebrow}</p>}
-        <h1
-          className="text-4xl md:text-5xl lg:text-6xl font-semibold text-white tracking-tight max-w-3xl leading-[1.1]"
-          style={{ fontFamily: "var(--font-display)" }}
-        >{title}</h1>
-        {subtitle && <p className="mt-4 text-lg text-white/80 max-w-2xl leading-relaxed">{subtitle}</p>}
-        {children && <div className="mt-8">{children}</div>}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/80 to-[#062D63]/45" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#041E42]/90 via-transparent to-[#062D63]/30" />
+      <div className={cn("relative max-w-[1240px] mx-auto px-4 md:px-5 pt-24 pb-12 md:pt-32", compact ? "md:pb-12" : "md:pb-16")}>
+        {eyebrow && <p className="text-[#C89B3C] text-xs font-bold uppercase tracking-[0.2em] mb-3">{eyebrow}</p>}
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight max-w-3xl leading-[1.15]">
+          {title}
+        </h1>
+        {subtitle && <p className="mt-3 text-base md:text-lg text-white/80 max-w-2xl leading-relaxed">{subtitle}</p>}
+        {children && <div className="mt-6">{children}</div>}
       </div>
     </div>
   );
@@ -136,7 +139,7 @@ export function Btn({
     white: "bg-white text-[#062D63] hover:bg-[#EAF5FF]",
   };
   const cls = cn(
-    "inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1B75BC] disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 font-semibold rounded-md transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1B75BC] disabled:opacity-50",
     sizes[size], variants[variant], className,
   );
   if (to) return <Link to={to} className={cls}>{children}</Link>;
@@ -156,10 +159,10 @@ export function IconCard({
   return (
     <Link
       to={to}
-      className="group relative flex flex-col items-center text-center p-6 rounded-3xl bg-white border border-[#E5E7EB]/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
+      className="group relative flex flex-col items-center text-center p-5 rounded-lg bg-white border border-[#D6EAF8] shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-[#1B75BC] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
     >
       <div
-        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
+        className="w-14 h-14 rounded-md flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110"
         style={{ background: `${color}14`, color }}
       >
         <Icon size={28} strokeWidth={1.75} />
@@ -176,15 +179,15 @@ export function GuideCard({
   return (
     <Link
       to={to}
-      className="group flex flex-col p-5 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#1B75BC]/40 hover:shadow-lg transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
+      className="group flex flex-col p-5 rounded-lg bg-white border border-[#E5E7EB] hover:border-[#1B75BC]/40 hover:shadow-lg transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
     >
-      <div className="w-11 h-11 rounded-xl bg-[#EAF5FF] text-[#1B75BC] flex items-center justify-center mb-3 group-hover:bg-[#1B75BC] group-hover:text-white transition-colors">
+      <div className="w-11 h-11 rounded-md bg-[#EAF5FF] text-[#1B75BC] flex items-center justify-center mb-3 group-hover:bg-[#1B75BC] group-hover:text-white transition-colors">
         <Icon size={20} />
       </div>
       <h3 className="font-semibold text-[#062D63] mb-1.5 group-hover:text-[#1B75BC] transition-colors">{title}</h3>
       <p className="text-sm text-[#6B7280] leading-relaxed line-clamp-2 flex-1">{summary}</p>
-      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#F15A24]">
-        আরও পড়ুন <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#1B75BC]">
+        বিস্তারিত দেখুন <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
   );
@@ -194,7 +197,7 @@ export function PackageCard({ pkg }: { pkg: PublicPackageItem }) {
   return (
     <Link
       to={`/packages/${pkg.slug || pkg.id}`}
-      className="group flex flex-col rounded-3xl overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
+      className="group flex flex-col rounded-lg overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
     >
       <div className="relative aspect-[16/11] overflow-hidden">
         <img
@@ -256,7 +259,7 @@ export function PackageCard({ pkg }: { pkg: PublicPackageItem }) {
 
 export function TestimonialCard({ t }: { t: PublicTestimonialItem }) {
   return (
-    <div className="relative p-6 md:p-8 rounded-3xl bg-white border border-[#E5E7EB] shadow-sm h-full">
+    <div className="relative p-6 md:p-8 rounded-lg bg-white border border-[#E5E7EB] shadow-sm h-full">
       <div className="flex gap-0.5 mb-4" aria-label={`${t.stars} stars`}>
         {Array.from({ length: 5 }).map((_, i) => (
           <Star key={i} size={14} className={i < t.stars ? "text-[#C89B3C] fill-[#C89B3C]" : "text-[#E5E7EB]"} />
@@ -285,7 +288,7 @@ export function VideoCard({
       href={`https://www.youtube.com/watch?v=${youtubeId}`}
       target="_blank"
       rel="noreferrer"
-      className="group block rounded-3xl overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
+      className="group block rounded-lg overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-xl transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
     >
       <div className="relative aspect-video overflow-hidden">
         <img src={thumb} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
@@ -351,7 +354,7 @@ export function AccordionFAQ({ items }: { items: { id: string; question: string;
       {items.map((item) => {
         const isOpen = open === item.id;
         return (
-          <div key={item.id} className="rounded-2xl border border-[#E5E7EB] bg-white overflow-hidden">
+          <div key={item.id} className="rounded-lg border border-[#E5E7EB] bg-white overflow-hidden">
             <button
               type="button"
               aria-expanded={isOpen}
@@ -379,7 +382,7 @@ export function CtaBand({ title, subtitle, primary, secondary }: {
   secondary?: { label: string; to: string };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#062D63] via-[#1B75BC] to-[#062D63] p-8 md:p-12 text-center">
+    <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#062D63] via-[#1B75BC] to-[#062D63] p-8 md:p-12 text-center">
       <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[#F15A24]/20 blur-3xl" aria-hidden />
       <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-[#C89B3C]/15 blur-3xl" aria-hidden />
       <h3 className="relative text-2xl md:text-3xl font-semibold text-white" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
@@ -407,7 +410,7 @@ export function Newsletter({ onSubmit }: { onSubmit?: (email: string) => void })
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="আপনার ইমেইল"
-        className="flex-1 px-5 py-3.5 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#C89B3C]"
+        className="flex-1 px-5 py-3.5 rounded-md border border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#C89B3C]"
       />
       <Btn type="submit" variant="orange" size="lg">সাবস্ক্রাইব</Btn>
     </form>
@@ -416,7 +419,7 @@ export function Newsletter({ onSubmit }: { onSubmit?: (email: string) => void })
 
 export function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-[#E5E7EB] bg-[#F7F8FA] px-6 py-16 text-center text-[#6B7280]">
+    <div className="rounded-lg border border-dashed border-[#E5E7EB] bg-[#F7F8FA] px-6 py-16 text-center text-[#6B7280]">
       {message}
     </div>
   );
@@ -424,7 +427,7 @@ export function EmptyState({ message }: { message: string }) {
 
 export function ErrorState({ message }: { message: string }) {
   return (
-    <div role="alert" className="rounded-3xl border border-red-200 bg-red-50 px-6 py-8 text-center text-red-700 text-sm">
+    <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-6 py-8 text-center text-red-700 text-sm">
       {message}
     </div>
   );

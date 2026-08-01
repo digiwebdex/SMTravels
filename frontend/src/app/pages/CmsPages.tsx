@@ -7,11 +7,11 @@ import {
   TestimonialCard, VideoCard, Reveal, Btn, CtaBand,
 } from "../website/primitives";
 import { SITE_VIDEOS } from "../website/videos";
-import { SITE_IMAGES, cn } from "../lib/utils";
+import { cn } from "../lib/utils";
 import { BRANCHES } from "../lib/data";
 
 function CmsBodyPage({
-  slug, fallbackTitle, fallbackBody, image = SITE_IMAGES.kaaba,
+  slug, fallbackTitle, fallbackBody, image = "/hero-kaaba.jpg",
 }: {
   slug: string; fallbackTitle: string; fallbackBody: string; image?: string;
 }) {
@@ -55,7 +55,7 @@ export function PrivacyPage() {
   return (
     <CmsBodyPage
       slug="privacy"
-      image={SITE_IMAGES.visa}
+      image="/hero-kaaba.jpg"
       fallbackTitle={bn ? "গোপনীয়তা নীতি" : "Privacy Policy"}
       fallbackBody={bn
         ? "এসএম ট্রাভেলস আপনার ব্যক্তিগত তথ্য সুরক্ষিত রাখে। আমরা শুধুমাত্র সেবা প্রদানের জন্য প্রয়োজনীয় তথ্য সংগ্রহ করি এবং তৃতীয় পক্ষের সাথে অননুমোদিতভাবে শেয়ার করি না।"
@@ -70,7 +70,7 @@ export function TermsPage() {
   return (
     <CmsBodyPage
       slug="terms"
-      image={SITE_IMAGES.passport}
+      image="/hero-kaaba.jpg"
       fallbackTitle={bn ? "সেবার শর্তাবলি" : "Terms of Service"}
       fallbackBody={bn
         ? "আমাদের সেবা ব্যবহারের অর্থ আপনি এসএম ট্রাভেলসের বুকিং, বাতিলকরণ এবং পেমেন্ট নীতিমালা মেনে নিয়েছেন। প্যাকেজ-নির্দিষ্ট শর্ত প্রযোজ্য।"
@@ -85,7 +85,7 @@ export function RefundPage() {
   return (
     <CmsBodyPage
       slug="refund"
-      image={SITE_IMAGES.airplane}
+      image="/hero-kaaba.jpg"
       fallbackTitle={bn ? "রিফান্ড নীতি" : "Refund Policy"}
       fallbackBody={bn
         ? "রিফান্ড এয়ারলাইন, হোটেল এবং ভিসা নিয়ম অনুযায়ী নির্ধারিত হয়। বাতিলের সময়সীমা প্যাকেজ নিশ্চিতকরণে উল্লেখ থাকে। বিস্তারিত জানতে আমাদের সাথে যোগাযোগ করুন।"
@@ -101,7 +101,7 @@ export function CareerPage() {
     <div>
       <CmsBodyPage
         slug="career"
-        image={SITE_IMAGES.family}
+        image="/hero-kaaba.jpg"
         fallbackTitle={bn ? "ক্যারিয়ার" : "Careers"}
         fallbackBody={bn
           ? "এসএম ট্রাভেলসে যোগ দিন — হজ্ব, উমরাহ, ভিসা ও কস্টমার সার্ভিস টিমে প্রতিভাবান মানুষ খুঁজছি। সিভি পাঠান: hr@smtravel.com.bd"
@@ -129,7 +129,7 @@ export function BranchesPage() {
         eyebrow={bn ? "যোগাযোগ" : "Visit us"}
         title={data?.title || (bn ? "আমাদের শাখা" : "Our Branches")}
         subtitle={data?.metaDesc || (bn ? "সারা বাংলাদেশে সেবা।" : "Serving pilgrims across Bangladesh.")}
-        image={SITE_IMAGES.airport}
+        image="/hero-kaaba.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -141,7 +141,7 @@ export function BranchesPage() {
           {BRANCHES.map((branch, i) => (
             <Reveal key={branch.city} delay={i * 0.05}>
               <div className={cn(
-                "bg-white rounded-3xl border p-6 h-full",
+                "bg-white rounded-lg border p-6 h-full",
                 i === 0 ? "border-[#F15A24]" : "border-[#E5E7EB]",
               )}>
                 {i === 0 && <p className="text-[10px] font-bold text-[#F15A24] uppercase tracking-widest mb-2">{bn ? "প্রধান কার্যালয়" : "Head Office"}</p>}
@@ -180,7 +180,7 @@ export function TestimonialsPage() {
         eyebrow={bn ? "আস্থা" : "Trust"}
         title={bn ? "হাজিরদের মতামত" : "Pilgrim Testimonials"}
         subtitle={bn ? "যারা আমাদের সাথে হজ্ব ও উমরাহ করেছেন।" : "From those who travelled with us."}
-        image={SITE_IMAGES.pilgrims}
+        image="/hero-kaaba.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -226,7 +226,7 @@ export function VideosPage() {
         eyebrow={bn ? "শেখা" : "Learn"}
         title={bn ? "ভিডিও গ্যালারি" : "Video Gallery"}
         subtitle={bn ? "হজ্ব, উমরাহ ও ভ্রমণ গাইড।" : "Hajj, Umrah & travel guides."}
-        image={SITE_IMAGES.kaaba}
+        image="/hero-kaaba.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },

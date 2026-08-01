@@ -6,7 +6,7 @@ import { usePublicBlog, usePublicBlogPost } from "../hooks/publicContent";
 import {
   PageHero, Breadcrumbs, Section, SkeletonBlock, EmptyState, ErrorState, Btn, Reveal,
 } from "../website/primitives";
-import { SITE_IMAGES, mediaUrl, cn } from "../lib/utils";
+import { mediaUrl, cn } from "../lib/utils";
 
 export function BlogPage() {
   const { t, i18n } = useTranslation("blog");
@@ -25,7 +25,7 @@ export function BlogPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image={SITE_IMAGES.pilgrims}>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "ব্লগ" : "Blog" },
@@ -38,7 +38,7 @@ export function BlogPage() {
 
         {!isLoading && !isError && featured && (
           <Reveal>
-            <Link to={`/blog/${featured.slug || featured.id}`} className="block mb-10 rounded-3xl overflow-hidden border border-[#E5E7EB] bg-white hover:shadow-xl transition-all group">
+            <Link to={`/blog/${featured.slug || featured.id}`} className="block mb-10 rounded-lg overflow-hidden border border-[#E5E7EB] bg-white hover:shadow-xl transition-all group">
               <div className="grid md:grid-cols-2">
                 <div className="relative h-56 md:h-auto min-h-[260px] overflow-hidden">
                   <img src={mediaUrl(featured.image, 900, 600)} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -79,7 +79,7 @@ export function BlogPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((b, i) => (
             <Reveal key={b.id} delay={i * 0.04}>
-              <Link to={`/blog/${b.slug || b.id}`} className="block rounded-3xl overflow-hidden border border-[#E5E7EB] bg-white hover:shadow-lg hover:-translate-y-1 transition-all group h-full">
+              <Link to={`/blog/${b.slug || b.id}`} className="block rounded-lg overflow-hidden border border-[#E5E7EB] bg-white hover:shadow-lg hover:-translate-y-1 transition-all group h-full">
                 <div className="relative h-48 overflow-hidden">
                   <img src={mediaUrl(b.image, 600, 350)} alt={b.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   <span className="absolute top-3 left-3 bg-[#1B75BC] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">{b.category}</span>
@@ -116,7 +116,7 @@ export function BlogDetailPage() {
   if (isError || !blog) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image={SITE_IMAGES.pilgrims} compact>
+        <PageHero title={t("detail.notFound")} image="/hero-kaaba.jpg" compact>
           <Breadcrumbs items={[{ label: bn ? "হোম" : "Home", to: "/" }, { label: "Blog", to: "/blog" }, { label: "404" }]} />
         </PageHero>
         <Section>
@@ -146,7 +146,7 @@ export function BlogDetailPage() {
 
       <Section tone="soft">
         <div className="grid lg:grid-cols-3 gap-8">
-          <article className="lg:col-span-2 bg-white rounded-3xl border border-[#E5E7EB] p-7">
+          <article className="lg:col-span-2 bg-white rounded-lg border border-[#E5E7EB] p-7">
             <div className="flex flex-wrap gap-4 items-center mb-6 pb-5 border-b border-[#F3F4F6] text-sm text-[#6B7280]">
               <span className="inline-flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#EAF5FF] text-[#1B75BC] font-bold text-xs flex items-center justify-center">{blog.author?.[0]}</span>{blog.author}</span>
               <span className="inline-flex items-center gap-1"><Calendar size={12} />{blog.date}</span>
@@ -170,12 +170,12 @@ export function BlogDetailPage() {
           </article>
 
           <aside className="space-y-5">
-            <div className="rounded-3xl bg-[#062D63] p-6 text-white">
+            <div className="rounded-lg bg-[#062D63] p-6 text-white">
               <h4 className="font-semibold text-lg mb-2" style={{ fontFamily: "var(--font-display)" }}>{t("detail.ctaTitle")}</h4>
               <p className="text-white/70 text-sm mb-4">{t("detail.ctaText")}</p>
               <Btn to="/book" variant="orange" className="w-full">{t("detail.getFreeQuote")}</Btn>
             </div>
-            <div className="bg-white rounded-3xl border border-[#E5E7EB] p-5">
+            <div className="bg-white rounded-lg border border-[#E5E7EB] p-5">
               <h4 className="font-semibold text-[#062D63] mb-4">{t("detail.related")}</h4>
               <div className="space-y-4">
                 {related.map((r) => (

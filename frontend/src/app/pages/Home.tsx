@@ -15,14 +15,14 @@ import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn } from "../lib/utils";
 import type { PublicPackageItem } from "../hooks/publicContent";
 
 const SERVICES = [
-  { to: "/hajj", icon: Star, titleBn: "হজ্ব প্যাকেজ", titleEn: "Hajj Package" },
-  { to: "/umrah", icon: MapPin, titleBn: "উমরাহ প্যাকেজ", titleEn: "Umrah Package" },
-  { to: "/visa", icon: Shield, titleBn: "ভিসা সার্ভিস", titleEn: "Visa Service" },
-  { to: "/air-ticket", icon: Plane, titleBn: "এয়ার টিকেট", titleEn: "Air Ticket" },
-  { to: "/tour-packages", icon: Globe, titleBn: "ট্যুর প্যাকেজ", titleEn: "Tour Package" },
-  { to: "/hotel-booking", icon: Hotel, titleBn: "হোটেল", titleEn: "Hotel" },
-  { to: "/transport", icon: Car, titleBn: "পরিবহন", titleEn: "Transport" },
-  { to: "/faq", icon: Umbrella, titleBn: "ট্রাভেল ইন্স্যুরেন্স", titleEn: "Travel Insurance" },
+  { to: "/hajj", icon: Star, titleBn: "হজ্ব প্যাকেজ", titleEn: "Hajj Package", color: "#1B75BC" },
+  { to: "/umrah", icon: MapPin, titleBn: "উমরাহ প্যাকেজ", titleEn: "Umrah Package", color: "#F15A24" },
+  { to: "/visa", icon: Shield, titleBn: "ভিসা সার্ভিস", titleEn: "Visa Service", color: "#062D63" },
+  { to: "/air-ticket", icon: Plane, titleBn: "এয়ার টিকেট", titleEn: "Air Ticket", color: "#1B75BC" },
+  { to: "/tour-packages", icon: Globe, titleBn: "ট্যুর প্যাকেজ", titleEn: "Tour Package", color: "#16A34A" },
+  { to: "/hotel-booking", icon: Hotel, titleBn: "হোটেল বুকিং", titleEn: "Hotel Booking", color: "#C89B3C" },
+  { to: "/transport", icon: Car, titleBn: "পরিবহন সেবা", titleEn: "Transport", color: "#1B75BC" },
+  { to: "/faq", icon: Umbrella, titleBn: "ট্রাভেল ইন্স্যুরেন্স", titleEn: "Travel Insurance", color: "#F15A24" },
 ];
 
 const HAJJ_SLUGS = ["mina", "arafat", "muzdalifah", "ramy", "qurbani", "hair-cutting", "farewell-tawaf", "womens-rules"];
@@ -45,10 +45,10 @@ const PROHIBITIONS = [
 ];
 
 const TRUST = [
-  { icon: Shield, bn: "বিশ্বস্ত সেবা", en: "Trusted Service" },
-  { icon: Headphones, bn: "২৪/৭ সাপোর্ট", en: "24/7 Support" },
-  { icon: Users, bn: "৫,০০০+ সন্তুষ্ট যাত্রী", en: "5,000+ Happy Travelers" },
-  { icon: BadgeCheck, bn: "ATOL ও IATA সনদ", en: "ATOL & IATA Certified" },
+  { icon: Shield, bn: "বিশ্বস্ত সেবা", en: "Trusted Service", subBn: "১০+ বছরের অভিজ্ঞতা", subEn: "10+ years experience" },
+  { icon: Headphones, bn: "২৪/৭ সাপোর্ট", en: "24/7 Support", subBn: "সবসময় পাশে", subEn: "Always with you" },
+  { icon: Users, bn: "৫,০০০+ সফল যাত্রী", en: "5,000+ Travelers", subBn: "সন্তুষ্ট হাজি", subEn: "Happy pilgrims" },
+  { icon: BadgeCheck, bn: "ATOL ও IATA", en: "ATOL & IATA", subBn: "সনদপ্রাপ্ত এজেন্সি", subEn: "Certified agency" },
 ];
 
 function PackageSlideCard({ pkg, bn }: { pkg: PublicPackageItem; bn: boolean }) {
@@ -73,50 +73,42 @@ function PackageSlideCard({ pkg, bn }: { pkg: PublicPackageItem; bn: boolean }) 
             <span className="inline-flex items-center gap-1"><Plane size={11} className="text-[#1B75BC]" />{pkg.flight || "—"}</span>
             <span className="inline-flex items-center gap-1"><Hotel size={11} className="text-[#1B75BC]" />{pkg.hotel || "—"}</span>
           </div>
-          <p className="text-xl font-bold text-[#F15A24] mb-2">{fmtPrice(pkg.price)}</p>
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#1B75BC] group-hover:gap-1.5 transition-all">
-            {bn ? "বিস্তারিত দেখুন" : "View Details"} <ArrowRight size={14} />
-          </span>
+          <div className="flex items-end justify-between gap-2 pt-1 border-t border-[#F3F4F6]">
+            <p className="text-lg font-bold text-[#F15A24] leading-tight">
+              {fmtPrice(pkg.price)}
+              <span className="block text-[10px] font-semibold text-[#9CA3AF]">{bn ? "থেকে" : "from"}</span>
+            </p>
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-[#1B75BC] text-[#1B75BC] text-xs font-bold group-hover:bg-[#EAF5FF] transition-colors">
+              {bn ? "বিস্তারিত দেখুন" : "Details"} <ArrowRight size={12} />
+            </span>
+          </div>
         </div>
       </Link>
     </motion.div>
   );
 }
 
+/** Single night Kaaba Sharif hero — locked to approved Image A pattern */
 function KaabaHeroBackground() {
-  const [videoFailed, setVideoFailed] = useState(false);
   const reduce = useReducedMotion();
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden bg-[#EAF5FF]">
       <motion.img
-        src="/hero-makkah-poster.jpg"
-        alt="কাবা শরীফ — Masjid al-Haram, Makkah"
-        className="absolute inset-0 w-full h-full object-cover"
+        src="/hero-kaaba.jpg"
+        alt="কাবা শরীফ — Masjid al-Haram at night, Makkah"
+        className="absolute inset-0 w-full h-full object-cover object-[68%_40%]"
         loading="eager"
-        initial={reduce ? false : { scale: 1.08 }}
-        animate={reduce ? undefined : { scale: [1.08, 1.02, 1.08] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        initial={reduce ? false : { scale: 1.06 }}
+        animate={reduce ? undefined : { scale: [1.06, 1.0, 1.06] }}
+        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
         onError={(e) => {
-          (e.target as HTMLImageElement).src = img(SITE_IMAGES.kaaba, 1920, 1080);
+          (e.target as HTMLImageElement).src = "/hero-kaaba-never-still.jpg";
         }}
       />
-      {!videoFailed && !reduce && (
-        <video
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster="/hero-makkah-poster.jpg"
-          onError={() => setVideoFailed(true)}
-        >
-          <source src="/hero-makkah.mp4" type="video/mp4" />
-        </video>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/93 to-white/25 md:to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white/50 via-transparent to-white/10" />
+      {/* Image A: bright left wash, Kaaba photo reads on the right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/92 to-transparent md:via-white/75 md:to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-white/25" />
     </div>
   );
 }
@@ -159,60 +151,52 @@ export function Home() {
 
   return (
     <div className="overflow-x-hidden">
-      {/* ── Hero: Kaaba Sharif video / poster ── */}
-      <section className="relative min-h-[78vh] md:min-h-[88vh] flex items-center overflow-hidden">
+      {/* ── Hero: Image A night Kaaba + left copy ── */}
+      <section className="relative min-h-[72vh] md:min-h-[82vh] flex items-end md:items-center overflow-hidden pb-24 md:pb-28">
         <KaabaHeroBackground />
 
-        <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-20 md:py-28">
+        <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 md:py-24">
           <motion.div
             initial={reduce ? false : { opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-xl"
           >
-            <motion.p
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF5FF] border border-[#1B75BC]/20 text-[#1B75BC] text-xs font-bold mb-4"
-              initial={reduce ? false : { opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#F15A24] animate-pulse" />
-              {bn ? "কাবা শরীফ · মসজিদুল হারাম" : "Kaaba Sharif · Masjid al-Haram"}
-            </motion.p>
-
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-bold text-[#062D63] leading-[1.2] max-w-xl tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] lg:text-[3.15rem] font-bold text-[#062D63] leading-[1.22] tracking-tight">
               {bn ? (
-                <>আপনার বিশ্বস্ত সঙ্গী<br /><span className="text-[#F15A24]">হজ্ব ও উমরাহ</span> যাত্রায়</>
+                <>বিশ্বস্ততায় আমরাই আপনার<br /><span className="text-[#F15A24]">হজ্ব ও উমরাহ</span> যাত্রার সেরা সাথী</>
               ) : (
-                <>Your trusted partner for<br /><span className="text-[#F15A24]">Hajj & Umrah</span></>
+                <>Your most trusted partner for<br /><span className="text-[#F15A24]">Hajj & Umrah</span> journeys</>
               )}
             </h1>
-            <p className="mt-4 text-base md:text-lg text-[#374151] max-w-md leading-relaxed">
+            <p className="mt-4 text-[15px] md:text-base text-[#374151] max-w-md leading-relaxed">
               {bn
-                ? "লাইসেন্সপ্রাপ্ত এজেন্সি — নিরাপদ, স্বচ্ছ ও সম্পূর্ণ সেবায় আপনার পবিত্র যাত্রা।"
-                : "Licensed agency — safe, transparent and complete service for your sacred journey."}
+                ? "হজ্ব, উমরাহ, ভিসা, এয়ার টিকেট ও সম্পূর্ণ প্যাকেজ — লাইসেন্সপ্রাপ্ত এজেন্সির নিরাপদ ও স্বচ্ছ সেবায়।"
+                : "Hajj, Umrah, visa, air tickets and complete packages — safe, transparent service from a licensed agency."}
             </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
+            {/* Trust strip — Image A horizontal white cards */}
+            <div className="mt-7 grid grid-cols-2 gap-2 max-w-lg">
               {TRUST.map((item, i) => (
                 <motion.div
                   key={item.en}
                   initial={reduce ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 + i * 0.08 }}
-                  whileHover={reduce ? undefined : { y: -3, scale: 1.03 }}
-                  className="flex items-center gap-2.5 bg-white/95 border border-[#1B75BC]/20 rounded-full pl-1.5 pr-3.5 py-1.5 shadow-sm cursor-default"
+                  transition={{ delay: 0.2 + i * 0.06 }}
+                  className="flex items-center gap-2.5 bg-white border border-[#D6EAF8] rounded-lg px-3 py-2.5 shadow-sm"
                 >
-                  <span className="w-9 h-9 rounded-full border border-[#1B75BC]/30 bg-[#EAF5FF] text-[#1B75BC] flex items-center justify-center">
+                  <span className="w-8 h-8 rounded-md bg-[#EAF5FF] text-[#1B75BC] flex items-center justify-center flex-shrink-0">
                     <item.icon size={16} />
                   </span>
-                  <span className="text-[12px] font-semibold text-[#062D63] leading-tight max-w-[110px]">
-                    {bn ? item.bn : item.en}
+                  <span className="min-w-0">
+                    <span className="block text-[11px] font-bold text-[#062D63] leading-tight">{bn ? item.bn : item.en}</span>
+                    <span className="block text-[10px] text-[#6B7280] leading-tight">{bn ? item.subBn : item.subEn}</span>
                   </span>
                 </motion.div>
               ))}
             </div>
 
-            <div className="mt-9 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <motion.div whileHover={reduce ? undefined : { scale: 1.03 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   to="/packages"
@@ -222,19 +206,18 @@ export function Home() {
                   <ArrowRight size={16} />
                 </Link>
               </motion.div>
-              <button
+              <motion.button
                 type="button"
                 onClick={() => setVideoOpen(true)}
-                className="inline-flex items-center gap-3 text-[#062D63] font-semibold hover:text-[#F15A24] transition-colors group"
+                whileHover={reduce ? undefined : { scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center gap-2.5 px-5 py-3.5 bg-white border-2 border-[#F15A24] text-[#F15A24] font-bold text-sm rounded-md hover:bg-[#FFF7F4] transition-colors shadow-sm"
               >
-                <span className="relative w-12 h-12 rounded-full border-2 border-[#F15A24] text-[#F15A24] flex items-center justify-center bg-white shadow-sm">
-                  {!reduce && (
-                    <span className="absolute inset-0 rounded-full border-2 border-[#F15A24]/50 animate-ping" aria-hidden />
-                  )}
-                  <Play size={18} className="ml-0.5 fill-current relative z-10 group-hover:scale-110 transition-transform" />
+                <span className="w-7 h-7 rounded-full border-2 border-[#F15A24] text-[#F15A24] flex items-center justify-center">
+                  <Play size={12} className="ml-0.5 fill-current" />
                 </span>
                 {bn ? "আমাদের ভিডিও দেখুন" : "Watch Our Video"}
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         </div>
@@ -259,25 +242,24 @@ export function Home() {
         </div>
       )}
 
-      {/* ── Service shortcut grid ── */}
-      <section className="bg-white border-b border-[#EAF5FF]">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-8 md:py-10">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
+      {/* ── Floating service bar (overlaps hero — Image A) ── */}
+      <section className="relative z-20 -mt-16 md:-mt-20 mb-2 px-4 md:px-5">
+        <div className="max-w-[1240px] mx-auto bg-white rounded-xl border border-[#E5E7EB] shadow-[0_12px_40px_rgba(6,45,99,0.12)] px-2 py-3 md:px-3 md:py-4">
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-1 md:gap-2">
             {SERVICES.map((s, i) => (
               <Reveal key={s.to} delay={i * 0.03}>
-                <motion.div whileHover={reduce ? undefined : { y: -5, scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <motion.div whileHover={reduce ? undefined : { y: -4 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     to={s.to}
-                    className="flex flex-col items-center justify-center text-center gap-2.5 p-4 min-h-[118px] bg-white border border-[#D6EAF8] rounded-lg hover:border-[#1B75BC] hover:shadow-lg hover:bg-[#EAF5FF]/40 transition-colors"
+                    className="flex flex-col items-center justify-center text-center gap-2 p-2.5 md:p-3 min-h-[96px] md:min-h-[108px] rounded-lg hover:bg-[#EAF5FF]/70 transition-colors"
                   >
-                    <motion.span
-                      className="text-[#1B75BC]"
-                      whileHover={reduce ? undefined : { rotate: [0, -8, 8, 0] }}
-                      transition={{ duration: 0.45 }}
+                    <span
+                      className="w-11 h-11 rounded-lg flex items-center justify-center"
+                      style={{ background: `${s.color}14`, color: s.color }}
                     >
-                      <s.icon size={28} strokeWidth={1.5} />
-                    </motion.span>
-                    <span className="text-[12px] md:text-[13px] font-semibold text-[#062D63] leading-snug">
+                      <s.icon size={24} strokeWidth={1.6} />
+                    </span>
+                    <span className="text-[11px] md:text-[12px] font-semibold text-[#062D63] leading-snug">
                       {bn ? s.titleBn : s.titleEn}
                     </span>
                   </Link>
@@ -291,10 +273,17 @@ export function Home() {
       {/* ── Rules & Guidelines ── */}
       <section className="bg-white py-14 md:py-20">
         <div className="max-w-[1240px] mx-auto px-4 md:px-5">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#062D63] text-center md:text-left">
-              {bn ? "হজ্ব ও উমরাহর নিয়মকানুন" : "Rules and Guidelines for Hajj and Umrah"}
-            </h2>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <div className="text-center md:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#062D63]">
+                {bn ? "হজ্ব ও উমরাহ এর নিয়ম ও করণীয়" : "Rules and Duties of Hajj & Umrah"}
+              </h2>
+              <p className="mt-2 text-sm text-[#6B7280] max-w-xl">
+                {bn
+                  ? "কুরআন ও সুন্নাহ ভিত্তিক ধাপে ধাপে নির্দেশিকা — নিয়ত থেকে তাওয়াফে বিদায় পর্যন্ত।"
+                  : "Step-by-step guidance from Quran & Sunnah — from intention to farewell Tawaf."}
+              </p>
+            </div>
             <div className="flex justify-center gap-2 p-1 bg-[#EAF5FF] rounded-full w-fit mx-auto md:mx-0">
               {(["hajj", "umrah"] as const).map((tab) => (
                 <button
@@ -463,7 +452,8 @@ export function Home() {
                 animate={reduce ? undefined : { y: [0, -8, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <img src={img(SITE_IMAGES.madinah, 400, 400)} alt="Green Dome, Madinah" className="w-full h-full object-cover" loading="lazy" />
+                <img src="/madinah-dome.jpg" alt="Green Dome, Madinah" className="w-full h-full object-cover" loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).src = img(SITE_IMAGES.madinah, 400, 400); }} />
               </motion.div>
             </Reveal>
 
@@ -558,7 +548,7 @@ export function Home() {
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-4">
           <div className="text-center md:text-left flex md:block flex-col items-center">
             <Users size={22} className="text-[#1B75BC] mb-2" />
-            <StatCounter end={100} suffix="K+" label={bn ? "সন্তুষ্ট হাজি" : "Happy Pilgrims"} />
+            <StatCounter end={100} suffix="K+" label={bn ? "সন্তুষ্ট যাত্রী" : "Satisfied Travelers"} />
           </div>
           <div className="text-center md:text-left flex md:block flex-col items-center">
             <BadgeCheck size={22} className="text-[#1B75BC] mb-2" />
@@ -566,29 +556,40 @@ export function Home() {
           </div>
           <div className="text-center md:text-left flex md:block flex-col items-center">
             <MapPin size={22} className="text-[#1B75BC] mb-2" />
-            <StatCounter end={25} suffix="+" label={bn ? "দেশ" : "Countries"} />
+            <StatCounter end={25} suffix="+" label={bn ? "দেশে সেবা" : "Countries Served"} />
+          </div>
+          <div className="text-center md:text-left flex md:block flex-col items-center">
+            <Star size={22} className="text-[#1B75BC] mb-2" />
+            <StatCounter end={500} suffix="+" label={bn ? "হজ্ব গ্রুপ" : "Hajj Groups"} />
           </div>
           <div className="text-center md:text-left flex md:block flex-col items-center">
             <Shield size={22} className="text-[#1B75BC] mb-2" />
-            <StatCounter end={98} suffix="%" label={bn ? "সন্তুষ্টির হার" : "Satisfaction"} />
-          </div>
-          <div className="text-center md:text-left flex md:block flex-col items-center">
-            <Headphones size={22} className="text-[#1B75BC] mb-2" />
-            <StatCounter end={24} suffix="/7" label={bn ? "সাপোর্ট" : "Support"} />
+            <StatCounter end={98} suffix="%" label={bn ? "ভিসা সফলতা" : "Visa Success Rate"} />
           </div>
         </div>
       </section>
 
-      {/* ── Newsletter ── */}
-      <section className="relative py-12 md:py-14 overflow-hidden bg-gradient-to-r from-[#062D63] via-[#1B75BC] to-[#F15A24]">
-        <Plane size={80} className="absolute left-6 top-1/2 -translate-y-1/2 text-white/15 -rotate-12 hidden md:block" aria-hidden />
+      {/* ── Newsletter — Image A bright blue wave band ── */}
+      <section className="relative py-12 md:py-14 overflow-hidden bg-[#1B75BC]">
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.35) 0, transparent 40%), radial-gradient(circle at 80% 30%, rgba(241,90,36,0.35) 0, transparent 35%), url(\"data:image/svg+xml,%3Csvg width='120' height='40' viewBox='0 0 120 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 Q 30 0 60 20 T 120 20 V40 H0Z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E\")",
+            backgroundSize: "auto, auto, 240px 40px",
+            backgroundRepeat: "no-repeat, no-repeat, repeat-x",
+            backgroundPosition: "left, right, bottom",
+          }}
+          aria-hidden
+        />
+        <Plane size={72} className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 -rotate-12 hidden md:block" aria-hidden />
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
           <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
             <div className="flex-1">
               <h2 className="text-xl md:text-2xl font-bold text-white">
-                {bn ? "সর্বশেষ অফার পেতে সাবস্ক্রাইব করুন" : "Subscribe to get the latest offers"}
+                {bn ? "সর্বশেষ অফার ও আপডেট পেতে সাবস্ক্রাইব করুন" : "Subscribe for latest offers & updates"}
               </h2>
-              <p className="text-white/80 text-sm mt-1">
+              <p className="text-white/85 text-sm mt-1">
                 {bn ? "নতুন প্যাকেজ ও গাইড সরাসরি আপনার ইনবক্সে।" : "New packages and guides delivered to your inbox."}
               </p>
             </div>
@@ -617,7 +618,7 @@ export function Home() {
                   whileTap={{ scale: 0.98 }}
                   className="px-6 py-3 bg-[#F15A24] hover:bg-[#CC3C17] text-white font-bold text-sm rounded-md transition-colors whitespace-nowrap"
                 >
-                  {bn ? "সাবস্ক্রাইব" : "Subscribe"}
+                  {bn ? "সাবস্ক্রাইব করুন" : "Subscribe"}
                 </motion.button>
               </form>
             )}

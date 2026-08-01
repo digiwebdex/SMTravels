@@ -8,7 +8,7 @@ import { usePublicPackages, usePublicPackage } from "../hooks/publicContent";
 import {
   PageHero, Breadcrumbs, Section, PackageCard, SkeletonBlock, EmptyState, ErrorState, Btn, Reveal,
 } from "../website/primitives";
-import { SITE_IMAGES, fmtPrice, cn, mediaUrl } from "../lib/utils";
+import { fmtPrice, cn, mediaUrl } from "../lib/utils";
 
 const TYPES = ["All", "HAJJ", "UMRAH", "TOUR"] as const;
 
@@ -31,7 +31,7 @@ export function PackagesPage() {
         eyebrow={t("hero.eyebrow")}
         title={t("hero.heading")}
         subtitle={t("hero.subtitle")}
-        image={SITE_IMAGES.kaaba}
+        image="/hero-kaaba.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -112,7 +112,7 @@ export function PackageDetailPage() {
   if (isError || !pkg) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image={SITE_IMAGES.kaaba} compact>
+        <PageHero title={t("detail.notFound")} image="/hero-kaaba.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "প্যাকেজ" : "Packages", to: "/packages" },
@@ -171,11 +171,11 @@ export function PackageDetailPage() {
             {tab === "overview" && (
               <div className="space-y-5">
                 {pkg.longDesc && (
-                  <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6">
+                  <div className="bg-white rounded-lg border border-[#E5E7EB] p-6">
                     <p className="text-[#374151] leading-relaxed">{pkg.longDesc}</p>
                   </div>
                 )}
-                <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6">
+                <div className="bg-white rounded-lg border border-[#E5E7EB] p-6">
                   <h3 className="text-lg font-semibold text-[#062D63] mb-3" style={{ fontFamily: "var(--font-display)" }}>{t("detail.overview.highlights")}</h3>
                   <div className="grid sm:grid-cols-2 gap-2">
                     {(pkg.highlights ?? []).map((h) => (
@@ -185,7 +185,7 @@ export function PackageDetailPage() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6">
+                <div className="bg-white rounded-lg border border-[#E5E7EB] p-6">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                       { label: t("detail.fields.duration"), val: pkg.duration, icon: Clock },
@@ -205,7 +205,7 @@ export function PackageDetailPage() {
             )}
 
             {tab === "itinerary" && (
-              <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6">
+              <div className="bg-white rounded-lg border border-[#E5E7EB] p-6">
                 <div className="space-y-4 relative">
                   <div className="absolute left-4 top-0 bottom-0 w-px bg-[#E5E7EB]" />
                   {(pkg.itinerary ?? []).map((day, i) => (
@@ -224,7 +224,7 @@ export function PackageDetailPage() {
 
             {tab === "inclusions" && (
               <div className="grid sm:grid-cols-2 gap-5">
-                <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6">
+                <div className="bg-white rounded-lg border border-[#E5E7EB] p-6">
                   <h3 className="font-semibold text-[#062D63] mb-4 inline-flex items-center gap-2"><CheckCircle size={18} className="text-[#16A34A]" />{t("detail.inclusions.included")}</h3>
                   <ul className="space-y-2">
                     {(pkg.includes ?? []).map((i) => (
@@ -232,7 +232,7 @@ export function PackageDetailPage() {
                     ))}
                   </ul>
                 </div>
-                <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6">
+                <div className="bg-white rounded-lg border border-[#E5E7EB] p-6">
                   <h3 className="font-semibold text-[#062D63] mb-4 inline-flex items-center gap-2"><XCircle size={18} className="text-red-500" />{t("detail.inclusions.excluded")}</h3>
                   <ul className="space-y-2">
                     {(pkg.excludes ?? []).map((e) => (
@@ -245,7 +245,7 @@ export function PackageDetailPage() {
           </div>
 
           <aside className="lg:sticky lg:top-28 self-start">
-            <div className="bg-white rounded-3xl border border-[#E5E7EB] p-6 shadow-lg">
+            <div className="bg-white rounded-lg border border-[#E5E7EB] p-6 shadow-lg">
               <p className="text-3xl font-semibold text-[#1B75BC]" style={{ fontFamily: "var(--font-display)" }}>{fmtPrice(pkg.price)}</p>
               <p className="text-xs text-[#9CA3AF] mb-3">{t("detail.perPerson")}</p>
               {pkg.originalPrice && pkg.originalPrice > pkg.price && (

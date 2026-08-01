@@ -76,7 +76,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
             const Icon = ICON_MAP[f.icon] || Shield;
             return (
               <Reveal key={f.title} delay={i * 0.04}>
-                <div className="bg-white rounded-3xl p-6 border border-[#E5E7EB] h-full hover:shadow-lg transition-shadow">
+                <div className="bg-white rounded-lg p-6 border border-[#E5E7EB] h-full hover:shadow-lg transition-shadow">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${service.color}18`, color: service.color }}>
                     <Icon size={22} />
                   </div>
@@ -106,7 +106,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
             {service.packages.map((pkg, i) => (
               <Reveal key={pkg.title} delay={i * 0.05}>
                 <div className={cn(
-                  "rounded-3xl border-2 overflow-hidden bg-white",
+                  "rounded-lg border-2 overflow-hidden bg-white",
                   i === 1 ? "border-[#F15A24] shadow-xl" : "border-[#E5E7EB]",
                 )}>
                   {i === 1 && (
@@ -139,7 +139,7 @@ export function ServicePage({ serviceId }: { serviceId: string }) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {service.process.map((step, i) => (
             <Reveal key={step.step} delay={i * 0.04}>
-              <div className="bg-white rounded-3xl p-5 border border-[#E5E7EB] flex gap-4 h-full">
+              <div className="bg-white rounded-lg p-5 border border-[#E5E7EB] flex gap-4 h-full">
                 <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold text-sm" style={{ backgroundColor: `${service.color}18`, color: service.color }}>
                   {step.step}
                 </div>

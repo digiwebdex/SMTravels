@@ -1,7 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Home, MessageCircle } from "lucide-react";
-import { SITE_IMAGES } from "../lib/utils";
 import { PageHero, Section, Btn } from "../website/primitives";
 
 export function NotFoundPage() {
@@ -13,7 +12,7 @@ export function NotFoundPage() {
         eyebrow="404"
         title={t("notFound.title")}
         subtitle={t("notFound.message")}
-        image={SITE_IMAGES.kaabaNight}
+        image="/hero-kaaba.jpg"
         compact
       />
       <Section>

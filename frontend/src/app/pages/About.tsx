@@ -39,7 +39,7 @@ export function About() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image={SITE_IMAGES.pilgrims}>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "আমাদের সম্পর্কে" : "About" },
@@ -72,8 +72,8 @@ export function About() {
           </Reveal>
           <Reveal delay={0.1}>
             <div className="grid grid-cols-2 gap-4">
-              <img src={img(SITE_IMAGES.kaaba, 500, 350)} alt="" className="rounded-3xl object-cover h-[220px] w-full shadow-lg" />
-              <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="" className="rounded-3xl object-cover h-[220px] w-full shadow-lg mt-8" />
+              <img src="/hero-kaaba.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
+              <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg mt-8" />
             </div>
           </Reveal>
         </div>
@@ -88,7 +88,7 @@ export function About() {
             { icon: Heart, title: t("values.title"), color: "#F15A24", text: "Integrity, Compassion, Excellence, Accountability — every pilgrim as family." },
           ].map((v, i) => (
             <Reveal key={v.title} delay={i * 0.06}>
-              <div className="bg-white rounded-3xl p-7 border border-[#E5E7EB] h-full">
+              <div className="bg-white rounded-lg p-7 border border-[#E5E7EB] h-full">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${v.color}18`, color: v.color }}>
                   <v.icon size={22} />
                 </div>
@@ -138,7 +138,7 @@ export function About() {
         <SectionHeader eyebrow={t("team.eyebrow")} title={t("team.heading")} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {TEAM.map((member) => (
-            <div key={member.name} className="bg-[#F7F8FA] rounded-3xl p-6 text-center border border-[#E5E7EB]">
+            <div key={member.name} className="bg-[#F7F8FA] rounded-lg p-6 text-center border border-[#E5E7EB]">
               <div className="w-16 h-16 bg-[#EAF5FF] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-semibold text-[#1B75BC]">
                 {member.name[0]}
               </div>

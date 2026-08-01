@@ -151,20 +151,21 @@ export function BookingPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-[#062D63] py-14 text-white text-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#062D63] via-[#1B75BC]/40 to-[#062D63]" />
-        <div className="relative max-w-[700px] mx-auto px-6">
+      <section className="relative overflow-hidden min-h-[36vh] flex items-center">
+        <img src="/hero-kaaba.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/80 to-[#062D63]/50" />
+        <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 text-center md:text-left">
           <div className="text-[#C89B3C] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
-          <h1 className="text-3xl font-semibold mb-1" style={{ fontFamily: "var(--font-display)" }}>{t("hero.title")}</h1>
-          <p className="text-white/60 text-sm">{t("hero.subtitle")}</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">{t("hero.title")}</h1>
+          <p className="text-white/70 text-sm max-w-xl">{t("hero.subtitle")}</p>
         </div>
       </section>
 
       <section className="py-12 bg-[#F7F8FA] min-h-[70vh]">
-        <div className="max-w-[700px] mx-auto px-4 md:px-6">
+        <div className="max-w-[700px] mx-auto px-4 md:px-5">
           <StepIndicator current={step} />
 
-          <div className="bg-white rounded-3xl border border-[#E5E7EB] shadow-sm p-5 md:p-7">
+          <div className="bg-white rounded-lg border border-[#E5E7EB] shadow-sm p-5 md:p-7">
 
             {/* Step 0: Select Service */}
             {step === 0 && (

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Facebook, Instagram, Loader2, AlertCircle } from "lucide-react";
 import { BRANCHES } from "../lib/data";
-import { cn, SITE_IMAGES } from "../lib/utils";
+import { cn } from "../lib/utils";
 import { apiFetch } from "../lib/api";
 import type { ServiceTypeDto } from "@contracts/booking.contract";
 import { PageHero, Breadcrumbs, Btn } from "../website/primitives";
@@ -69,7 +69,7 @@ export function ContactPage() {
 
   return (
     <>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image={SITE_IMAGES.airport} compact>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg" compact>
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "যোগাযোগ" : "Contact" },
@@ -85,7 +85,7 @@ export function ContactPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10 md:mb-14">
             {BRANCHES.map((branch, i) => (
               <div key={branch.city} className={cn(
-                "bg-white rounded-3xl border p-5 hover:shadow-md transition-shadow",
+                "bg-white rounded-lg border p-5 hover:shadow-md transition-shadow",
                 i === 0 ? "border-[#F15A24]" : "border-[#E5E7EB]"
               )}>
                 {i === 0 && (
@@ -127,7 +127,7 @@ export function ContactPage() {
           {/* Contact Form */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-3xl border border-[#E5E7EB] p-7 shadow-sm">
+              <div className="bg-white rounded-lg border border-[#E5E7EB] p-7 shadow-sm">
                 <h2 className="text-xl font-semibold text-[#062D63] mb-1" style={{ fontFamily: "var(--font-display)" }}>{t("form.title")}</h2>
                 <p className="text-[12px] text-[#9CA3AF] mb-6">{t("form.subtitle")}</p>
 
@@ -187,7 +187,7 @@ export function ContactPage() {
 
             {/* Quick contact */}
             <div className="flex flex-col gap-4">
-              <div className="bg-[#062D63] rounded-3xl p-6 text-white">
+              <div className="bg-[#062D63] rounded-lg p-6 text-white">
                 <h3 className="text-[15px] font-semibold mb-4" style={{ fontFamily: "var(--font-display)" }}>{t("quick.title")}</h3>
                 <ul className="flex flex-col gap-4">
                   <li>

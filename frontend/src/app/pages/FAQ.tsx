@@ -5,7 +5,7 @@ import { usePublicFaqs } from "../hooks/publicContent";
 import {
   PageHero, Breadcrumbs, Section, AccordionFAQ, SkeletonBlock, EmptyState, ErrorState, Btn,
 } from "../website/primitives";
-import { SITE_IMAGES, cn } from "../lib/utils";
+import { cn } from "../lib/utils";
 
 export function FAQPage() {
   const { t, i18n } = useTranslation("faq");
@@ -34,7 +34,7 @@ export function FAQPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image={SITE_IMAGES.kaabaNight}>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-kaaba.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: "FAQ" },
@@ -80,7 +80,7 @@ export function FAQPage() {
         )}
         {!isLoading && !isError && items.length > 0 && <AccordionFAQ items={items} />}
 
-        <div className="mt-12 rounded-3xl border border-[#E5E7EB] bg-white p-8 text-center">
+        <div className="mt-12 rounded-lg border border-[#E5E7EB] bg-white p-8 text-center">
           <h3 className="text-xl font-semibold text-[#062D63] mb-2" style={{ fontFamily: "var(--font-display)" }}>{t("cta.title")}</h3>
           <p className="text-sm text-[#6B7280] mb-5">{t("cta.text")}</p>
           <div className="flex flex-wrap gap-3 justify-center">

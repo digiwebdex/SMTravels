@@ -11,7 +11,7 @@ import {
   LayoutDashboard, Calculator, HelpCircle, MapPin, Hotel, Plane, X,
   LogIn,
 } from "lucide-react";
-import { cn, img } from "../lib/utils";
+import { cn } from "../lib/utils";
 import { BrandLogo } from "../components/BrandLogo";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -254,7 +254,7 @@ function BrandPanel({ view }: { view: AuthView }) {
     <div className="relative hidden md:flex flex-col w-[42%] flex-shrink-0 overflow-hidden">
       {/* Background image */}
       <img
-        src={img("photo-1770786106021-52580470e31e", 900, 1200)}
+        src="/hero-kaaba.jpg"
         alt="Kaaba Makkah"
         className="absolute inset-0 w-full h-full object-cover"
       />

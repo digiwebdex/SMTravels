@@ -184,7 +184,7 @@ export function DesignSystemPage() {
       <div className="max-w-[1300px] mx-auto px-6 py-10 space-y-16">
 
         {/* Hero */}
-        <div className="bg-[#1B75BC] rounded-3xl p-10 text-white relative overflow-hidden">
+        <div className="bg-[#1B75BC] rounded-lg p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-5"
             style={{ backgroundImage: "radial-gradient(circle at 70% 50%, #F15A24 0%, transparent 60%)" }} />
           <div className="relative z-10 max-w-2xl">

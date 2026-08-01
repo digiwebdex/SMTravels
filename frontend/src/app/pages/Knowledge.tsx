@@ -10,7 +10,6 @@ import {
 } from "../website/primitives";
 import { GUIDES, getGuide, getRelatedGuides } from "../website/knowledge/guides";
 import { SITE_VIDEOS } from "../website/videos";
-import { SITE_IMAGES } from "../lib/utils";
 
 export function KnowledgePage() {
   const { i18n } = useTranslation();
@@ -28,7 +27,7 @@ export function KnowledgePage() {
         eyebrow={bn ? "ইসলামী গাইডেন্স সেন্টার" : "Islamic Guidance Center"}
         title={bn ? "হজ্ব ও উমরাহ জ্ঞান কেন্দ্র" : "Hajj & Umrah Knowledge Center"}
         subtitle={bn ? "বিশ্বস্ত গাইড — ইহরাম থেকে বিদায়ী তাওয়াফ পর্যন্ত।" : "Trusted guides — from Ihram to farewell Tawaf."}
-        image={SITE_IMAGES.kaaba}
+        image="/hero-kaaba.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -72,7 +71,7 @@ export function KnowledgeDetailPage() {
   if (!guide) {
     return (
       <div>
-        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image={SITE_IMAGES.kaaba} compact>
+        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-kaaba.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "জ্ঞান কেন্দ্র" : "Knowledge", to: "/knowledge" },
@@ -97,7 +96,7 @@ export function KnowledgeDetailPage() {
         eyebrow={bn ? "জ্ঞান কেন্দ্র" : "Knowledge Center"}
         title={bn ? guide.titleBn : guide.titleEn}
         subtitle={bn ? guide.summaryBn : guide.summaryEn}
-        image={guide.image || SITE_IMAGES.kaaba}
+        image={guide.image || "/hero-kaaba.jpg"}
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -111,7 +110,7 @@ export function KnowledgeDetailPage() {
           <div className="lg:col-span-2 space-y-10">
             {guide.duaAr && (
               <Reveal>
-                <div className="rounded-3xl bg-[#EAF5FF] border border-[#1B75BC]/15 p-8 text-center">
+                <div className="rounded-lg bg-[#EAF5FF] border border-[#1B75BC]/15 p-8 text-center">
                   <p className="text-2xl md:text-3xl text-[#062D63] leading-relaxed mb-3" dir="rtl" style={{ fontFamily: "var(--font-display)" }}>{guide.duaAr}</p>
                   {guide.duaBn && <p className="text-[#1B75BC] font-medium">{guide.duaBn}</p>}
                 </div>
@@ -160,13 +159,13 @@ export function KnowledgeDetailPage() {
 
             <Reveal>
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="rounded-3xl border border-emerald-200 bg-emerald-50/50 p-6">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-6">
                   <h3 className="font-semibold text-emerald-800 mb-3 inline-flex items-center gap-2"><Check size={18} /> {bn ? "করণীয়" : "Do"}</h3>
                   <ul className="space-y-2 text-sm text-emerald-900/80">
                     {(bn ? guide.doBn : guide.doEn).map((x) => <li key={x} className="flex gap-2"><Check size={14} className="mt-0.5 text-emerald-600" />{x}</li>)}
                   </ul>
                 </div>
-                <div className="rounded-3xl border border-red-200 bg-red-50/50 p-6">
+                <div className="rounded-lg border border-red-200 bg-red-50/50 p-6">
                   <h3 className="font-semibold text-red-800 mb-3 inline-flex items-center gap-2"><X size={18} /> {bn ? "বর্জনীয়" : "Don't"}</h3>
                   <ul className="space-y-2 text-sm text-red-900/80">
                     {(bn ? guide.dontBn : guide.dontEn).map((x) => <li key={x} className="flex gap-2"><X size={14} className="mt-0.5 text-red-500" />{x}</li>)}
@@ -197,7 +196,7 @@ export function KnowledgeDetailPage() {
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-28 self-start">
-            <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <div className="rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-sm">
               <h3 className="font-semibold text-[#062D63] mb-3">{bn ? "ডাউনলোড" : "Download"}</h3>
               <p className="text-sm text-[#6B7280] mb-4">{bn ? "এই গাইডের সংক্ষিপ্ত PDF (শীঘ্রই)।" : "Short PDF of this guide (coming soon)."}</p>
               <Btn variant="outline" className="w-full" href="#" onClick={() => undefined}>
@@ -205,13 +204,13 @@ export function KnowledgeDetailPage() {
               </Btn>
             </div>
             {next && (
-              <Link to={`/knowledge/${next.slug}`} className="block rounded-3xl bg-[#062D63] text-white p-6 hover:bg-[#041E42] transition-colors">
+              <Link to={`/knowledge/${next.slug}`} className="block rounded-lg bg-[#062D63] text-white p-6 hover:bg-[#041E42] transition-colors">
                 <p className="text-xs text-[#C89B3C] font-bold uppercase tracking-wider mb-2">{bn ? "পরবর্তী ধাপ" : "Next step"}</p>
                 <p className="font-semibold text-lg mb-2">{bn ? next.titleBn : next.titleEn}</p>
                 <span className="inline-flex items-center gap-1 text-sm text-white/80">{bn ? "চালিয়ে যান" : "Continue"} <ArrowRight size={14} /></span>
               </Link>
             )}
-            <div className="rounded-3xl border border-[#E5E7EB] p-6">
+            <div className="rounded-lg border border-[#E5E7EB] p-6">
               <h3 className="font-semibold text-[#062D63] mb-3 inline-flex items-center gap-2"><PlayCircle size={18} /> {bn ? "সাহায্য?" : "Need help?"}</h3>
               <Btn to="/contact" variant="orange" className="w-full mb-2">{bn ? "যোগাযোগ" : "Contact"}</Btn>
               <Btn to="/book" variant="outline" className="w-full">{bn ? "বুকিং" : "Book"}</Btn>
