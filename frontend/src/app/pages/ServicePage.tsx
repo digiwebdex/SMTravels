@@ -1,267 +1,198 @@
-import React, { useState } from "react";
-import { Link } from "react-router";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  CheckCircle, XCircle, ChevronDown, ChevronUp, ArrowRight,
-  Star, MapPin, Clock, Phone, Shield, Plane, Hotel, Briefcase, Globe, Heart,
+  CheckCircle, XCircle, ArrowRight, Star, MapPin, Clock, Phone, Shield, Plane, Hotel, Briefcase, Globe, Heart,
 } from "lucide-react";
 import { SERVICES } from "../lib/data";
-import { img, fmtPrice, cn } from "../lib/utils";
+import { cn } from "../lib/utils";
+import { usePublicPackages } from "../hooks/publicContent";
+import {
+  PageHero, Breadcrumbs, Section, SectionHeader, PackageCard, AccordionFAQ,
+  SkeletonBlock, EmptyState, Btn, Reveal, CtaBand,
+} from "../website/primitives";
 
-const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
+const ICON_MAP: Record<string, React.ElementType> = {
   star: Star, "map-pin": MapPin, shield: Shield, plane: Plane, hotel: Hotel,
-  briefcase: Briefcase, globe: Globe, heart: Heart, users: Star, "clock": Clock,
+  briefcase: Briefcase, globe: Globe, heart: Heart, users: Star, clock: Clock,
+  "dollar-sign": Shield, calendar: Clock, phone: Phone, "check-circle": CheckCircle,
 };
 
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border border-[#E5E7EB] rounded-[12px] overflow-hidden">
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between p-4 text-left bg-white hover:bg-[#F7F8FA] transition-colors cursor-pointer"
-      >
-        <span className="text-[14px] font-semibold text-[#111827] pr-4">{q}</span>
-        {open ? <ChevronUp size={16} className="text-[#9CA3AF] flex-shrink-0" /> : <ChevronDown size={16} className="text-[#9CA3AF] flex-shrink-0" />}
-      </button>
-      {open && (
-        <div className="px-4 pb-4 bg-white">
-          <p className="text-[13px] text-[#6B7280] leading-relaxed">{a}</p>
-        </div>
-      )}
-    </div>
-  );
-}
+const TYPE_BY_SERVICE: Record<string, string | undefined> = {
+  hajj: "HAJJ",
+  umrah: "UMRAH",
+  "tour-packages": "TOUR",
+};
 
 export function ServicePage({ serviceId }: { serviceId: string }) {
-  const { t } = useTranslation("servicesPage");
-  const service = SERVICES.find(s => s.id === serviceId);
+  const { t, i18n } = useTranslation("servicesPage");
+  const bn = i18n.language?.startsWith("bn");
+  const service = SERVICES.find((s) => s.id === serviceId);
+  const apiType = TYPE_BY_SERVICE[serviceId];
+  const { data: pkgData, isLoading: pkgLoading } = usePublicPackages({
+    type: apiType,
+    limit: 6,
+  });
+  const livePackages = apiType ? (pkgData?.data ?? []) : [];
 
   if (!service) {
     return (
-      <div className="py-32 text-center text-[#6B7280]">{t("notFound")}</div>
+      <Section>
+        <EmptyState message={t("notFound")} />
+      </Section>
     );
   }
 
+  const faqs = service.faqs.map((f, i) => ({ id: `${service.id}-faq-${i}`, question: f.q, answer: f.a }));
+
   return (
-    <>
-      {/* ── HERO ── */}
-      <section className="relative py-16 md:py-28 overflow-hidden">
-        <img src={img(service.heroImage, 1920, 700)} alt={service.label}
-          className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/92 via-[#1B75BC]/75 to-transparent" />
-        <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 border border-white/20 rounded-full px-3 py-1 mb-4"
-              style={{ backgroundColor: `${service.color}25` }}>
-              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: service.color }}>
-                {service.label}
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white leading-[1.1] mb-4">
-              {service.tagline}
-            </h1>
-            <p className="text-white/70 text-sm leading-relaxed mb-7">{service.shortDesc}</p>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/book" className="inline-flex items-center gap-2 px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#1B75BC]"
-                style={{ backgroundColor: service.color }}>
-                {t("common:actions.bookNow")} <ArrowRight size={14} />
-              </Link>
-              <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/30 text-white font-bold rounded-[10px] text-sm hover:bg-white/20 transition-colors">
-                <Phone size={14} /> {t("hero.whatsapp")}
-              </a>
-            </div>
-          </div>
+    <div>
+      <PageHero
+        eyebrow={service.label}
+        title={service.tagline}
+        subtitle={service.shortDesc}
+        image={service.heroImage}
+      >
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: service.label },
+        ]} />
+        <div className="flex flex-wrap gap-3 mt-2">
+          <Btn to="/book" variant="orange">{t("common:actions.bookNow")} <ArrowRight size={14} /></Btn>
+          <Btn href="https://wa.me/8801712345678" variant="ghost"><Phone size={14} /> {t("hero.whatsapp")}</Btn>
         </div>
-      </section>
+      </PageHero>
 
-      {/* ── DESCRIPTION ── */}
-      <section className="py-10 md:py-16 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="max-w-3xl">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("overview.eyebrow")}</div>
-            <p className="text-[#374151] text-[15px] leading-relaxed">{service.description}</p>
-          </div>
-        </div>
-      </section>
+      <Section>
+        <Reveal>
+          <p className="text-[#F15A24] text-xs font-bold uppercase tracking-[0.2em] mb-3">{t("overview.eyebrow")}</p>
+          <p className="text-[#374151] text-lg leading-relaxed max-w-3xl">{service.description}</p>
+        </Reveal>
+      </Section>
 
-      {/* ── FEATURES ── */}
-      <section className="py-10 md:py-16 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("features.eyebrow")}</div>
-            <h2 className="text-2xl font-black text-[#111827]">{t("features.heading", { service: service.label })}</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {service.features.map(f => {
-              const Icon = ICON_MAP[f.icon] || Shield;
-              return (
-                <div key={f.title} className="bg-white rounded-2xl p-5 border border-[#E5E7EB] hover:shadow-md transition-shadow">
-                  <div className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-3"
-                    style={{ backgroundColor: `${service.color}15` }}>
-                    <Icon size={18} style={{ color: service.color }} />
+      <Section tone="soft">
+        <SectionHeader eyebrow={t("features.eyebrow")} title={t("features.heading", { service: service.label })} />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {service.features.map((f, i) => {
+            const Icon = ICON_MAP[f.icon] || Shield;
+            return (
+              <Reveal key={f.title} delay={i * 0.04}>
+                <div className="bg-white rounded-3xl p-6 border border-[#E5E7EB] h-full hover:shadow-lg transition-shadow">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${service.color}18`, color: service.color }}>
+                    <Icon size={22} />
                   </div>
-                  <h3 className="text-[14px] font-bold text-[#111827] mb-1">{f.title}</h3>
-                  <p className="text-[12px] text-[#6B7280] leading-relaxed">{f.desc}</p>
+                  <h3 className="font-semibold text-[#062D63] mb-1">{f.title}</h3>
+                  <p className="text-sm text-[#6B7280] leading-relaxed">{f.desc}</p>
                 </div>
-              );
-            })}
-          </div>
+              </Reveal>
+            );
+          })}
         </div>
-      </section>
+      </Section>
 
-      {/* ── PACKAGES ── */}
-      <section className="py-10 md:py-16 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("packages.eyebrow")}</div>
-            <h2 className="text-2xl font-black text-[#111827]">{t("packages.heading", { service: service.label })}</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <Section>
+        <SectionHeader eyebrow={t("packages.eyebrow")} title={t("packages.heading", { service: service.label })} />
+        {apiType ? (
+          <>
+            {pkgLoading && <div className="grid md:grid-cols-3 gap-6">{Array.from({ length: 3 }).map((_, i) => <SkeletonBlock key={i} className="h-72" />)}</div>}
+            {!pkgLoading && livePackages.length === 0 && <EmptyState message={bn ? "প্যাকেজ শীঘ্রই।" : "Packages coming soon."} />}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {livePackages.map((pkg, i) => (
+                <Reveal key={pkg.id} delay={i * 0.05}><PackageCard pkg={pkg} /></Reveal>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {service.packages.map((pkg, i) => (
-              <div key={pkg.title} className={cn(
-                "rounded-2xl border-2 overflow-hidden relative",
-                i === 1 ? "border-[#F15A24] shadow-xl" : "border-[#E5E7EB]"
-              )}>
-                {i === 1 && (
-                  <div className="bg-[#F15A24] text-[#1B75BC] text-center text-[11px] font-black py-1.5 uppercase tracking-wider">
-                    {t("packages.mostPopular")}
+              <Reveal key={pkg.title} delay={i * 0.05}>
+                <div className={cn(
+                  "rounded-3xl border-2 overflow-hidden bg-white",
+                  i === 1 ? "border-[#F15A24] shadow-xl" : "border-[#E5E7EB]",
+                )}>
+                  {i === 1 && (
+                    <div className="bg-[#F15A24] text-white text-center text-[11px] font-bold py-1.5 uppercase tracking-wider">
+                      {t("packages.mostPopular")}
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="font-semibold text-[#062D63] mb-1">{pkg.title}</h3>
+                    <p className="text-2xl font-semibold text-[#1B75BC] mb-3" style={{ fontFamily: "var(--font-display)" }}>
+                      ৳ {pkg.price.toLocaleString("en-BD")}
+                      <span className="text-xs text-[#9CA3AF] font-normal ml-1">{t("packages.perPerson")}</span>
+                    </p>
+                    <ul className="space-y-2 mb-5">
+                      {pkg.highlights.map((h) => (
+                        <li key={h} className="flex gap-2 text-sm text-[#374151]"><CheckCircle size={14} className="text-[#16A34A] mt-0.5" />{h}</li>
+                      ))}
+                    </ul>
+                    <Btn to="/book" variant={i === 1 ? "orange" : "primary"} className="w-full">{t("packages.bookThis")}</Btn>
                   </div>
-                )}
-                {pkg.badge && i !== 1 && (
-                  <div className="bg-[#1B75BC] text-white text-center text-[11px] font-bold py-1.5">
-                    {pkg.badge}
-                  </div>
-                )}
-                <div className="p-6 bg-white">
-                  <h3 className="text-[16px] font-black text-[#111827] mb-1">{pkg.title}</h3>
-                  <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-2xl font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</span>
-                    <span className="text-[12px] text-[#9CA3AF]">{t("packages.perPerson")}</span>
-                  </div>
-                  <div className="flex gap-3 text-[11px] text-[#9CA3AF] mb-4">
-                    <span><Clock size={10} className="inline mr-0.5" />{pkg.duration}</span>
-                    <span><Hotel size={10} className="inline mr-0.5" />{pkg.hotel}</span>
-                  </div>
-                  <ul className="flex flex-col gap-2 mb-5">
-                    {pkg.highlights.map(h => (
-                      <li key={h} className="flex items-center gap-2 text-[12px] text-[#374151]">
-                        <CheckCircle size={13} className="text-[#0E7C66] flex-shrink-0" />
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/book" className={cn(
-                    "block text-center py-2.5 rounded-[10px] text-[13px] font-bold transition-colors",
-                    i === 1
-                      ? "bg-[#F15A24] text-[#1B75BC] hover:bg-[#CC3C17]"
-                      : "bg-[#1B75BC] text-white hover:bg-[#14588F]"
-                  )}>
-                    {t("packages.bookThis")}
-                  </Link>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
-        </div>
-      </section>
+        )}
+      </Section>
 
-      {/* ── PROCESS ── */}
-      <section className="py-10 md:py-16 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("process.eyebrow")}</div>
-            <h2 className="text-2xl font-black text-[#111827]">{t("process.heading")}</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {service.process.map(step => (
-              <div key={step.step} className="bg-white rounded-2xl p-5 border border-[#E5E7EB] flex gap-4">
-                <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 font-black text-[13px]"
-                  style={{ backgroundColor: `${service.color}15`, color: service.color }}>
+      <Section tone="tint">
+        <SectionHeader eyebrow={t("process.eyebrow")} title={t("process.heading")} />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {service.process.map((step, i) => (
+            <Reveal key={step.step} delay={i * 0.04}>
+              <div className="bg-white rounded-3xl p-5 border border-[#E5E7EB] flex gap-4 h-full">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 font-bold text-sm" style={{ backgroundColor: `${service.color}18`, color: service.color }}>
                   {step.step}
                 </div>
                 <div>
-                  <h3 className="text-[13px] font-bold text-[#111827] mb-1">{step.title}</h3>
-                  <p className="text-[12px] text-[#6B7280] leading-relaxed">{step.desc}</p>
+                  <h3 className="font-semibold text-[#062D63] mb-1 text-sm">{step.title}</h3>
+                  <p className="text-sm text-[#6B7280] leading-relaxed">{step.desc}</p>
                 </div>
               </div>
-            ))}
-          </div>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ── INCLUDES / EXCLUDES ── */}
-      <section className="py-10 md:py-16 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div>
-              <h3 className="text-[18px] font-black text-[#111827] mb-5 flex items-center gap-2">
-                <CheckCircle size={20} className="text-[#0E7C66]" /> {t("includes.included")}
-              </h3>
-              <ul className="flex flex-col gap-2.5">
-                {service.includes.map(i => (
-                  <li key={i} className="flex items-start gap-2.5 text-[13px] text-[#374151]">
-                    <CheckCircle size={14} className="text-[#0E7C66] flex-shrink-0 mt-0.5" />
-                    {i}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-[18px] font-black text-[#111827] mb-5 flex items-center gap-2">
-                <XCircle size={20} className="text-[#DC2626]" /> {t("includes.excluded")}
-              </h3>
-              <ul className="flex flex-col gap-2.5">
-                {service.excludes.map(e => (
-                  <li key={e} className="flex items-start gap-2.5 text-[13px] text-[#374151]">
-                    <XCircle size={14} className="text-[#DC2626] flex-shrink-0 mt-0.5" />
-                    {e}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FAQ ── */}
-      {service.faqs.length > 0 && (
-        <section className="py-10 md:py-16 bg-[#F7F8FA]">
-          <div className="max-w-[800px] mx-auto px-4 md:px-6">
-            <div className="text-center mb-10">
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("faq.eyebrow")}</div>
-              <h2 className="text-2xl font-black text-[#111827]">{t("faq.heading")}</h2>
-            </div>
-            <div className="flex flex-col gap-3">
-              {service.faqs.map(f => (
-                <FAQItem key={f.q} q={f.q} a={f.a} />
+      <Section>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-xl font-semibold text-[#062D63] mb-5 inline-flex items-center gap-2" style={{ fontFamily: "var(--font-display)" }}>
+              <CheckCircle size={20} className="text-[#16A34A]" /> {t("includes.included")}
+            </h3>
+            <ul className="space-y-2.5">
+              {service.includes.map((i) => (
+                <li key={i} className="flex gap-2.5 text-sm text-[#374151]"><CheckCircle size={14} className="text-[#16A34A] mt-0.5" />{i}</li>
               ))}
-            </div>
+            </ul>
           </div>
-        </section>
+          <div>
+            <h3 className="text-xl font-semibold text-[#062D63] mb-5 inline-flex items-center gap-2" style={{ fontFamily: "var(--font-display)" }}>
+              <XCircle size={20} className="text-red-500" /> {t("includes.excluded")}
+            </h3>
+            <ul className="space-y-2.5">
+              {service.excludes.map((e) => (
+                <li key={e} className="flex gap-2.5 text-sm text-[#374151]"><XCircle size={14} className="text-red-500 mt-0.5" />{e}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Section>
+
+      {faqs.length > 0 && (
+        <Section tone="soft">
+          <SectionHeader eyebrow={t("faq.eyebrow")} title={t("faq.heading")} />
+          <div className="max-w-3xl mx-auto"><AccordionFAQ items={faqs} /></div>
+        </Section>
       )}
 
-      {/* ── ENQUIRY CTA ── */}
-      <section className="py-10 md:py-16 bg-[#1B75BC] text-white text-center">
-        <div className="max-w-lg mx-auto px-4 md:px-6">
-          <h2 className="text-2xl font-black mb-3">{t("cta.heading", { service: service.label })}</h2>
-          <p className="text-white/60 text-sm mb-7">{t("cta.subtitle")}</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link to="/book" className="px-6 py-3 font-bold rounded-[10px] text-sm transition-colors text-[#1B75BC]"
-              style={{ backgroundColor: service.color }}>
-              {t("cta.startBooking")}
-            </Link>
-            <Link to="/contact" className="px-6 py-3 border-2 border-white/30 text-white font-bold rounded-[10px] text-sm hover:border-white/60 transition-colors">
-              {t("cta.makeEnquiry")}
-            </Link>
-            <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
-              className="px-6 py-3 bg-[#25D366] text-white font-bold rounded-[10px] text-sm hover:bg-[#1da855] transition-colors">
-              {t("common:actions.whatsapp")}
-            </a>
-          </div>
-        </div>
-      </section>
-    </>
+      <Section>
+        <CtaBand
+          title={t("cta.heading", { service: service.label })}
+          subtitle={t("cta.subtitle")}
+          primary={{ label: t("cta.startBooking"), to: "/book" }}
+          secondary={{ label: t("cta.makeEnquiry"), to: "/contact" }}
+        />
+      </Section>
+    </div>
   );
 }

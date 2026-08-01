@@ -394,6 +394,45 @@ export const SERVICES: ServiceData[] = [
       { q: "Can you arrange rooms for large Hajj groups?", a: "Absolutely. We have long-standing relationships with Saudi Arabia hotels and can secure block bookings for groups of 20 to 500+ pilgrims at competitive rates." },
     ],
   },
+  {
+    id: "transport",
+    path: "/transport",
+    label: "Transport",
+    shortDesc: "Airport transfers, Haram shuttles, and Ziyarah transport across Makkah & Madinah.",
+    tagline: "Safe Journeys. Seamless Transfers.",
+    description: "SMTravel International arranges reliable ground transport for pilgrims and travelers — from Dhaka airport pickups to Saudi Haram shuttles and guided Ziyarah trips. Our fleet partners prioritize safety, punctuality, and comfort for families and groups.",
+    heroImage: "photo-1449965402860-4e69373edd15",
+    iconName: "map-pin",
+    color: "#7C3AED",
+    features: [
+      { icon: "plane", title: "Airport Transfers", desc: "Meet & greet at Jeddah, Madinah, and Dhaka airports with luggage assistance." },
+      { icon: "map-pin", title: "Haram Shuttles", desc: "Scheduled and on-demand shuttles between hotels and the Two Holy Mosques." },
+      { icon: "globe", title: "Ziyarah Tours", desc: "Guided visits to historical Islamic sites with experienced drivers." },
+      { icon: "users", title: "Group Coaches", desc: "AC coaches for large Hajj/Umrah groups with itinerary coordination." },
+      { icon: "shield", title: "Licensed Partners", desc: "Saudi-licensed transport partners with insured vehicles." },
+      { icon: "clock", title: "24/7 Desk", desc: "Round-the-clock transport desk during peak pilgrimage seasons." },
+    ],
+    process: [
+      { step: "01", title: "Share Itinerary", desc: "Tell us arrival times, hotel locations, and group size." },
+      { step: "02", title: "Vehicle Match", desc: "We assign sedan, van, or coach based on your needs." },
+      { step: "03", title: "Confirm & Pay", desc: "Receive confirmation with driver contact details." },
+      { step: "04", title: "Travel Day", desc: "Driver tracks your flight and waits at the designated point." },
+      { step: "05", title: "On-Trip Support", desc: "WhatsApp desk available for schedule changes." },
+      { step: "06", title: "Return Transfer", desc: "We schedule your departure transfer to the airport." },
+    ],
+    includes: ["Airport meet & greet", "AC vehicles", "Licensed drivers", "Basic waiting time", "WhatsApp coordination"],
+    excludes: ["Personal sightseeing outside plan", "Visa fees", "Hotel rooms", "Meals during transit"],
+    packages: [
+      { title: "Jeddah Airport → Makkah", price: 8500, duration: "One way", hotel: "Sedan/Van", badge: "Popular", highlights: ["Meet & greet", "Luggage help", "Hotel drop"] },
+      { title: "Makkah–Madinah Transfer", price: 22000, duration: "One way", hotel: "Van/Coach", highlights: ["Highway comfort", "Rest stops", "Group options"] },
+      { title: "Ziyarah Day Package", price: 12000, duration: "Full day", hotel: "Van", highlights: ["Guide coordination", "Multiple sites", "Water onboard"] },
+    ],
+    faqs: [
+      { q: "Do you provide child seats?", a: "Yes — request child seats when booking; availability depends on vehicle type." },
+      { q: "Can transport be included in my Hajj package?", a: "Most of our Hajj and Umrah packages already include intercity and local transport. Standalone bookings are also available." },
+      { q: "How early should I book airport pickup?", a: "At least 48 hours before arrival. During peak Hajj season, book 1–2 weeks ahead." },
+    ],
+  },
 ];
 
 // ─── PACKAGES ───────────────────────────────────────────────────────────────

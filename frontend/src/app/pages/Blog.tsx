@@ -1,239 +1,197 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Search, Clock, User, Tag, ArrowRight, Calendar, ChevronRight } from "lucide-react";
-import { BLOGS } from "../lib/data";
-import { img, cn } from "../lib/utils";
+import { Search, Clock, User, Tag, Calendar } from "lucide-react";
+import { usePublicBlog, usePublicBlogPost } from "../hooks/publicContent";
+import {
+  PageHero, Breadcrumbs, Section, SkeletonBlock, EmptyState, ErrorState, Btn, Reveal,
+} from "../website/primitives";
+import { SITE_IMAGES, mediaUrl, cn } from "../lib/utils";
 
-// ─── BLOG LIST ─────────────────────────────────────────────────────────────────
 export function BlogPage() {
-  const { t } = useTranslation("blog");
+  const { t, i18n } = useTranslation("blog");
+  const bn = i18n.language?.startsWith("bn");
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const categories = ["All", ...Array.from(new Set(BLOGS.map(b => b.category)))];
-
-  const filtered = BLOGS.filter(b => {
-    if (activeCategory !== "All" && b.category !== activeCategory) return false;
-    if (search && !b.title.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
-
-  const featured = BLOGS[0];
+  const { data, isLoading, isError } = usePublicBlog({ q: search || undefined, limit: 50 });
+  const posts = data?.data ?? [];
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(posts.map((b) => b.category).filter(Boolean)))],
+    [posts],
+  );
+  const filtered = posts.filter((b) => activeCategory === "All" || b.category === activeCategory);
+  const featured = posts.find((b) => b.featured) ?? posts[0];
 
   return (
-    <>
-      {/* Hero */}
-      <section className="bg-[#1B75BC] py-14 text-white">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
-          <h1 className="text-3xl font-black mb-2">{t("hero.title")}</h1>
-          <p className="text-white/60 text-sm">{t("hero.subtitle")}</p>
-        </div>
-      </section>
+    <div>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image={SITE_IMAGES.pilgrims}>
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: bn ? "ব্লগ" : "Blog" },
+        ]} />
+      </PageHero>
 
-      <section className="py-8 md:py-12 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          {/* Featured */}
-          <Link to={`/blog/${featured.id}`} className="block mb-8 md:mb-12 bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-xl transition-all duration-200 group">
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="relative h-[260px] md:h-auto overflow-hidden">
-                <img src={img(featured.image, 800, 500)} alt={featured.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 bg-[#F15A24] text-[#1B75BC] text-[10px] font-black px-3 py-1 rounded-full">
-                  {t("featured")}
-                </div>
-              </div>
-              <div className="p-8 flex flex-col justify-center">
-                <div className="text-[11px] font-bold text-[#1B75BC] bg-[#1B75BC]/10 rounded-full px-3 py-1 inline-block mb-3 w-fit">
-                  {featured.category}
-                </div>
-                <h2 className="text-xl font-black text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-3 leading-snug">{featured.title}</h2>
-                <p className="text-[13px] text-[#6B7280] leading-relaxed mb-5 line-clamp-3">{featured.excerpt}</p>
-                <div className="flex items-center gap-4 text-[11px] text-[#9CA3AF]">
-                  <span className="flex items-center gap-1"><User size={11} />{featured.author}</span>
-                  <span className="flex items-center gap-1"><Calendar size={11} />{featured.date}</span>
-                  <span className="flex items-center gap-1"><Clock size={11} />{featured.readTime} {t("meta.read")}</span>
-                </div>
-              </div>
-            </div>
-          </Link>
+      <Section tone="soft">
+        {isLoading && <SkeletonBlock className="h-64 mb-8" />}
+        {isError && <ErrorState message={bn ? "ব্লগ লোড হয়নি।" : "Could not load blog posts."} />}
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3 mb-5 md:mb-7 items-center">
-            <div className="relative flex-1 min-w-[180px] max-w-xs">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder={t("filters.searchPlaceholder")}
-                className="w-full pl-9 pr-4 py-2 border border-[#E5E7EB] rounded-[10px] text-[12px] bg-white outline-none focus:border-[#1B75BC]" />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {categories.map(c => (
-                <button key={c} onClick={() => setActiveCategory(c)}
-                  className={cn("px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer",
-                    activeCategory === c ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:border-[#1B75BC]/30"
-                  )}>
-                  {c === "All" ? t("filters.all") : c}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {filtered.map(b => (
-              <Link key={b.id} to={`/blog/${b.id}`}
-                className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={img(b.image, 600, 350)} alt={b.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute top-3 left-3 bg-[#1B75BC] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    {b.category}
+        {!isLoading && !isError && featured && (
+          <Reveal>
+            <Link to={`/blog/${featured.slug || featured.id}`} className="block mb-10 rounded-3xl overflow-hidden border border-[#E5E7EB] bg-white hover:shadow-xl transition-all group">
+              <div className="grid md:grid-cols-2">
+                <div className="relative h-56 md:h-auto min-h-[260px] overflow-hidden">
+                  <img src={mediaUrl(featured.image, 900, 600)} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <span className="absolute top-4 left-4 bg-[#F15A24] text-white text-[10px] font-bold px-3 py-1 rounded-full">{t("featured")}</span>
+                </div>
+                <div className="p-8 flex flex-col justify-center">
+                  <span className="text-[11px] font-bold text-[#1B75BC] bg-[#EAF5FF] rounded-full px-3 py-1 w-fit mb-3">{featured.category}</span>
+                  <h2 className="text-2xl font-semibold text-[#062D63] mb-3 group-hover:text-[#1B75BC]" style={{ fontFamily: "var(--font-display)" }}>{featured.title}</h2>
+                  <p className="text-sm text-[#6B7280] leading-relaxed mb-5 line-clamp-3">{featured.excerpt}</p>
+                  <div className="flex flex-wrap gap-4 text-xs text-[#9CA3AF]">
+                    <span className="inline-flex items-center gap-1"><User size={12} />{featured.author}</span>
+                    <span className="inline-flex items-center gap-1"><Calendar size={12} />{featured.date}</span>
+                    <span className="inline-flex items-center gap-1"><Clock size={12} />{featured.readTime} {t("meta.read")}</span>
                   </div>
                 </div>
+              </div>
+            </Link>
+          </Reveal>
+        )}
+
+        <div className="flex flex-wrap gap-3 mb-7 items-center">
+          <div className="relative flex-1 min-w-[180px] max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("filters.searchPlaceholder")}
+              className="w-full pl-9 pr-4 py-2.5 border border-[#E5E7EB] rounded-full text-sm bg-white outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {categories.map((c) => (
+              <button key={c} type="button" onClick={() => setActiveCategory(c)}
+                className={cn("px-3 py-1.5 rounded-full text-xs font-bold", activeCategory === c ? "bg-[#1B75BC] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB]")}>
+                {c === "All" ? t("filters.all") : c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {!isLoading && !isError && filtered.length === 0 && <EmptyState message={t("empty.title")} />}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((b, i) => (
+            <Reveal key={b.id} delay={i * 0.04}>
+              <Link to={`/blog/${b.slug || b.id}`} className="block rounded-3xl overflow-hidden border border-[#E5E7EB] bg-white hover:shadow-lg hover:-translate-y-1 transition-all group h-full">
+                <div className="relative h-48 overflow-hidden">
+                  <img src={mediaUrl(b.image, 600, 350)} alt={b.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <span className="absolute top-3 left-3 bg-[#1B75BC] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">{b.category}</span>
+                </div>
                 <div className="p-5">
-                  <h3 className="text-[14px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-2 leading-snug">{b.title}</h3>
-                  <p className="text-[12px] text-[#6B7280] leading-relaxed line-clamp-2 mb-3">{b.excerpt}</p>
-                  <div className="flex items-center justify-between text-[10px] text-[#9CA3AF]">
-                    <span className="flex items-center gap-1"><User size={10} />{b.author}</span>
-                    <span className="flex items-center gap-1"><Clock size={10} />{b.readTime} {t("meta.read")}</span>
+                  <h3 className="font-semibold text-[#062D63] mb-2 group-hover:text-[#1B75BC] leading-snug">{b.title}</h3>
+                  <p className="text-sm text-[#6B7280] line-clamp-2 mb-3">{b.excerpt}</p>
+                  <div className="flex justify-between text-[11px] text-[#9CA3AF]">
+                    <span className="inline-flex items-center gap-1"><User size={10} />{b.author}</span>
+                    <span className="inline-flex items-center gap-1"><Clock size={10} />{b.readTime} {t("meta.read")}</span>
                   </div>
                 </div>
               </Link>
-            ))}
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-[#9CA3AF]">
-              <p className="text-[15px] font-semibold">{t("empty.title")}</p>
-              <button onClick={() => { setSearch(""); setActiveCategory("All"); }}
-                className="mt-3 text-[13px] text-[#1B75BC] font-bold hover:underline cursor-pointer">
-                {t("filters.clear")}
-              </button>
-            </div>
-          )}
+            </Reveal>
+          ))}
         </div>
-      </section>
-    </>
+      </Section>
+    </div>
   );
 }
 
-// ─── BLOG DETAIL ──────────────────────────────────────────────────────────────
 export function BlogDetailPage() {
-  const { t } = useTranslation("blog");
+  const { t, i18n } = useTranslation("blog");
+  const bn = i18n.language?.startsWith("bn");
   const { id } = useParams();
-  const blog = BLOGS.find(b => String(b.id) === id);
-  const related = BLOGS.filter(b => String(b.id) !== id).slice(0, 3);
+  const { data: blog, isLoading, isError } = usePublicBlogPost(id);
+  const { data: list } = usePublicBlog({ limit: 6 });
+  const related = (list?.data ?? []).filter((b) => b.id !== blog?.id && b.slug !== blog?.slug).slice(0, 3);
 
-  if (!blog) {
+  if (isLoading) {
+    return <><SkeletonBlock className="h-[42vh] rounded-none" /><Section><SkeletonBlock className="h-64" /></Section></>;
+  }
+
+  if (isError || !blog) {
     return (
-      <div className="py-32 text-center">
-        <p className="text-[#6B7280]">{t("detail.notFound")}</p>
-        <Link to="/blog" className="mt-4 inline-block text-[#1B75BC] font-bold hover:underline">{t("detail.backToBlog")}</Link>
+      <div>
+        <PageHero title={t("detail.notFound")} image={SITE_IMAGES.pilgrims} compact>
+          <Breadcrumbs items={[{ label: bn ? "হোম" : "Home", to: "/" }, { label: "Blog", to: "/blog" }, { label: "404" }]} />
+        </PageHero>
+        <Section>
+          <EmptyState message={t("detail.notFound")} />
+          <div className="mt-6 text-center"><Btn to="/blog">{t("detail.backToBlog")}</Btn></div>
+        </Section>
       </div>
     );
   }
 
-  const articleContent = `
-    ${blog.excerpt}
-
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hajj and Umrah represent the pinnacle of Islamic devotion — a physical, spiritual, and emotional journey that millions of Muslims from around the world undertake each year.
-
-    Planning a successful pilgrimage requires months of careful preparation, from obtaining the necessary documents and visas to selecting the right package and understanding the rituals involved. At SMTravel International, we have guided thousands of pilgrims through this sacred journey over our 25+ years of service.
-
-    Key considerations for a successful pilgrimage include: choosing a reputable, government-licensed agency; securing your Hajj or Umrah slot well in advance; ensuring all medical requirements are met; and attending the mandatory pre-departure orientation sessions.
-
-    Our expert guides are available throughout the journey to provide spiritual guidance, handle logistics, and ensure that every pilgrim can focus on what truly matters — their connection with Allah and the performance of the sacred rites.
-  `;
+  const paragraphs = (blog.body || blog.excerpt || "").split(/\n\n+/).filter(Boolean);
 
   return (
-    <>
-      {/* Hero */}
-      <section className="relative h-[240px] sm:h-[300px] md:h-[380px] overflow-hidden">
-        <img src={img(blog.image, 1920, 700)} alt={blog.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1B75BC]/90 via-[#1B75BC]/50 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-8 max-w-[1100px] mx-auto">
-          <div className="flex items-center gap-2 text-white/60 text-[11px] mb-3">
-            <Link to="/" className="hover:text-white">{t("common:nav.home")}</Link>
-            <ChevronRight size={11} />
-            <Link to="/blog" className="hover:text-white">{t("common:nav.blog")}</Link>
-            <ChevronRight size={11} />
-            <span className="text-white/80 truncate">{blog.category}</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white leading-snug max-w-3xl">{blog.title}</h1>
+    <div>
+      <div className="relative min-h-[46vh] overflow-hidden bg-[#062D63]">
+        <img src={mediaUrl(blog.image, 1920, 800)} alt={blog.title} className="absolute inset-0 w-full h-full object-cover opacity-45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#041E42] via-[#062D63]/65 to-transparent" />
+        <div className="relative max-w-[1100px] mx-auto px-4 md:px-6 pt-28 pb-12">
+          <Breadcrumbs items={[
+            { label: bn ? "হোম" : "Home", to: "/" },
+            { label: bn ? "ব্লগ" : "Blog", to: "/blog" },
+            { label: blog.category },
+          ]} />
+          <h1 className="text-3xl md:text-4xl font-semibold text-white max-w-3xl leading-snug" style={{ fontFamily: "var(--font-display)" }}>{blog.title}</h1>
         </div>
-      </section>
+      </div>
 
-      <section className="py-12 bg-[#F7F8FA]">
-        <div className="max-w-[1100px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10">
-            {/* Article */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden">
-                <div className="p-7">
-                  {/* Meta */}
-                  <div className="flex flex-wrap gap-4 items-center mb-6 pb-5 border-b border-[#F3F4F6]">
-                    <div className="flex items-center gap-2 text-[12px] text-[#6B7280]">
-                      <div className="w-7 h-7 bg-[#1B75BC]/10 rounded-full flex items-center justify-center font-bold text-[#1B75BC] text-[11px]">
-                        {blog.author[0]}
-                      </div>
-                      {blog.author}
+      <Section tone="soft">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <article className="lg:col-span-2 bg-white rounded-3xl border border-[#E5E7EB] p-7">
+            <div className="flex flex-wrap gap-4 items-center mb-6 pb-5 border-b border-[#F3F4F6] text-sm text-[#6B7280]">
+              <span className="inline-flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-[#EAF5FF] text-[#1B75BC] font-bold text-xs flex items-center justify-center">{blog.author?.[0]}</span>{blog.author}</span>
+              <span className="inline-flex items-center gap-1"><Calendar size={12} />{blog.date}</span>
+              <span className="inline-flex items-center gap-1"><Clock size={12} />{blog.readTime} {t("meta.read")}</span>
+              <span className="bg-[#EAF5FF] text-[#1B75BC] text-[10px] font-bold px-2.5 py-1 rounded-full">{blog.category}</span>
+            </div>
+            <div className="space-y-4">
+              {paragraphs.map((para, i) => (
+                <p key={i} className="text-[15px] text-[#374151] leading-7">{para.trim()}</p>
+              ))}
+            </div>
+            {(blog.tags?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-2 mt-8 pt-5 border-t border-[#F3F4F6]">
+                {blog.tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-1 text-xs bg-[#F7F8FA] border border-[#E5E7EB] rounded-full px-3 py-1 text-[#6B7280]">
+                    <Tag size={10} />{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </article>
+
+          <aside className="space-y-5">
+            <div className="rounded-3xl bg-[#062D63] p-6 text-white">
+              <h4 className="font-semibold text-lg mb-2" style={{ fontFamily: "var(--font-display)" }}>{t("detail.ctaTitle")}</h4>
+              <p className="text-white/70 text-sm mb-4">{t("detail.ctaText")}</p>
+              <Btn to="/book" variant="orange" className="w-full">{t("detail.getFreeQuote")}</Btn>
+            </div>
+            <div className="bg-white rounded-3xl border border-[#E5E7EB] p-5">
+              <h4 className="font-semibold text-[#062D63] mb-4">{t("detail.related")}</h4>
+              <div className="space-y-4">
+                {related.map((r) => (
+                  <Link key={r.id} to={`/blog/${r.slug || r.id}`} className="flex gap-3 group">
+                    <img src={mediaUrl(r.image, 120, 90)} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+                    <div>
+                      <h5 className="text-sm font-semibold text-[#374151] group-hover:text-[#1B75BC] leading-snug mb-1">{r.title}</h5>
+                      <span className="text-[10px] text-[#9CA3AF]">{r.readTime} {t("meta.read")}</span>
                     </div>
-                    <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Calendar size={11} />{blog.date}</span>
-                    <span className="flex items-center gap-1 text-[11px] text-[#9CA3AF]"><Clock size={11} />{blog.readTime} {t("meta.read")}</span>
-                    <span className="bg-[#1B75BC]/10 text-[#1B75BC] text-[10px] font-bold px-2.5 py-1 rounded-full">{blog.category}</span>
-                  </div>
-
-                  {/* Content */}
-                  <div className="prose prose-sm max-w-none">
-                    {articleContent.trim().split("\n\n").map((para, i) => (
-                      <p key={i} className="text-[13px] text-[#374151] leading-7 mb-4">{para.trim()}</p>
-                    ))}
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mt-7 pt-5 border-t border-[#F3F4F6]">
-                    {blog.tags?.map(t => (
-                      <span key={t} className="flex items-center gap-1 text-[11px] bg-[#F7F8FA] border border-[#E5E7EB] rounded-full px-3 py-1 text-[#6B7280]">
-                        <Tag size={10} />{t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                  </Link>
+                ))}
               </div>
             </div>
-
-            {/* Sidebar */}
-            <div className="lg:col-span-1 flex flex-col gap-5">
-              {/* CTA */}
-              <div className="bg-[#1B75BC] rounded-2xl p-5 text-white">
-                <h4 className="text-[14px] font-black mb-2">{t("detail.ctaTitle")}</h4>
-                <p className="text-white/60 text-[12px] mb-4">{t("detail.ctaText")}</p>
-                <Link to="/book" className="block text-center py-2.5 bg-[#F15A24] text-[#1B75BC] font-bold rounded-[10px] text-[12px] hover:bg-[#CC3C17] transition-colors">
-                  {t("detail.getFreeQuote")}
-                </Link>
-              </div>
-
-              {/* Related */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5">
-                <h4 className="text-[14px] font-black text-[#111827] mb-4">{t("detail.related")}</h4>
-                <div className="flex flex-col gap-4">
-                  {related.map(r => (
-                    <Link key={r.id} to={`/blog/${r.id}`} className="flex gap-3 group">
-                      <img src={img(r.image, 120, 90)} alt={r.title}
-                        className="w-16 h-16 rounded-[8px] object-cover flex-shrink-0" />
-                      <div>
-                        <h5 className="text-[12px] font-semibold text-[#374151] group-hover:text-[#1B75BC] transition-colors leading-snug mb-1">{r.title}</h5>
-                        <span className="text-[10px] text-[#9CA3AF]">{r.readTime} {t("meta.read")}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          </aside>
         </div>
-      </section>
-    </>
+      </Section>
+    </div>
   );
 }
