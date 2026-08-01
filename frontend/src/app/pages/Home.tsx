@@ -1,480 +1,376 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import {
-  Star, MapPin, Shield, Plane, Briefcase, Hotel, Globe,
-  ChevronRight, ArrowRight, CheckCircle, Users, Award, Calendar,
-  Phone, Quote, Clock, TrendingUp, Heart, Headphones,
+  Star, MapPin, Shield, Plane, Hotel, Globe, Car, Umbrella,
+  Play, Sparkles, ScanText, Headphones, Lock, Award, BadgeCheck,
+  ArrowRight, BookOpen,
 } from "lucide-react";
-import { cn, img, fmtPrice } from "../lib/utils";
-import { PACKAGES, TESTIMONIALS, SERVICES, BLOGS } from "../lib/data";
+import {
+  Reveal, Section, SectionHeader, Btn, PackageCard, TestimonialCard, VideoCard,
+  StatCounter, AccordionFAQ, CtaBand, Newsletter, SkeletonBlock, EmptyState, ErrorState, IconCard, GuideCard,
+} from "../website/primitives";
+import { usePublicPackages, usePublicTestimonials, usePublicBlog, usePublicFaqs } from "../hooks/publicContent";
+import { GUIDES } from "../website/knowledge/guides";
+import { SITE_VIDEOS } from "../website/videos";
+import { SITE_IMAGES, mediaUrl, img } from "../lib/utils";
 import { HeroBackground } from "../components/HeroBackground";
 
-// ─── Hero Booking Widget ──────────────────────────────────────────────────────
-// `id` is the stable value; the display label comes from t(labelKey).
-const SERVICE_TYPES = [
-  { id: "Hajj",         labelKey: "booking.tabs.hajj" },
-  { id: "Umrah",        labelKey: "booking.tabs.umrah" },
-  { id: "Visa",         labelKey: "booking.tabs.visa" },
-  { id: "Air Ticket",   labelKey: "booking.tabs.airTicket" },
-  { id: "Tour Package", labelKey: "booking.tabs.tour" },
-  { id: "Hotel",        labelKey: "booking.tabs.hotel" },
+const SERVICES = [
+  { to: "/hajj", icon: Star, titleBn: "হজ্ব", titleEn: "Hajj", descBn: "সরকার-অনুমোদিত পূর্ণাঙ্গ প্যাকেজ", descEn: "Govt-approved full packages", color: "#F15A24" },
+  { to: "/umrah", icon: MapPin, titleBn: "উমরাহ", titleEn: "Umrah", descBn: "সারা বছরের উমরাহ সেবা", descEn: "Year-round Umrah", color: "#1B75BC" },
+  { to: "/visa", icon: Shield, titleBn: "ভিসা", titleEn: "Visa", descBn: "সৌদি ও বিশ্ব ভিসা", descEn: "Saudi & global visas", color: "#16A34A" },
+  { to: "/air-ticket", icon: Plane, titleBn: "বিমান টিকিট", titleEn: "Air Ticket", descBn: "সেরা ভাড়ার নিশ্চয়তা", descEn: "Best fares", color: "#062D63" },
+  { to: "/hotel-booking", icon: Hotel, titleBn: "হোটেল", titleEn: "Hotel", descBn: "হারাম-নিকট আবাসন", descEn: "Near-Haram stays", color: "#0891B2" },
+  { to: "/transport", icon: Car, titleBn: "পরিবহন", titleEn: "Transport", descBn: "ট্রান্সফার ও জিয়ারত", descEn: "Transfers & Ziyarah", color: "#7C3AED" },
+  { to: "/tour-packages", icon: Globe, titleBn: "ট্যুর", titleEn: "Tour", descBn: "নির্বাচিত বিশ্বভ্রমণ", descEn: "Curated tours", color: "#C89B3C" },
+  { to: "/faq", icon: Umbrella, titleBn: "বীমা", titleEn: "Insurance", descBn: "নিরাপদ যাত্রা", descEn: "Travel cover", color: "#0E7C66" },
 ];
 
-const TRAVELER_OPTIONS = [
-  { id: "1 Traveler",   labelKey: "booking.travelerOptions.one" },
-  { id: "2 Travelers",  labelKey: "booking.travelerOptions.two" },
-  { id: "3 Travelers",  labelKey: "booking.travelerOptions.three" },
-  { id: "4+ Travelers", labelKey: "booking.travelerOptions.fourPlus" },
+const WHY = [
+  { icon: Sparkles, titleBn: "এআই সহায়তা", titleEn: "AI Assistance", descBn: "স্মার্ট পরামর্শ ও পোর্টাল ইনসাইট", descEn: "Smart guidance & portal insights" },
+  { icon: ScanText, titleBn: "OCR পাসপোর্ট", titleEn: "Passport OCR", descBn: "দ্রুত ও নির্ভুল নথি প্রক্রিয়াকরণ", descEn: "Fast, accurate document capture" },
+  { icon: Headphones, titleBn: "২৪/৭ সাপোর্ট", titleEn: "24/7 Support", descBn: "যাত্রার প্রতিটি ধাপে সহায়তা", descEn: "Help at every step" },
+  { icon: Lock, titleBn: "নিরাপদ পেমেন্ট", titleEn: "Secure Pay", descBn: "এন্টারপ্রাইজ-গ্রেড আর্থিক নিরাপত্তা", descEn: "Enterprise-grade money path" },
+  { icon: Award, titleBn: "ATOL / ATAB", titleEn: "ATOL / ATAB", descBn: "লাইসেন্সপ্রাপ্ত বিশ্বস্ত এজেন্সি", descEn: "Licensed trusted agency" },
+  { icon: BadgeCheck, titleBn: "IATA", titleEn: "IATA", descBn: "আন্তর্জাতিক বিমান মান", descEn: "International air standards" },
+  { icon: Star, titleBn: "অভিজ্ঞতা", titleEn: "Experience", descBn: "হাজারো হাজির আস্থা", descEn: "Trusted by thousands" },
 ];
 
-function BookingWidget() {
-  const { t } = useTranslation("home");
-  const [service, setService] = useState(SERVICE_TYPES[0].id);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [date, setDate] = useState("");
-  const [pax, setPax] = useState(TRAVELER_OPTIONS[0].id);
-
-  return (
-    <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-full max-w-3xl mx-auto">
-      {/* Service Tabs — horizontally scrollable on mobile */}
-      <div className="flex gap-1 mb-4 md:mb-5 bg-[#F3F4F6] rounded-[10px] p-1 overflow-x-auto no-scrollbar -mx-1 px-1">
-        {SERVICE_TYPES.map(opt => (
-          <button key={opt.id} onClick={() => setService(opt.id)}
-            className={cn("flex-shrink-0 px-3 md:px-4 py-2 rounded-[8px] text-[11px] md:text-[12px] font-semibold transition-all cursor-pointer min-h-[36px]",
-              service === opt.id ? "bg-[#1B75BC] text-white shadow" : "text-[#6B7280] hover:text-[#374151]"
-            )}>
-            {t(opt.labelKey)}
-          </button>
-        ))}
-      </div>
-
-      {/* Fields — 1 col on mobile, 2 on sm, 4 on md */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.from")}</label>
-          <input value={from} onChange={e => setFrom(e.target.value)}
-            placeholder={t("booking.fromPlaceholder")}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.to")}</label>
-          <input value={to} onChange={e => setTo(e.target.value)}
-            placeholder={t("booking.toPlaceholder")}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.departure")}</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.travelers")}</label>
-          <select value={pax} onChange={e => setPax(e.target.value)}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all bg-white cursor-pointer min-h-[48px]">
-            {TRAVELER_OPTIONS.map(o => <option key={o.id} value={o.id}>{t(o.labelKey)}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex gap-3 mt-4">
-        <Link to="/book" className="flex-1 py-3.5 md:py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold rounded-[10px] text-[14px] transition-colors text-center min-h-[48px] flex items-center justify-center">
-          {t("booking.searchBook")}
-        </Link>
-        <Link to="/contact" className="px-4 md:px-5 py-3.5 md:py-3 border-2 border-[#F15A24] text-[#D64A12] font-bold rounded-[10px] text-[13px] hover:bg-[#F15A24]/5 transition-colors flex items-center min-h-[48px]">
-          {t("common:actions.getQuote")}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// ─── Counter ──────────────────────────────────────────────────────────────────
-function Counter({ end, suffix = "", label }: { end: number; suffix?: string; label: string }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true;
-        let start = 0;
-        const step = () => {
-          start += Math.ceil(end / 60);
-          if (start >= end) { setVal(end); return; }
-          setVal(start);
-          requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      }
-    }, { threshold: 0.3 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [end]);
-
-  return (
-    <div ref={ref} className="text-center">
-      <div className="text-4xl md:text-5xl font-black text-white mb-1">
-        {val.toLocaleString()}{suffix}
-      </div>
-      <div className="text-sm text-white/60 font-medium">{label}</div>
-    </div>
-  );
-}
-
-// ─── HOME PAGE ───────────────────────────────────────────────────────────────
 export function Home() {
-  const { t } = useTranslation("home");
-  const services = [
-    { id: "hajj", i18n: "hajj", icon: Star, color: "#F15A24", bg: "#FFF9E6" },
-    { id: "umrah", i18n: "umrah", icon: MapPin, color: "#1B75BC", bg: "#EEF2FF" },
-    { id: "visa", i18n: "visa", icon: Shield, color: "#0E7C66", bg: "#ECFDF5" },
-    { id: "air-ticket", i18n: "airTicket", icon: Plane, color: "#2563EB", bg: "#EFF6FF" },
-    { id: "manpower", i18n: "manpower", icon: Briefcase, color: "#7C3AED", bg: "#F5F3FF" },
-    { id: "tour-packages", i18n: "tour", icon: Globe, color: "#EA580C", bg: "#FFF7ED" },
-    { id: "hotel-booking", i18n: "hotel", icon: Hotel, color: "#0891B2", bg: "#F0F9FF" },
-  ];
+  const { t, i18n } = useTranslation("home");
+  const bn = i18n.language?.startsWith("bn");
+  const hajjQ = usePublicPackages({ type: "HAJJ", limit: 4 });
+  const umrahQ = usePublicPackages({ type: "UMRAH", limit: 4 });
+  const testiQ = usePublicTestimonials();
+  const blogQ = usePublicBlog({ limit: 3 });
+  const faqQ = usePublicFaqs();
+  const [videoOpen, setVideoOpen] = useState(false);
 
-  const partners = [
-    "Biman Bangladesh", "Saudi Airlines", "Qatar Airways", "Emirates", "Turkish Airlines",
-    "Etihad Airways", "Air Arabia", "FlyDubai",
-  ];
+  const hajj = hajjQ.data?.data ?? [];
+  const umrah = umrahQ.data?.data ?? [];
+  const faqs = (faqQ.data ?? []).slice(0, 6).map((f) => ({ id: f.id, question: f.question, answer: f.answer }));
+  const guidesPreview = GUIDES.slice(0, 8);
 
   return (
-    <>
-      {/* ── HERO ── */}
-      <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center justify-center overflow-hidden">
-        <HeroBackground posterImg={img("photo-1770786106021-52580470e31e", 1920, 1080)} alt="Masjid al-Haram, Makkah" />
+    <div className="overflow-x-hidden">
+      {/* ── Premium Hero ── */}
+      <section className="relative min-h-[92vh] flex items-end md:items-center overflow-hidden bg-[#062D63]">
+        <HeroBackground />
+        <img
+          src={img(SITE_IMAGES.kaaba, 1920, 1080)}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-45"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/75 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#041E42] via-transparent to-[#062D63]/40" />
 
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 md:px-6 flex flex-col items-center text-center gap-6 md:gap-8 py-12 md:py-16">
-          <div className="inline-flex items-center gap-2 bg-white/95 border border-white rounded-full px-4 py-1.5 text-[#D64A12] text-[12px] font-bold shadow-sm">
-            <Star size={13} fill="currentColor" className="text-[#F15A24]" />
-            {t("hero.badge")}
-          </div>
-
-          <div className="max-w-3xl">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-3 md:mb-4">
-              <Trans
-                t={t}
-                i18nKey="hero.title"
-                components={{ hl: <span className="text-[#D64A12]" />, br: <br /> }}
-              />
-            </h1>
-            <p className="text-base md:text-lg text-white/70 max-w-xl mx-auto">
-              {t("hero.subtitle")}
+        <div className="relative max-w-[1200px] w-full mx-auto px-4 md:px-6 pt-32 pb-20 md:py-28">
+          <Reveal>
+            <p className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#C89B3C] text-xs font-bold uppercase tracking-[0.2em] mb-6">
+              <Star size={12} className="fill-[#C89B3C]" /> SM Travels International
             </p>
-          </div>
+            <h1
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-semibold text-white leading-[1.08] max-w-3xl tracking-tight"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {bn ? (
+                <>নিরাপদ সফর,<br /><span className="text-[#F15A24]">নিশ্চিত সেবা।</span></>
+              ) : (
+                <>Safe travel,<br /><span className="text-[#F15A24]">guaranteed service.</span></>
+              )}
+            </h1>
+            <p className="mt-5 text-lg md:text-xl text-white/80 max-w-xl leading-relaxed">
+              {bn
+                ? "আপনার আস্থাই আমাদের অঙ্গীকার — হজ্ব, উমরাহ ও ভ্রমণে প্রিমিয়াম অভিজ্ঞতা।"
+                : "Your trust is our promise — premium Hajj, Umrah and travel experiences."}
+            </p>
 
-          {/* Trust Badges — 2×2 on mobile, row on larger */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 md:gap-3 w-full max-w-lg sm:max-w-none mx-auto">
-            {[
-              { icon: Award, text: t("hero.badges.atab") },
-              { icon: CheckCircle, text: t("hero.badges.govt") },
-              { icon: Users, text: t("hero.badges.pilgrims") },
-              { icon: Calendar, text: t("hero.badges.years") },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3 md:px-4 py-2 text-white text-[11px] md:text-[12px] font-medium">
-                <Icon size={12} className="text-[#D64A12]" />
-                {text}
-              </div>
-            ))}
-          </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {[
+                bn ? "২০১১ থেকে বিশ্বস্ত" : "Trusted since 2011",
+                bn ? "২৪/৭ সাপোর্ট" : "24/7 Support",
+                bn ? "১০০কে+ সন্তুষ্ট" : "100K+ Clients",
+                "ATOL & IATA",
+              ].map((b) => (
+                <span key={b} className="px-3.5 py-2 rounded-full bg-white/10 border border-white/15 text-white/90 text-xs font-semibold backdrop-blur">
+                  {b}
+                </span>
+              ))}
+            </div>
 
-          <BookingWidget />
-
-          <p className="text-white/40 text-[11px]">
-            {t("hero.reassurance")}
-          </p>
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <Btn to="/packages" variant="orange" size="lg">
+                {bn ? "হজ্ব ও উমরাহ প্যাকেজ" : "View Hajj & Umrah Packages"} <ArrowRight size={18} />
+              </Btn>
+              <button
+                type="button"
+                onClick={() => setVideoOpen(true)}
+                className="inline-flex items-center gap-3 text-white font-semibold hover:text-[#C89B3C] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-full px-2 py-1"
+              >
+                <span className="w-12 h-12 rounded-full bg-white/15 border border-white/25 flex items-center justify-center">
+                  <Play size={18} className="ml-0.5 fill-white" />
+                </span>
+                {bn ? "আমাদের ভিডিও দেখুন" : "Watch Our Video"}
+              </button>
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── TRUST STRIP ── */}
-      <section className="bg-[#1B75BC] py-4">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap items-center justify-center gap-6">
-          {[
-            t("trustStrip.license"),
-            t("trustStrip.aviation"),
-            t("trustStrip.ministry"),
-            t("trustStrip.years"),
-            t("trustStrip.pilgrims"),
-          ].map(item => (
-            <span key={item} className="text-white/70 text-[12px] font-medium">{item}</span>
+      {videoOpen && (
+        <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4" onClick={() => setVideoOpen(false)} role="dialog" aria-modal>
+          <div className="w-full max-w-3xl aspect-video bg-black rounded-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <iframe
+              title="SM Travels video"
+              src={`https://www.youtube.com/embed/${SITE_VIDEOS[0].youtubeId}?autoplay=1`}
+              className="w-full h-full"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Services ── */}
+      <Section>
+        <Reveal>
+          <SectionHeader
+            eyebrow={bn ? "সেবাসমূহ" : "Services"}
+            title={bn ? "এক ছাদের নিচে সব ভ্রমণ সেবা" : "Every journey, one premium house"}
+            subtitle={bn ? "হজ্ব থেকে বীমা — একই মানের অভিজ্ঞতা।" : "From Hajj to insurance — one standard of excellence."}
+          />
+        </Reveal>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+          {SERVICES.map((s, i) => (
+            <Reveal key={s.to} delay={i * 0.04}>
+              <IconCard
+                to={s.to}
+                icon={s.icon}
+                title={bn ? s.titleBn : s.titleEn}
+                desc={bn ? s.descBn : s.descEn}
+                color={s.color}
+              />
+            </Reveal>
           ))}
         </div>
+      </Section>
+
+      {/* ── Knowledge Center preview ── */}
+      <Section tone="tint">
+        <Reveal>
+          <SectionHeader
+            eyebrow={bn ? "ইসলামী গাইডেন্স" : "Islamic Guidance"}
+            title={bn ? "হজ্ব ও উমরাহ জ্ঞান কেন্দ্র" : "Hajj & Umrah Knowledge Center"}
+            subtitle={bn ? "ইহরাম থেকে বিদায়ী তাওয়াফ — নির্ভরযোগ্য গাইড।" : "From Ihram to farewell Tawaf — trusted guides."}
+            action={<Btn to="/knowledge" variant="outline" size="sm">{bn ? "সব গাইড" : "All guides"} <BookOpen size={16} /></Btn>}
+          />
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {guidesPreview.map((g, i) => (
+            <Reveal key={g.slug} delay={i * 0.03}>
+              <GuideCard
+                to={`/knowledge/${g.slug}`}
+                icon={BookOpen}
+                title={bn ? g.titleBn : g.titleEn}
+                summary={bn ? g.summaryBn : g.summaryEn}
+              />
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Hajj packages ── */}
+      <Section>
+        <Reveal>
+          <SectionHeader
+            eyebrow="Hajj"
+            title={bn ? "জনপ্রিয় হজ্ব প্যাকেজ" : "Popular Hajj Packages"}
+            action={<Btn to="/packages?type=HAJJ" variant="outline" size="sm">{bn ? "সব দেখুন" : "View all"}</Btn>}
+          />
+        </Reveal>
+        {hajjQ.isLoading && <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">{[1,2,3,4].map((i) => <SkeletonBlock key={i} className="h-80" />)}</div>}
+        {hajjQ.isError && <ErrorState message={bn ? "প্যাকেজ লোড করা যায়নি।" : "Could not load packages."} />}
+        {!hajjQ.isLoading && !hajjQ.isError && hajj.length === 0 && <EmptyState message={bn ? "এখনো কোনো হজ্ব প্যাকেজ নেই।" : "No Hajj packages yet."} />}
+        {hajj.length > 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {hajj.map((p, i) => <Reveal key={p.id} delay={i * 0.05}><PackageCard pkg={p} /></Reveal>)}
+          </div>
+        )}
+      </Section>
+
+      {/* ── Umrah packages ── */}
+      <Section tone="soft">
+        <Reveal>
+          <SectionHeader
+            eyebrow="Umrah"
+            title={bn ? "জনপ্রিয় উমরাহ প্যাকেজ" : "Popular Umrah Packages"}
+            action={<Btn to="/packages?type=UMRAH" variant="outline" size="sm">{bn ? "সব দেখুন" : "View all"}</Btn>}
+          />
+        </Reveal>
+        {umrahQ.isLoading && <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">{[1,2,3,4].map((i) => <SkeletonBlock key={i} className="h-80" />)}</div>}
+        {umrahQ.isError && <ErrorState message={bn ? "প্যাকেজ লোড করা যায়নি।" : "Could not load packages."} />}
+        {!umrahQ.isLoading && !umrahQ.isError && umrah.length === 0 && <EmptyState message={bn ? "এখনো কোনো উমরাহ প্যাকেজ নেই।" : "No Umrah packages yet."} />}
+        {umrah.length > 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {umrah.map((p, i) => <Reveal key={p.id} delay={i * 0.05}><PackageCard pkg={p} /></Reveal>)}
+          </div>
+        )}
+      </Section>
+
+      {/* ── Videos ── */}
+      <Section>
+        <Reveal>
+          <SectionHeader
+            eyebrow={bn ? "ভিডিও" : "Videos"}
+            title={bn ? "টিউটোরিয়াল ও গাইড" : "Tutorials & Guides"}
+            action={<Btn to="/videos" variant="outline" size="sm">{bn ? "সব ভিডিও" : "All videos"}</Btn>}
+          />
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {SITE_VIDEOS.slice(0, 3).map((v, i) => (
+            <Reveal key={v.id} delay={i * 0.05}>
+              <VideoCard
+                title={bn ? v.titleBn : v.titleEn}
+                youtubeId={v.youtubeId}
+                duration={v.duration}
+                views={v.views}
+                category={v.category}
+              />
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Why choose us ── */}
+      <Section tone="navy">
+        <Reveal>
+          <SectionHeader
+            light
+            eyebrow={bn ? "কেন আমরা" : "Why us"}
+            title={bn ? "প্রযুক্তি, আস্থা ও ইসলামী শিষ্টাচার" : "Technology, trust & Islamic elegance"}
+          />
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {WHY.map((w, i) => (
+            <Reveal key={w.titleEn} delay={i * 0.04}>
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors h-full">
+                <div className="w-11 h-11 rounded-xl bg-[#F15A24]/20 text-[#F15A24] flex items-center justify-center mb-4">
+                  <w.icon size={20} />
+                </div>
+                <h3 className="font-semibold text-white mb-1.5">{bn ? w.titleBn : w.titleEn}</h3>
+                <p className="text-sm text-white/65 leading-relaxed">{bn ? w.descBn : w.descEn}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Counters ── */}
+      <section className="relative py-16 md:py-20 overflow-hidden bg-[#062D63]">
+        <img src={mediaUrl(SITE_IMAGES.pilgrims, 1600, 600)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy" />
+        <div className="absolute inset-0 bg-[#062D63]/85" />
+        <div className="relative max-w-[1200px] mx-auto px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <StatCounter end={100000} suffix="+" label={bn ? "সন্তুষ্ট যাত্রী" : "Happy pilgrims"} />
+          <StatCounter end={25000} suffix="+" label={bn ? "ভিসা সম্পন্ন" : "Visas processed"} />
+          <StatCounter end={25} suffix="+" label={bn ? "দেশ" : "Countries"} />
+          <StatCounter end={15} suffix="+" label={bn ? "বছরের অভিজ্ঞতা" : "Years of service"} />
+        </div>
       </section>
 
-      {/* ── SERVICES ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("services.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827] mb-3">{t("services.heading")}</h2>
-            <p className="text-[#6B7280] max-w-xl mx-auto text-sm">{t("services.subheading")}</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 md:gap-4">
-            {services.map(s => (
-              <Link key={s.id} to={`/${s.id}`}
-                className="bg-white rounded-2xl p-5 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border border-[#E5E7EB] group cursor-pointer">
-                <div className="w-12 h-12 rounded-[12px] flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: s.bg }}>
-                  <s.icon size={22} style={{ color: s.color }} />
-                </div>
-                <div className="text-[13px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-1">{t(`services.items.${s.i18n}.label`)}</div>
-                <div className="text-[10px] text-[#9CA3AF] leading-snug">{t(`services.items.${s.i18n}.desc`)}</div>
-              </Link>
+      {/* ── Testimonials ── */}
+      <Section>
+        <Reveal>
+          <SectionHeader
+            eyebrow={bn ? "প্রশংসাপত্র" : "Testimonials"}
+            title={bn ? "যাত্রীদের আস্থা" : "Trusted by travellers"}
+            action={<Btn to="/testimonials" variant="outline" size="sm">{bn ? "আরও" : "More"}</Btn>}
+          />
+        </Reveal>
+        {testiQ.isLoading && <div className="grid md:grid-cols-3 gap-5">{[1,2,3].map((i) => <SkeletonBlock key={i} className="h-56" />)}</div>}
+        {testiQ.isError && <ErrorState message={bn ? "প্রশংসাপত্র লোড হয়নি।" : "Could not load testimonials."} />}
+        {(testiQ.data?.length ?? 0) > 0 && (
+          <div className="grid md:grid-cols-3 gap-5">
+            {testiQ.data!.slice(0, 3).map((item, i) => (
+              <Reveal key={item.id} delay={i * 0.05}><TestimonialCard t={item} /></Reveal>
             ))}
           </div>
-        </div>
-      </section>
+        )}
+      </Section>
 
-      {/* ── FEATURED PACKAGES ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("packages.eyebrow")}</div>
-              <h2 className="text-3xl font-black text-[#111827]">{t("packages.heading")}</h2>
-            </div>
-            <Link to="/packages" className="hidden md:flex items-center gap-1.5 text-[#1B75BC] text-[13px] font-semibold hover:gap-3 transition-all">
-              {t("common:actions.viewAll")} <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {PACKAGES.slice(0, 4).map(pkg => (
-              <Link key={pkg.id} to={`/packages/${pkg.id}`}
-                className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={img(pkg.image, 600, 400)} alt={pkg.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  {pkg.badge && (
-                    <div className="absolute top-3 left-3 bg-[#F15A24] text-[#1B75BC] text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wide">
-                      {pkg.badge}
-                    </div>
-                  )}
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1">
-                    <Star size={11} fill="#F59E0B" className="text-[#F59E0B]" />
-                    <span className="text-[11px] font-bold text-[#374151]">{pkg.rating}</span>
+      {/* ── Blog ── */}
+      <Section tone="soft">
+        <Reveal>
+          <SectionHeader
+            eyebrow={bn ? "ব্লগ" : "Blog"}
+            title={bn ? "ভ্রমণ ও ইবাদতের জ্ঞান" : "Travel & worship insights"}
+            action={<Btn to="/blog" variant="outline" size="sm">{bn ? "সব পোস্ট" : "All posts"}</Btn>}
+          />
+        </Reveal>
+        {blogQ.isLoading && <div className="grid md:grid-cols-3 gap-5">{[1,2,3].map((i) => <SkeletonBlock key={i} className="h-64" />)}</div>}
+        {(blogQ.data?.data?.length ?? 0) > 0 && (
+          <div className="grid md:grid-cols-3 gap-5">
+            {blogQ.data!.data.slice(0, 3).map((post, i) => (
+              <Reveal key={post.id} delay={i * 0.05}>
+                <Link to={`/blog/${post.slug}`} className="group block rounded-3xl overflow-hidden bg-white border border-[#E5E7EB] hover:shadow-xl transition-all">
+                  <div className="aspect-[16/10] overflow-hidden">
+                    <img src={mediaUrl(post.image, 800, 500)} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   </div>
-                </div>
-                <div className="p-4">
-                  <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">{pkg.type}</div>
-                  <h3 className="text-[14px] font-bold text-[#111827] mb-2 group-hover:text-[#1B75BC] transition-colors leading-snug">{pkg.title}</h3>
-                  <div className="flex items-center gap-2 text-[11px] text-[#6B7280] mb-3">
-                    <Clock size={11} /> {pkg.duration}
-                    <span className="mx-1 text-[#E5E7EB]">·</span>
-                    <MapPin size={11} /> {t("packages.departing", { val: pkg.departure })}
+                  <div className="p-5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#1B75BC] mb-1">{post.category}</p>
+                    <h3 className="font-semibold text-[#062D63] group-hover:text-[#1B75BC] line-clamp-2">{post.title}</h3>
+                    <p className="text-sm text-[#6B7280] mt-2 line-clamp-2">{post.excerpt}</p>
                   </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-[#F3F4F6]">
-                    <div>
-                      <div className="text-[10px] text-[#9CA3AF]">{t("packages.startingFrom")}</div>
-                      <div className="text-[18px] font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</div>
-                    </div>
-                    <div className="text-[11px] text-[#9CA3AF]">{t("packages.seatsLeft", { count: pkg.seats })}</div>
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </Reveal>
             ))}
           </div>
+        )}
+      </Section>
 
-          <div className="text-center mt-8 md:hidden">
-            <Link to="/packages" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#1B75BC]/5 transition-colors">
-              {t("packages.viewAllPackages")} <ArrowRight size={14} />
-            </Link>
-          </div>
+      {/* ── FAQ ── */}
+      <Section>
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
+          <Reveal>
+            <SectionHeader
+              eyebrow="FAQ"
+              title={bn ? "সাধারণ জিজ্ঞাসা" : "Frequently asked"}
+              subtitle={bn ? "বুকিং, ভিসা ও প্যাকেজ সম্পর্কে দ্রুত উত্তর।" : "Quick answers on booking, visas and packages."}
+            />
+            <Btn to="/faq" variant="primary" size="sm">{bn ? "সব প্রশ্ন" : "All FAQs"}</Btn>
+          </Reveal>
+          <Reveal delay={0.1}>
+            {faqQ.isLoading && <SkeletonBlock className="h-64" />}
+            {faqs.length > 0 && <AccordionFAQ items={faqs} />}
+            {!faqQ.isLoading && faqs.length === 0 && <EmptyState message={bn ? "এখনো কোনো FAQ নেই।" : "No FAQs yet."} />}
+          </Reveal>
         </div>
-      </section>
+      </Section>
 
-      {/* ── WHY CHOOSE US ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("why.eyebrow")}</div>
-              <h2 className="text-3xl font-black text-[#111827] mb-5">
-                {t("why.headingLine1")}<br />{t("why.headingLine2")}
-              </h2>
-              <p className="text-[#6B7280] text-sm leading-relaxed mb-8">
-                {t("why.body")}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                {[
-                  { icon: CheckCircle, title: t("why.features.govt.title"), desc: t("why.features.govt.desc"), color: "#0E7C66" },
-                  { icon: Headphones, title: t("why.features.support.title"), desc: t("why.features.support.desc"), color: "#1B75BC" },
-                  { icon: Heart, title: t("why.features.trusted.title"), desc: t("why.features.trusted.desc"), color: "#DC2626" },
-                  { icon: TrendingUp, title: t("why.features.value.title"), desc: t("why.features.value.desc"), color: "#F15A24" },
-                ].map(i => (
-                  <div key={i.title} className="bg-white rounded-[12px] p-4 border border-[#E5E7EB]">
-                    <div className="w-9 h-9 rounded-[8px] flex items-center justify-center mb-3" style={{ backgroundColor: `${i.color}15` }}>
-                      <i.icon size={17} style={{ color: i.color }} />
-                    </div>
-                    <div className="text-[13px] font-bold text-[#111827] mb-1">{i.title}</div>
-                    <div className="text-[11px] text-[#6B7280] leading-snug">{i.desc}</div>
-                  </div>
-                ))}
-              </div>
-
-              <Link to="/about" className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-[#1B75BC] text-white font-bold rounded-[10px] text-sm hover:bg-[#14588F] transition-colors">
-                {t("why.learnStory")} <ArrowRight size={14} />
-              </Link>
-            </div>
-
-            <div className="relative hidden lg:block">
-              <div className="rounded-2xl overflow-hidden shadow-2xl">
-                <img src={img("photo-1720549973451-018d3623b55a", 700, 500)} alt="Hajj pilgrims at Kaaba" className="w-full object-cover h-[440px]" />
-              </div>
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-5 border border-[#E5E7EB]">
-                <div className="text-3xl font-black text-[#1B75BC] mb-1">25+</div>
-                <div className="text-[12px] text-[#6B7280]">{t("why.badge.excellence")}</div>
-              </div>
-              <div className="absolute -top-4 -right-4 bg-[#F15A24] text-[#1B75BC] rounded-2xl px-4 py-3 shadow-xl">
-                <div className="text-2xl font-black mb-0.5">10K+</div>
-                <div className="text-[11px] font-bold">{t("why.badge.pilgrims")}</div>
-              </div>
-            </div>
-          </div>
+      {/* ── Newsletter + CTA ── */}
+      <Section tone="navy">
+        <div className="grid lg:grid-cols-2 gap-10 items-center">
+          <Reveal>
+            <p className="text-[#C89B3C] text-xs font-bold uppercase tracking-[0.2em] mb-3">{bn ? "নিউজলেটার" : "Newsletter"}</p>
+            <h2 className="text-3xl md:text-4xl font-semibold text-white" style={{ fontFamily: "var(--font-display)" }}>
+              {bn ? "পরবর্তী সফরের আপডেট পান" : "Stay ahead of your next journey"}
+            </h2>
+            <p className="mt-3 text-white/70 mb-6">{bn ? "নতুন প্যাকেজ ও গাইড সরাসরি ইনবক্সে।" : "New packages and guides in your inbox."}</p>
+            <Newsletter />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <CtaBand
+              title={bn ? "আজই পরবর্তী যাত্রা পরিকল্পনা করুন" : "Plan your next journey today"}
+              subtitle={bn ? "বিশেষজ্ঞ দল প্রস্তুত আপনার সেবায়।" : "Our specialists are ready to help."}
+              primary={{ label: bn ? "যাত্রা শুরু" : "Start journey", to: "/book" }}
+              secondary={{ label: bn ? "যোগাযোগ" : "Contact", to: "/contact" }}
+            />
+          </Reveal>
         </div>
-      </section>
-
-      {/* ── STATS ── */}
-      <section className="py-12 md:py-20 bg-[#1B75BC]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
-            <Counter end={10000} suffix="+" label={t("stats.pilgrims")} />
-            <Counter end={25} suffix="+" label={t("stats.years")} />
-            <Counter end={50} suffix="+" label={t("stats.countries")} />
-            <Counter end={4} suffix="" label={t("stats.branches")} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("testimonials.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827]">{t("testimonials.heading")}</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {TESTIMONIALS.slice(0, 3).map((t, idx) => (
-              <div key={idx} className="bg-[#F7F8FA] rounded-2xl p-6 border border-[#E5E7EB] relative">
-                <Quote size={28} className="text-[#D64A12]/30 mb-3" />
-                <p className="text-[13px] text-[#374151] leading-relaxed mb-5 italic">"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#1B75BC]/10 flex items-center justify-center font-bold text-[#1B75BC] text-sm flex-shrink-0">
-                    {t.initial ?? t.name[0]}
-                  </div>
-                  <div>
-                    <div className="text-[13px] font-bold text-[#111827]">{t.name}</div>
-                    <div className="text-[11px] text-[#9CA3AF]">{t.city} · {t.package}</div>
-                  </div>
-                  <div className="ml-auto flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={11} className={i < t.stars ? "text-[#F59E0B] fill-[#F59E0B]" : "text-[#E5E7EB]"} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── BLOG PREVIEW ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("blog.eyebrow")}</div>
-              <h2 className="text-3xl font-black text-[#111827]">{t("blog.heading")}</h2>
-            </div>
-            <Link to="/blog" className="hidden md:flex items-center gap-1.5 text-[#1B75BC] text-[13px] font-semibold hover:gap-3 transition-all">
-              {t("blog.allArticles")} <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {BLOGS.slice(0, 3).map(b => (
-              <Link key={b.id} to={`/blog/${b.id}`}
-                className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={img(b.image, 600, 300)} alt={b.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute top-3 left-3 bg-[#1B75BC] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    {b.category}
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="text-[10px] text-[#9CA3AF] mb-1.5">{b.date} · {t("blog.readTime", { time: b.readTime })}</div>
-                  <h3 className="text-[14px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors leading-snug mb-2">{b.title}</h3>
-                  <p className="text-[12px] text-[#6B7280] leading-relaxed line-clamp-2">{b.excerpt}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── AIRLINE PARTNERS ── */}
-      <section className="py-12 bg-white border-t border-[#E5E7EB]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-6">
-            <div className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-widest">{t("partners.heading")}</div>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {partners.map(p => (
-              <div key={p} className="bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] px-6 py-3 text-[12px] font-semibold text-[#6B7280] hover:border-[#1B75BC]/30 hover:text-[#1B75BC] transition-all">
-                ✈ {p}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── NEWSLETTER ── */}
-      <section className="py-10 md:py-16 bg-[#1B75BC]">
-        <div className="max-w-[700px] mx-auto px-6 text-center">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("newsletter.eyebrow")}</div>
-          <h2 className="text-2xl font-black text-white mb-2">{t("newsletter.heading")}</h2>
-          <p className="text-white/60 text-sm mb-7">{t("newsletter.subheading")}</p>
-          <form className="flex flex-col sm:flex-row gap-3" onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder={t("newsletter.placeholder")}
-              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-[10px] text-white text-[13px] placeholder-white/40 outline-none focus:border-[#F15A24] focus:ring-1 focus:ring-[#F15A24] transition-all" />
-            <button type="submit"
-              className="px-6 py-3 bg-[#F15A24] hover:bg-[#CC3C17] text-[#1B75BC] font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer flex-shrink-0">
-              {t("newsletter.subscribe")}
-            </button>
-          </form>
-          <p className="text-white/30 text-[10px] mt-3">{t("newsletter.disclaimer")}</p>
-        </div>
-      </section>
-
-      {/* ── QUICK CONTACT ── */}
-      <section className="py-12 bg-[#F7F8FA] border-t border-[#E5E7EB]">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap items-center justify-center gap-8">
-          <div className="flex items-center gap-3 text-sm">
-            <div className="w-10 h-10 bg-[#1B75BC]/10 rounded-full flex items-center justify-center">
-              <Phone size={17} className="text-[#1B75BC]" />
-            </div>
-            <div>
-              <div className="text-[10px] text-[#9CA3AF] font-bold uppercase tracking-wider">{t("contact.hotline")}</div>
-              <a href="tel:+88029553421" className="font-bold text-[#1B75BC] hover:underline">+880 2 9553421</a>
-            </div>
-          </div>
-          <div className="text-[#E5E7EB] text-2xl hidden md:block">|</div>
-          <div className="text-sm text-[#6B7280]">
-            <span className="font-semibold text-[#374151]">{t("contact.officeHours")}</span> {t("contact.hoursValue")}
-          </div>
-          <div className="text-[#E5E7EB] text-2xl hidden md:block">|</div>
-          <Link to="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-[13px] hover:bg-[#1B75BC]/5 transition-colors">
-            <MapPin size={14} /> {t("contact.branches")}
-          </Link>
-        </div>
-      </section>
-    </>
+      </Section>
+    </div>
   );
 }
+
+export default Home;

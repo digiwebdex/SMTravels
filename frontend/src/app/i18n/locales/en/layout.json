@@ -9,7 +9,9 @@
     "airTicket": { "label": "Air Tickets",     "desc": "Best fares guaranteed" },
     "manpower":  { "label": "Manpower",        "desc": "International recruitment" },
     "tour":      { "label": "Tour Packages",   "desc": "Curated world tours" },
-    "hotel":     { "label": "Hotel Booking",   "desc": "Premium accommodations" }
+    "hotel":     { "label": "Hotel Booking",   "desc": "Premium accommodations" },
+    "transport": { "label": "Transport",       "desc": "Airport & Ziyarah transfers" },
+    "insurance": { "label": "Travel Insurance","desc": "Travel with confidence" }
   },
   "services": {
     "viewAllPackages": "View All Packages",

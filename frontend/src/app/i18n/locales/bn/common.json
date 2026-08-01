@@ -8,7 +8,11 @@
     "blog": "ব্লগ",
     "gallery": "গ্যালারি",
     "faq": "সাধারণ জিজ্ঞাসা",
-    "contact": "যোগাযোগ"
+    "contact": "যোগাযোগ",
+    "knowledge": "জ্ঞান কেন্দ্র",
+    "videos": "ভিডিও",
+    "testimonials": "প্রশংসাপত্র",
+    "branches": "শাখা"
   },
   "actions": {
     "login": "লগইন",

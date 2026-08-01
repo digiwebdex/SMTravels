@@ -8,7 +8,11 @@
     "blog": "Blog",
     "gallery": "Gallery",
     "faq": "FAQ",
-    "contact": "Contact"
+    "contact": "Contact",
+    "knowledge": "Knowledge Center",
+    "videos": "Videos",
+    "testimonials": "Testimonials",
+    "branches": "Branches"
   },
   "actions": {
     "login": "Login",
