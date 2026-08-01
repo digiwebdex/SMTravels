@@ -7,6 +7,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
+import { PaymentLogos } from "../website/PaymentLogos";
 import { useLang } from "../i18n/useLang";
 
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
@@ -218,7 +219,12 @@ export function Footer() {
       <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-14 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
-            <BrandLogo className="h-12 w-auto brightness-0 invert mb-4" />
+            <Link to="/" className="inline-flex mb-4" aria-label="SM Travels International">
+              <BrandLogo variant="tile" className="h-14 w-14 rounded-xl shadow-lg shadow-black/20" />
+            </Link>
+            <p className="text-lg font-bold text-white mb-1">
+              <span className="text-[#F15A24]">SM</span> Travels <span className="text-white/90 font-semibold text-sm">International</span>
+            </p>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs mb-5">
               {bn
                 ? "২০১১ সাল থেকে বিশ্বস্ত হজ্ব, উমরাহ, ভিসা ও ভ্রমণ সেবা — স্বচ্ছতা ও ইসলামী শিষ্টাচারের সাথে।"
@@ -282,12 +288,7 @@ export function Footer() {
       <div className="border-t border-white/10 bg-[#031632]">
         <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-white/45">{t("footer.copyright")}</p>
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-white/55">
-            <span className="px-2 py-1 rounded bg-white/10">VISA</span>
-            <span className="px-2 py-1 rounded bg-white/10">Mastercard</span>
-            <span className="px-2 py-1 rounded bg-white/10 text-[#E2136E]">bKash</span>
-            <span className="px-2 py-1 rounded bg-white/10 text-[#F15A24]">Nagad</span>
-          </div>
+          <PaymentLogos />
         </div>
       </div>
     </footer>
