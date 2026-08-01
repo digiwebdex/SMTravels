@@ -17,6 +17,11 @@ import { ContactPage } from "./pages/Contact";
 import { BookingPage } from "./pages/Booking";
 import { LoginPage, RegisterPage } from "./pages/Auth";
 import { NotFoundPage } from "./pages/NotFound";
+import { KnowledgePage, KnowledgeDetailPage } from "./pages/Knowledge";
+import {
+  PrivacyPage, TermsPage, RefundPage, CareerPage, BranchesPage,
+  TestimonialsPage, VideosPage,
+} from "./pages/CmsPages";
 
 // ── Lazy: heavy app sections (each becomes its own chunk, loaded on demand) ──
 function lazyNamed<M, N extends keyof M>(factory: () => Promise<M>, name: N) {
@@ -75,6 +80,7 @@ function AirTicketPage() { return <ServicePage serviceId="air-ticket" />; }
 function ManpowerPage() { return <ServicePage serviceId="manpower" />; }
 function TourPackagesPage() { return <ServicePage serviceId="tour-packages" />; }
 function HotelBookingPage() { return <ServicePage serviceId="hotel-booking" />; }
+function TransportPage() { return <ServicePage serviceId="transport" />; }
 
 export const router = createBrowserRouter([
   {
@@ -120,12 +126,22 @@ export const router = createBrowserRouter([
       { path: "manpower", Component: ManpowerPage },
       { path: "tour-packages", Component: TourPackagesPage },
       { path: "hotel-booking", Component: HotelBookingPage },
+      { path: "transport", Component: TransportPage },
       { path: "packages", Component: PackagesPage },
       { path: "packages/:id", Component: PackageDetailPage },
       { path: "blog", Component: BlogPage },
       { path: "blog/:id", Component: BlogDetailPage },
       { path: "gallery", Component: GalleryPage },
       { path: "faq", Component: FAQPage },
+      { path: "knowledge", Component: KnowledgePage },
+      { path: "knowledge/:slug", Component: KnowledgeDetailPage },
+      { path: "videos", Component: VideosPage },
+      { path: "testimonials", Component: TestimonialsPage },
+      { path: "branches", Component: BranchesPage },
+      { path: "privacy", Component: PrivacyPage },
+      { path: "terms", Component: TermsPage },
+      { path: "refund", Component: RefundPage },
+      { path: "career", Component: CareerPage },
       { path: "contact", Component: ContactPage },
       { path: "book", Component: BookingPage },
       { path: "login", Component: LoginPage },
