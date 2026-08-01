@@ -9,12 +9,12 @@
 :root {
   --font-size: 15px;
 
-  /* Surfaces */
-  --color-bg: #F7F8FA;
+  /* Surfaces — soft cool wash so pages aren’t stark white */
+  --color-bg: #EEF3F8;
   --color-surface: #FFFFFF;
   --color-surface-elevated: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-border-subtle: #F3F4F6;
+  --color-border: #D6E2EE;
+  --color-border-subtle: #E8EEF5;
   --color-text: #111827;
   --color-text-muted: #6B7280;
   --color-text-faint: #9CA3AF;

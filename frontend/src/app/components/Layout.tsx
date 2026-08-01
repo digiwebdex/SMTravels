@@ -201,7 +201,8 @@ export function Footer() {
   const bn = i18n.language?.startsWith("bn");
 
   return (
-    <footer className="bg-[#001F45] text-white">
+    <footer className="bg-[#001F45] text-white relative">
+      <div className="h-1.5 w-full bg-gradient-to-r from-[#1B75BC] via-[#F37021] to-[#C89B3C]" aria-hidden />
       <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-14 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
@@ -313,7 +314,7 @@ export function Layout() {
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-[#111827]" style={{ fontFamily: "var(--font-body)" }}>
+    <div className="min-h-screen flex flex-col bg-[#EEF3F8] text-[#111827]" style={{ fontFamily: "var(--font-body)" }}>
       <Header />
       <main className="flex-1"><Outlet /></main>
       <div className="md:hidden h-[72px]" />

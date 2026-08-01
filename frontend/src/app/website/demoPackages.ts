@@ -20,7 +20,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 127,
     seats: 8,
     badge: "Best Value",
-    image: "photo-1564769625905-50e93615e769",
+    image: "/packages/hajj-premium.jpg",
     highlights: ["Haram-view 5-star hotel", "Direct Biman flight", "All meals included", "AC Mina tent", "Guided Ziyarah"],
     featured: true,
     includes: [
@@ -54,7 +54,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 89,
     seats: 14,
     badge: "Popular",
-    image: "photo-1591604129939-f1efa4d9f7fa",
+    image: "/packages/hajj-economy.jpg",
     highlights: ["Near-Haram 4-star hotel", "Connecting flight", "Breakfast included", "Guided Ziyarah", "Mina tent"],
     featured: true,
     includes: [
@@ -86,7 +86,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 214,
     seats: 20,
     badge: "Most Popular",
-    image: "photo-1519817650395-5d7d17a4a4c5",
+    image: "/packages/umrah-gold.jpg",
     highlights: ["5-star Haram-view hotel", "Premium airline", "Makkah + Madinah", "All Ziyarah", "Visa included"],
     featured: true,
     includes: [
@@ -118,7 +118,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 186,
     seats: 25,
     badge: "Popular",
-    image: "photo-1469854523086-cc02fe5d8800",
+    image: "/packages/umrah-silver.jpg",
     highlights: ["4-star near-Haram hotel", "Makkah + Madinah", "Visa included", "Guided Ziyarah", "Budget-friendly"],
     featured: false,
     includes: [
@@ -150,7 +150,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 72,
     seats: 10,
     badge: "Featured",
-    image: "photo-1540962351504-03099e0a754b",
+    image: "/packages/umrah-ramadan.jpg",
     highlights: ["Ramadan in Haram", "Iftar arrangements", "Walking-distance hotel", "Madinah included", "Limited seats"],
     featured: true,
     includes: [
@@ -181,7 +181,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 156,
     seats: 12,
     badge: "Best Seller",
-    image: "photo-1436491865332-7a61a109cc05",
+    image: "/packages/tour-dubai.jpg",
     highlights: ["Burj Khalifa visit", "Desert Safari", "Dubai Mall", "Marina Dhow Cruise", "City tour"],
     featured: true,
     includes: [
@@ -214,7 +214,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 98,
     seats: 18,
     badge: null,
-    image: "photo-1566073771259-6a8506099945",
+    image: "/packages/hotel.jpg",
     highlights: ["Kuala Lumpur", "Genting Highlands", "Langkawi Island", "Batu Caves", "PETRONAS Towers"],
     featured: false,
     includes: [
@@ -246,7 +246,7 @@ export const DEMO_PACKAGES: PublicPackageDetail[] = [
     reviews: 41,
     seats: 6,
     badge: "VIP",
-    image: "photo-1454165804606-c3d57bc86b40",
+    image: "/packages/hajj-vip.jpg",
     highlights: ["Clock Tower / Hilton lodging", "Private transport", "VIP Mina camp", "Dedicated guide", "Full board"],
     featured: true,
     includes: [

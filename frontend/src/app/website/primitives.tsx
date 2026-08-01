@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, ChevronRight, Play, Star } from "lucide-react";
-import { cn, fmtPrice, mediaUrl } from "../lib/utils";
+import { cn, fmtPrice, mediaUrl, PACKAGE_IMAGE_FALLBACK } from "../lib/utils";
 import type { PublicPackageItem, PublicTestimonialItem } from "../hooks/publicContent";
 
 export function Reveal({
@@ -101,21 +101,30 @@ export function PageHero({
     ? (image.startsWith("/") || image.startsWith("http") ? image : mediaUrl(image, 1920, 1080))
     : "/hero-journey.jpg";
   return (
-    <div className={cn("relative overflow-hidden bg-[#062D63]", compact ? "min-h-[36vh]" : "min-h-[48vh]")}>
+    <div className={cn("relative overflow-hidden bg-[#001F45]", compact ? "min-h-[36vh]" : "min-h-[48vh]")}>
       <img
         src={src}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover scale-105"
         loading="eager"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/80 to-[#062D63]/45" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#041E42]/90 via-transparent to-[#062D63]/30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#001F45]/95 via-[#002D62]/82 to-[#1B75BC]/35" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#001F45]/90 via-transparent to-[#002D62]/35" />
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 85% 25%, #F37021 0, transparent 28%), radial-gradient(circle at 15% 80%, #7EB8E3 0, transparent 30%)",
+        }}
+        aria-hidden
+      />
       <div className={cn("relative max-w-[1240px] mx-auto px-4 md:px-5 pt-24 pb-12 md:pt-32", compact ? "md:pb-12" : "md:pb-16")}>
-        {eyebrow && <p className="text-[#C89B3C] text-xs font-bold uppercase tracking-[0.2em] mb-3">{eyebrow}</p>}
+        {eyebrow && <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.2em] mb-3">{eyebrow}</p>}
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight max-w-3xl leading-[1.15]">
           {title}
         </h1>
-        {subtitle && <p className="mt-3 text-base md:text-lg text-white/80 max-w-2xl leading-relaxed">{subtitle}</p>}
+        <div className="mt-3 h-1 w-14 rounded-full bg-gradient-to-r from-[#F37021] to-[#C89B3C]" />
+        {subtitle && <p className="mt-4 text-base md:text-lg text-white/85 max-w-2xl leading-relaxed">{subtitle}</p>}
         {children && <div className="mt-6">{children}</div>}
       </div>
     </div>
@@ -199,12 +208,18 @@ export function PackageCard({ pkg }: { pkg: PublicPackageItem }) {
       to={`/packages/${pkg.slug || pkg.id}`}
       className="group flex flex-col rounded-lg overflow-hidden bg-white border border-[#E5E7EB] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B75BC]"
     >
-      <div className="relative aspect-[16/11] overflow-hidden">
+      <div className="relative aspect-[16/11] overflow-hidden bg-[#EAF5FF]">
         <img
           src={mediaUrl(pkg.image, 800, 550)}
           alt={pkg.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => {
+            const el = e.currentTarget;
+            if (el.dataset.fallback === "1") return;
+            el.dataset.fallback = "1";
+            el.src = PACKAGE_IMAGE_FALLBACK;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         {pkg.badge && (

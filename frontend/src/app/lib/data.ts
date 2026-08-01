@@ -509,7 +509,7 @@ export const PACKAGES: Package[] = [
     duration: "14 Days", departure: "Any Month",
     hotel: "5-Star Haram-View Makkah", flight: "Emirates / Qatar Airways",
     rating: 4.8, reviews: 214, seats: 20, badge: "Most Popular",
-    image: "photo-1693590614566-1d3ea9ef32f7",
+    image: "/packages/umrah-gold.jpg",
     highlights: ["5-star Haram-view hotel", "Premium airline", "Makkah + Madinah", "All Ziyarah", "Visa included"],
     includes: ["Return air ticket", "Umrah e-visa", "5-star Makkah hotel (7 nights)", "5-star Madinah hotel (4 nights)", "Ziyarah tours both cities", "Airport transfers", "Makkah–Madinah transport", "Umrah guide"],
     excludes: ["Meals (breakfast only if selected)", "Personal shopping", "Qurbani", "SIM card"],

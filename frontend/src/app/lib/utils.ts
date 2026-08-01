@@ -8,9 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 export const img = (id: string, w = 1280, h = 720) =>
   `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=85`;
 
+/** Local fallback when remote/CMS package images fail to load. */
+export const PACKAGE_IMAGE_FALLBACK = "/packages/umrah-gold.jpg";
+
 /** Resolve CMS/API image fields: full URL, /uploads path, or Unsplash photo id. */
 export function mediaUrl(src: string | null | undefined, w = 1280, h = 720): string {
-  if (!src) return img("photo-1564769625905-50e93615e769", w, h);
+  if (!src) return PACKAGE_IMAGE_FALLBACK;
   if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) return src;
   if (src.startsWith("/")) return src;
   if (src.startsWith("photo-") || src.startsWith("photo_")) return img(src, w, h);

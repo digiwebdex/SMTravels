@@ -12,18 +12,18 @@ import { usePublicPackages } from "../hooks/publicContent";
 import { GUIDES } from "../website/knowledge/guides";
 import { SITE_VIDEOS, videoThumb, type SiteVideo } from "../website/videos";
 import { VideoPlayerModal } from "../website/VideoPlayerModal";
-import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn } from "../lib/utils";
+import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn, PACKAGE_IMAGE_FALLBACK } from "../lib/utils";
 import type { PublicPackageItem } from "../hooks/publicContent";
 
 const SERVICES = [
-  { to: "/hajj", icon: Star, titleBn: "হজ্ব প্যাকেজ", titleEn: "Hajj Package" },
-  { to: "/umrah", icon: MapPin, titleBn: "উমরাহ প্যাকেজ", titleEn: "Umrah Package" },
-  { to: "/visa", icon: Shield, titleBn: "ভিসা সার্ভিস", titleEn: "Visa Service" },
-  { to: "/air-ticket", icon: Plane, titleBn: "এয়ার টিকেট", titleEn: "Air Ticket" },
-  { to: "/tour-packages", icon: Globe, titleBn: "ট্যুর প্যাকেজ", titleEn: "Tour Package" },
-  { to: "/hotel-booking", icon: Hotel, titleBn: "হোটেল বুকিং", titleEn: "Hotel Booking" },
-  { to: "/transport", icon: Car, titleBn: "পরিবহন সেবা", titleEn: "Transport Service" },
-  { to: "/faq", icon: Umbrella, titleBn: "ট্রাভেল ইন্স্যুরেন্স", titleEn: "Travel Insurance" },
+  { to: "/hajj", icon: Star, titleBn: "হজ্ব প্যাকেজ", titleEn: "Hajj Package", color: "#1B75BC" },
+  { to: "/umrah", icon: MapPin, titleBn: "উমরাহ প্যাকেজ", titleEn: "Umrah Package", color: "#F37021" },
+  { to: "/visa", icon: Shield, titleBn: "ভিসা সার্ভিস", titleEn: "Visa Service", color: "#002D62" },
+  { to: "/air-ticket", icon: Plane, titleBn: "এয়ার টিকেট", titleEn: "Air Ticket", color: "#1B75BC" },
+  { to: "/tour-packages", icon: Globe, titleBn: "ট্যুর প্যাকেজ", titleEn: "Tour Package", color: "#16A34A" },
+  { to: "/hotel-booking", icon: Hotel, titleBn: "হোটেল বুকিং", titleEn: "Hotel Booking", color: "#C89B3C" },
+  { to: "/transport", icon: Car, titleBn: "পরিবহন সেবা", titleEn: "Transport Service", color: "#1B75BC" },
+  { to: "/faq", icon: Umbrella, titleBn: "ট্রাভেল ইন্স্যুরেন্স", titleEn: "Travel Insurance", color: "#F37021" },
 ];
 
 const HAJJ_SLUGS = ["mina", "arafat", "muzdalifah", "ramy", "qurbani", "hair-cutting", "farewell-tawaf", "womens-rules"];
@@ -63,12 +63,18 @@ function PackageSlideCard({ pkg, bn }: { pkg: PublicPackageItem; bn: boolean }) 
         to={`/packages/${pkg.slug || pkg.id}`}
         className="block bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:border-[#1B75BC]/35 transition-all group h-full"
       >
-        <div className="relative aspect-[16/11] overflow-hidden">
+        <div className="relative aspect-[16/11] overflow-hidden bg-[#EAF5FF]">
           <img
             src={mediaUrl(pkg.image, 640, 420)}
             alt={pkg.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
+            onError={(e) => {
+              const el = e.currentTarget;
+              if (el.dataset.fallback === "1") return;
+              el.dataset.fallback = "1";
+              el.src = PACKAGE_IMAGE_FALLBACK;
+            }}
           />
           {pkg.badge && (
             <span className="absolute top-3 left-3 bg-[#F37021] text-white text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wide shadow">
@@ -164,7 +170,13 @@ function PackageCarousel({
   return (
     <div>
       <div className="flex items-end justify-between gap-4 mb-7">
-        <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">{title}</h2>
+        <div>
+          <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.16em] mb-1.5">
+            {bn ? "প্যাকেজ" : "Packages"}
+          </p>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">{title}</h2>
+          <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-[#002D62] to-[#F37021]" />
+        </div>
         <Link
           to={seeAllTo}
           className="text-sm font-semibold text-[#1B75BC] hover:text-[#002D62] whitespace-nowrap inline-flex items-center gap-1 group"
@@ -287,7 +299,7 @@ export function Home() {
   return (
     <div className="overflow-x-hidden font-[family-name:var(--font-body)]">
       {/* ── Hero (Approve design) ── */}
-      <section className="relative min-h-[78vh] md:min-h-[86vh] flex items-center overflow-hidden">
+      <section className="relative min-h-[78vh] md:min-h-[86vh] flex items-center overflow-hidden pb-16 md:pb-20">
         <ApproveHeroBackground />
 
         <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 md:py-24">
@@ -370,19 +382,28 @@ export function Home() {
         <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
       )}
 
-      {/* ── Service icon grid (Approve: 8 bordered cards) ── */}
-      <section className="bg-white py-8 md:py-10 border-b border-[#E5E7EB]">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-5">
-          <div className="grid grid-cols-4 lg:grid-cols-8 gap-2.5 md:gap-3">
+      {/* ── Service icon grid — floating over soft blue wash ── */}
+      <section className="relative z-20 -mt-10 md:-mt-14 mb-2 px-4 md:px-5">
+        <div
+          className="max-w-[1240px] mx-auto rounded-2xl border border-[#B8D4ED] shadow-[0_16px_48px_rgba(0,45,98,0.14)] px-3 py-4 md:px-5 md:py-5 overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(135deg, #FFFFFF 0%, #EAF5FF 45%, #FFF4ED 100%)",
+          }}
+        >
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 md:gap-3">
             {SERVICES.map((s, i) => (
               <Reveal key={s.to} delay={i * 0.03}>
-                <motion.div whileHover={reduce ? undefined : { y: -3 }} whileTap={{ scale: 0.98 }}>
+                <motion.div whileHover={reduce ? undefined : { y: -4 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     to={s.to}
-                    className="flex flex-col items-center justify-center text-center gap-2.5 p-3 md:p-4 min-h-[104px] md:min-h-[118px] rounded-lg border border-[#C5D8EC] bg-white hover:border-[#1B75BC] hover:shadow-md transition-all"
+                    className="flex flex-col items-center justify-center text-center gap-2.5 p-2.5 md:p-3 min-h-[100px] md:min-h-[112px] rounded-xl bg-white/80 border border-white hover:border-[#1B75BC]/40 hover:shadow-lg transition-all"
                   >
-                    <span className="w-11 h-11 rounded-full border border-[#D6E6F5] bg-[#F3F9FD] text-[#1B75BC] flex items-center justify-center">
-                      <s.icon size={22} strokeWidth={1.5} />
+                    <span
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+                      style={{ background: `${s.color}18`, color: s.color }}
+                    >
+                      <s.icon size={22} strokeWidth={1.75} />
                     </span>
                     <span className="text-[11px] md:text-[12px] font-semibold text-[#002D62] leading-snug">
                       {bn ? s.titleBn : s.titleEn}
@@ -395,11 +416,30 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Rules & Guidelines ── */}
-      <section className="bg-[#F8F9FA] py-14 md:py-20">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-5">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
+      {/* ── Rules & Guidelines — navy atmosphere ── */}
+      <section className="relative py-16 md:py-20 overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(160deg, #001F45 0%, #002D62 42%, #0A4A8A 100%)",
+          }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 20%, #F37021 0, transparent 28%), radial-gradient(circle at 85% 70%, #7EB8E3 0, transparent 32%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <div className="text-center mb-9">
+            <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+              {bn ? "জ্ঞান কেন্দ্র" : "Knowledge Hub"}
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white">
               {bn ? "হজ্ব ও ওমরাহ এর নিয়ম ও করণীয়" : "Rules and Duties of Hajj & Umrah"}
             </h2>
             <div className="mt-5 flex justify-center gap-2">
@@ -411,8 +451,8 @@ export function Home() {
                   className={cn(
                     "px-6 py-2.5 rounded-full text-sm font-bold transition-colors border",
                     ruleTab === tab
-                      ? "bg-[#002D62] text-white border-[#002D62] shadow-sm"
-                      : "bg-white text-[#1B75BC] border-[#C5D8EC] hover:border-[#1B75BC]",
+                      ? "bg-[#F37021] text-white border-[#F37021] shadow-md"
+                      : "bg-white/10 text-white border-white/25 hover:bg-white/20",
                   )}
                 >
                   {tab === "hajj" ? (bn ? "হজ্ব নিয়ম" : "Hajj Rules") : (bn ? "উমরাহ নিয়ম" : "Umrah Rules")}
@@ -434,16 +474,16 @@ export function Home() {
                 <motion.div key={g.slug} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                   <Link
                     to={`/knowledge/${g.slug}`}
-                    className="flex flex-col p-5 bg-white border border-[#E5E7EB] rounded-lg hover:border-[#1B75BC]/45 hover:shadow-lg hover:-translate-y-1 transition-all h-full"
+                    className="flex flex-col p-5 bg-white/95 border border-white/20 rounded-xl hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all h-full"
                   >
-                    <div className="w-11 h-11 rounded-md bg-[#EAF5FF] text-[#1B75BC] flex items-center justify-center mb-3">
+                    <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-[#EAF5FF] to-[#D6EBFA] text-[#1B75BC] flex items-center justify-center mb-3">
                       <BookOpen size={20} />
                     </div>
                     <h3 className="font-bold text-[#002D62] mb-1.5 text-[15px]">{bn ? g.titleBn : g.titleEn}</h3>
                     <p className="text-sm text-[#6B7280] leading-relaxed line-clamp-2 flex-1 mb-3">
                       {bn ? g.summaryBn : g.summaryEn}
                     </p>
-                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#1B75BC]">
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#F37021]">
                       {bn ? "বিস্তারিত দেখুন" : "View Details"} <ArrowRight size={14} />
                     </span>
                   </Link>
@@ -455,7 +495,7 @@ export function Home() {
           <div className="mt-10 text-center">
             <Link
               to="/knowledge"
-              className="inline-flex items-center gap-2 px-10 py-3.5 bg-[#002D62] text-white font-bold text-sm rounded-md hover:bg-[#001F45] transition-colors"
+              className="inline-flex items-center gap-2 px-10 py-3.5 bg-white text-[#002D62] font-bold text-sm rounded-md hover:bg-[#FFF4ED] transition-colors shadow-lg"
             >
               {bn ? "হজ্বের সব ধাপ বিস্তারিত দেখুন" : "View All Steps for Hajj in Detail"}
               <ArrowRight size={16} />
@@ -464,9 +504,25 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Combined Popular Packages (Approve) ── */}
-      <section className="bg-white py-14 md:py-16">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-5">
+      {/* ── Popular Packages — soft sky band ── */}
+      <section
+        className="relative py-14 md:py-16 overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(180deg, #E8F3FC 0%, #F5F8FC 40%, #FFF6F0 100%)",
+        }}
+      >
+        <div
+          className="absolute -right-20 top-10 w-72 h-72 rounded-full blur-3xl opacity-40 pointer-events-none"
+          style={{ background: "#7EB8E3" }}
+          aria-hidden
+        />
+        <div
+          className="absolute -left-16 bottom-0 w-64 h-64 rounded-full blur-3xl opacity-30 pointer-events-none"
+          style={{ background: "#F37021" }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
           <PackageCarousel
             bn={!!bn}
             title={bn ? "জনপ্রিয় হজ্ব ও ওমরাহ প্যাকেজ" : "Popular Hajj & Umrah Packages"}
@@ -478,19 +534,35 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Sunnah & Prohibitions ── */}
-      <section className="relative py-14 md:py-20 overflow-hidden bg-[#F0F7FC]">
+      {/* ── Sunnah & Prohibitions — light mint band ── */}
+      <section
+        className="relative py-14 md:py-20 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #E8F8F1 0%, #F3FAF7 55%, #EEF6FF 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-[0.35] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 12% 20%, rgba(22,163,74,0.18) 0, transparent 40%), radial-gradient(circle at 88% 70%, rgba(243,112,33,0.12) 0, transparent 36%)",
+          }}
+          aria-hidden
+        />
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <div className="text-center mb-8">
+            <p className="text-[#16A34A] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+              {bn ? "ইবাদতের দিকনির্দেশনা" : "Guidance for Worship"}
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
+              {bn ? "সুন্নাহ ও নিষিদ্ধ কাজসমূহ" : "Sunnah & Prohibited Acts"}
+            </h2>
+            <div className="mt-3 mx-auto h-1 w-16 rounded-full bg-gradient-to-r from-emerald-500 to-[#F37021]" />
+          </div>
           <div className="grid md:grid-cols-2 gap-5 lg:gap-6">
             <Reveal>
-              <div
-                className="relative rounded-xl overflow-hidden border border-emerald-200 shadow-sm min-h-[320px] flex flex-col"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, rgba(236,253,245,0.94), rgba(255,255,255,0.92)), url(${img(SITE_IMAGES.madinah, 900, 600)})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
+              <div className="relative rounded-xl overflow-hidden border border-emerald-200 shadow-md min-h-[320px] flex flex-col bg-white">
+                <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-emerald-300" />
                 <div className="p-6 md:p-7 flex flex-col flex-1">
                   <h3 className="text-lg font-bold text-emerald-700 mb-4 inline-flex items-center gap-2">
                     <span className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Check size={16} /></span>
@@ -513,14 +585,8 @@ export function Home() {
             </Reveal>
 
             <Reveal delay={0.08}>
-              <div
-                className="relative rounded-xl overflow-hidden border border-red-200 shadow-sm min-h-[320px] flex flex-col"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, rgba(254,242,242,0.94), rgba(255,255,255,0.92)), url(${img(SITE_IMAGES.pilgrims, 900, 600)})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
+              <div className="relative rounded-xl overflow-hidden border border-red-200 shadow-md min-h-[320px] flex flex-col bg-white">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#F37021] to-red-500" />
                 <div className="p-6 md:p-7 flex flex-col flex-1">
                   <h3 className="text-lg font-bold text-red-600 mb-4 inline-flex items-center gap-2">
                     <span className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><X size={16} /></span>
@@ -545,14 +611,35 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Video tutorials ── */}
-      <section className="bg-white py-14 md:py-20">
-        <div className="max-w-[1240px] mx-auto px-4 md:px-5">
+      {/* ── Video tutorials — soft sky (contrast after mint) ── */}
+      <section
+        className="relative py-14 md:py-20 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #EAF5FF 0%, #F7FBFF 50%, #FFFFFF 100%)",
+        }}
+      >
+        <div
+          className="absolute -left-24 top-0 w-80 h-80 rounded-full blur-3xl opacity-40 pointer-events-none"
+          style={{ background: "#7EB8E3" }}
+          aria-hidden
+        />
+        <div
+          className="absolute -right-20 bottom-0 w-72 h-72 rounded-full blur-3xl opacity-30 pointer-events-none"
+          style={{ background: "#F37021" }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
           <div className="flex items-end justify-between gap-4 mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
-              {bn ? "ভিডিও টিউটোরিয়াল ও গাইড" : "Video Tutorials & Guides"}
-            </h2>
-            <Link to="/videos" className="text-sm font-semibold text-[#1B75BC] hover:underline whitespace-nowrap inline-flex items-center gap-1">
+            <div>
+              <p className="text-[#1B75BC] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+                {bn ? "ভিডিও গাইড" : "Video Guides"}
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
+                {bn ? "ভিডিও টিউটোরিয়াল ও গাইড" : "Video Tutorials & Guides"}
+              </h2>
+              <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-[#1B75BC] to-[#F37021]" />
+            </div>
+            <Link to="/videos" className="text-sm font-semibold text-[#1B75BC] hover:text-[#002D62] whitespace-nowrap inline-flex items-center gap-1">
               {bn ? "সব ভিডিও দেখুন" : "View All Videos"} <ArrowRight size={14} />
             </Link>
           </div>
@@ -565,16 +652,16 @@ export function Home() {
                   className="group block w-full text-left"
                   whileHover={reduce ? undefined : { y: -4 }}
                 >
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-[#002D62]">
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-[#002D62] shadow-md ring-1 ring-[#C5D8EC]">
                     <img
                       src={videoThumb(v)}
                       alt={bn ? v.titleBn : v.titleEn}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/45 transition-colors" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#001F45]/75 via-black/15 to-transparent" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="w-11 h-11 rounded-full bg-white/95 text-[#F37021] flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+                      <span className="w-11 h-11 rounded-full bg-[#F37021] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <Play size={18} className="ml-0.5 fill-current" />
                       </span>
                     </div>
@@ -582,7 +669,7 @@ export function Home() {
                       {v.duration}
                     </span>
                   </div>
-                  <p className="mt-2 text-xs md:text-sm font-semibold text-[#002D62] leading-snug line-clamp-2">
+                  <p className="mt-2.5 text-xs md:text-sm font-semibold text-[#002D62] leading-snug line-clamp-2">
                     {bn ? v.titleBn : v.titleEn}
                   </p>
                 </motion.button>
@@ -592,61 +679,70 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Stats bar ── */}
-      <section className="relative bg-[#002D62] py-10 md:py-12 overflow-hidden">
-        <img
-          src={img(SITE_IMAGES.airplane, 640, 360)}
-          alt=""
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-[280px] md:w-[380px] opacity-20 object-contain pointer-events-none hidden sm:block"
-          aria-hidden
-        />
-        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5 grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-4">
-          <div className="text-center md:text-left flex md:block flex-col items-center">
-            <Users size={22} className="text-[#7EB8E3] mb-2" />
-            <StatCounter end={100} suffix="K+" label={bn ? "সন্তুষ্ট যাত্রী" : "Satisfied Travelers"} />
-          </div>
-          <div className="text-center md:text-left flex md:block flex-col items-center">
-            <BadgeCheck size={22} className="text-[#7EB8E3] mb-2" />
-            <StatCounter end={12} suffix="+" label={bn ? "বছরের অভিজ্ঞতা" : "Years Experience"} />
-          </div>
-          <div className="text-center md:text-left flex md:block flex-col items-center">
-            <MapPin size={22} className="text-[#7EB8E3] mb-2" />
-            <StatCounter end={25} suffix="+" label={bn ? "দেশে সেবা" : "Countries Served"} />
-          </div>
-          <div className="text-center md:text-left flex md:block flex-col items-center">
-            <Star size={22} className="text-[#7EB8E3] mb-2" />
-            <StatCounter end={500} suffix="+" label={bn ? "হজ্ব গ্রুপ" : "Hajj Groups"} />
-          </div>
-          <div className="text-center md:text-left flex md:block flex-col items-center">
-            <Shield size={22} className="text-[#7EB8E3] mb-2" />
-            <StatCounter end={98} suffix="%" label={bn ? "ভিসা সফলতা" : "Visa Success Rate"} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Newsletter ── */}
-      <section className="relative py-12 md:py-14 overflow-hidden bg-[#1B75BC]">
+      {/* ── Stats — brand orange band (clear break) ── */}
+      <section
+        className="relative py-12 md:py-14 overflow-hidden"
+        style={{
+          background: "linear-gradient(105deg, #F37021 0%, #E85A12 45%, #CC3C17 100%)",
+        }}
+      >
         <div
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-25"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 15% 50%, rgba(255,255,255,0.4) 0, transparent 42%), radial-gradient(circle at 85% 40%, rgba(243,112,33,0.35) 0, transparent 38%)",
+              "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.35) 0, transparent 40%), radial-gradient(circle at 80% 30%, rgba(0,45,98,0.25) 0, transparent 35%)",
           }}
           aria-hidden
         />
-        <Plane size={72} className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 -rotate-12 hidden md:block" aria-hidden />
+        <Plane size={88} className="absolute right-8 top-1/2 -translate-y-1/2 text-white/15 -rotate-12 hidden md:block" aria-hidden />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5 grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-3">
+          {[
+            { Icon: Users, end: 100, suffix: "K+", label: bn ? "সন্তুষ্ট যাত্রী" : "Satisfied Travelers" },
+            { Icon: BadgeCheck, end: 12, suffix: "+", label: bn ? "বছরের অভিজ্ঞতা" : "Years Experience" },
+            { Icon: MapPin, end: 25, suffix: "+", label: bn ? "দেশে সেবা" : "Countries Served" },
+            { Icon: Star, end: 500, suffix: "+", label: bn ? "হজ্ব গ্রুপ" : "Hajj Groups" },
+            { Icon: Shield, end: 98, suffix: "%", label: bn ? "ভিসা সফলতা" : "Visa Success Rate" },
+          ].map(({ Icon, end, suffix, label }) => (
+            <div key={label} className="text-center flex flex-col items-center rounded-xl bg-white/15 border border-white/25 px-3 py-4 backdrop-blur-sm">
+              <Icon size={22} className="text-white mb-2" />
+              <StatCounter end={end} suffix={suffix} label={label} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Newsletter — warm light band before dark footer ── */}
+      <section
+        className="relative py-14 md:py-16 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #FFF4ED 0%, #FFE8D9 50%, #FFF7F2 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 10% 60%, rgba(243,112,33,0.2) 0, transparent 35%), radial-gradient(circle at 90% 30%, rgba(27,117,188,0.15) 0, transparent 35%)",
+          }}
+          aria-hidden
+        />
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
-          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
-            <div className="flex-1">
-              <h2 className="text-xl md:text-2xl font-bold text-white">
-                {bn ? "সর্বশেষ অফার ও আপডেট পেতে সাবস্ক্রাইব করুন" : "Subscribe for latest offers & updates"}
-              </h2>
-              <p className="text-white/85 text-sm mt-1">
-                {bn ? "নতুন প্যাকেজ ও গাইড সরাসরি আপনার ইনবক্সে।" : "New packages and guides delivered to your inbox."}
-              </p>
+          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10 rounded-2xl border border-[#F5C9A8] bg-white shadow-[0_12px_40px_rgba(243,112,33,0.12)] px-5 py-6 md:px-8 md:py-7">
+            <div className="flex items-start gap-4 flex-1">
+              <span className="hidden sm:flex w-12 h-12 rounded-xl bg-[#FFF1E8] text-[#F37021] items-center justify-center flex-shrink-0">
+                <Plane size={22} />
+              </span>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-[#002D62]">
+                  {bn ? "সর্বশেষ অফার ও আপডেট পেতে সাবস্ক্রাইব করুন" : "Subscribe for latest offers & updates"}
+                </h2>
+                <p className="text-[#6B7280] text-sm mt-1">
+                  {bn ? "নতুন প্যাকেজ ও গাইড সরাসরি আপনার ইনবক্সে।" : "New packages and guides delivered to your inbox."}
+                </p>
+              </div>
             </div>
             {subscribed ? (
-              <p className="text-white font-semibold bg-white/15 px-5 py-3 rounded-md">
+              <p className="text-[#16A34A] font-semibold bg-emerald-50 border border-emerald-200 px-5 py-3 rounded-md">
                 {bn ? "ধন্যবাদ! সাবস্ক্রিপশন সম্পন্ন।" : "Thank you! You’re subscribed."}
               </p>
             ) : (
@@ -662,7 +758,7 @@ export function Home() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={bn ? "আপনার ইমেইল" : "Your email"}
-                  className="flex-1 px-4 py-3 rounded-md bg-white text-[#002D62] text-sm outline-none focus:ring-2 focus:ring-[#F37021]"
+                  className="flex-1 px-4 py-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#002D62] text-sm outline-none focus:ring-2 focus:ring-[#F37021] focus:border-transparent"
                 />
                 <button
                   type="submit"
