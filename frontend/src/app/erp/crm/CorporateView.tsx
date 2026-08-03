@@ -7,7 +7,7 @@ import { useCorporateList, useCorporate, useBranches, type CorporateProfile } fr
 import { Card, StatCards, Pagination, Drawer, fmtDate } from "./ui";
 import { CorporateFormDrawer } from "./forms";
 
-function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.FC<{ size?: number; className?: string }> }) {
+function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) {
   return (
     <div>
       <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-0.5">{label}</div>

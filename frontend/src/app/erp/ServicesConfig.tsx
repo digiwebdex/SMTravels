@@ -40,7 +40,7 @@ type ConfigTab = "general" | "fields" | "pricing" | "documents" | "sla" | "notif
 
 interface ServiceDef {
   id: string; name: string; category: string; description: string;
-  icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>;
+  icon: React.ElementType;
   color: string; bg: string;
   stats: { bookings: number; pending: number; revenue: string; avgTime: string };
   active: boolean; featured: boolean;

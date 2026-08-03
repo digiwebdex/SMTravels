@@ -9,7 +9,7 @@ export function Card({ children, className }: { children: React.ReactNode; class
   return <div className={cn("bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] shadow-[var(--elevation-1)]", className)}>{children}</div>;
 }
 
-export function Pill({ label, color, bg, icon: Icon }: { label: string; color: string; bg: string; icon?: React.FC<{ size?: number; className?: string }> }) {
+export function Pill({ label, color, bg, icon: Icon }: { label: string; color: string; bg: string; icon?: React.ElementType }) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap" style={{ color, backgroundColor: bg }}>
       {Icon && <Icon size={9} />}{label}
@@ -17,7 +17,7 @@ export function Pill({ label, color, bg, icon: Icon }: { label: string; color: s
   );
 }
 
-export function StatCards({ items }: { items: { label: string; value: string; icon: React.FC<{ size?: number; style?: React.CSSProperties }>; color: string; bg: string }[] }) {
+export function StatCards({ items }: { items: { label: string; value: string; icon: React.ElementType; color: string; bg: string }[] }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
       {items.map((s) => {

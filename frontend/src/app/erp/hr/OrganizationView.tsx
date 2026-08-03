@@ -29,7 +29,7 @@ function Row({ title, subtitle, meta, onDelete }: { title: string; subtitle?: st
 }
 
 function OrgSection<T>({ icon: Icon, title, items, isLoading, isError, error, render, form }: {
-  icon: React.FC<{ size?: number; className?: string }>;
+  icon: React.ElementType;
   title: string;
   items: T[] | undefined;
   isLoading: boolean;

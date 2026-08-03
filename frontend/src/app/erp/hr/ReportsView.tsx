@@ -3,7 +3,7 @@ import { Download, Users, UserPlus, Building2, CalendarCheck, CalendarDays, Shie
 import { downloadHrReport, type HrReportKey, type HrReportFormat } from "../../hooks/hr";
 import { Card, selectCls } from "./ui";
 
-const REPORTS: { key: HrReportKey; label: string; desc: string; icon: React.FC<{ size?: number; className?: string }> }[] = [
+const REPORTS: { key: HrReportKey; label: string; desc: string; icon: React.ElementType }[] = [
   { key: "employees", label: "Employee Directory", desc: "Full roster with contact & org details.", icon: Users },
   { key: "joining", label: "Joining Report", desc: "New hires within a date range.", icon: UserPlus },
   { key: "department", label: "Department Headcount", desc: "Staff distribution by department.", icon: Building2 },

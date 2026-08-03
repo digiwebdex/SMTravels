@@ -13,6 +13,7 @@ import {
   holidayCreateSchema,
   attendanceUpsertSchema,
   attendanceCorrectionSchema,
+  correctionDecisionSchema,
   hrExportQuerySchema,
 } from "../contracts/hr.contract";
 import * as hr from "../services/hr.service";
@@ -251,13 +252,13 @@ export async function createAttendanceCorrectionHandler(req: Request, res: Respo
   res.status(201).json(await hr.createAttendanceCorrection(req.auth!, attendanceCorrectionSchema.parse(req.body)));
 }
 export async function managerApproveCorrectionHandler(req: Request, res: Response): Promise<void> {
-  res.json(await hr.managerApproveCorrection(req.auth!, req.params.id, req.body?.note));
+  res.json(await hr.managerApproveCorrection(req.auth!, req.params.id, correctionDecisionSchema.parse(req.body ?? {}).note));
 }
 export async function hrApproveCorrectionHandler(req: Request, res: Response): Promise<void> {
-  res.json(await hr.hrApproveCorrection(req.auth!, req.params.id, req.body?.note));
+  res.json(await hr.hrApproveCorrection(req.auth!, req.params.id, correctionDecisionSchema.parse(req.body ?? {}).note));
 }
 export async function rejectCorrectionHandler(req: Request, res: Response): Promise<void> {
-  res.json(await hr.rejectCorrection(req.auth!, req.params.id, req.body?.note));
+  res.json(await hr.rejectCorrection(req.auth!, req.params.id, correctionDecisionSchema.parse(req.body ?? {}).note));
 }
 
 // ─── Reports ────────────────────────────────────────────────────────────────

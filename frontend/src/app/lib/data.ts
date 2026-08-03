@@ -264,7 +264,7 @@ export const SERVICES: ServiceData[] = [
     excludes: ["Checked baggage (if not included by airline)", "Airport taxes in some countries", "Visa fees", "Travel insurance"],
     packages: [
       { title: "Economy Class Dhaka–Riyadh", price: 45000, duration: "Per person", hotel: "N/A", badge: "Best Seller", highlights: ["Saudia / Biman", "Direct & connecting", "23kg baggage", "Meal included"] },
-      { title: "Economy Class Dhaka–Dubai", price: 35000, duration: "Per person", highlights: ["Emirates / flydubai", "Regular departures", "23kg baggage"] },
+      { title: "Economy Class Dhaka–Dubai", price: 35000, duration: "Per person", hotel: "N/A", highlights: ["Emirates / flydubai", "Regular departures", "23kg baggage"] },
       { title: "Business Class International", price: 150000, duration: "Per person", hotel: "N/A", highlights: ["All premium airlines", "Lie-flat seats", "Lounge access", "Priority boarding"] },
     ],
     faqs: [

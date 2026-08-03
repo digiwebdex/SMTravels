@@ -356,7 +356,7 @@ function BackLink({ onClick, label }: { onClick: () => void; label?: string }) {
 
 // ─── Form screen wrappers ──────────────────────────────────────────────────────
 function FormHeader({ icon: Icon, iconColor = "#1B75BC", iconBg = "#EEF2FF", title, sub }: {
-  icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>;
+  icon: React.ElementType;
   iconColor?: string; iconBg?: string; title: string; sub?: string;
 }) {
   return (

@@ -166,7 +166,7 @@ function NewEmployeeDrawer({ onClose, onCreated }: { onClose: () => void; onCrea
   );
 }
 
-function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.FC<{ size?: number; className?: string }> }) {
+function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) {
   return (
     <div>
       <div className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-wider mb-0.5">{label}</div>

@@ -236,7 +236,7 @@ function GeneralSettings() {
         </Field>
         <Field label="Company Logo">
           <div className="flex items-center gap-3">
-            <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold">BDH</div>
+            <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold">SM</div>
             <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Upload size={13}/> Upload</button>
           </div>
         </Field>

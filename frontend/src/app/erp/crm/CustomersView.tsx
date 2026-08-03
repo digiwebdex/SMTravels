@@ -12,7 +12,7 @@ import { Card, StatCards, Pagination, Pill, Drawer, fmtDate, fmtDateTime } from 
 import { CustomerFormDrawer } from "./forms";
 import { DataTable, type DataColumn, AiInsightCard } from "../../design-system";
 
-function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.FC<{ size?: number; className?: string }> }) {
+function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) {
   return (
     <div>
       <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-0.5">{label}</div>

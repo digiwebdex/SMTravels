@@ -136,6 +136,11 @@ export const attendanceCorrectionSchema = z.object({
   reason: z.string().max(1000).optional().nullable(),
 });
 
+/** Approve/reject decision on a correction request — the optional reviewer note. */
+export const correctionDecisionSchema = z.object({
+  note: z.string().trim().max(500).optional(),
+});
+
 export const hrExportQuerySchema = z.object({
   report: z.enum([
     "employees", "joining", "department", "attendance", "leave",
