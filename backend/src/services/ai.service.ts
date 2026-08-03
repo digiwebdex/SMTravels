@@ -1,13 +1,14 @@
 /**
  * Gemini-powered chat for the public website and authenticated ERP users.
+ * Uses the singleton gemini.service (official @google/generative-ai SDK).
  * Never logs full message bodies or lead PII — only counts and intent flags.
  */
-import { env } from "../lib/env";
 import { HttpError } from "../middleware/errorHandler";
 import { logger } from "../lib/logger";
 import { createWebsiteLead } from "./publicIntake.service";
 import { serviceTypeSchema } from "../contracts/booking.contract";
 import type { AiChatInput, AiChatResult, AiChatMessageDto } from "../contracts/ai.contract";
+import { chatCompletion, isGeminiConfigured } from "./gemini.service";
 
 const SYSTEM_PROMPT = `You are the SM Travels International assistant — a helpful, concise guide for Hajj, Umrah, visa, air tickets, tours, and related travel services in Bangladesh.
 
@@ -22,18 +23,10 @@ When the user clearly wants to book or request a callback, append a single JSON 
 {"intent":"book","service":"HAJJ|UMRAH|VISA|AIR_TICKET|MANPOWER|TOUR|HOTEL|null","summary":"one line"}
 Only include this JSON when booking intent is clear. Otherwise do not include JSON.`;
 
-interface GeminiResponse {
-  candidates?: Array<{
-    content?: { parts?: Array<{ text?: string }> };
-  }>;
-  error?: { message?: string };
-}
-
-function toGeminiContents(messages: AiChatMessageDto[]): Array<{ role: string; parts: Array<{ text: string }> }> {
-  return messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content.slice(0, 4000) }],
-  }));
+function normalizeMessages(input: AiChatInput): AiChatMessageDto[] {
+  if (input.messages?.length) return input.messages;
+  if (input.message) return [{ role: "user", content: input.message }];
+  return [];
 }
 
 function parseIntent(text: string): { reply: string; intent: AiChatResult["intent"] } {
@@ -52,60 +45,40 @@ function parseIntent(text: string): { reply: string; intent: AiChatResult["inten
   }
 }
 
-export async function chat(input: AiChatInput, opts?: { authenticated?: boolean }): Promise<AiChatResult> {
-  const key = env.GEMINI_API_KEY;
-  if (!key) {
+export async function chat(
+  input: AiChatInput,
+  opts?: { authenticated?: boolean; allowLeadCreation?: boolean },
+): Promise<AiChatResult> {
+  if (!isGeminiConfigured()) {
     throw new HttpError(503, "AiNotConfigured", {
       detail: "AI assistant is not configured. Please use /book or WhatsApp instead.",
     });
   }
 
-  const model = env.GEMINI_MODEL;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: toGeminiContents(input.messages),
-      generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
-    }),
+  const messages = normalizeMessages(input);
+  const rawText = await chatCompletion(messages, {
+    systemInstruction: SYSTEM_PROMPT,
+    temperature: 0.4,
+    maxOutputTokens: 1024,
   });
-
-  if (!res.ok) {
-    logger.warn({ status: res.status, authenticated: !!opts?.authenticated }, "Gemini chat request failed");
-    throw new HttpError(502, "AiProviderError", { detail: "Assistant is temporarily unavailable. Try /book or WhatsApp." });
-  }
-
-  const data = (await res.json()) as GeminiResponse;
-  if (data.error?.message) {
-    logger.warn({ providerMessage: data.error.message.slice(0, 80) }, "Gemini chat error");
-    throw new HttpError(502, "AiProviderError", { detail: "Assistant is temporarily unavailable." });
-  }
-
-  const rawText = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  if (!rawText.trim()) {
-    throw new HttpError(502, "AiProviderError", { detail: "Assistant returned an empty reply." });
-  }
 
   const { reply, intent } = parseIntent(rawText);
 
   logger.info({
-    messageCount: input.messages.length,
+    messageCount: messages.length,
     authenticated: !!opts?.authenticated,
     hasIntent: !!intent,
     createLead: !!input.createLead,
   }, "AI chat completed");
 
   let leadCreated = false;
-  if (input.createLead?.name && input.createLead.phone) {
+  if (opts?.allowLeadCreation && input.createLead?.name && input.createLead.phone) {
     const intentService = intent?.service ? serviceTypeSchema.safeParse(intent.service).data : undefined;
     const noteLines = [
       "Website AI chat lead",
       intent?.summary && `Intent: ${intent.summary}`,
       (intentService ?? intent?.service) && `Service: ${intentService ?? intent?.service}`,
-      `Last user message length: ${input.messages.filter((m) => m.role === "user").at(-1)?.content.length ?? 0} chars`,
+      `Last user message length: ${messages.filter((m) => m.role === "user").at(-1)?.content.length ?? 0} chars`,
     ].filter(Boolean);
     await createWebsiteLead({
       name: input.createLead.name,

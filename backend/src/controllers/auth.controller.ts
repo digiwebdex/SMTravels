@@ -3,6 +3,7 @@ import { z } from "zod";
 import { env } from "../lib/env";
 import { REFRESH_COOKIE, REFRESH_TTL_MS } from "../lib/jwt";
 import { clientIp } from "../lib/audit";
+import { HttpError } from "../middleware/errorHandler";
 import * as auth from "../services/auth.service";
 
 const EmailSchema = z.string().trim().toLowerCase().email();
@@ -15,6 +16,21 @@ const ResetSchema = z.object({ resetToken: z.string().min(10), password: Passwor
 
 function ctx(req: Request) {
   return { ip: clientIp(req), ua: req.headers["user-agent"] ?? null };
+}
+
+const allowedOrigins = new Set(
+  [...env.CORS_ORIGIN.split(","), "http://localhost:5173", "http://localhost:4173"]
+    .map((o) => o.trim())
+    .filter(Boolean),
+);
+
+/** Reject cookie refresh from disallowed browser Origins (CSRF hardening). */
+function assertRefreshOrigin(req: Request): void {
+  const origin = req.headers.origin;
+  if (!origin) return; // non-browser / same-origin navigations
+  if (!allowedOrigins.has(origin)) {
+    throw new HttpError(403, "ForbiddenOrigin", { detail: "Refresh origin not allowed" });
+  }
 }
 
 // Refresh cookie: httpOnly + SameSite=Lax, Secure in prod (HTTPS via Cloudflare),
@@ -41,6 +57,7 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
 }
 
 export async function refreshHandler(req: Request, res: Response): Promise<void> {
+  assertRefreshOrigin(req);
   const { user, accessToken, refreshToken } = await auth.refresh(req.cookies?.[REFRESH_COOKIE], ctx(req));
   setRefreshCookie(res, refreshToken);
   res.json({ accessToken, user });

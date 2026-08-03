@@ -15,6 +15,7 @@ import {
   mapListItem, mapDetail, toPackagePayload, pkgTypeToEnum, pkgStatusToEnum,
   type PackageListParams,
 } from "../hooks/catalog";
+import { ModulePage } from "../design-system/patterns/ModulePage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PkgView = "list" | "form" | "detail";
@@ -191,11 +192,11 @@ function PackageListView({
   };
 
   return (
-    <div className="p-5 md:p-7">
+    <div>
       {/* Header */}
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h1 className="text-[20px] font-black text-[#111827]">Package Management</h1>
+          <h1 className="text-[20px] font-black text-[#111827]">All Packages</h1>
           <p className="text-[12px] text-[#9CA3AF] mt-0.5">{stats.total} total packages · {stats.active} active</p>
         </div>
         <div className="flex items-center gap-2">
@@ -854,7 +855,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
     setDepartureDates(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
 
   return (
-    <div className="p-5 md:p-7">
+    <div>
       <PageBreadcrumb
         items={[{ label: "Packages", onClick: onBack }, { label: isEdit ? `Edit: ${pkg?.name || "Package"}` : "New Package" }]}
         action={
@@ -1172,7 +1173,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
   const pct = Math.round(((pkg.totalSeats - pkg.availableSeats) / pkg.totalSeats) * 100);
 
   return (
-    <div className="p-5 md:p-7">
+    <div>
       <PageBreadcrumb
         items={[{ label: "Packages", onClick: onBack }, { label: pkg.name }]}
         action={
@@ -1385,16 +1386,18 @@ export function PackageManagementPage() {
   const goDetail = (id: string) => { setSelectedId(id); setView("detail"); };
 
   return (
-    <div>
-      {view === "list" && <PackageListView onNew={goCreate} onEdit={goEdit} onView={goDetail} />}
-      {view === "form" && (
-        isEdit && selectedId
-          ? <PackageFormLoader id={selectedId} onBack={goList} onSave={goList} />
-          : <PackageFormView pkg={undefined} isEdit={false} onBack={goList} onSave={goList} />
-      )}
-      {view === "detail" && selectedId && (
-        <PackageDetailLoader id={selectedId} onBack={goList} onEdit={() => goEdit(selectedId)} />
-      )}
+    <div className="p-5 md:p-7">
+      <ModulePage title="Package Management" subtitle="Create, price & publish Hajj, Umrah, tour and other packages">
+        {view === "list" && <PackageListView onNew={goCreate} onEdit={goEdit} onView={goDetail} />}
+        {view === "form" && (
+          isEdit && selectedId
+            ? <PackageFormLoader id={selectedId} onBack={goList} onSave={goList} />
+            : <PackageFormView pkg={undefined} isEdit={false} onBack={goList} onSave={goList} />
+        )}
+        {view === "detail" && selectedId && (
+          <PackageDetailLoader id={selectedId} onBack={goList} onEdit={() => goEdit(selectedId)} />
+        )}
+      </ModulePage>
     </div>
   );
 }

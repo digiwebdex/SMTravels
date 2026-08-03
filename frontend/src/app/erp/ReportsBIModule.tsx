@@ -12,6 +12,7 @@ import {
   ArrowUpRight, ArrowDownRight, Clock, AlertTriangle,
   FileText, Sliders, Globe, Layers, CheckCircle, TrendingDown,
 } from "lucide-react";
+import { SampleBadge } from "../portal/SampleBadge";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import {
@@ -35,7 +36,7 @@ function toReportFilters(f: BiFilters): ReportFilters {
 
 function ReportLoad({ query, children }: { query: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
   if (query.isLoading) return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={24} className="animate-spin" /></div>;
-  if (query.isError) return <div className="bg-white rounded-xl border border-red-200 p-6 text-center text-sm text-red-600">{(query.error as Error)?.message || "Failed to load report."}</div>;
+  if (query.isError) return <div className="bg-[var(--color-surface)] rounded-xl border border-red-200 p-6 text-center text-sm text-red-600">{(query.error as Error)?.message || "Failed to load report."}</div>;
   return <>{children}</>;
 }
 
@@ -77,7 +78,7 @@ function KpiCard({ label, value, delta, up, icon: Icon, color, pulse }: {
   icon: React.ElementType; color: string; pulse?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center relative", color)}>
           <Icon size={18} className="text-white" />
@@ -101,7 +102,7 @@ function Section({ title, actions, children, className }: {
   title: string; actions?: React.ReactNode; children: React.ReactNode; className?: string;
 }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-slate-200", className)}>
+    <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]", className)}>
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
         <h3 className="font-semibold text-slate-800 text-sm">{title}</h3>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -114,7 +115,7 @@ function Section({ title, actions, children, className }: {
 function ChartTip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 text-xs">
+    <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-lg p-3 text-xs">
       <p className="font-semibold text-slate-700 mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
@@ -147,10 +148,10 @@ function FilterBar({
           {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={onRefresh} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500">
+          <button type="button" onClick={onRefresh} className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-500">
             <RefreshCw size={14} />
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> PDF
           </button>
           <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
@@ -159,7 +160,7 @@ function FilterBar({
         </div>
       </div>
       <div className="flex gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Calendar size={14} className="text-slate-400" />
           <select value={filters.dateRange} onChange={(e) => onChange({ dateRange: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -174,7 +175,7 @@ function FilterBar({
             <option value="all">All Time</option>
           </select>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Building2 size={14} className="text-slate-400" />
           <select value={filters.branch} onChange={(e) => onChange({ branch: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -211,7 +212,7 @@ function RealtimeView({ rf, filters, branches, onFilterChange, onRefresh }: {
           <p className="text-sm text-slate-500 mt-0.5">{overview?.applied.label ?? "Live KPIs from operational data"}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => { overviewQ.refetch(); salesQ.refetch(); bookingsQ.refetch(); }} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500">
+          <button type="button" onClick={() => { overviewQ.refetch(); salesQ.refetch(); bookingsQ.refetch(); }} className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-500">
             <RefreshCw size={14} className={overviewQ.isFetching ? "animate-spin" : ""} />
           </button>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full">
@@ -222,7 +223,7 @@ function RealtimeView({ rf, filters, branches, onFilterChange, onRefresh }: {
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Calendar size={14} className="text-slate-400" />
           <select value={filters.dateRange} onChange={(e) => onFilterChange({ dateRange: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -232,7 +233,7 @@ function RealtimeView({ rf, filters, branches, onFilterChange, onRefresh }: {
             <option value="all">All Time</option>
           </select>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Building2 size={14} className="text-slate-400" />
           <select value={filters.branch} onChange={(e) => onFilterChange({ branch: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -717,7 +718,7 @@ function AgentReport({ rf, filters, branches, onFilterChange, onRefresh }: {
               <KpiCard label="Total Commission" value={fmtC(d.totalCommission)} icon={DollarSign} color="bg-amber-500" />
               <KpiCard label="Agent Revenue" value={fmtC(d.totalRevenue)} icon={TrendingUp} color="bg-blue-500" />
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
               <div className="px-5 py-3.5 border-b border-slate-100"><p className="font-semibold text-slate-800 text-sm">Agent Leaderboard</p></div>
               {agents.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-10">No agent activity in range.</p>
@@ -766,13 +767,14 @@ function StaffKpi() {
   const emp = STAFF[selected];
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Staff KPI Dashboard</h2>
           <p className="text-sm text-slate-500 mt-0.5">Individual performance tracking — July 2024</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> PDF Report
           </button>
         </div>
@@ -788,7 +790,7 @@ function StaffKpi() {
 
       <div className="grid grid-cols-3 gap-5">
         {/* Staff list */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
             <p className="text-sm font-semibold text-slate-800">Team Members</p>
           </div>
@@ -815,7 +817,7 @@ function StaffKpi() {
 
         {/* Detail + radar */}
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-bold text-slate-800 text-base">{emp.name}</p>
@@ -840,7 +842,7 @@ function StaffKpi() {
               ))}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <p className="text-sm font-semibold text-slate-800 mb-3">Performance Radar</p>
             <ResponsiveContainer width="100%" height={200}>
               <RadarChart data={RADAR_DATA} cx="50%" cy="50%" outerRadius={75}>
@@ -903,6 +905,7 @@ function CustomBuilder() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Custom Report Builder</h2>
@@ -911,10 +914,10 @@ function CustomBuilder() {
         <div className="flex gap-2">
           <button onClick={() => setPreview(v => !v)}
             className={cn("flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all",
-              preview ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "border-slate-200 text-slate-600 hover:bg-slate-50")}>
+              preview ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "border-[var(--color-border)] text-slate-600 hover:bg-slate-50")}>
             <Eye size={14} /> {preview ? "Hide Preview" : "Preview"}
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> PDF
           </button>
           <button className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
@@ -925,7 +928,7 @@ function CustomBuilder() {
 
       <div className="grid grid-cols-3 gap-5">
         {/* Field selector */}
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="font-semibold text-slate-800">Select Fields</p>
             <span className="text-xs text-slate-400">{selected.length} selected</span>
@@ -940,7 +943,7 @@ function CustomBuilder() {
                       className={cn("flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-all",
                         selected.includes(f.id)
                           ? "bg-[#1B75BC] text-white border-[#1B75BC]"
-                          : "border-slate-200 text-slate-600 hover:border-[#1B75BC] hover:text-[#1B75BC]")}>
+                          : "border-[var(--color-border)] text-slate-600 hover:border-[#1B75BC] hover:text-[#1B75BC]")}>
                       {selected.includes(f.id) && <Check size={11} />}
                       {f.label}
                     </button>
@@ -972,24 +975,24 @@ function CustomBuilder() {
 
         {/* Config panel */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h3 className="font-semibold text-slate-800 mb-4">Report Settings</h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Report Name</label>
                 <input value={name} onChange={e => setName(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date Range</label>
-                <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   {["This Month","Last Month","Q2 2024","YTD 2024","Custom…"].map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Group By</label>
                 <select value={groupBy} onChange={e => setGroupBy(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   {["none","service","branch","agent","month","status"].map(o => <option key={o} value={o}>{o === "none" ? "No grouping" : o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
                 </select>
               </div>
@@ -997,10 +1000,10 @@ function CustomBuilder() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Sort By</label>
                 <div className="flex gap-2">
                   <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                    className="flex-1 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                     {selected.map(id => <option key={id} value={id}>{ALL_FIELDS.find(f=>f.id===id)?.label}</option>)}
                   </select>
-                  <select className="border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none">
+                  <select className="border border-[var(--color-border)] rounded-lg px-2 py-2 text-sm focus:outline-none">
                     <option>Desc</option><option>Asc</option>
                   </select>
                 </div>
@@ -1012,19 +1015,19 @@ function CustomBuilder() {
                   { label:"Service", opts:["All","Hajj","Umrah","Visa"] },
                   { label:"Status", opts:["All","Confirmed","Pending","Overdue"] },
                 ].map(f => (
-                  <select key={f.label} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-1.5 focus:outline-none">
+                  <select key={f.label} className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm mb-1.5 focus:outline-none">
                     {f.opts.map(o => <option key={o}>{o === "All" ? `${f.label}: All` : o}</option>)}
                   </select>
                 ))}
               </div>
               <div className="flex gap-2 pt-2">
                 <button className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Run Report</button>
-                <button className="px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save</button>
+                <button className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Save</button>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
             <p className="text-xs font-semibold text-slate-500 mb-2">Saved Templates</p>
             {["Monthly Agent Summary","Hajj Season Overview","Overdue Payments"].map(t => (
               <button key={t} className="w-full text-left text-xs text-[#1B75BC] hover:underline py-1 flex items-center gap-1.5">
@@ -1037,7 +1040,7 @@ function CustomBuilder() {
 
       {/* Preview table */}
       {preview && (
-        <div className="bg-white rounded-xl border border-[#1B75BC]/20 overflow-hidden">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[#1B75BC]/20 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3.5 bg-[#1B75BC]/5 border-b border-[#1B75BC]/10">
             <p className="text-sm font-semibold text-[#1B75BC]">Report Preview — {name}</p>
             <span className="text-xs text-slate-400">Showing 3 of ~{Math.floor(Math.random()*200+100)} rows</span>
@@ -1069,7 +1072,7 @@ function CustomBuilder() {
           <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
             <span className="text-xs text-slate-400">Preview showing 3 sample rows</span>
             <div className="flex gap-2">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                 <Printer size={12} /> Export PDF
               </button>
               <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
@@ -1116,7 +1119,7 @@ export function ReportsBIModule() {
 
   return (
     <div className="flex h-full min-h-screen bg-[#F0F2F5]">
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
         <div className="px-4 py-4 border-b border-slate-100">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Reports & BI</h2>
         </div>
@@ -1134,7 +1137,7 @@ export function ReportsBIModule() {
           ))}
         </nav>
         <div className="p-3 border-t border-slate-100 space-y-1.5">
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={12} /> Export Current PDF
           </button>
           <button className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">

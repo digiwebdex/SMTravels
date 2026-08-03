@@ -28,3 +28,15 @@ export function useErpAiChat() {
     onError: err,
   });
 }
+
+/** Portal AI assistant — simple `{ message }` + Bearer auth. */
+export function usePortalAiChat() {
+  return useMutation({
+    mutationFn: (message: string) =>
+      apiFetch<AiChatResult>("/ai/chat", {
+        method: "POST",
+        body: JSON.stringify({ message }),
+      }),
+    onError: err,
+  });
+}

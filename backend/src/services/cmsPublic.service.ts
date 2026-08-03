@@ -13,6 +13,13 @@ import type {
   PublicFaqListResponse,
   PublicTestimonialListResponse,
   PublicGalleryListResponse,
+  PublicCmsPageDto,
+  PublicMenuDto,
+  PublicMenuItemDto,
+  PublicBannerDto,
+  PublicBannerListQuery,
+  PublicBannerListResponse,
+  MenuLocationDto,
 } from "../contracts/cms.contract";
 
 const num = (v: Prisma.Decimal | number | null | undefined): number =>
@@ -261,5 +268,96 @@ export async function listPublicGallery(): Promise<PublicGalleryListResponse> {
       image: m.filePath,
       type: m.type,
     })),
+  };
+}
+
+// ── Public CmsPage / Menu / Banner ────────────────────────────────────────────
+
+export async function getPublishedCmsPage(slug: string): Promise<PublicCmsPageDto> {
+  const p = await prisma.cmsPage.findFirst({
+    where: {
+      OR: [{ slug }, { id: slug }],
+      deletedAt: null,
+      status: "PUBLISHED",
+      visibility: "public",
+    },
+  });
+  if (!p) throw new HttpError(404, "NotFound");
+
+  void prisma.cmsPage.update({ where: { id: p.id }, data: { views: { increment: 1 } } }).catch(() => undefined);
+
+  return {
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    body: p.body,
+    metaTitle: p.metaTitle,
+    metaDesc: p.metaDesc,
+    template: p.template,
+    publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+  };
+}
+
+function buildPublicMenuTree(
+  items: { id: string; parentId: string | null; label: string; url: string; sortOrder: number }[],
+  parentId: string | null = null,
+): PublicMenuItemDto[] {
+  return items
+    .filter((i) => i.parentId === parentId)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((i) => ({
+      id: i.id,
+      label: i.label,
+      url: i.url,
+      sortOrder: i.sortOrder,
+      children: buildPublicMenuTree(items, i.id),
+    }));
+}
+
+export async function getPublicMenu(location: string): Promise<PublicMenuDto> {
+  const loc = location.toUpperCase().replace(/-/g, "_");
+  const allowed = ["MAIN_NAV", "FOOTER_NAV", "MOBILE_NAV"] as const;
+  if (!(allowed as readonly string[]).includes(loc)) throw new HttpError(404, "NotFound");
+
+  const m = await prisma.menu.findUnique({
+    where: { location: loc as (typeof allowed)[number] },
+    include: { items: true },
+  });
+  if (!m) throw new HttpError(404, "NotFound");
+
+  return {
+    id: m.id,
+    location: m.location as MenuLocationDto,
+    name: m.name,
+    items: buildPublicMenuTree(m.items),
+  };
+}
+
+export async function listPublicBanners(q: PublicBannerListQuery): Promise<PublicBannerListResponse> {
+  const now = new Date();
+  const where: Prisma.BannerWhereInput = {
+    deletedAt: null,
+    active: true,
+    OR: [{ expiresAt: null }, { expiresAt: { gte: now } }],
+  };
+  if (q.type) where.type = q.type;
+
+  const rows = await prisma.banner.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+  });
+
+  return {
+    data: rows.map(
+      (b): PublicBannerDto => ({
+        id: b.id,
+        title: b.title,
+        position: b.position,
+        type: b.type as PublicBannerDto["type"],
+        image: b.image,
+        linkUrl: b.linkUrl,
+        expiresAt: b.expiresAt ? b.expiresAt.toISOString().slice(0, 10) : null,
+      }),
+    ),
   };
 }

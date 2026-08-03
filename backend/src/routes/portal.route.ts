@@ -2,8 +2,10 @@ import { Router } from "express";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middleware/auth";
 import { uploadSingleFile } from "../lib/uploads";
+import { uploadRateLimiter } from "../middleware/rateLimit";
 import {
   meHandler, dashboardHandler, bookingsHandler, bookingHandler,
+  visasHandler, downloadsHandler,
   invoicesHandler, invoiceHandler, paymentsHandler, installmentsHandler,
   documentsHandler, documentHandler, uploadPortalDocumentHandler, portalDocumentFileHandler,
   ticketsHandler, ticketHandler,
@@ -25,13 +27,15 @@ portalRouter.get(`${base}/dashboard`, requireAuth, asyncHandler(dashboardHandler
 portalRouter.get(`${base}/bookings`, requireAuth, asyncHandler(bookingsHandler));
 portalRouter.get(`${base}/bookings/:id`, requireAuth, asyncHandler(bookingHandler));
 portalRouter.get(`${base}/bookings/:id/voucher`, requireAuth, asyncHandler(bookingVoucherPrintHandler));
+portalRouter.get(`${base}/visas`, requireAuth, asyncHandler(visasHandler));
+portalRouter.get(`${base}/downloads`, requireAuth, asyncHandler(downloadsHandler));
 
 portalRouter.get(`${base}/invoices`, requireAuth, asyncHandler(invoicesHandler));
 portalRouter.get(`${base}/invoices/:id`, requireAuth, asyncHandler(invoiceHandler));
 
 portalRouter.get(`${base}/payments`, requireAuth, asyncHandler(paymentsHandler));
 portalRouter.get(`${base}/bank-accounts`, requireAuth, asyncHandler(bankAccountsHandler));
-portalRouter.post(`${base}/payments/proof`, requireAuth, uploadSingleFile, asyncHandler(submitPaymentProofHandler));
+portalRouter.post(`${base}/payments/proof`, requireAuth, uploadRateLimiter, uploadSingleFile, asyncHandler(submitPaymentProofHandler));
 portalRouter.get(`${base}/installments`, requireAuth, asyncHandler(installmentsHandler));
 
 portalRouter.get(`${base}/documents`, requireAuth, asyncHandler(documentsHandler));
@@ -39,7 +43,7 @@ portalRouter.get(`${base}/documents`, requireAuth, asyncHandler(documentsHandler
 // Multer runs AFTER requireAuth so anonymous requests never touch disk.
 portalRouter.get(`${base}/documents/:id/file`, requireAuth, asyncHandler(portalDocumentFileHandler));
 portalRouter.get(`${base}/documents/:id`, requireAuth, asyncHandler(documentHandler));
-portalRouter.post(`${base}/documents`, requireAuth, uploadSingleFile, asyncHandler(uploadPortalDocumentHandler));
+portalRouter.post(`${base}/documents`, requireAuth, uploadRateLimiter, uploadSingleFile, asyncHandler(uploadPortalDocumentHandler));
 
 portalRouter.get(`${base}/tickets`, requireAuth, asyncHandler(ticketsHandler));
 portalRouter.get(`${base}/tickets/:id`, requireAuth, asyncHandler(ticketHandler));

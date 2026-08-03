@@ -1,5 +1,5 @@
 /**
- * BDH Travels — Design System Showcase
+ * SM Travels — Design System Showcase
  * Route: /ds
  *
  * Developer handoff reference. Shows every token, component, state, and pattern
@@ -22,7 +22,7 @@ import {
   UserCircle, Building2, ArrowRight, Check, X, ChevronDown,
   Bell, Search, Filter, Download, Plus, Eye, Edit2, Trash2,
   AlertTriangle, CheckCircle, Info, ExternalLink, Wallet,
-  TrendingUp, FileText, Home,
+  TrendingUp, FileText, Home, Layers, Sparkles,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import {
@@ -34,6 +34,24 @@ import {
   useLoadingState, BRAND, STATUS_MAP,
 } from "../lib/ds";
 import type { StatusKey } from "../lib/ds";
+import { ModulePage, DataTable, AiInsightCard, OcrInFlow, ThemeToggle } from "../design-system";
+import type { DataColumn } from "../design-system";
+
+// ─── Shell reference (descriptive only — most shells own full-page chrome
+// such as min-h-screen / fixed footers, so they're documented rather than
+// rendered inline here to avoid breaking this page's layout) ─────────────────
+const DS_SHELLS = [
+  { name: "AuthShell", icon: UserCircle, path: "design-system/shells/AuthShell.tsx",
+    desc: "Centered card shell for login / register / OTP flows — logo header, ThemeToggle, optional footer slot." },
+  { name: "WizardShell", icon: Layers, path: "design-system/shells/WizardShell.tsx",
+    desc: "Multi-step wizard chrome — step pills, sticky footer with Back / Continue / Cancel actions." },
+  { name: "PortalShell", icon: Layout, path: "design-system/shells/PortalShell.tsx",
+    desc: "Shared chrome for the 5 role portals (Customer, Agent, Supplier, Staff, Accountant)." },
+  { name: "PrintShell", icon: FileText, path: "design-system/shells/PrintShell.tsx",
+    desc: "Print-optimized wrapper for invoices, vouchers, and reports — screen chrome hidden on @media print." },
+  { name: "ReportsShell", icon: BarChart3, path: "design-system/shells/ReportsShell.tsx",
+    desc: "Reports/BI layout — filter rail + canvas area for charts and export actions." },
+] as const;
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ id, title, subtitle, children }: {
@@ -112,9 +130,23 @@ const TYPE_SCALE = [
   { name: "Heading 2",  cls: "text-xl font-bold",    sample: "Payment Summary" },
   { name: "Heading 3",  cls: "text-base font-bold",  sample: "Invoice Details" },
   { name: "Body",       cls: "text-sm",               sample: "Your booking is confirmed. Departure 15 Jan 2026." },
-  { name: "Small",      cls: "text-xs text-slate-500",sample: "Updated 2 hours ago · BDH Travels HQ" },
+  { name: "Small",      cls: "text-xs text-slate-500",sample: "Updated 2 hours ago · SM Travels HQ" },
   { name: "Micro",      cls: "text-[10px] text-slate-400 uppercase tracking-wider font-bold", sample: "Status · Created · Amount" },
   { name: "Mono/Finance", cls: "text-lg font-black", sample: "৳ 1,20,000", mono: true },
+];
+
+// ─── DataTable demo data ──────────────────────────────────────────────────────
+const DS_TABLE_ROWS: { id: string; name: string; svc: string; amt: number; status: StatusKey }[] = [
+  { id: "BK-2847", name: "Fatima Khanam", svc: "Hajj 2026",      amt: 210000, status: "confirmed" },
+  { id: "BK-2846", name: "Md. Rafikul",   svc: "Umrah Package",  amt: 85000,  status: "pending" },
+  { id: "BK-2845", name: "Nusrat Jahan",  svc: "Visa (Malaysia)",amt: 18500,  status: "processing" },
+];
+const DS_TABLE_COLUMNS: DataColumn<{ id: string; name: string; svc: string; amt: number; status: StatusKey }>[] = [
+  { id: "id",     header: "Booking #", cell: (r) => <span className="font-mono text-xs">{r.id}</span> },
+  { id: "name",   header: "Customer",  cell: (r) => <span className="font-semibold">{r.name}</span> },
+  { id: "svc",    header: "Service",   cell: (r) => r.svc },
+  { id: "amt",    header: "Amount",    cell: (r) => formatAmount(r.amt, "BDT") },
+  { id: "status", header: "Status",    cell: (r) => <StatusBadge status={r.status} /> },
 ];
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
@@ -124,6 +156,7 @@ const NAV_SECTIONS = [
   { id: "data",       icon: Database, label: "Data" },
   { id: "states",     icon: AlertTriangle, label: "States" },
   { id: "navigation", icon: Layout,   label: "Navigation" },
+  { id: "patterns",   icon: Layers,   label: "Patterns" },
   { id: "responsive", icon: Monitor,  label: "Responsive" },
   { id: "i18n",       icon: Globe,    label: "i18n & Locale" },
 ];
@@ -133,6 +166,7 @@ export function DesignSystemPage() {
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [loadDemo, setLoadDemo] = useState(false);
   const skeletonLoading = useLoadingState(2000);
+  const [dsTableSearch, setDsTableSearch] = useState("");
 
   return (
     <div className="min-h-screen bg-[#F0F2F5]">
@@ -146,7 +180,7 @@ export function DesignSystemPage() {
             </div>
             <div>
               <p className="text-sm font-black text-slate-800">Design System</p>
-              <p className="text-[10px] text-slate-400">BDH Travels ERP · v1.0</p>
+              <p className="text-[10px] text-slate-400">SM Travels ERP · v1.0</p>
             </div>
           </div>
 
@@ -171,6 +205,7 @@ export function DesignSystemPage() {
                 </button>
               ))}
             </div>
+            <ThemeToggle />
             <Link to="/sitemap" className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#1B75BC] px-3 py-2 border border-slate-200 rounded-xl hover:bg-slate-50">
               Sitemap <ExternalLink size={11} />
             </Link>
@@ -192,7 +227,7 @@ export function DesignSystemPage() {
               <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-semibold border border-white/20">Version 1.0</span>
               <span className="px-3 py-1 bg-[#F15A24]/20 rounded-full text-xs font-semibold border border-[#F15A24]/30 text-[#D64A12]">Handoff Ready</span>
             </div>
-            <h1 className="text-3xl font-black mb-3">BDH Travels Design System</h1>
+            <h1 className="text-3xl font-black mb-3">SM Travels Design System</h1>
             <p className="text-white/70 text-sm leading-relaxed mb-6">
               Canonical component library for the ERP, 5 role portals, and public website.
               All tokens, components, states, and interaction patterns documented in one place.
@@ -660,6 +695,115 @@ export function DesignSystemPage() {
           </div>
         </Section>
 
+        {/* ── 5b. PATTERNS (design-system/) ───────────────────────────────── */}
+        <Section id="patterns" title="Enterprise Patterns"
+          subtitle="Higher-order compositions from src/app/design-system/ — module pages, data tables, AI slots, and OCR flows.">
+
+          <div className="space-y-10">
+            <SubSection title="ModulePage — Title → KPIs → Filters → Content">
+              <Demo label="ModulePage composition" code={`import { ModulePage } from "../design-system";\n<ModulePage title="Leads" subtitle="Pipeline overview" primaryAction={<Btn icon={Plus}>New Lead</Btn>}>\n  {/* content */}\n</ModulePage>`}>
+                <div className="rounded-xl border border-slate-200 bg-[var(--color-bg)] p-4">
+                  <ModulePage
+                    title="Leads"
+                    subtitle="Pipeline overview for this month"
+                    primaryAction={<Btn size="sm" icon={Plus}>New Lead</Btn>}
+                    kpis={
+                      <>
+                        <KpiTile label="New" value="24" icon={TrendingUp} accent={BRAND.navy} />
+                        <KpiTile label="Contacted" value="18" icon={Users} accent={BRAND.emerald} />
+                        <KpiTile label="Converted" value="7" icon={CheckCircle} accent={BRAND.gold} />
+                        <KpiTile label="Lost" value="3" icon={X} accent="#DC2626" />
+                      </>
+                    }
+                  >
+                    <SectionCard title="Recent leads" noPad>
+                      <p className="text-sm text-slate-500 p-5">Table / list content renders here.</p>
+                    </SectionCard>
+                  </ModulePage>
+                </div>
+              </Demo>
+            </SubSection>
+
+            <SubSection title="DataTable — search, columns, saved views, resize, export, mobile cards">
+              <Demo label="DataTable composition — pass viewKey to persist saved views + column widths/visibility to localStorage; drag the column-header edge to resize" code={`import { DataTable } from "../design-system";\nimport type { DataColumn } from "../design-system";\n<DataTable\n  columns={columns}\n  rows={rows}\n  rowKey={(r) => r.id}\n  viewKey="bookings"        // persists saved views + column widths/visibility\n  onSearchChange={setSearch}\n  onExport={handleExport}\n/>`}>
+                <DataTable<{ id: string; name: string; svc: string; amt: number; status: StatusKey }>
+                  columns={DS_TABLE_COLUMNS}
+                  rows={DS_TABLE_ROWS}
+                  rowKey={(r) => r.id}
+                  viewKey="ds-demo"
+                  search={dsTableSearch}
+                  onSearchChange={setDsTableSearch}
+                  onExport={() => {}}
+                  emptyTitle="No bookings found"
+                  emptyDesc="Try a different search term."
+                />
+                <p className="text-[11px] text-slate-400 mt-2">
+                  Try it: drag a column-header edge to resize, use <span className="font-semibold text-slate-500">Views</span> to save the
+                  current column layout, and <span className="font-semibold text-slate-500">Columns</span> to show/hide fields.
+                </p>
+              </Demo>
+            </SubSection>
+
+            <SubSection title="AiInsightCard — auto-collapsing AI slot">
+              <Demo label="Available / collapsed by default" code={`import { AiInsightCard } from "../design-system";\n<AiInsightCard collapsedByDefault>\n  <p>3 leads are likely to convert this week.</p>\n</AiInsightCard>`}>
+                <div className="max-w-lg">
+                  <AiInsightCard collapsedByDefault>
+                    <p className="text-xs">3 leads are likely to convert this week based on recent activity.</p>
+                  </AiInsightCard>
+                </div>
+              </Demo>
+              <Demo label="Unavailable — renders nothing">
+                <div className="max-w-lg text-xs text-slate-400 italic">
+                  <AiInsightCard available={false} />
+                  (nothing rendered above — pass <code className="font-mono not-italic">available=false</code> to hide the slot entirely)
+                </div>
+              </Demo>
+            </SubSection>
+
+            <SubSection title="OcrInFlow — Upload → OCR → Preview → Edit → Save">
+              <Demo label="OCR shell (frontend-only; wire to existing hooks)" code={`import { OcrInFlow } from "../design-system";\n<OcrInFlow title="Scan passport" onUpload={handleUpload} onApply={handleApply} />`}>
+                <div className="max-w-lg">
+                  <OcrInFlow title="Scan passport" />
+                </div>
+              </Demo>
+            </SubSection>
+
+            <SubSection title="ThemeToggle — light / dark mode switch">
+              <Demo label="ThemeToggle" code={`import { ThemeToggle } from "../design-system";\n<ThemeToggle />`}>
+                <ThemeToggle />
+              </Demo>
+            </SubSection>
+
+            <SubSection title="Shells — full-page chrome (AuthShell, WizardShell, PortalShell, PrintShell, ReportsShell)">
+              <Demo label="Available shells — documented, not rendered inline (each owns its own page-level chrome)">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {DS_SHELLS.map((s) => {
+                    const Icon = s.icon;
+                    return (
+                      <div key={s.name} className="ds-hover-lift flex items-start gap-3 p-4 bg-[var(--color-surface)] rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+                        <div className="w-9 h-9 rounded-[var(--radius-md)] bg-[var(--color-primary-tint)] flex items-center justify-center flex-shrink-0">
+                          <Icon size={16} className="text-[var(--color-primary)]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-slate-800">{s.name}</p>
+                          <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate">{s.path}</p>
+                          <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">{s.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Demo>
+              <Demo label="AuthShell usage" code={`import { AuthShell } from "../design-system";\n<AuthShell title="Welcome back" subtitle="Sign in to your account">\n  {/* login form */}\n</AuthShell>`}>
+                <p className="text-xs text-slate-500">Centers a card (logo header + optional footer) for Auth.tsx login/register/OTP screens.</p>
+              </Demo>
+              <Demo label="WizardShell usage" code={`import { WizardShell } from "../design-system";\n<WizardShell\n  title="New Booking"\n  steps={["Details", "Travelers", "Payment"]}\n  currentStep={1}\n  onBack={back}\n  onNext={next}\n>\n  {/* step content */}\n</WizardShell>`}>
+                <p className="text-xs text-slate-500">Step pills + sticky footer actions (Back / Continue / Cancel) for multi-step flows like Booking.tsx.</p>
+              </Demo>
+            </SubSection>
+          </div>
+        </Section>
+
         {/* ── 6. RESPONSIVE ───────────────────────────────────────────────── */}
         <Section id="responsive" title="Responsive Breakpoints"
           subtitle="Mobile-first. 390px (mobile), 768px (tablet), 1280px (desktop). All primary flows work on all sizes.">
@@ -881,7 +1025,7 @@ export function DesignSystemPage() {
             <div className="w-7 h-7 rounded-lg bg-[#1B75BC] flex items-center justify-center">
               <Palette size={13} className="text-white" />
             </div>
-            <p className="text-xs text-slate-500">BDH Travels ERP Design System · v1.0 · UI/UX only — functionality unchanged</p>
+            <p className="text-xs text-slate-500">SM Travels ERP Design System · v1.0 · UI/UX only — functionality unchanged</p>
           </div>
           <div className="flex items-center gap-3">
             <Link to="/sitemap" className="text-xs text-slate-400 hover:text-[#1B75BC] transition-colors">Sitemap</Link>

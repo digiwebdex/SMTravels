@@ -21,6 +21,8 @@ import { downloadViaApi } from "../lib/api";
 import { useCustomers } from "../hooks/crm";
 import { Loader2 } from "lucide-react";
 import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem, PendingPaymentDto, InstallmentPlanDto } from "@contracts/finance.contract";
+import { SampleBadge } from "../portal/SampleBadge";
+import { AiInsightCard } from "../design-system";
 
 const st2vm = (s: string): InvoiceStatus => s.toLowerCase() as InvoiceStatus;
 
@@ -40,23 +42,6 @@ const fmtC = (n: number, cur: Currency = "BDT") =>
   `${CURRENCY_SYMBOL[cur]} ${n.toLocaleString("en-BD")}`;
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
-interface Invoice {
-  id: string; date: string; dueDate: string;
-  customer: string; email: string; phone: string;
-  service: string; currency: Currency;
-  amount: number; paid: number; status: InvoiceStatus;
-  items: { desc: string; qty: number; rate: number; total: number }[];
-  notes?: string;
-}
-
-const INVOICES: Invoice[] = [
-  { id: "INV-2401", date: "Jul 1, 2024", dueDate: "Jul 15, 2024", customer: "Md. Abdullah Al-Mamun", email: "abdullah@gmail.com", phone: "+880 171-234-5678", service: "Hajj 2024 – Economy", currency: "BDT", amount: 520000, paid: 520000, status: "paid", items: [{ desc: "Hajj Package – Economy (1 person)", qty: 1, rate: 480000, total: 480000 }, { desc: "Visa Processing Fee", qty: 1, rate: 25000, total: 25000 }, { desc: "Airport Assistance", qty: 1, rate: 15000, total: 15000 }] },
-  { id: "INV-2402", date: "Jul 3, 2024", dueDate: "Jul 20, 2024", customer: "Rabeya Khatun", email: "rabeya.k@yahoo.com", phone: "+880 181-345-6789", service: "Umrah Ramadan – VIP", currency: "BDT", amount: 185000, paid: 92500, status: "partial", items: [{ desc: "Umrah Package – VIP (1 person)", qty: 1, rate: 165000, total: 165000 }, { desc: "Visa Fee", qty: 1, rate: 20000, total: 20000 }], notes: "Customer agreed to 2-installment plan." },
-  { id: "INV-2403", date: "Jul 5, 2024", dueDate: "Jul 12, 2024", customer: "NMT Travels Agency", email: "accounts@nmt-travels.com", phone: "+880 191-456-7890", service: "Saudi Visa × 15", currency: "BDT", amount: 450000, paid: 0, status: "overdue", items: [{ desc: "Saudi Tourist Visa", qty: 15, rate: 28000, total: 420000 }, { desc: "Handling Fee", qty: 15, rate: 2000, total: 30000 }] },
-  { id: "INV-2404", date: "Jul 8, 2024", dueDate: "Aug 5, 2024", customer: "Karim & Family", email: "akarim@gmail.com", phone: "+880 171-567-8901", service: "Malaysia 5N Tour × 3", currency: "BDT", amount: 215000, paid: 43000, status: "partial", items: [{ desc: "Malaysia 5N/6D Tour Package", qty: 3, rate: 65000, total: 195000 }, { desc: "Travel Insurance", qty: 3, rate: 5000, total: 15000 }, { desc: "Airport Pickup", qty: 1, rate: 5000, total: 5000 }] },
-  { id: "INV-2405", date: "Jul 10, 2024", dueDate: "Jul 25, 2024", customer: "Hosne Ara Begum", email: "hosne.a@gmail.com", phone: "+880 181-678-9012", service: "Hajj 2024 – Premium", currency: "BDT", amount: 680000, paid: 0, status: "sent", items: [{ desc: "Hajj Package – Premium (1 person)", qty: 1, rate: 620000, total: 620000 }, { desc: "Visa + Biometric", qty: 1, rate: 35000, total: 35000 }, { desc: "Pre-Hajj Training", qty: 1, rate: 25000, total: 25000 }] },
-  { id: "INV-2406", date: "Jun 28, 2024", dueDate: "Jul 10, 2024", customer: "Rahman Brothers", email: "info@rahmanbrothers.com", phone: "+880 191-789-0123", service: "Air Ticket × 4", currency: "BDT", amount: 88000, paid: 88000, status: "paid", items: [{ desc: "CGP-DAC Roundtrip Ticket", qty: 4, rate: 22000, total: 88000 }] },
-];
 
 const PAYMENT_HISTORY = [
   { id: "PAY-9041", date: "Jul 14", invoice: "INV-2401", customer: "Md. Abdullah Al-Mamun", amount: 520000, method: "Bank Transfer", gateway: "DBBL", status: "confirmed" as PayStatus },
@@ -66,11 +51,6 @@ const PAYMENT_HISTORY = [
   { id: "PAY-9037", date: "Jul 7", invoice: "INV-2403", customer: "NMT Travels Agency", amount: 150000, method: "Bank Transfer", gateway: "DBBL", status: "failed" as PayStatus },
 ];
 
-const REFUNDS = [
-  { id: "REF-041", date: "Jul 11", invoice: "INV-2390", customer: "Arif Hossain", reason: "Package cancelled – COVID", amount: 185000, method: "Bank Transfer", status: "approved" },
-  { id: "REF-040", date: "Jul 8", invoice: "INV-2381", customer: "Salma Begum", reason: "Visa rejected", amount: 25000, method: "bKash", status: "processed" },
-  { id: "REF-039", date: "Jul 5", invoice: "INV-2374", customer: "Hasan Khan", reason: "Flight cancelled", amount: 44000, method: "Nagad", status: "pending" },
-];
 
 const VOUCHERS = [
   { id: "VCH-001", code: "HAJJ100", type: "flat", value: 100, currency: "USD" as Currency, service: "Hajj Packages", used: 12, limit: 20, expires: "Aug 31", status: "active" },
@@ -146,7 +126,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
   icon: React.ElementType; color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", color)}>
           <Icon size={18} className="text-white" />
@@ -182,7 +162,7 @@ function PendingNpsbPanel({ compact }: { compact?: boolean }) {
 
   if (isLoading) {
     return (
-      <div className={cn("bg-white rounded-xl border border-slate-200 p-5", compact && "mb-5")}>
+      <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5", compact && "mb-5")}>
         <div className="flex items-center gap-2 text-sm text-slate-400"><Loader2 size={16} className="animate-spin"/> Loading pending NPSB…</div>
       </div>
     );
@@ -197,7 +177,7 @@ function PendingNpsbPanel({ compact }: { compact?: boolean }) {
   if (rows.length === 0 && compact) return null;
 
   return (
-    <div className={cn("bg-white rounded-xl border border-[#F15A24]/30 overflow-hidden", compact && "mb-5")}>
+    <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[#F15A24]/30 overflow-hidden", compact && "mb-5")}>
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-[#F15A24]/5">
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-[#F15A24]"/>
@@ -246,7 +226,7 @@ function PendingNpsbPanel({ compact }: { compact?: boolean }) {
               {rejectId === p.id && (
                 <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
                   <input value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="Rejection note (optional)"
-                    className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none"/>
+                    className="flex-1 px-3 py-2 text-xs border border-[var(--color-border)] rounded-lg focus:outline-none"/>
                   <button onClick={() => reject(p.id)} disabled={verify.isPending}
                     className="px-3 py-2 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50">Confirm reject</button>
                 </div>
@@ -279,7 +259,7 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           <p className="text-sm text-slate-500 mt-0.5">{data?.total ?? 0} invoices · manage all customer invoices</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={14} /> Export
           </button>
           <button onClick={onNew} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
@@ -287,6 +267,12 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           </button>
         </div>
       </div>
+      <AiInsightCard title="AI Finance Tips" collapsedByDefault>
+        <ul className="text-xs space-y-1.5 list-disc pl-4">
+          <li>{stats.overdue > 0 ? `${stats.overdue} invoice${stats.overdue === 1 ? "" : "s"} overdue — prioritize follow-up calls.` : "No overdue invoices — collections are on track."}</li>
+          <li>Outstanding balance: {fmtC(stats.totalDue)} across {stats.total} invoice{stats.total === 1 ? "" : "s"}.</li>
+        </ul>
+      </AiInsightCard>
       <PendingNpsbPanel compact/>
       <div className="grid grid-cols-4 gap-4">
         <KpiCard label="Total Billed" value={fmtC(stats.totalBilled)} icon={FileText} color="bg-[#1B75BC]" />
@@ -294,15 +280,15 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
         <KpiCard label="Outstanding" value={fmtC(stats.totalDue)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Overdue" value={String(stats.overdue)} icon={AlertTriangle} color="bg-red-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
           <div className="relative flex-1 max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input placeholder="Search invoices…" value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+              className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
           </div>
           <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value as InvoiceStatus | "all"); setPage(1); }}
-            className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+            className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none">
             <option value="all">All Statuses</option>
             {(Object.keys(INV_STATUS_CFG) as InvoiceStatus[]).map(s => (
               <option key={s} value={s}>{INV_STATUS_CFG[s].label}</option>
@@ -317,7 +303,7 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
         <div className="overflow-x-auto">
         <table className="w-full min-w-[900px]">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Invoice #", "Issued", "Due Date", "Customer", "Amount", "Paid", "Balance", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -360,7 +346,7 @@ function RecordPaymentDrawer({ invoice, onClose }: { invoice: InvoiceDetailDto; 
   };
   return (
     <Drawer open onClose={onClose} title="Record Payment" subtitle={`${invoice.invoiceNo} · due ${fmtC(invoice.dueAmount, invoice.currency as Currency)}`}
-      footer={<><button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={record.isPending || !(Number(amount) > 0)}>{record.isPending && <Loader2 size={13} className="animate-spin" />} Record Payment</PrimaryBtn></>}>
+      footer={<><button onClick={onClose} className="h-9 px-4 border border-[var(--color-border)] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={record.isPending || !(Number(amount) > 0)}>{record.isPending && <Loader2 size={13} className="animate-spin" />} Record Payment</PrimaryBtn></>}>
       <div className="flex flex-col gap-4">
         <Field label="Amount" required><input type="number" className={inputCls} value={amount} onChange={e => setAmount(e.target.value)} /></Field>
         <Field label="Method" required>
@@ -401,10 +387,10 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{inv.id}</span>
         <div className="ml-auto flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Send size={14} /> Send to Customer
           </button>
-          <button onClick={onPrint} className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button onClick={onPrint} className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> Print / PDF
           </button>
           {data.status === "DRAFT" && (
@@ -423,7 +409,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
       {payOpen && <RecordPaymentDrawer invoice={data} onClose={() => setPayOpen(false)} />}
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h3 className="text-2xl font-bold text-slate-800">{inv.id}</h3>
@@ -433,9 +419,9 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-600">BDH Travels & Tourism</p>
-                <p className="text-xs text-slate-400">23 Agrabad C/A, Chattogram</p>
-                <p className="text-xs text-slate-400">+880 31-716-4521</p>
+                <p className="text-sm font-medium text-slate-600">SM Travels International</p>
+                <p className="text-xs text-slate-400">smtravelsinternational.com</p>
+                <p className="text-xs text-slate-400">Govt. Licensed Hajj &amp; Umrah Operator</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-5 mb-6 p-4 bg-slate-50 rounded-lg">
@@ -453,7 +439,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
             </div>
             <table className="w-full mb-4">
               <thead>
-                <tr className="border-b border-slate-200">
+                <tr className="border-b border-[var(--color-border)]">
                   <th className="text-left text-xs font-semibold text-slate-500 pb-2">Description</th>
                   <th className="text-right text-xs font-semibold text-slate-500 pb-2 w-16">Qty</th>
                   <th className="text-right text-xs font-semibold text-slate-500 pb-2 w-32">Unit Price</th>
@@ -481,7 +467,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                   <span className="text-slate-500">VAT (5%)</span>
                   <span className="text-slate-700 font-mono">{fmtC(tax, inv.currency)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold border-t border-slate-200 pt-2">
+                <div className="flex justify-between text-sm font-bold border-t border-[var(--color-border)] pt-2">
                   <span className="text-slate-800">Total</span>
                   <span className="text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(total, inv.currency)}</span>
                 </div>
@@ -492,7 +478,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                   </div>
                 )}
                 {inv.amount - inv.paid > 0 && (
-                  <div className="flex justify-between text-sm font-bold text-red-600 border-t border-slate-200 pt-2">
+                  <div className="flex justify-between text-sm font-bold text-red-600 border-t border-[var(--color-border)] pt-2">
                     <span>Balance Due</span>
                     <span className="font-mono">{fmtC(inv.amount - inv.paid, inv.currency)}</span>
                   </div>
@@ -508,7 +494,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
           </div>
         </div>
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-4">Payment Summary</h4>
             <div className="space-y-3">
               <div>
@@ -525,7 +511,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
             </div>
           </div>
           {/* Payment history for this invoice */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Payments</h4>
             <div className="space-y-2">
               {data.payments.length === 0 && <p className="text-xs text-slate-400">No payments yet.</p>}
@@ -540,11 +526,11 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
               ))}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Actions</h4>
             <div className="space-y-2">
               {canPay && <button onClick={() => setPayOpen(true)} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg bg-[#1B75BC] text-white hover:bg-[#14588F]"><CreditCard size={14} /> Record Payment</button>}
-              <button onClick={onPrint} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><Download size={14} /> Print / PDF</button>
+              <button onClick={onPrint} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-[var(--color-border)] text-slate-600 hover:bg-slate-50"><Download size={14} /> Print / PDF</button>
               {data.status !== "CANCELLED" && data.paidAmount === 0 && (
                 <button onClick={() => cancel.mutate(data.id)} disabled={cancel.isPending} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-60"><XCircle size={14} /> Cancel Invoice</button>
               )}
@@ -558,10 +544,32 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
 
 // ─── Printable Invoice ────────────────────────────────────────────────────────
 function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack: () => void }) {
-  const inv = INVOICES.find(i => i.id === invoiceId)!;
-  if (!inv) return null;
-  const subtotal = inv.items.reduce((s, i) => s + i.total, 0);
-  const tax = Math.round(subtotal * 0.05);
+  const { data, isLoading, isError, error, refetch } = useInvoice(invoiceId);
+  if (isLoading) return <div className="p-6"><SkeletonTable rows={8} cols={4} /></div>;
+  if (isError || !data) {
+    return (
+      <div className="p-6">
+        <ErrorBanner message={(error as Error)?.message || "Invoice not found."} onRetry={() => refetch()} />
+        <button onClick={onBack} className="mt-3 text-sm text-[#1B75BC]">← Back</button>
+      </div>
+    );
+  }
+  const inv = {
+    id: data.invoiceNo || "DRAFT",
+    date: data.issueDate || "—",
+    dueDate: data.dueDate || "—",
+    customer: data.customerName || "—",
+    email: data.customerEmail || "",
+    phone: data.customerPhone || "",
+    service: data.items[0]?.description || "—",
+    currency: data.currency as Currency,
+    notes: data.notes,
+    status: st2vm(data.status),
+    items: data.items.map((it) => ({ desc: it.description, qty: it.qty, rate: it.unitPrice, total: it.amount })),
+  };
+  const subtotal = data.subtotal;
+  const tax = data.taxAmount;
+  const total = data.total;
 
   return (
     <div className="space-y-4">
@@ -569,31 +577,27 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
           <ArrowLeft size={16} /> Back
         </button>
-        <button className="ml-auto flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+        <button onClick={() => window.print()} className="ml-auto flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Printer size={14} /> Print
         </button>
       </div>
-      {/* A4 invoice preview */}
-      <div className="bg-white rounded-xl border border-slate-200 max-w-3xl mx-auto" style={{ minHeight: "297mm" }}>
-        {/* Header stripe */}
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] max-w-3xl mx-auto" style={{ minHeight: "297mm" }}>
         <div className="h-2 rounded-t-xl" style={{ background: "linear-gradient(90deg, #1B75BC 0%, #F15A24 100%)" }} />
         <div className="p-10">
-          {/* Company header */}
           <div className="flex items-start justify-between mb-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 rounded-xl bg-[#1B75BC] flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">BDH</span>
+                  <span className="text-white text-xs font-bold">SM</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-[#1B75BC]">BDH Travels & Tourism</h1>
-                  <p className="text-xs text-slate-500">Govt. Registered Hajj & Umrah Operator · License No. HA-2024-0421</p>
+                  <h1 className="text-2xl font-bold text-[#1B75BC]">SM Travels International</h1>
+                  <p className="text-xs text-slate-500">Govt. Registered Hajj &amp; Umrah Operator</p>
                 </div>
               </div>
               <div className="text-xs text-slate-500 space-y-0.5 mt-2">
-                <p>23 Agrabad C/A, Chattogram-4100, Bangladesh</p>
-                <p>Phone: +880 31-716-4521 · Email: info@bdhravels.com</p>
-                <p>Web: www.bdhtravels.com · Trade Lic: CTG-2019-0081234</p>
+                <p>smtravelsinternational.com</p>
+                <p>Email: info@smtravelsinternational.com</p>
               </div>
             </div>
             <div className="text-right">
@@ -616,7 +620,6 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </div>
           </div>
 
-          {/* Bill to */}
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div className="p-4 bg-slate-50 rounded-xl">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Bill To</p>
@@ -632,7 +635,6 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </div>
           </div>
 
-          {/* Items table */}
           <table className="w-full mb-6">
             <thead>
               <tr style={{ background: "#1B75BC" }}>
@@ -644,7 +646,7 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </thead>
             <tbody>
               {inv.items.map((item, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                <tr key={i} className={i % 2 === 0 ? "bg-[var(--color-surface)]" : "bg-slate-50"}>
                   <td className="px-4 py-3 text-sm text-slate-700">{item.desc}</td>
                   <td className="px-4 py-3 text-sm text-slate-500 text-right">{item.qty}</td>
                   <td className="px-4 py-3 text-sm text-slate-700 text-right font-mono">{fmtC(item.rate, inv.currency)}</td>
@@ -654,56 +656,37 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </tbody>
           </table>
 
-          {/* Totals */}
           <div className="flex justify-end mb-8">
             <div className="w-72 space-y-2">
-              {[
-                { label: "Subtotal", value: fmtC(subtotal, inv.currency), bold: false },
-                { label: "VAT (5%)", value: fmtC(tax, inv.currency), bold: false },
-              ].map(({ label, value, bold }) => (
-                <div key={label} className="flex justify-between text-sm">
-                  <span className="text-slate-500">{label}</span>
-                  <span className={cn("font-mono", bold ? "font-bold text-slate-800" : "text-slate-700")}>{value}</span>
-                </div>
-              ))}
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Subtotal</span>
+                <span className="font-mono text-slate-700">{fmtC(subtotal, inv.currency)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Tax</span>
+                <span className="font-mono text-slate-700">{fmtC(tax, inv.currency)}</span>
+              </div>
               <div className="flex justify-between font-bold border-t border-slate-300 pt-2">
                 <span className="text-slate-800">Total</span>
-                <span className="text-[#1B75BC] font-mono text-lg" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(subtotal + tax, inv.currency)}
-                </span>
+                <span className="text-[#1B75BC] font-mono text-lg">{fmtC(total, inv.currency)}</span>
               </div>
-              {inv.paid > 0 && (
+              {data.paidAmount > 0 && (
                 <div className="flex justify-between text-sm text-emerald-600">
                   <span>Amount Paid</span>
-                  <span className="font-mono">−{fmtC(inv.paid, inv.currency)}</span>
+                  <span className="font-mono">−{fmtC(data.paidAmount, inv.currency)}</span>
                 </div>
               )}
-              {inv.amount - inv.paid > 0 && (
+              {data.dueAmount > 0 && (
                 <div className="flex justify-between font-bold text-red-600 border-t border-red-200 pt-2">
                   <span>Balance Due</span>
-                  <span className="font-mono">{fmtC(inv.amount - inv.paid, inv.currency)}</span>
+                  <span className="font-mono">{fmtC(data.dueAmount, inv.currency)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="border-t border-slate-200 pt-6 grid grid-cols-2 gap-6">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Methods</p>
-              <div className="text-xs text-slate-600 space-y-1">
-                <p>Bank Transfer: DBBL A/C 1021-0110-0000-234 (Agrabad)</p>
-                <p>bKash Merchant: 01712-345-678</p>
-                <p>Nagad Merchant: 01812-345-678</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Terms & Conditions</p>
-              <p className="text-xs text-slate-500">Payment is due by the date shown above. Late payments are subject to a 2% monthly fee. All sales are final. Refund policy applies per service agreement.</p>
-            </div>
-          </div>
           <div className="text-center mt-6 pt-4 border-t border-slate-100">
-            <p className="text-xs text-slate-400">Thank you for choosing BDH Travels & Tourism · Serving pilgrims since 2001</p>
+            <p className="text-xs text-slate-400">Thank you for choosing SM Travels International</p>
           </div>
         </div>
       </div>
@@ -736,10 +719,10 @@ function ReceiptsView() {
           <p className="text-sm text-slate-500 mt-0.5">Issued payment receipts</p>
         </div>
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Receipt #", "Invoice", "Customer", "Amount", "Method", "Date", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -826,7 +809,7 @@ function PaymentCollectionView() {
       <PendingNpsbPanel/>
       {isError && <ErrorBanner message={(error as Error)?.message || "Failed to load invoices."} onRetry={() => refetch()} />}
       <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <h3 className="font-semibold text-slate-800 mb-5">Collect Payment</h3>
           {isLoading ? (
             <div className="flex justify-center py-12 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>
@@ -835,7 +818,7 @@ function PaymentCollectionView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Invoice / Booking</label>
               <select value={selectedInv} onChange={e => onSelectInvoice(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">Select invoice…</option>
                 {pending.map(i => (
                   <option key={i.id} value={i.id}>
@@ -848,12 +831,12 @@ function PaymentCollectionView() {
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Amount</label>
                 <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
                 <input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
               </div>
             </div>
             <div>
@@ -868,7 +851,7 @@ function PaymentCollectionView() {
                   <button key={id} type="button" onClick={() => !disabled && setMethod(id)} disabled={disabled}
                     className={cn("flex flex-col items-center gap-1 p-3 border rounded-lg text-xs transition-all",
                       disabled ? "border-slate-100 text-slate-300 cursor-not-allowed opacity-50" :
-                      method === id ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+                      method === id ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-[var(--color-border)] text-slate-600 hover:border-slate-300")}>
                     <Icon size={16} />
                     {label}
                     {disabled && <span className="text-[10px] text-slate-300">Soon</span>}
@@ -879,16 +862,16 @@ function PaymentCollectionView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Reference / Transaction ID</label>
               <input placeholder="TXN ID or cheque number…" value={reference} onChange={e => setReference(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Remarks</label>
               <textarea rows={2} placeholder="Optional remarks…"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
             </div>
             <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
               <button type="button" onClick={() => { setSelectedInv(""); setAmount(""); setReference(""); }}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+                className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
               <button type="button" onClick={submit} disabled={record.isPending || !selected || !(Number(amount) > 0)}
                 className="px-5 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50">
                 {record.isPending && <Loader2 size={14} className="animate-spin" />}
@@ -899,7 +882,7 @@ function PaymentCollectionView() {
           )}
         </div>
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Pending Collections</h4>
             {isLoading ? (
               <div className="flex justify-center py-8 text-slate-400"><Loader2 size={18} className="animate-spin" /></div>
@@ -989,7 +972,7 @@ function InstallmentBuilderView() {
       <h2 className="text-xl font-bold text-slate-800">Installment Plan Builder</h2>
       <div className="grid grid-cols-3 gap-5">
         {/* Builder */}
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <h3 className="font-semibold text-slate-800 mb-5">Create New Plan</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
@@ -1002,7 +985,7 @@ function InstallmentBuilderView() {
                   const inv = invoiceOptions.find(i => i.id === id);
                   if (inv) setTotalAmount(String(inv.dueAmount || inv.total));
                 }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none"
               >
                 <option value="">Select invoice…</option>
                 {invoiceOptions.map(i => (
@@ -1013,7 +996,7 @@ function InstallmentBuilderView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Total Amount (BDT)</label>
               <input type="number" value={totalAmount} onChange={e => setTotalAmount(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-5">
@@ -1050,7 +1033,7 @@ function InstallmentBuilderView() {
                   </div>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-bold">
+              <div className="flex justify-between pt-2 border-t border-[var(--color-border)] text-sm font-bold">
                 <span className="text-slate-800">Total</span>
                 <span className="font-mono text-[#1B75BC]">{fmtC(down + each * installments)}</span>
               </div>
@@ -1068,7 +1051,7 @@ function InstallmentBuilderView() {
           </div>
         </div>
         {/* Active plans tracker */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h4 className="font-semibold text-slate-800 mb-4">Active Plans</h4>
           {plansLoading ? (
             <div className="flex justify-center py-8 text-slate-400"><Loader2 size={18} className="animate-spin" /></div>
@@ -1151,7 +1134,7 @@ function DueManagementView() {
           <h2 className="text-xl font-bold text-slate-800">Due Management</h2>
           <p className="text-sm text-slate-500 mt-0.5">Aging analysis and follow-up</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
           <Send size={14} /> Send All Reminders
         </button>
       </div>
@@ -1164,7 +1147,7 @@ function DueManagementView() {
       </div>
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
             <h3 className="font-semibold text-slate-800 mb-4">Aging Analysis</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={agingData} margin={{ top: 5, right: 5, bottom: 5, left: 10 }}>
@@ -1182,7 +1165,7 @@ function DueManagementView() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h4 className="font-semibold text-slate-800 mb-4">Aging Summary</h4>
           <div className="space-y-3">
             {agingData.map(d => (
@@ -1195,7 +1178,7 @@ function DueManagementView() {
                 <span className="text-sm font-semibold text-slate-800 font-mono">{fmtC(d.amount)}</span>
               </div>
             ))}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 font-bold">
+            <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)] font-bold">
               <span className="text-sm text-slate-800">Total</span>
               <span className="text-sm text-slate-800 font-mono">{fmtC(stats.totalDue)}</span>
             </div>
@@ -1203,13 +1186,13 @@ function DueManagementView() {
         </div>
       </div>
       {/* Overdue invoices */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-semibold text-slate-800">Overdue & Pending Invoices</h3>
         </div>
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Invoice", "Customer", "Due Date", "Outstanding", "Days Overdue", "Status", "Action"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -1271,10 +1254,10 @@ function PaymentHistoryView() {
         <KpiCard label="Transactions" value={String(rows.length)} icon={Receipt} color="bg-blue-500" />
         <KpiCard label="Failed" value={String(failed.length)} icon={XCircle} color="bg-red-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Txn ID", "Invoice", "Customer", "Amount", "Method", "Date", "Status"].map((h) => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -1312,6 +1295,7 @@ function PaymentHistoryView() {
 function OnlinePaymentsView() {
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">Online Payments</h2>
       <div className="grid grid-cols-3 gap-4">
         {[
@@ -1319,7 +1303,7 @@ function OnlinePaymentsView() {
           { name: "Nagad", logo: "Na", color: "#F05A28", vol: 1850000, txn: 97, rate: "99.1%" },
           { name: "SSLCommerz", logo: "SSL", color: "#0065BD", vol: 2100000, txn: 62, rate: "97.8%" },
         ].map(gw => (
-          <div key={gw.name} className="bg-white rounded-xl border border-slate-200 p-5">
+          <div key={gw.name} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: gw.color }}>{gw.logo}</div>
@@ -1345,7 +1329,7 @@ function OnlinePaymentsView() {
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
         <h3 className="font-semibold text-slate-800 mb-4">Recent Online Transactions</h3>
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
@@ -1403,10 +1387,10 @@ function RefundsView() {
         <KpiCard label="Pending Approval" value={String(pending)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Processed" value={String(processed)} icon={CheckCircle} color="bg-emerald-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Ref ID", "Invoice", "Customer", "Reason", "Amount", "Method", "Date", "Status"].map((h) => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -1445,6 +1429,7 @@ function RefundsView() {
 function VouchersView() {
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Vouchers & Promo Codes</h2>
@@ -1456,8 +1441,8 @@ function VouchersView() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {VOUCHERS.map(v => (
-          <div key={v.id} className={cn("bg-white rounded-xl border p-5 relative overflow-hidden",
-            v.status === "expired" ? "border-slate-200 opacity-60" : "border-slate-200")}>
+          <div key={v.id} className={cn("bg-[var(--color-surface)] rounded-xl border p-5 relative overflow-hidden",
+            v.status === "expired" ? "border-[var(--color-border)] opacity-60" : "border-[var(--color-border)]")}>
             {v.status === "active" && (
               <div className="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">ACTIVE</div>
             )}
@@ -1524,7 +1509,7 @@ function CreateInvoiceDrawer({ onClose, onCreated }: { onClose: () => void; onCr
   };
   return (
     <Drawer open onClose={onClose} title="New Invoice" subtitle="Draft — a number is allocated on issue" width="max-w-[620px]"
-      footer={<><button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={create.isPending || !customerId || total <= 0}>{create.isPending && <Loader2 size={13} className="animate-spin" />} Create Draft</PrimaryBtn></>}>
+      footer={<><button onClick={onClose} className="h-9 px-4 border border-[var(--color-border)] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={create.isPending || !customerId || total <= 0}>{create.isPending && <Loader2 size={13} className="animate-spin" />} Create Draft</PrimaryBtn></>}>
       <div className="flex flex-col gap-4">
         <Field label="Customer" required>
           <select className={selectCls} value={customerId} onChange={e => setCustomerId(e.target.value)}>
@@ -1583,7 +1568,7 @@ export function InvoicesModule() {
   return (
     <div className="flex h-full min-h-screen bg-[#F0F2F5]">
       {/* Sub-nav */}
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
         <div className="px-4 py-4 border-b border-slate-100">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Invoices & Payments</h2>
         </div>

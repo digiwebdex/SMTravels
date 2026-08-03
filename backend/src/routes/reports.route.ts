@@ -4,6 +4,7 @@ import { requireAuth, requirePermission } from "../middleware/auth";
 import {
   overviewHandler, salesHandler, bookingsHandler, agentsHandler,
   serviceHandler, pnlHandler, balanceSheetHandler, cashFlowHandler, exportHandler,
+  customersHandler, notificationsHandler,
 } from "../controllers/reports.controller";
 
 // Reports & Analytics — READ-ONLY aggregation. Branch scoping is applied inside
@@ -15,6 +16,8 @@ reportsRouter.get("/reports/overview", requireAuth, view, asyncHandler(overviewH
 reportsRouter.get("/reports/sales", requireAuth, view, asyncHandler(salesHandler));
 reportsRouter.get("/reports/bookings", requireAuth, view, asyncHandler(bookingsHandler));
 reportsRouter.get("/reports/agents", requireAuth, view, asyncHandler(agentsHandler));
+reportsRouter.get("/reports/customers", requireAuth, view, asyncHandler(customersHandler));
+reportsRouter.get("/reports/notifications", requireAuth, view, asyncHandler(notificationsHandler));
 reportsRouter.get("/reports/service/:type", requireAuth, view, asyncHandler(serviceHandler));
 reportsRouter.get("/reports/pnl", requireAuth, view, asyncHandler(pnlHandler));
 reportsRouter.get("/reports/balance-sheet", requireAuth, view, asyncHandler(balanceSheetHandler));

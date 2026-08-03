@@ -9,8 +9,8 @@ import {
   GripVertical, Download, Circle as Dot, Server, Database, HardDrive,
   MoreHorizontal, TrendingUp, Copy, Loader2,
 } from "lucide-react";
-import { cn } from "../lib/utils";
 import { SampleBadge } from "../portal/SampleBadge";
+import { cn } from "../lib/utils";
 import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
 import { useUsers } from "../hooks/crm";
 import {
@@ -19,6 +19,7 @@ import {
   useAuditLogs,
   statusUi, statusApi, priUi, fmtDue, fmtDate, TASK_STATUSES,
 } from "../hooks/ops";
+import { ModulePage } from "../design-system";
 
 type OpsView =
   | "tasks" | "calendar" | "reminders" | "notifications"
@@ -42,7 +43,7 @@ const NAV: { id: OpsView; label: string; icon: React.ElementType; badge?: number
 const PRIORITY_CFG: Record<string, { chip: string; dot: string }> = {
   high:   { chip: "bg-red-50 text-red-600 border-red-200",       dot: "bg-red-500"    },
   medium: { chip: "bg-amber-50 text-amber-600 border-amber-200", dot: "bg-amber-400"  },
-  low:    { chip: "bg-slate-100 text-slate-500 border-slate-200",dot: "bg-slate-400"  },
+  low:    { chip: "bg-slate-100 text-slate-500 border-[var(--color-border)]",dot: "bg-slate-400"  },
 };
 const STATUS_CFG: Record<string, string> = {
   "todo":        "bg-slate-100 text-slate-500",
@@ -77,7 +78,7 @@ function Card({ title, children, action, className }: {
   title?: string; children: React.ReactNode; action?: React.ReactNode; className?: string;
 }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-slate-200 overflow-hidden", className)}>
+    <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden", className)}>
       {title && (
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
           <p className="font-semibold text-slate-800 text-sm">{title}</p>
@@ -145,10 +146,10 @@ function TasksView() {
           <div className="relative">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tasks…"
-              className="pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none w-48" />
+              className="pl-8 pr-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none w-48" />
           </div>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-600">
+            className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 text-slate-600">
             <option>All</option>
             {COLS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
@@ -156,7 +157,7 @@ function TasksView() {
             {(["board","list"] as const).map(v=>(
               <button key={v} onClick={()=>setMode(v)}
                 className={cn("px-3 py-1.5 text-xs rounded-md capitalize transition-colors",
-                  mode===v ? "bg-white shadow text-slate-700 font-medium" : "text-slate-500")}>{v}</button>
+                  mode===v ? "bg-[var(--color-surface)] shadow text-slate-700 font-medium" : "text-slate-500")}>{v}</button>
             ))}
           </div>
           <button type="button" onClick={() => tasksQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
@@ -170,25 +171,25 @@ function TasksView() {
       </div>
 
       {creating && (
-        <div className="bg-white rounded-xl border border-[#1B75BC]/20 p-5 mb-5 space-y-3">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[#1B75BC]/20 p-5 mb-5 space-y-3">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title…"
             className="w-full text-base font-semibold border-none focus:outline-none text-slate-800 placeholder:text-slate-300" />
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Description (optional)…"
             className="w-full text-sm text-slate-700 focus:outline-none resize-none placeholder:text-slate-300" />
           <div className="flex items-center gap-3 flex-wrap">
             <select value={priority} onChange={(e) => setPriority(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2">
+              className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2">
               <option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option>
             </select>
             <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2">
+              className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2">
               <option value="">Unassigned</option>
               {(usersQ.data ?? []).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
             <input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2" />
+              className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2" />
             <div className="flex gap-2 ml-auto">
-              <button onClick={() => setCreating(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600">Cancel</button>
+              <button onClick={() => setCreating(false)} className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600">Cancel</button>
               <button onClick={submitCreate} disabled={createM.isPending || !title.trim()}
                 className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg disabled:opacity-50 flex items-center gap-1.5">
                 {createM.isPending && <Loader2 size={13} className="animate-spin" />} Create
@@ -210,11 +211,11 @@ function TasksView() {
                   <div className="flex items-center gap-2">
                     <span className={cn("w-2 h-2 rounded-full", col.color)} />
                     <span className="text-xs font-semibold text-slate-600">{col.label}</span>
-                    <span className="text-xs bg-white text-slate-500 px-1.5 py-0.5 rounded-full border border-slate-200">{ct.length}</span>
+                    <span className="text-xs bg-[var(--color-surface)] text-slate-500 px-1.5 py-0.5 rounded-full border border-[var(--color-border)]">{ct.length}</span>
                   </div>
                 </div>
                 {ct.map(t=>(
-                  <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-3 hover:shadow-sm transition-shadow">
+                  <div key={t.id} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 hover:shadow-sm transition-shadow">
                     <div className="flex items-start gap-2 mb-2">
                       <button onClick={()=>toggle(t.id, t.statusUi)} className="mt-0.5 flex-shrink-0">
                         {t.statusUi==="done" ? <CheckCircle2 size={15} className="text-emerald-500 fill-emerald-500"/> : <Circle size={15} className="text-slate-300"/>}
@@ -229,7 +230,7 @@ function TasksView() {
                     <div className="flex items-center justify-between gap-1">
                       <PriBadge p={t.priUi}/>
                       <select value={t.statusUi} onChange={(e) => setStatus(t.id, e.target.value)}
-                        className="text-xs border border-slate-200 rounded px-1 py-0.5 text-slate-600">
+                        className="text-xs border border-[var(--color-border)] rounded px-1 py-0.5 text-slate-600">
                         {TASK_STATUSES.map((s) => <option key={s} value={s}>{s.replace("-", " ")}</option>)}
                       </select>
                     </div>
@@ -263,7 +264,7 @@ function TasksView() {
                 <td className="px-4 py-3"><PriBadge p={t.priUi}/></td>
                 <td className="px-4 py-3">
                   <select value={t.statusUi} onChange={(e) => setStatus(t.id, e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg px-2 py-1 text-slate-600">
+                    className="text-xs border border-[var(--color-border)] rounded-lg px-2 py-1 text-slate-600">
                     {TASK_STATUSES.map((s) => <option key={s} value={s}>{s.replace("-", " ")}</option>)}
                   </select>
                 </td>
@@ -301,14 +302,14 @@ function CalendarView() {
     <div>
       <SampleBadge />
     <div className="grid grid-cols-3 gap-5">
-      <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+      <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-800">July 2024</h3>
           <div className="flex items-center gap-2">
             <button className="p-1.5 hover:bg-slate-100 rounded-lg"><ChevronLeft size={14} className="text-slate-500"/></button>
-            <button className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">Today</button>
+            <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50">Today</button>
             <button className="p-1.5 hover:bg-slate-100 rounded-lg"><ChevronRight size={14} className="text-slate-500"/></button>
-            <select className="text-sm border border-slate-200 rounded-lg px-2 py-1.5"><option>Month</option><option>Week</option></select>
+            <select className="text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5"><option>Month</option><option>Week</option></select>
           </div>
         </div>
         <div className="grid grid-cols-7 mb-1">
@@ -340,7 +341,7 @@ function CalendarView() {
           <button className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline"><Plus size={11}/> Add</button>
         </div>
         {CAL_EVENTS.filter(e=>e.date>=TODAY).slice(0,6).map(e=>(
-          <div key={e.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200">
+          <div key={e.id} className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
               style={{ background: e.color }}>{e.date}</div>
             <div><p className="text-sm font-medium text-slate-700">{e.title}</p>
@@ -378,8 +379,8 @@ function RemindersView() {
       </div>
       <div className="space-y-2">
         {items.map(r=>(
-          <div key={r.id} className={cn("flex items-center gap-4 p-4 rounded-xl border bg-white transition-all",
-            r.done ? "opacity-50 border-slate-100" : "border-slate-200")}>
+          <div key={r.id} className={cn("flex items-center gap-4 p-4 rounded-xl border bg-[var(--color-surface)] transition-all",
+            r.done ? "opacity-50 border-slate-100" : "border-[var(--color-border)]")}>
             <button onClick={()=>setItems(i=>i.map(x=>x.id===r.id?{...x,done:!x.done}:x))}>
               {r.done ? <CheckCircle2 size={18} className="text-emerald-500 fill-emerald-500"/>
                       : <Circle size={18} className="text-slate-300 hover:text-[#1B75BC]"/>}
@@ -417,7 +418,7 @@ function NotificationsView() {
         <div><h2 className="text-xl font-bold text-slate-800">Notifications</h2><p className="text-sm text-slate-500">{unread} unread</p></div>
         <div className="flex gap-2">
           <button onClick={() => markAll.mutate()} disabled={markAll.isPending || unread === 0}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
             <Check size={13}/> Mark all read
           </button>
           <button type="button" onClick={() => q.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
@@ -432,7 +433,7 @@ function NotificationsView() {
         {items.map(n=>(
           <div key={n.id}
             className={cn("flex items-start gap-4 p-4 rounded-xl border transition-all",
-              n.read ? "bg-white border-slate-100" : "bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
+              n.read ? "bg-[var(--color-surface)] border-slate-100" : "bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#1B75BC]/10">
               <Bell size={16} className="text-[#1B75BC]" style={n.color ? { color: n.color } : undefined} />
             </div>
@@ -486,7 +487,7 @@ function AnnouncementsView() {
         </div>
       </div>
       {composing && (
-        <div className="bg-white rounded-xl border border-[#1B75BC]/20 p-5 mb-5 space-y-3">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[#1B75BC]/20 p-5 mb-5 space-y-3">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title…"
             className="w-full text-base font-semibold border-none focus:outline-none text-slate-800 placeholder:text-slate-300"/>
           <div className="h-px bg-slate-100"/>
@@ -494,14 +495,14 @@ function AnnouncementsView() {
             className="w-full text-sm text-slate-700 focus:outline-none resize-none placeholder:text-slate-300"/>
           <div className="flex items-center gap-3 flex-wrap">
             <select value={audience} onChange={(e) => setAudience(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-2">
+              className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2">
               <option>All Staff</option><option>Sales Team</option><option>Visa Team</option><option>Accounts</option>
             </select>
             <label className="flex items-center gap-1.5 text-sm text-slate-600 cursor-pointer">
               <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="rounded"/> Pin announcement
             </label>
             <div className="flex gap-2 ml-auto">
-              <button onClick={()=>setComposing(false)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600">Cancel</button>
+              <button onClick={()=>setComposing(false)} className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600">Cancel</button>
               <button onClick={submit} disabled={createM.isPending || !title.trim() || !body.trim()}
                 className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg disabled:opacity-50 flex items-center gap-1.5">
                 {createM.isPending && <Loader2 size={13} className="animate-spin" />} Post
@@ -515,7 +516,7 @@ function AnnouncementsView() {
       ) : (
       <div className="space-y-3">
         {items.map(a=>(
-          <div key={a.id} className={cn("bg-white rounded-xl border p-5", a.pinned?"border-[#F15A24]/40 bg-[#F15A24]/3":"border-slate-200")}>
+          <div key={a.id} className={cn("bg-[var(--color-surface)] rounded-xl border p-5", a.pinned?"border-[#F15A24]/40 bg-[#F15A24]/3":"border-[var(--color-border)]")}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 {a.pinned && <span className="flex items-center gap-1 text-xs text-[#D64A12] font-medium"><Flag size={11} className="fill-[#F15A24]"/> Pinned</span>}
@@ -560,12 +561,12 @@ function ChatView() {
   return (
     <div>
       <SampleBadge />
-    <div className="flex h-[580px] bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="flex h-[580px] bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
       {/* Sidebar */}
       <div className="w-56 border-r border-slate-100 flex flex-col flex-shrink-0">
         <div className="p-3 border-b border-slate-100">
           <div className="relative"><Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"/>
-            <input placeholder="Search…" className="w-full pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none"/></div>
+            <input placeholder="Search…" className="w-full pl-7 pr-2 py-1.5 text-xs border border-[var(--color-border)] rounded-lg focus:outline-none"/></div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {CHAT_LIST.map((u,i)=>(
@@ -643,9 +644,9 @@ function ActivityView() {
       <div className="flex items-center justify-between mb-5">
         <div><h2 className="text-xl font-bold text-slate-800">Activity Logs</h2><p className="text-sm text-slate-500">All staff actions across the system</p></div>
         <div className="flex gap-2">
-          <select className="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-600"><option>All Users</option></select>
-          <select className="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-600"><option>All Modules</option></select>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600"><Download size={13}/> Export</button>
+          <select className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 text-slate-600"><option>All Users</option></select>
+          <select className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 text-slate-600"><option>All Modules</option></select>
+          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600"><Download size={13}/> Export</button>
         </div>
       </div>
       <Card>
@@ -742,7 +743,7 @@ const WF_NODES = [
 const NODE_CLS: Record<string,string> = {
   trigger:  "bg-[#1B75BC] text-white",
   decision: "bg-[#F15A24] text-white",
-  action:   "bg-white text-slate-700 border-2 border-slate-200",
+  action:   "bg-[var(--color-surface)] text-slate-700 border-2 border-[var(--color-border)]",
   end:      "bg-[#0E7C66] text-white",
 };
 
@@ -760,7 +761,7 @@ function WorkflowView() {
           {WF_LIST.map(wf=>(
             <button key={wf.id} onClick={()=>setSel(wf.id)}
               className={cn("w-full text-left p-4 rounded-xl border transition-all",
-                sel===wf.id?"border-[#1B75BC] bg-[#1B75BC]/5":"border-slate-200 bg-white hover:bg-slate-50")}>
+                sel===wf.id?"border-[#1B75BC] bg-[#1B75BC]/5":"border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-slate-50")}>
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-semibold text-slate-800">{wf.name}</p>
                 <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
@@ -770,11 +771,11 @@ function WorkflowView() {
             </button>
           ))}
         </div>
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <div className="flex items-center justify-between mb-5">
             <p className="font-semibold text-slate-800">{WF_LIST.find(w=>w.id===sel)?.name}</p>
             <div className="flex gap-2">
-              <button className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 flex items-center gap-1.5"><Edit2 size={12}/> Edit</button>
+              <button className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 flex items-center gap-1.5"><Edit2 size={12}/> Edit</button>
               <button className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg flex items-center gap-1.5"><Zap size={12}/> Run Now</button>
             </div>
           </div>
@@ -805,7 +806,7 @@ function WorkflowView() {
               ].map(([key,val],i)=>(
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1B75BC]/10 text-[#1B75BC] font-semibold">{key}</span>
-                  <span className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">{val}</span>
+                  <span className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 border border-[var(--color-border)]">{val}</span>
                   {i<2&&<span className="text-xs text-slate-400 font-medium">AND</span>}
                 </div>
               ))}
@@ -834,7 +835,7 @@ function DocumentsView() {
         <div><h2 className="text-xl font-bold text-slate-800">Document Manager</h2><p className="text-sm text-slate-500">Internal SOPs and operational documents</p></div>
         <button className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={14}/> Upload</button>
       </div>
-      <div className="border-2 border-dashed border-slate-200 rounded-xl p-5 mb-4 text-center hover:border-slate-300 cursor-pointer">
+      <div className="border-2 border-dashed border-[var(--color-border)] rounded-xl p-5 mb-4 text-center hover:border-slate-300 cursor-pointer">
         <FolderOpen size={22} className="text-slate-300 mx-auto mb-1.5"/>
         <p className="text-sm text-slate-400">Drag & drop files here to upload</p>
       </div>
@@ -876,45 +877,49 @@ function DocumentsView() {
 export function OperationsModule() {
   const [view, setView] = useState<OpsView>("tasks");
   return (
-    <div className="flex h-full min-h-screen bg-[#F0F2F5]">
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="px-4 py-4 border-b border-slate-100">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Operations</h2>
-        </div>
-        <nav className="flex-1 py-2 overflow-y-auto no-scrollbar">
-          {NAV.map(item=>{
-            const cls = cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-              view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50");
-            if (item.id === "documents") {
+    <div className="p-5 md:p-7">
+      <ModulePage title="Operations" subtitle="Tasks, calendar, reminders & internal workflows">
+      <div className="flex min-h-[70vh] rounded-[var(--radius-lg)] border border-[var(--color-border)] overflow-hidden bg-[#F0F2F5]">
+        <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
+          <div className="px-4 py-4 border-b border-slate-100">
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Operations</h2>
+          </div>
+          <nav className="flex-1 py-2 overflow-y-auto no-scrollbar">
+            {NAV.map(item=>{
+              const cls = cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
+                view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50");
+              if (item.id === "documents") {
+                return (
+                  <Link key={item.id} to="/erp/documents" className={cls}>
+                    <item.icon size={15} className="text-slate-400"/>
+                    <span className="flex-1 text-left">{item.label}</span>
+                  </Link>
+                );
+              }
               return (
-                <Link key={item.id} to="/erp/documents" className={cls}>
-                  <item.icon size={15} className="text-slate-400"/>
-                  <span className="flex-1 text-left">{item.label}</span>
-                </Link>
+              <button key={item.id} onClick={()=>setView(item.id)}
+                className={cls}>
+                <item.icon size={15} className={view===item.id?"text-[#1B75BC]":"text-slate-400"}/>
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.badge && <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>}
+              </button>
               );
-            }
-            return (
-            <button key={item.id} onClick={()=>setView(item.id)}
-              className={cls}>
-              <item.icon size={15} className={view===item.id?"text-[#1B75BC]":"text-slate-400"}/>
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.badge && <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>}
-            </button>
-            );
-          })}
-        </nav>
+            })}
+          </nav>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          {view==="tasks"         && <TasksView/>}
+          {view==="calendar"      && <CalendarView/>}
+          {view==="reminders"     && <RemindersView/>}
+          {view==="notifications" && <NotificationsView/>}
+          {view==="announcements" && <AnnouncementsView/>}
+          {view==="chat"          && <ChatView/>}
+          {view==="activity"      && <ActivityView/>}
+          {view==="audit"         && <AuditView/>}
+          {view==="workflow"      && <WorkflowView/>}
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-6">
-        {view==="tasks"         && <TasksView/>}
-        {view==="calendar"      && <CalendarView/>}
-        {view==="reminders"     && <RemindersView/>}
-        {view==="notifications" && <NotificationsView/>}
-        {view==="announcements" && <AnnouncementsView/>}
-        {view==="chat"          && <ChatView/>}
-        {view==="activity"      && <ActivityView/>}
-        {view==="audit"         && <AuditView/>}
-        {view==="workflow"      && <WorkflowView/>}
-      </div>
+      </ModulePage>
     </div>
   );
 }

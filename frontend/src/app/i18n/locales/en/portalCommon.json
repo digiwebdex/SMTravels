@@ -26,7 +26,10 @@
     "tasks": "Tasks",
     "requests": "Requests",
     "services": "Services",
-    "voucher": "Download Voucher"
+    "voucher": "Download Voucher",
+    "visaStatus": "Visa Status",
+    "downloads": "Downloads",
+    "aiAssistant": "AI Assistant"
   },
   "status": {
     "confirmed": "Confirmed",

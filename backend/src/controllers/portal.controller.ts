@@ -14,6 +14,8 @@ export async function dashboardHandler(req: Request, res: Response) { res.json(a
 
 export async function bookingsHandler(req: Request, res: Response) { res.json({ data: await portal.listBookings(req.auth!) }); }
 export async function bookingHandler(req: Request, res: Response) { res.json(await portal.getBooking(req.auth!, req.params.id)); }
+export async function visasHandler(req: Request, res: Response) { res.json({ data: await portal.listVisas(req.auth!) }); }
+export async function downloadsHandler(req: Request, res: Response) { res.json({ data: await portal.listDownloads(req.auth!) }); }
 
 export async function invoicesHandler(req: Request, res: Response) { res.json({ data: await portal.listInvoices(req.auth!) }); }
 export async function invoiceHandler(req: Request, res: Response) { res.json(await portal.getInvoice(req.auth!, req.params.id)); }

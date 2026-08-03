@@ -7,7 +7,10 @@ import {
   ChevronRight, ChevronDown, ChevronLeft, Layers, RefreshCw,
   Users, UserPlus, Grid, List, FilePlus, FolderOpen, Loader2,
 } from "lucide-react";
+import { SampleBadge } from "../portal/SampleBadge";
 import { cn } from "../lib/utils";
+import { OcrInFlow } from "../design-system/ai/OcrInFlow";
+import { ModulePage } from "../design-system/patterns/ModulePage";
 import { useErpDocuments, useUploadDocument, downloadDocumentFile, useUpdateDocumentStatus } from "../hooks/documents";
 import { useRunOcr } from "../hooks/ocr";
 import { useCustomers } from "../hooks/crm";
@@ -71,12 +74,12 @@ function DocLibrary() {
   const updateStatus = useUpdateDocumentStatus();
   const rows: DocumentDto[] = q.data?.data ?? [];
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
         <div className="relative flex-1 max-w-xs">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input placeholder="Search documents…" value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+            className="w-full pl-9 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
         </div>
         <div className="flex items-center gap-0.5 ml-auto">
           <button onClick={() => setViewMode("list")} className={cn("p-1.5 rounded", viewMode === "list" ? "bg-slate-100 text-slate-800" : "text-slate-400 hover:text-slate-600")}>
@@ -157,7 +160,7 @@ function DocLibrary() {
         <div className="grid grid-cols-4 gap-3 p-4">
           {rows.map(doc => (
             <div key={doc.id} onClick={() => doc.hasFile && void downloadDocumentFile(doc)}
-              className="border border-slate-200 rounded-xl p-4 hover:border-[#1B75BC]/30 hover:bg-slate-50 cursor-pointer transition-all">
+              className="border border-[var(--color-border)] rounded-xl p-4 hover:border-[#1B75BC]/30 hover:bg-slate-50 cursor-pointer transition-all">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mb-3">
                 <FileText size={18} className="text-red-500" />
               </div>
@@ -245,7 +248,7 @@ function UploadView() {
         onClick={() => fileInput.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-2xl flex flex-col items-center justify-center py-16 transition-all cursor-pointer",
-          dragging ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-slate-300 bg-white hover:border-[#1B75BC]/40 hover:bg-slate-50"
+          dragging ? "border-[#1B75BC] bg-[#1B75BC]/5" : "border-slate-300 bg-[var(--color-surface)] hover:border-[#1B75BC]/40 hover:bg-slate-50"
         )}>
         <input ref={fileInput} type="file" multiple className="hidden" accept=".pdf,.jpg,.jpeg,.png"
           onChange={e => { addFiles(e.target.files); e.target.value = ""; }} />
@@ -264,7 +267,7 @@ function UploadView() {
 
       <div className="grid grid-cols-3 gap-5">
         {/* Upload queue */}
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h3 className="font-semibold text-slate-800 mb-4">Upload Queue</h3>
           {queue.length === 0 ? (
             <p className="text-sm text-slate-400">No files selected yet.</p>
@@ -304,20 +307,20 @@ function UploadView() {
         </div>
 
         {/* Metadata form — applies to every queued file */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h3 className="font-semibold text-slate-800 mb-4">Document Metadata</h3>
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Document Type</label>
               <select value={docType} onChange={e => setDocType(e.target.value as DocumentTypeDto)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 {DOCUMENT_TYPES.map(t => <option key={t} value={t}>{prettyType(t)}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Customer / Owner</label>
               <select value={customerId} onChange={e => setCustomerId(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">Select customer…</option>
                 {(customers.data?.data ?? []).map(c => <option key={c.id} value={c.id}>{c.name} — {c.phone}</option>)}
               </select>
@@ -325,7 +328,7 @@ function UploadView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Expiry Date (optional)</label>
               <input type="date" value={expiryAt} onChange={e => setExpiryAt(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
             <p className="text-xs text-slate-400">OCR fields are manual entry — review documents after upload.</p>
             <button onClick={() => void startUpload()} disabled={!customerId || pending === 0}
@@ -368,13 +371,23 @@ function OcrView() {
 
   return (
     <div className="space-y-5">
+      <SampleBadge />
+      <OcrInFlow
+        title="OCR in flow"
+        onUpload={async () => {
+          /* Wire via existing useRunOcr when a live file picker is attached */
+          return Object.fromEntries(fields.map((f) => [f.field, f.extracted]));
+        }}
+        onApply={() => { /* apply into form fields — SampleBadge surface */ }}
+        previewFields={Object.fromEntries(fields.map((f) => [f.field, f.extracted]))}
+      />
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">OCR Validation</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Review and correct extracted field data</p>
+          <h2 className="text-xl font-bold text-[var(--color-text)]">OCR Validation</h2>
+          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Review and correct extracted field data</p>
           {ocrDocs.length > 0 && (
             <select value={activeId ?? ""} onChange={(e) => setSelected(e.target.value || null)}
-              className="mt-2 text-xs border border-slate-200 rounded-lg px-2 py-1">
+              className="mt-2 text-xs border border-[var(--color-border)] rounded-lg px-2 py-1">
               {ocrDocs.map((d) => <option key={d.id} value={d.id}>{d.name} — {d.ownerLabel ?? d.id}</option>)}
             </select>
           )}
@@ -383,7 +396,7 @@ function OcrView() {
           <button
             onClick={() => activeId && runOcr.mutate(activeId)}
             disabled={!activeId || runOcr.isPending}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">
             {runOcr.isPending ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             Re-run OCR
           </button>
@@ -396,7 +409,7 @@ function OcrView() {
       <div className="grid grid-cols-5 gap-5">
         {/* Document preview pane */}
         <div className="col-span-2 space-y-3">
-          <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
             <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
               <p className="text-sm font-semibold text-slate-700">Document Preview</p>
               <div className="flex gap-1">
@@ -444,7 +457,7 @@ function OcrView() {
             </div>
           </div>
           {/* Validation summary */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
             <div className="flex items-center gap-3 mb-3">
               {failed > 0 ? (
                 <AlertTriangle size={18} className="text-red-500" />
@@ -465,7 +478,7 @@ function OcrView() {
         </div>
 
         {/* Extracted fields */}
-        <div className="col-span-3 bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="col-span-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
           <div className="px-5 py-3.5 border-b border-slate-100">
             <p className="text-sm font-semibold text-slate-800">Extracted Fields</p>
             <p className="text-xs text-slate-400 mt-0.5">Click any row to correct a value</p>
@@ -556,7 +569,7 @@ function VersionsView() {
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Version Control</h2>
       <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-1 bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="col-span-1 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
             <p className="text-sm font-semibold text-slate-800">Version History</p>
             <p className="text-xs text-slate-400">Passport_Abdullah_Al-Mamun.pdf</p>
@@ -568,8 +581,8 @@ function VersionsView() {
               <div key={i} onClick={() => setSelected(i)}
                 className={cn("relative flex gap-3 pb-5 cursor-pointer", i === VERSIONS.length - 1 && "pb-0")}>
                 <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 z-10 mt-0.5 transition-all",
-                  v.current ? "border-[#1B75BC] bg-[#1B75BC]" : selected === i ? "border-[#1B75BC] bg-white" : "border-slate-300 bg-white")}>
-                  {v.current && <div className="w-2 h-2 rounded-full bg-white" />}
+                  v.current ? "border-[#1B75BC] bg-[#1B75BC]" : selected === i ? "border-[#1B75BC] bg-[var(--color-surface)]" : "border-slate-300 bg-[var(--color-surface)]")}>
+                  {v.current && <div className="w-2 h-2 rounded-full bg-[var(--color-surface)]" />}
                 </div>
                 <div className={cn("flex-1 p-3 rounded-lg border transition-all",
                   selected === i ? "border-[#1B75BC]/30 bg-[#1B75BC]/5" : "border-transparent hover:bg-slate-50")}>
@@ -586,17 +599,17 @@ function VersionsView() {
           </div>
         </div>
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-semibold text-slate-800">{VERSIONS[selected].v} — {VERSIONS[selected].note}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{VERSIONS[selected].date} · {VERSIONS[selected].user} · {VERSIONS[selected].size}</p>
               </div>
               <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                   <Eye size={13} /> Preview
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                   <Download size={13} /> Download
                 </button>
                 {!VERSIONS[selected].current && (
@@ -629,7 +642,7 @@ function VersionsView() {
               { label:"Last Modified", value:"Jul 14" },
               { label:"Total Changes", value:"3" },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-white rounded-xl border border-slate-200 p-4 text-center">
+              <div key={label} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 text-center">
                 <p className="text-2xl font-bold text-slate-800">{value}</p>
                 <p className="text-xs text-slate-500 mt-1">{label}</p>
               </div>
@@ -664,7 +677,7 @@ function SignatureView() {
       <div className="grid grid-cols-3 gap-5">
         {/* Document + signature pad */}
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
                 <FileText size={18} className="text-red-500" />
@@ -674,10 +687,10 @@ function SignatureView() {
                 <p className="text-xs text-slate-400">3 signatures required · 2 collected</p>
               </div>
               <div className="ml-auto flex gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                   <Eye size={13} /> Preview
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+                <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                   <Send size={13} /> Send Reminder
                 </button>
               </div>
@@ -702,9 +715,9 @@ function SignatureView() {
               </div>
               <div className="flex gap-2 mt-2">
                 {["Draw","Type","Upload Image"].map(m => (
-                  <button key={m} className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">{m}</button>
+                  <button key={m} className="px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">{m}</button>
                 ))}
-                <button onClick={() => setCanvasActive(false)} className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 ml-auto">
+                <button onClick={() => setCanvasActive(false)} className="px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-500 ml-auto">
                   Clear
                 </button>
                 <button className="px-4 py-1.5 text-xs bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
@@ -715,7 +728,7 @@ function SignatureView() {
           </div>
         </div>
         {/* Signer list */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
           <div className="px-4 py-3.5 border-b border-slate-100">
             <p className="text-sm font-semibold text-slate-800">Signers</p>
           </div>
@@ -778,7 +791,7 @@ function ExpiryView() {
           { label:"Expiring ≤90d",count:1, color:"bg-amber-500" },
           { label:"Valid",       count:3, color:"bg-emerald-500"},
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-slate-200 p-5 text-center">
+          <div key={s.label} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 text-center">
             <div className={cn("w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center", s.color)}>
               <Bell size={18} className="text-white" />
             </div>
@@ -787,10 +800,10 @@ function ExpiryView() {
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Document","Type","Customer","Expiry Date","Days Left","Status","Action"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -823,7 +836,7 @@ function ExpiryView() {
           </tbody>
         </table>
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
         <h3 className="font-semibold text-slate-800 mb-4">Alert Settings</h3>
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -833,7 +846,7 @@ function ExpiryView() {
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-xs font-medium text-slate-600 mb-1">{label}</p>
-              <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" defaultValue={value}>
+              <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" defaultValue={value}>
                 {["90 days before","60 days before","30 days before","14 days before","7 days before"].map(o => <option key={o}>{o}</option>)}
               </select>
             </div>
@@ -862,14 +875,14 @@ function SharingView() {
           <DocLibrary />
         </div>
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h3 className="font-semibold text-slate-800 mb-4">Share Document</h3>
             <p className="text-xs text-slate-500 mb-3">Passport_Abdullah_Al-Mamun.pdf</p>
             <div className="flex gap-2 mb-4">
               {(["link","email"] as const).map(m => (
                 <button key={m} onClick={() => setShareMode(m)}
                   className={cn("flex-1 py-2 text-sm rounded-lg font-medium transition-all",
-                    shareMode === m ? "bg-[#1B75BC] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50")}>
+                    shareMode === m ? "bg-[#1B75BC] text-white" : "border border-[var(--color-border)] text-slate-600 hover:bg-slate-50")}>
                   {m === "link" ? "Link" : "Email"}
                 </button>
               ))}
@@ -878,17 +891,17 @@ function SharingView() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Access Level</label>
-                  <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                     <option>View only</option><option>Download</option><option>Full access</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Expires After</label>
-                  <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                     <option>7 days</option><option>30 days</option><option>Never</option>
                   </select>
                 </div>
-                <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-[var(--color-border)]">
                   <span className="text-xs text-slate-500 flex-1 truncate">https://bdh.app/share/abc123…</span>
                   <button className="p-1.5 hover:bg-slate-100 rounded"><Copy size={12} className="text-slate-400" /></button>
                 </div>
@@ -900,17 +913,17 @@ function SharingView() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Recipient Email</label>
-                  <input placeholder="email@example.com" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+                  <input placeholder="email@example.com" className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Message (optional)</label>
-                  <textarea rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
+                  <textarea rows={2} className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
                 </div>
                 <button className="w-full py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Send</button>
               </div>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Active Share Links</h4>
             <div className="space-y-2">
               {[
@@ -944,9 +957,9 @@ function WatermarkView() {
       <h2 className="text-xl font-bold text-slate-800">Watermark Tool</h2>
       <div className="grid grid-cols-3 gap-5">
         {/* Preview */}
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <p className="text-sm font-semibold text-slate-800 mb-3">Preview</p>
-          <div className="relative bg-slate-50 rounded-xl border border-slate-200 overflow-hidden" style={{ minHeight: 340 }}>
+          <div className="relative bg-slate-50 rounded-xl border border-[var(--color-border)] overflow-hidden" style={{ minHeight: 340 }}>
             {/* Simulated doc content */}
             <div className="p-8 space-y-3">
               {[80, 60, 72, 55, 65, 40, 70].map((w, i) => (
@@ -972,13 +985,13 @@ function WatermarkView() {
           </div>
         </div>
         {/* Controls */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h3 className="font-semibold text-slate-800 mb-4">Watermark Settings</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Watermark Text</label>
               <input value={text} onChange={e => setText(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Opacity: {opacity}%</label>
@@ -993,7 +1006,7 @@ function WatermarkView() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Position</label>
               <select value={position} onChange={e => setPosition(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 {["center","tile","top-left","bottom-right"].map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
@@ -1002,7 +1015,7 @@ function WatermarkView() {
               <div className="grid grid-cols-2 gap-1.5">
                 {["CONFIDENTIAL","DRAFT","COPY","VOID"].map(t => (
                   <button key={t} onClick={() => setText(t)}
-                    className="py-1.5 text-xs border border-slate-200 rounded-lg hover:border-[#1B75BC] hover:text-[#1B75BC] transition-colors text-slate-600">
+                    className="py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:border-[#1B75BC] hover:text-[#1B75BC] transition-colors text-slate-600">
                     {t}
                   </button>
                 ))}
@@ -1032,13 +1045,13 @@ function TrashView() {
         {(["trash","archive"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn("px-4 py-2 text-sm rounded-lg font-medium capitalize transition-all",
-              tab === t ? "bg-[#1B75BC] text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50")}>
+              tab === t ? "bg-[#1B75BC] text-white" : "border border-[var(--color-border)] text-slate-600 hover:bg-slate-50")}>
             {t === "trash" ? <><Trash2 size={13} className="inline mr-1" />Trash ({TRASH_DOCS.length})</> : <><Archive size={13} className="inline mr-1" />Archive</>}
           </button>
         ))}
       </div>
       {tab === "trash" ? (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
           <div className="px-4 py-3 bg-red-50 border-b border-red-100 flex items-center gap-2">
             <AlertTriangle size={14} className="text-red-500" />
             <p className="text-sm text-red-700">Items in trash are permanently deleted after 30 days</p>
@@ -1077,11 +1090,11 @@ function TrashView() {
           </table>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-8 text-center">
           <Archive size={32} className="text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500 font-medium">No archived documents</p>
           <p className="text-sm text-slate-400 mt-1">Archived files are stored indefinitely and can be restored at any time</p>
-          <button className="mt-4 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="mt-4 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             Archive Selected Documents
           </button>
         </div>
@@ -1109,32 +1122,36 @@ export function DocumentsModule() {
   };
 
   return (
-    <div className="flex h-full min-h-screen bg-[#F0F2F5]">
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="px-4 py-4 border-b border-slate-100">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Documents</h2>
-        </div>
-        <nav className="flex-1 py-2 no-scrollbar overflow-y-auto">
-          {NAV.map(item => (
-            <button key={item.id} onClick={() => setView(item.id)}
-              className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                view === item.id ? "bg-[#1B75BC]/8 text-[#1B75BC] font-medium" : "text-slate-600 hover:bg-slate-50")}>
-              <item.icon size={15} className={view === item.id ? "text-[#1B75BC]" : "text-slate-400"} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-slate-100">
-          <div className="text-xs text-slate-400 mb-1">Storage used</div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
-            <div className="h-full bg-[#1B75BC] rounded-full" style={{ width: "34%" }} />
+    <div className="p-5 md:p-7">
+      <ModulePage title="Documents" subtitle="Upload, verify, sign & manage document lifecycle">
+        <div className="flex min-h-[70vh] rounded-[var(--radius-lg)] border border-[var(--color-border)] overflow-hidden bg-[#F0F2F5]">
+          <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
+            <div className="px-4 py-4 border-b border-slate-100">
+              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Documents</h2>
+            </div>
+            <nav className="flex-1 py-2 no-scrollbar overflow-y-auto">
+              {NAV.map(item => (
+                <button key={item.id} onClick={() => setView(item.id)}
+                  className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
+                    view === item.id ? "bg-[#1B75BC]/8 text-[#1B75BC] font-medium" : "text-slate-600 hover:bg-slate-50")}>
+                  <item.icon size={15} className={view === item.id ? "text-[#1B75BC]" : "text-slate-400"} />
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <div className="p-3 border-t border-slate-100">
+              <div className="text-xs text-slate-400 mb-1">Storage used</div>
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
+                <div className="h-full bg-[#1B75BC] rounded-full" style={{ width: "34%" }} />
+              </div>
+              <p className="text-xs text-slate-500">3.4 GB / 10 GB</p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500">3.4 GB / 10 GB</p>
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6">{renderView()}</div>
+          </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-6">{renderView()}</div>
-      </div>
+      </ModulePage>
     </div>
   );
 }

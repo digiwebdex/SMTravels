@@ -83,7 +83,9 @@ export function Header() {
     <>
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled ? "bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]" : "bg-white/95 backdrop-blur-md"
+        scrolled
+          ? "bg-[var(--color-surface)] shadow-[var(--elevation-2)]"
+          : "bg-[var(--color-surface)]/95 backdrop-blur-md shadow-none"
       )}>
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 h-[60px] md:h-[68px] flex items-center gap-3 md:gap-6">
 
@@ -134,7 +136,7 @@ export function Header() {
                     })}
                   </div>
                   <div className="mt-3 pt-3 border-t border-[#F3F4F6]">
-                    <Link to="/packages" className="flex items-center justify-between p-3 bg-[#1B75BC] rounded-[10px] hover:bg-[#14588F] transition-colors">
+                    <Link to="/packages" className="flex items-center justify-between p-3 bg-[var(--color-primary)] rounded-[10px] hover:bg-[var(--color-primary-hover)] transition-colors">
                       <div>
                         <div className="text-[13px] font-bold text-white">{t("services.viewAllPackages")}</div>
                         <div className="text-[11px] text-white/60">{t("services.viewAllSub")}</div>
@@ -168,19 +170,19 @@ export function Header() {
                 never clip/wrap when Bangla labels run longer; px-3 xl:px-4 buys space at lg. */}
             {/* Login — desktop only */}
             <Link to="/login"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] text-[12px] font-bold rounded-[8px] hover:bg-[#1B75BC]/5 transition-all min-h-[40px] whitespace-nowrap shrink-0">
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-[12px] font-bold rounded-[8px] hover:bg-[var(--color-primary)]/5 transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.login")}
             </Link>
 
             {/* Agent Register — tablet+ */}
             <Link to="/register"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[#F15A24] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#CC3C17] transition-all min-h-[40px] whitespace-nowrap shrink-0">
+              className="hidden md:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[var(--color-brand-mark)] text-white text-[12px] font-bold rounded-[8px] hover:bg-[var(--color-brand-mark-hover)] transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.agentRegister")}
             </Link>
 
             {/* Book Now — desktop */}
             <Link to="/book"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[#1B75BC] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#14588F] transition-all min-h-[40px] whitespace-nowrap shrink-0">
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[var(--color-primary)] text-white text-[12px] font-bold rounded-[8px] hover:bg-[var(--color-primary-hover)] transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.bookNow")}
             </Link>
 
@@ -270,11 +272,11 @@ export function Header() {
             {/* Auth + Lang */}
             <div className="border-t border-[#F3F4F6] pt-3 flex flex-col gap-2 px-1">
               <Link to="/login"
-                className="flex items-center justify-center min-h-[48px] border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-[14px] hover:bg-[#1B75BC]/5 transition-colors">
+                className="flex items-center justify-center min-h-[48px] border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-bold rounded-[10px] text-[14px] hover:bg-[var(--color-primary)]/5 transition-colors">
                 {t("mobile.customerLogin")}
               </Link>
               <Link to="/register"
-                className="flex items-center justify-center min-h-[48px] bg-[#F15A24] text-white font-bold rounded-[10px] text-[14px] hover:bg-[#CC3C17] transition-colors">
+                className="flex items-center justify-center min-h-[48px] bg-[var(--color-brand-mark)] text-white font-bold rounded-[10px] text-[14px] hover:bg-[var(--color-brand-mark-hover)] transition-colors">
                 {t("common:actions.agentRegister")}
               </Link>
               <button
@@ -401,7 +403,7 @@ export function Footer() {
                   placeholder={t("footer.newsletter.placeholder")}
                   className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-[8px] text-[12px] text-white placeholder-white/30 outline-none focus:border-[#F15A24] transition-all" />
                 <button onClick={() => setEmail("")}
-                  className="w-9 h-9 flex-shrink-0 bg-[#F15A24] hover:bg-[#CC3C17] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
+                  className="w-9 h-9 flex-shrink-0 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
                   <Mail size={14} />
                 </button>
               </div>
@@ -415,11 +417,11 @@ export function Footer() {
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="text-[11px] text-white/40">{t("footer.copyright")}</div>
           <div className="flex items-center gap-3 md:gap-4 flex-wrap">
-            {[t("footer.legal.privacy"), t("footer.legal.terms"), t("footer.legal.refund")].map(l => (
-              <a key={l} href="#" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{l}</a>
-            ))}
-            <Link to="/sitemap" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.sitemap")}</Link>
-            <Link to="/ds" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.designSystem")}</Link>
+            <Link to="/privacy" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.legal.privacy")}</Link>
+            <Link to="/terms" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.legal.terms")}</Link>
+            <Link to="/refund" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.legal.refund")}</Link>
+            <Link to="/branches" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.links.branches", { defaultValue: "Branches" })}</Link>
+            <Link to="/career" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.links.career", { defaultValue: "Career" })}</Link>
           </div>
           <div className="text-[10px] text-white/30 w-full md:w-auto">{t("footer.license")}</div>
         </div>
@@ -479,7 +481,7 @@ function MobileBottomBar() {
         </a>
         <Link
           to="/book"
-          className="flex-[1.15] flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl bg-[#F15A24] text-white font-bold text-[11px] hover:bg-[#CC3C17] transition-colors shadow-sm"
+          className="flex-[1.15] flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl bg-[var(--color-brand-mark)] text-white font-bold text-[11px] hover:bg-[var(--color-brand-mark-hover)] transition-colors shadow-sm"
         >
           <Calendar size={18} />
           {t("mobileCta.book")}

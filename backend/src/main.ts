@@ -2,12 +2,21 @@ import { createApp } from "./app";
 import { env } from "./lib/env";
 import { logger } from "./lib/logger";
 import { prisma } from "./lib/prisma";
+import { verifyIntegrationsOnStartup } from "./lib/startupIntegrations";
+import { startNotificationWorker, stopNotificationWorker } from "./services/notificationWorker";
+
+// Ensure Vision ADC path is visible to the Google client library.
+if (env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = env.GOOGLE_APPLICATION_CREDENTIALS;
+}
 
 const app = createApp();
 
 // Bind explicitly to HOST (127.0.0.1) — NEVER 0.0.0.0. nginx proxies to this.
 const server = app.listen(env.PORT, env.HOST, () => {
   logger.info(`SM Travels API listening on http://${env.HOST}:${env.PORT} (${env.NODE_ENV})`);
+  void verifyIntegrationsOnStartup();
+  startNotificationWorker();
 });
 
 // ── Graceful shutdown (systemd sends SIGTERM on restart/stop) ─────────────────
@@ -25,6 +34,7 @@ async function shutdown(signal: string): Promise<void> {
 
   server.close(async (err) => {
     if (err) logger.error({ err }, "Error closing HTTP server");
+    stopNotificationWorker();
     try {
       await prisma.$disconnect();
     } catch (e) {

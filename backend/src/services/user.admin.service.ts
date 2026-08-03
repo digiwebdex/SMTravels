@@ -60,20 +60,37 @@ export async function listUsers(auth: AuthCtx, q: UserListQuery): Promise<UserLi
   return { data, page: q.page, pageSize: q.pageSize, total, totalPages: Math.max(1, Math.ceil(total / q.pageSize)) };
 }
 
-async function linkRbacRole(userId: string, roleKey: string): Promise<void> {
+/** Replace all RBAC links so demotion cannot leave a privileged role attached. */
+async function replaceRbacRole(userId: string, roleKey: string): Promise<void> {
   const role = await prisma.role.findUnique({ where: { key: roleKey } });
   if (!role) return;
-  await prisma.userRoleLink.upsert({
-    where: { userId_roleId: { userId, roleId: role.id } },
-    create: { userId, roleId: role.id },
-    update: {},
+  await prisma.$transaction([
+    prisma.userRoleLink.deleteMany({ where: { userId } }),
+    prisma.userRoleLink.create({ data: { userId, roleId: role.id } }),
+  ]);
+}
+
+async function revokeAllRefreshTokens(userId: string): Promise<void> {
+  await prisma.refreshToken.updateMany({
+    where: { userId, revokedAt: null },
+    data: { revokedAt: new Date() },
   });
 }
 
+/** Only SUPER_ADMIN may create/assign SUPER_ADMIN or COMPANY_ADMIN. */
+function assertCanAssignRole(auth: AuthCtx, targetRole: UserRole): void {
+  const privileged: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN];
+  if (privileged.includes(targetRole) && auth.role !== UserRole.SUPER_ADMIN) {
+    throw new HttpError(403, "Forbidden", { detail: "Only SUPER_ADMIN may assign this role" });
+  }
+}
+
 export async function createUser(auth: AuthCtx, input: UserCreateInput): Promise<UserListItem> {
+  const targetRole = input.role as UserRole;
+  assertCanAssignRole(auth, targetRole);
   const branchId = input.branchId ? resolveBranchId(auth, input.branchId) : (auth.branchId ?? null);
   const globalRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN];
-  if (!branchId && !globalRoles.includes(input.role as UserRole)) {
+  if (!branchId && !globalRoles.includes(targetRole)) {
     throw new HttpError(400, "BranchRequired", { detail: "branchId is required for this role" });
   }
   try {
@@ -82,14 +99,14 @@ export async function createUser(auth: AuthCtx, input: UserCreateInput): Promise
         name: input.name,
         email: input.email.toLowerCase(),
         passwordHash: hashPassword(input.password),
-        role: input.role as UserRole,
+        role: targetRole,
         branchId,
         phone: input.phone ?? null,
         status: "active",
       },
       include: { branch: { select: { name: true } } },
     });
-    await linkRbacRole(u.id, input.role);
+    await replaceRbacRole(u.id, input.role);
     return {
       id: u.id, name: u.name, email: u.email, phone: u.phone,
       role: u.role, branchId: u.branchId, branchName: u.branch?.name ?? null,
@@ -104,6 +121,8 @@ export async function updateUser(auth: AuthCtx, id: string, input: UserAdminUpda
   const existing = await prisma.user.findFirst({ where: { id, deletedAt: null, ...branchWhere(auth) } });
   if (!existing) throw new HttpError(404, "NotFound");
 
+  if (input.role !== undefined) assertCanAssignRole(auth, input.role as UserRole);
+
   const data: Prisma.UserUpdateInput = {};
   if (input.name !== undefined) data.name = input.name;
   if (input.phone !== undefined) data.phone = input.phone;
@@ -113,13 +132,18 @@ export async function updateUser(auth: AuthCtx, id: string, input: UserAdminUpda
     data.branch = input.branchId ? { connect: { id: resolveBranchId(auth, input.branchId) } } : { disconnect: true };
   }
 
+  const roleOrStatusChanged =
+    (input.role !== undefined && input.role !== existing.role) ||
+    (input.status !== undefined && input.status !== existing.status);
+
   try {
     const u = await prisma.user.update({
       where: { id },
       data,
       include: { branch: { select: { name: true } } },
     });
-    if (input.role) await linkRbacRole(u.id, input.role);
+    if (input.role) await replaceRbacRole(u.id, input.role);
+    if (roleOrStatusChanged) await revokeAllRefreshTokens(u.id);
     return {
       id: u.id, name: u.name, email: u.email, phone: u.phone,
       role: u.role, branchId: u.branchId, branchName: u.branch?.name ?? null,

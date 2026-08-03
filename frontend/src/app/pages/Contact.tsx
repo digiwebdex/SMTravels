@@ -38,6 +38,15 @@ export function ContactPage() {
       setError(t("form.errorRequired"));
       return;
     }
+    const phoneOk = /^(\+?880|0)?1[3-9]\d{8}$/.test(form.phone.replace(/[\s-]/g, ""));
+    if (!phoneOk) {
+      setError("Enter a valid Bangladesh mobile number.");
+      return;
+    }
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError("Enter a valid email address.");
+      return;
+    }
     setSending(true);
     setError("");
     try {

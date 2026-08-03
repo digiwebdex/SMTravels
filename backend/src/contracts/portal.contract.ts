@@ -70,6 +70,26 @@ export interface PortalInstallmentPlan {
 
 export interface PortalDocument { id: string; name: string; type: string; status: string; required: boolean; hasFile: boolean; expiryAt: string | null; createdAt: string }
 
+/** Visa bookings for the customer portal Visa Status view. */
+export interface PortalVisa {
+  id: string; bookingNo: string | null; status: string; stageStatus: string | null;
+  destinationCountry: string | null; visaType: string | null; visaNumber: string | null;
+  departureDate: string | null; createdAt: string;
+}
+
+/** Aggregated downloadable items (ticket / visa / voucher / invoice). */
+export interface PortalDownloadItem {
+  id: string;
+  kind: "document" | "invoice" | "voucher";
+  category: "ticket" | "visa" | "voucher" | "invoice";
+  name: string;
+  type: string;
+  status: string;
+  hasFile: boolean;
+  bookingId: string | null;
+  createdAt: string;
+}
+
 export interface PortalTicket { id: string; ticketNo: string; subject: string; status: string; category: string | null; messageCount: number; lastMessage: string | null; createdAt: string }
 export interface PortalTicketMessage { id: string; fromLabel: string | null; mine: boolean; body: string; createdAt: string }
 export interface PortalTicketDetail extends PortalTicket { messages: PortalTicketMessage[] }
@@ -116,6 +136,11 @@ export interface AgentDashboard {
   counts: { leads: number; bookings: number; customers: number; teamSize: number };
   commissionEarned: number; commissionPending: number;
   recentLeads: AgentLead[];
+}
+export interface AgentDocument { id: string; name: string; type: string; status: string; hasFile: boolean; bookingNo: string | null; createdAt: string }
+export interface AgentPayment {
+  id: string; receiptNo: string | null; invoiceNo: string | null; customerName: string | null;
+  amount: number; currency: string; method: string; paidAt: string; status: string; reversed: boolean;
 }
 
 // ════════════════════════════════════════════════════════════════════════════

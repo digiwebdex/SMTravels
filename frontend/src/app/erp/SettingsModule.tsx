@@ -7,6 +7,7 @@ import {
   Globe, Zap, Key, Server, HardDrive, Bell, Save, Copy,
   Info, GitBranch, FileText, Handshake, Truck,
 } from "lucide-react";
+import { SampleBadge } from "../portal/SampleBadge";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import { useIntegrationsStatus, useTestIntegration } from "../hooks/integrations";
@@ -17,11 +18,12 @@ import {
   useSuppliers, useCreateSupplier, useUpdateSupplier,
 } from "../hooks/settings";
 import type { AgentListItem, SupplierListItem } from "@contracts/settings.contract";
+import { ModulePage } from "../design-system/patterns/ModulePage";
 
 type SView =
   | "general" | "email" | "sms" | "whatsapp" | "payment"
   | "ocr" | "backup" | "roles" | "permissions" | "system"
-  | "branches" | "users" | "agents" | "suppliers" | "plans" | "health";
+  | "branches" | "users" | "agents" | "suppliers" | "health";
 
 const NAV_GROUPS = [
   { label:"Core", items:[
@@ -70,7 +72,7 @@ function Panel({ title, icon: Icon, iconColor="#1B75BC", children, className }: 
   title:string; icon?:React.ElementType; iconColor?:string; children:React.ReactNode; className?:string;
 }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-slate-200", className)}>
+    <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]", className)}>
       <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
         {Icon && <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: iconColor+"20" }}>
           <Icon size={14} style={{ color: iconColor }}/>
@@ -103,16 +105,16 @@ function Field({ label, hint, full, children }: { label:string; hint?:string; fu
 
 const Inp = ({ dv="", type="text", placeholder="" }: { dv?:string; type?:string; placeholder?:string }) => (
   <input type={type} defaultValue={dv} placeholder={placeholder}
-    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+    className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
 );
 const Sel = ({ opts, dv }: { opts:string[]; dv?:string }) => (
-  <select defaultValue={dv} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+  <select defaultValue={dv} className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none">
     {opts.map(o=><option key={o}>{o}</option>)}
   </select>
 );
 const Txt = ({ dv="", rows=2 }: { dv?:string; rows?:number }) => (
   <textarea rows={rows} defaultValue={dv}
-    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none"/>
+    className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none"/>
 );
 
 function Toggle({ on: initOn=false, label }: { on?:boolean; label?:string }) {
@@ -133,7 +135,7 @@ function SecretInp({ dv="" }: { dv?:string }) {
   return (
     <div className="relative">
       <input type={show?"text":"password"} defaultValue={dv}
-        className="w-full px-3 py-2 pr-9 text-sm border border-slate-200 rounded-lg focus:outline-none font-mono"/>
+        className="w-full px-3 py-2 pr-9 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none font-mono"/>
       <button onClick={()=>setShow(v=>!v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
         {show?<EyeOff size={14}/>:<Eye size={14}/>}
       </button>
@@ -156,7 +158,7 @@ function SaveBtn() {
 function ConnectionStatus({ configured, loading }: { configured: boolean; loading?: boolean }) {
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-400">
+      <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-[var(--color-border)] rounded-xl text-slate-400">
         <Loader2 size={15} className="animate-spin"/><span className="text-sm">Checking connection…</span>
       </div>
     );
@@ -174,7 +176,7 @@ function ConnectionStatus({ configured, loading }: { configured: boolean; loadin
 
 function EnvKeysNote() {
   return (
-    <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+    <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-[var(--color-border)] rounded-xl">
       <Key size={15} className="text-slate-400 flex-shrink-0"/>
       <p className="text-sm text-slate-600">
         API keys live in server <code className="text-xs bg-slate-200 px-1.5 py-0.5 rounded font-mono">.env.production</code> — never pasted in this UI
@@ -197,7 +199,7 @@ function IntegrationTestForm({ channel, placeholder }: { channel: "email" | "sms
     <Panel title="Send test" icon={Zap}>
       <div className="flex gap-2">
         <input value={to} onChange={(e) => setTo(e.target.value)} placeholder={placeholder}
-          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+          className="flex-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
         <button onClick={send} disabled={test.isPending || !to.trim()}
           className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50 whitespace-nowrap">
           {test.isPending ? <Loader2 size={14} className="animate-spin"/> : sent ? <><CheckCircle size={14}/> Sent!</> : <><Zap size={14}/> Send test</>}
@@ -211,14 +213,15 @@ function IntegrationTestForm({ channel, placeholder }: { channel: "email" | "sms
 function GeneralSettings() {
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <PageHeader title="General Settings" subtitle="Core business information and localization"/>
       <Panel title="Business Information" icon={Building2}>
-        <Field label="Company Name"><Inp dv="BDH Travels & Tourism"/></Field>
+        <Field label="Company Name"><Inp dv="SM Travels International & Tourism"/></Field>
         <Field label="Registration No." hint="Trade license / business reg."><Inp dv="CHG-2018-00842"/></Field>
         <Field label="Address" hint="Registered address"><Txt dv="144/A CDA Commercial Area, Agrabad, Chattogram, Bangladesh"/></Field>
         <Field label="Phone"><Inp dv="+880 31 123 4567"/></Field>
-        <Field label="Email"><Inp type="email" dv="info@bdhtravels.com"/></Field>
-        <Field label="Website"><Inp dv="https://bdhtravels.com"/></Field>
+        <Field label="Email"><Inp type="email" dv="info@smtravelsinternational.com"/></Field>
+        <Field label="Website"><Inp dv="https://smtravelsinternational.com"/></Field>
       </Panel>
       <Panel title="Localization" icon={Globe}>
         <Field label="Default Language"><Sel opts={["Bangla (বাংলা)","English (US)"]}/></Field>
@@ -229,12 +232,12 @@ function GeneralSettings() {
       </Panel>
       <Panel title="Branding" icon={Star}>
         <Field label="Primary Color">
-          <div className="flex gap-2"><input type="color" defaultValue="#1B75BC" className="w-10 h-9 rounded-lg border border-slate-200 p-0.5 cursor-pointer"/><Inp dv="#1B75BC"/></div>
+          <div className="flex gap-2"><input type="color" defaultValue="#1B75BC" className="w-10 h-9 rounded-lg border border-[var(--color-border)] p-0.5 cursor-pointer"/><Inp dv="#1B75BC"/></div>
         </Field>
         <Field label="Company Logo">
           <div className="flex items-center gap-3">
             <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold">BDH</div>
-            <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"><Upload size={13}/> Upload</button>
+            <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Upload size={13}/> Upload</button>
           </div>
         </Field>
       </Panel>
@@ -265,7 +268,7 @@ function EmailSettings() {
         {["Booking Confirmation","Payment Receipt","Visa Update","Password Reset","Welcome Email"].map(t=>(
           <div key={t} className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
             <span className="text-sm text-slate-700">{t}</span>
-            <button className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"><Edit2 size={11}/> Edit</button>
+            <button className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Edit2 size={11}/> Edit</button>
           </div>
         ))}
       </Panel>
@@ -326,7 +329,7 @@ function WhatsappSettings() {
       <Panel title="Wasender API" icon={Phone} iconColor="#25D366">
         <Field label="Webhook URL" hint="For incoming message events">
           <div className="flex gap-2"><Inp dv="https://your-domain.com/api/whatsapp/webhook"/>
-            <button className="px-3 py-2 border border-slate-200 rounded-lg text-slate-400 hover:bg-slate-50 flex-shrink-0"><Copy size={14}/></button>
+            <button className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-slate-400 hover:bg-slate-50 flex-shrink-0"><Copy size={14}/></button>
           </div>
         </Field>
         <Field label="Connection">
@@ -338,7 +341,7 @@ function WhatsappSettings() {
       </Panel>
       <Panel title="Message Templates" icon={MessageSquare} iconColor="#25D366">
         <div className="mb-3 flex justify-end">
-          <button className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"><Plus size={13}/> Add Template</button>
+          <button className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Plus size={13}/> Add Template</button>
         </div>
         {[["booking_confirmation","approved","UTILITY"],["payment_receipt","approved","UTILITY"],["visa_approved","approved","UTILITY"],["departure_reminder","pending","MARKETING"],["otp_verification","approved","AUTHENTICATION"]].map(([name,status,cat])=>(
           <div key={name} className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0">
@@ -485,6 +488,7 @@ function BackupSettings() {
   ];
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <PageHeader title="Backup Settings" subtitle="Automated database and file backup"
         action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Download size={14}/> Backup Now</button>}/>
       <Panel title="Schedule" icon={Database}>
@@ -496,7 +500,7 @@ function BackupSettings() {
       <Panel title="Storage" icon={HardDrive}>
         <Field label="Primary"><Sel opts={["Local Server","AWS S3","Google Drive","Dropbox","FTP"]} dv="Local Server"/></Field>
         <Field label="Secondary"><Sel opts={["None","AWS S3","Google Drive"]} dv="None"/></Field>
-        <Field label="Backup Path"><Inp dv="/var/backups/bdh-erp/"/></Field>
+        <Field label="Backup Path"><Inp dv="/var/www/SMTravels/backups/"/></Field>
         <Field label="Include Files"><Toggle on={true} label="Upload media & documents"/></Field>
       </Panel>
       <Panel title="Backup History" icon={Database}>
@@ -547,7 +551,7 @@ function RolesView() {
           {roles.map((r) => (
             <button key={r.id} onClick={() => setSel(r.id)}
               className={cn("w-full text-left p-4 rounded-xl border transition-all",
-                role.id === r.id ? "border-[#1B75BC] bg-[#1B75BC]/5" : "bg-white border-slate-200 hover:bg-slate-50")}>
+                role.id === r.id ? "border-[#1B75BC] bg-[#1B75BC]/5" : "bg-[var(--color-surface)] border-[var(--color-border)] hover:bg-slate-50")}>
               <div className="flex items-center gap-2.5 mb-0.5">
                 <div className="w-3 h-3 rounded-full" style={{ background: ROLE_COLORS[r.key] ?? "#64748B" }}/>
                 <span className="text-sm font-semibold text-slate-800 flex-1">{r.name}</span>
@@ -557,7 +561,7 @@ function RolesView() {
             </button>
           ))}
         </div>
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold" style={{ background: ROLE_COLORS[role.key] ?? "#64748B" }}>{role.name.slice(0, 1)}</div>
             <div><p className="font-bold text-slate-800">{role.name}</p><p className="text-xs text-slate-400">{role.userCount} users · {role.isSystem ? "System role" : "Custom"}</p></div>
@@ -619,7 +623,7 @@ function PermissionsMatrix() {
   return (
     <div>
       <PageHeader title="Permissions Matrix" subtitle="Click any cell to cycle: Full → View → None"/>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -633,7 +637,7 @@ function PermissionsMatrix() {
             </thead>
             <tbody>
               {P_MODS.map((mod,mi)=>(
-                <tr key={mod} className={cn("border-b border-slate-50",mi%2===0?"bg-white":"bg-slate-50/30")}>
+                <tr key={mod} className={cn("border-b border-slate-50",mi%2===0?"bg-[var(--color-surface)]":"bg-slate-50/30")}>
                   <td className="px-5 py-3 text-sm font-medium text-slate-700 sticky left-0 bg-inherit">{mod}</td>
                   {P_ROLES.map(role=>{
                     const level = mx[mod]?.[role]??"none";
@@ -711,7 +715,7 @@ function BranchesView() {
       <PageHeader title="Branch Management" subtitle="Head office and regional branches"/>
       <div className="space-y-3">
         {(branches ?? []).map((b) => (
-          <div key={b.id} className={cn("bg-white rounded-xl border p-5", b.isHq ? "border-[#1B75BC]/30 bg-[#1B75BC]/3" : "border-slate-200")}>
+          <div key={b.id} className={cn("bg-[var(--color-surface)] rounded-xl border p-5", b.isHq ? "border-[#1B75BC]/30 bg-[#1B75BC]/3" : "border-[var(--color-border)]")}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold", b.isHq ? "bg-[#1B75BC]" : "bg-slate-400")}>{b.city.slice(0, 2)}</div>
@@ -796,7 +800,7 @@ function AgentsView() {
         }
       />
       <div className="flex gap-5">
-        <div className={cn("bg-white rounded-xl border border-slate-200 overflow-hidden", panel !== "closed" ? "flex-1" : "w-full")}>
+        <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden", panel !== "closed" ? "flex-1" : "w-full")}>
           <table className="w-full">
             <thead><tr className="bg-slate-50 border-b border-slate-100">
               {["Agent", "Code", "Contact", "Branch", "Tier", "Status", "Bookings", ""].map((h) => (
@@ -844,36 +848,36 @@ function AgentsView() {
               <div>
                 <label className="text-xs font-medium text-slate-600">Name *</label>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               {panel === "create" && (
                 <div>
                   <label className="text-xs font-medium text-slate-600">Agent Code</label>
                   <input value={form.agentCode} onChange={(e) => setForm({ ...form, agentCode: e.target.value })}
-                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                    className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
                 </div>
               )}
               <div>
                 <label className="text-xs font-medium text-slate-600">Phone</label>
                 <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-600">Email</label>
                 <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-600">Tier</label>
                 <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value as AgentForm["tier"] })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none">
                   {AGENT_TIERS.map((t) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-600">Branch</label>
                 <select value={form.branchId} onChange={(e) => setForm({ ...form, branchId: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none">
                   <option value="">— None —</option>
                   {(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
@@ -884,7 +888,7 @@ function AgentsView() {
                   {busy ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>}
                   {panel === "create" ? "Create" : "Save"}
                 </button>
-                <button onClick={closePanel} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+                <button onClick={closePanel} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
               </div>
             </div>
           </Panel>
@@ -949,7 +953,7 @@ function SuppliersView() {
         }
       />
       <div className="flex gap-5">
-        <div className={cn("bg-white rounded-xl border border-slate-200 overflow-hidden", panel !== "closed" ? "flex-1" : "w-full")}>
+        <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden", panel !== "closed" ? "flex-1" : "w-full")}>
           <table className="w-full">
             <thead><tr className="bg-slate-50 border-b border-slate-100">
               {["Supplier", "Code", "Contact", "Category", "Status", "Services", ""].map((h) => (
@@ -995,35 +999,35 @@ function SuppliersView() {
               <div>
                 <label className="text-xs font-medium text-slate-600">Name *</label>
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               {panel === "create" && (
                 <div>
                   <label className="text-xs font-medium text-slate-600">Supplier Code</label>
                   <input value={form.supplierCode} onChange={(e) => setForm({ ...form, supplierCode: e.target.value })}
-                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                    className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
                 </div>
               )}
               <div>
                 <label className="text-xs font-medium text-slate-600">Phone</label>
                 <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-600">Email</label>
                 <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-600">Category</label>
                 <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Hotel, Airline, Visa…"
-                  className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+                  className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
               </div>
               {panel === "edit" && (
                 <div>
                   <label className="text-xs font-medium text-slate-600">Status</label>
                   <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as SupplierForm["status"] })}
-                    className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+                    className="w-full mt-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none">
                     {SUPPLIER_STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
                   </select>
                 </div>
@@ -1034,7 +1038,7 @@ function SuppliersView() {
                   {busy ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>}
                   {panel === "create" ? "Create" : "Save"}
                 </button>
-                <button onClick={closePanel} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+                <button onClick={closePanel} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
               </div>
             </div>
           </Panel>
@@ -1069,7 +1073,7 @@ function UsersView() {
   return (
     <div>
       <PageHeader title="Users Management" subtitle="Staff accounts, roles, and access control"/>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
         <table className="w-full">
           <thead><tr className="bg-slate-50 border-b border-slate-100">
             {["User", "Email", "Role", "Branch", "Status", "Last Active", ""].map((h) => (
@@ -1113,20 +1117,6 @@ function UsersView() {
   );
 }
 
-function PlansView() {
-  return (
-    <div>
-      <PageHeader title="Subscription Plans" subtitle="Single-tenant deployment"/>
-      <div className="flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-xl">
-        <Info size={18} className="text-slate-400 flex-shrink-0"/>
-        <p className="text-sm text-slate-600">
-          <strong>Not applicable.</strong> This installation runs as a single-tenant ERP. Subscription tiers and SaaS billing are not used — all modules are enabled for your organization.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ─── SYSTEM HEALTH ────────────────────────────────────────────────────────────
 const HEALTH_ITEMS = [
   { name:"Web Server",      status:"healthy", value:"142ms avg",    icon:Server,   detail:"Nginx 1.24 · 99.97% uptime"    },
@@ -1147,10 +1137,11 @@ const H_STYLE: Record<string,{ card:string; icon:string; dot:string }> = {
 function HealthView() {
   return (
     <div>
+      <SampleBadge />
       <div className="flex items-center justify-between mb-5">
         <div><h2 className="text-xl font-bold text-slate-800">System Health</h2>
           <p className="text-sm text-slate-500">Last checked: <span className="font-medium text-slate-600">Today 09:14 AM</span></p></div>
-        <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600"><RefreshCw size={13}/> Refresh</button>
+        <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600"><RefreshCw size={13}/> Refresh</button>
       </div>
       <div className="flex items-center gap-3 mb-5">
         {[["healthy","6 Healthy","bg-emerald-500"],["warning","1 Warning","bg-amber-400"],["error","1 Error","bg-red-500"]].map(([k,l,c])=>(
@@ -1182,7 +1173,7 @@ function HealthView() {
       </div>
       <div className="grid grid-cols-4 gap-4">
         {[{l:"CPU Usage",v:"24%",b:24,c:"bg-[#1B75BC]"},{l:"Memory",v:"58%",b:58,c:"bg-[#0E7C66]"},{l:"Disk I/O",v:"12%",b:12,c:"bg-[#F15A24]"},{l:"Network",v:"8 MB/s",b:35,c:"bg-[#2563EB]"}].map(s=>(
-          <div key={s.l} className="bg-white rounded-xl border border-slate-200 p-4">
+          <div key={s.l} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
             <p className="text-xs text-slate-500 mb-1">{s.l}</p>
             <p className="text-2xl font-black text-slate-800 mb-2" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.v}</p>
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -1199,50 +1190,53 @@ function HealthView() {
 export function SettingsModule() {
   const [view, setView] = useState<SView>("general");
   return (
-    <div className="flex h-full min-h-screen bg-[#F0F2F5]">
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
-        <div className="px-4 py-4 border-b border-slate-100">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Settings</h2>
-        </div>
-        <nav className="flex-1 py-2 overflow-y-auto no-scrollbar">
-          {NAV_GROUPS.map(group=>(
-            <div key={group.label} className="mb-2">
-              <p className="px-4 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">{group.label}</p>
-              {group.items.map(item=>(
-                <button key={item.id} onClick={()=>setView(item.id)}
-                  className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
-                    view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50")}>
-                  <item.icon size={15} className={view===item.id?"text-[#1B75BC]":"text-slate-400"}/>
-                  {item.label}
-                </button>
-              ))}
+    <div className="p-5 md:p-7">
+      <ModulePage title="Settings" subtitle="Platform configuration, integrations, roles & access">
+        <div className="flex min-h-[70vh] rounded-[var(--radius-lg)] border border-[var(--color-border)] overflow-hidden bg-[#F0F2F5]">
+          <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
+            <div className="px-4 py-4 border-b border-slate-100">
+              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Settings</h2>
             </div>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-slate-100">
-          <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-slate-400"><Server size={11}/> v2.4.1 · Production</div>
+            <nav className="flex-1 py-2 overflow-y-auto no-scrollbar">
+              {NAV_GROUPS.map(group=>(
+                <div key={group.label} className="mb-2">
+                  <p className="px-4 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">{group.label}</p>
+                  {group.items.map(item=>(
+                    <button key={item.id} onClick={()=>setView(item.id)}
+                      className={cn("w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors",
+                        view===item.id?"bg-[#1B75BC]/8 text-[#1B75BC] font-medium border-r-2 border-[#1B75BC]":"text-slate-600 hover:bg-slate-50")}>
+                      <item.icon size={15} className={view===item.id?"text-[#1B75BC]":"text-slate-400"}/>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </nav>
+            <div className="p-3 border-t border-slate-100">
+              <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-slate-400"><Server size={11}/> v2.4.1 · Production</div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6 max-w-4xl">
+              {view==="general"     && <GeneralSettings/>}
+              {view==="email"       && <EmailSettings/>}
+              {view==="sms"         && <SmsSettings/>}
+              {view==="whatsapp"    && <WhatsappSettings/>}
+              {view==="payment"     && <PaymentSettings/>}
+              {view==="ocr"         && <OcrSettings/>}
+              {view==="backup"      && <BackupSettings/>}
+              {view==="roles"       && <RolesView/>}
+              {view==="permissions" && <PermissionsMatrix/>}
+              {view==="users"       && <UsersView/>}
+              {view==="agents"      && <AgentsView/>}
+              {view==="suppliers"   && <SuppliersView/>}
+              {view==="system"      && <SystemConfig/>}
+              {view==="branches"    && <BranchesView/>}
+              {view==="health"      && <HealthView/>}
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-6 max-w-4xl">
-          {view==="general"     && <GeneralSettings/>}
-          {view==="email"       && <EmailSettings/>}
-          {view==="sms"         && <SmsSettings/>}
-          {view==="whatsapp"    && <WhatsappSettings/>}
-          {view==="payment"     && <PaymentSettings/>}
-          {view==="ocr"         && <OcrSettings/>}
-          {view==="backup"      && <BackupSettings/>}
-          {view==="roles"       && <RolesView/>}
-          {view==="permissions" && <PermissionsMatrix/>}
-          {view==="users"       && <UsersView/>}
-          {view==="agents"      && <AgentsView/>}
-          {view==="suppliers"   && <SuppliersView/>}
-          {view==="system"      && <SystemConfig/>}
-          {view==="branches"    && <BranchesView/>}
-          {view==="plans"       && <PlansView/>}
-          {view==="health"      && <HealthView/>}
-        </div>
-      </div>
+      </ModulePage>
     </div>
   );
 }

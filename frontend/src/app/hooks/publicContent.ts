@@ -21,14 +21,18 @@ import type {
   PublicTestimonialListResponse,
   PublicGalleryListResponse,
   PublicGalleryItem,
+  PublicCmsPageDto,
+  PublicMenuDto,
+  PublicBannerListResponse,
+  BannerTypeDto,
 } from "@contracts/cms.contract";
 
 const publicFetch = <T>(path: string) => apiFetch<T>(path, {}, { auth: false, retry: false });
 
-function qs(params: Record<string, string | number | boolean | undefined>): string {
+function qs(params: object): string {
   const s = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== "") s.set(k, String(v));
+  for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
+    if (v !== undefined && v !== null && v !== "") s.set(k, String(v));
   }
   const q = s.toString();
   return q ? `?${q}` : "";
@@ -151,9 +155,10 @@ function mapFallbackGallery(g: (typeof GALLERY_IMAGES)[number]): PublicGalleryIm
   };
 }
 
-function withFallback<T>(api: T[] | undefined, isError: boolean, fallback: T[]): T[] {
-  if (!isError && api && api.length > 0) return api;
-  return fallback;
+/** Prefer API data. Never silently substitute demo catalog as live content. */
+function withFallback<T>(api: T[] | undefined, _isError: boolean, _fallback: T[]): T[] {
+  if (api && api.length > 0) return api;
+  return [];
 }
 
 // ── query keys ────────────────────────────────────────────────────────────────
@@ -166,6 +171,9 @@ export const publicContentKeys = {
   faqs: ["public", "faqs"] as const,
   testimonials: ["public", "testimonials"] as const,
   gallery: ["public", "gallery"] as const,
+  page: (slug: string) => ["public", "page", slug] as const,
+  menu: (location: string) => ["public", "menu", location] as const,
+  banners: (type?: string) => ["public", "banners", type ?? "all"] as const,
 };
 
 // ── hooks ─────────────────────────────────────────────────────────────────────
@@ -199,10 +207,9 @@ export function usePublicPackage(slugOrId: string | undefined) {
     retry: false,
   });
 
-  const fallback = PACKAGES.find((p) => String(p.id) === slugOrId || p.slug === slugOrId);
   const pkg = !query.isError && query.data
     ? mapPublicPackageDetail(query.data)
-    : fallback;
+    : undefined;
 
   return { ...query, package: pkg, fromApi: !!query.data && !query.isError };
 }
@@ -236,8 +243,7 @@ export function usePublicBlogPost(slug: string | undefined) {
     retry: false,
   });
 
-  const fallback = BLOGS.find((b) => String(b.id) === slug || b.slug === slug);
-  const post = !query.isError && query.data ? mapPublicBlog(query.data) : fallback;
+  const post = !query.isError && query.data ? mapPublicBlog(query.data) : undefined;
   const body = !query.isError && query.data?.body ? query.data.body : null;
 
   return { ...query, post, body, fromApi: !!query.data && !query.isError };
@@ -252,9 +258,9 @@ export function usePublicFaqs() {
 
   const apiRecord = query.data?.data ? faqsToRecord(query.data.data) : undefined;
   const hasApi = !query.isError && apiRecord && Object.keys(apiRecord).length > 0;
-  const faqs = hasApi ? apiRecord : FAQS;
+  const faqs = hasApi ? apiRecord : {};
 
-  return { ...query, faqs, fromApi: hasApi };
+  return { ...query, faqs, fromApi: !!hasApi };
 }
 
 export function usePublicTestimonials() {
@@ -288,4 +294,35 @@ export function usePublicGallery() {
 export function contentLinkKey(item: { id: number | string; slug?: string }, fromApi?: boolean): string {
   if (fromApi && item.slug) return item.slug;
   return String(item.id);
+}
+
+export function usePublicCmsPage(slug: string | undefined) {
+  const query = useQuery({
+    queryKey: publicContentKeys.page(slug ?? ""),
+    queryFn: () => publicFetch<PublicCmsPageDto>(`/public/pages/${slug}`),
+    enabled: !!slug,
+    staleTime: 60_000,
+    retry: false,
+  });
+  return { ...query, page: query.data ?? null };
+}
+
+export function usePublicMenu(location: string | undefined) {
+  const query = useQuery({
+    queryKey: publicContentKeys.menu(location ?? ""),
+    queryFn: () => publicFetch<PublicMenuDto>(`/public/menus/${location}`),
+    enabled: !!location,
+    staleTime: 60_000,
+    retry: false,
+  });
+  return { ...query, menu: query.data ?? null };
+}
+
+export function usePublicBanners(type?: BannerTypeDto) {
+  const query = useQuery({
+    queryKey: publicContentKeys.banners(type),
+    queryFn: () => publicFetch<PublicBannerListResponse>(`/public/banners${qs({ type })}`),
+    staleTime: 60_000,
+  });
+  return { ...query, banners: query.data?.data ?? [] };
 }

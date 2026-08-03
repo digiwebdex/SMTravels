@@ -99,4 +99,67 @@ export function useDeleteTemplate() {
   });
 }
 
+export type OutboundStatusDto = "PENDING" | "SCHEDULED" | "PROCESSING" | "SENT" | "FAILED" | "CANCELLED";
+export type OutboundChannelQueueDto = "EMAIL" | "SMS" | "WHATSAPP" | "IN_APP";
+
+export interface OutboundQueueItem {
+  id: string;
+  channel: OutboundChannelQueueDto;
+  event: string;
+  to: string;
+  subject: string | null;
+  bodyPreview: string;
+  status: OutboundStatusDto;
+  attempts: number;
+  scheduledFor: string | null;
+  sentAt: string | null;
+  lastError: string | null;
+  createdAt: string;
+}
+
+export function useNotificationDashboard() {
+  return useQuery({
+    queryKey: ["notifications", "dashboard"],
+    queryFn: () => apiFetch<{
+      flags: { email: boolean; sms: boolean; whatsapp: boolean };
+      pending: number;
+      scheduled: number;
+      failedTerminal: number;
+      last24h: Array<{ status: string; channel: string; count: number }>;
+      last7d: Array<{ status: string; channel: string; count: number }>;
+    }>("/notifications/dashboard"),
+    staleTime: 15_000,
+  });
+}
+
+export function useOutboundQueue(params?: { status?: string; channel?: string; page?: number }) {
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  if (params?.channel) qs.set("channel", params.channel);
+  if (params?.page) qs.set("page", String(params.page));
+  const q = qs.toString();
+  return useQuery({
+    queryKey: ["notifications", "outbound", params],
+    queryFn: () =>
+      apiFetch<{ total: number; page: number; pageSize: number; items: OutboundQueueItem[] }>(
+        `/notifications/outbound${q ? `?${q}` : ""}`,
+      ),
+    staleTime: 10_000,
+  });
+}
+
+export function useRetryOutbound() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<{ success: boolean }>(`/notifications/outbound/${id}/retry`, { method: "POST", body: "{}" }),
+    onSuccess: () => {
+      toast.success("Retry queued");
+      void qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: err,
+  });
+}
+
+
 export type { MessageTemplateDto, OutboundLogItem, SendMessageInput, BulkSendInput, TemplateChannelDto };

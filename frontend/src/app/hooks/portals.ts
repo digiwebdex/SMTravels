@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { apiFetch } from "../lib/api";
 import type {
   AgentProfile, AgentLead, AgentBooking, AgentCommissionRow, AgentWalletView, AgentTeamMember, AgentDashboard, AgentCustomer, LeadCreateInput,
+  AgentDocument, AgentPayment,
+  PortalTicket, PortalTicketDetail, TicketCreateInput,
   SupplierProfile, SupplierRequest, SupplierServiceRow, SupplierInvoiceRow, SupplierPayableRow, SupplierPaymentRow, SupplierDashboard,
   StaffProfile, StaffTask, StaffBooking, StaffCustomer, StaffDocument, StaffAnnouncement, StaffDashboard, TaskCreateInput,
   AccountantProfile, AccountantDashboard,
@@ -20,9 +22,29 @@ export const useAgentCustomers = () => useQuery({ queryKey: ["ag", "customers"],
 export const useAgentCommissions = () => useQuery({ queryKey: ["ag", "comm"], queryFn: () => list<AgentCommissionRow>("/portal/agent/commissions") });
 export const useAgentWallet = () => useQuery({ queryKey: ["ag", "wallet"], queryFn: () => apiFetch<AgentWalletView>("/portal/agent/wallet") });
 export const useAgentTeam = () => useQuery({ queryKey: ["ag", "team"], queryFn: () => list<AgentTeamMember>("/portal/agent/team") });
+export const useAgentDocuments = () => useQuery({ queryKey: ["ag", "docs"], queryFn: () => list<AgentDocument>("/portal/agent/documents") });
+export const useAgentPayments = () => useQuery({ queryKey: ["ag", "pay"], queryFn: () => list<AgentPayment>("/portal/agent/payments") });
+export const useAgentTickets = () => useQuery({ queryKey: ["ag", "tickets"], queryFn: () => list<PortalTicket>("/portal/agent/tickets") });
+export const useAgentTicket = (id: string | null) => useQuery({ queryKey: ["ag", "ticket", id ?? ""], queryFn: () => apiFetch<PortalTicketDetail>(`/portal/agent/tickets/${id}`), enabled: !!id });
 export function useCreateLead() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (input: LeadCreateInput) => apiFetch<AgentLead>("/portal/agent/leads", { method: "POST", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["ag", "leads"] }); qc.invalidateQueries({ queryKey: ["ag", "dash"] }); toast.success("Lead added"); }, onError: err });
+}
+export function useCreateAgentTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: TicketCreateInput) => apiFetch<PortalTicketDetail>("/portal/agent/tickets", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["ag", "tickets"] }); toast.success("Ticket created"); },
+    onError: err,
+  });
+}
+export function useAddAgentTicketMessage(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) => apiFetch<PortalTicketDetail>(`/portal/agent/tickets/${id}/messages`, { method: "POST", body: JSON.stringify({ body }) }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["ag", "ticket", id] }); void qc.invalidateQueries({ queryKey: ["ag", "tickets"] }); },
+    onError: err,
+  });
 }
 
 // ── Supplier ────────────────────────────────────────────────────────────────
@@ -61,6 +83,7 @@ export const useAccountantDashboard = () => useQuery({ queryKey: ["ac", "dash"],
 
 export type {
   AgentProfile, AgentDashboard, AgentWalletView, AgentTeamMember, AgentLead,
+  AgentDocument, AgentPayment,
   SupplierProfile, SupplierDashboard, SupplierRequest, SupplierInvoiceRow,
   StaffProfile, StaffDashboard, StaffTask, StaffCustomer,
   AccountantProfile, AccountantDashboard,

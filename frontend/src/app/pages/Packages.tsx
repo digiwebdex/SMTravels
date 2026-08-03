@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
   Star, Clock, MapPin, ChevronRight, Filter, Search, ArrowRight,
@@ -139,9 +139,11 @@ export function PackagesPage() {
 export function PackageDetailPage() {
   const { t } = useTranslation("packages");
   const { id } = useParams();
+  const navigate = useNavigate();
   const { package: pkg } = usePublicPackage(id);
   const [tab, setTab] = useState<"overview" | "itinerary" | "inclusions">("overview");
   const [form, setForm] = useState({ name: "", phone: "", pax: "2", date: "" });
+  const [formError, setFormError] = useState("");
 
   if (!pkg) {
     return (
@@ -292,15 +294,30 @@ export function PackageDetailPage() {
                   {t("detail.onlySeatsLeft", { seats: pkg.seats })}
                 </div>
 
-                <form className="flex flex-col gap-3" onSubmit={e => e.preventDefault()}>
+                <form className="flex flex-col gap-3" onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!form.name.trim() || !form.phone.trim()) {
+                    setFormError("Name and phone are required.");
+                    return;
+                  }
+                  setFormError("");
+                  const q = new URLSearchParams({
+                    name: form.name.trim(),
+                    phone: form.phone.trim(),
+                    pax: form.pax,
+                    ...(form.date ? { date: form.date } : {}),
+                    ...(pkg ? { package: String(pkg.slug ?? pkg.id) } : {}),
+                  });
+                  navigate(`/book?${q.toString()}`);
+                }}>
                   <div>
                     <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">{t("detail.form.name")}</label>
-                    <input placeholder={t("detail.form.namePlaceholder")} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    <input required placeholder={t("detail.form.namePlaceholder")} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                       className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10" />
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-1">{t("detail.form.phone")}</label>
-                    <input placeholder="+880 1X XXX XXXXX" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                    <input required placeholder="+880 1X XXX XXXXX" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                       className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10" />
                   </div>
                   <div>
@@ -315,6 +332,7 @@ export function PackageDetailPage() {
                       {["1","2","3","4","5","6+"].map(n => <option key={n}>{n}</option>)}
                     </select>
                   </div>
+                  {formError && <p className="text-[11px] text-red-600">{formError}</p>}
                   <button type="submit" className="w-full py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-black rounded-[10px] text-[13px] transition-colors cursor-pointer mt-1">
                     {t("detail.form.submit")}
                   </button>

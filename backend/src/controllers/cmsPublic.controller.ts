@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
   publicPackageListQuerySchema,
   publicBlogListQuerySchema,
+  publicBannerListQuerySchema,
 } from "../contracts/cms.contract";
 import * as cmsPublic from "../services/cmsPublic.service";
 
@@ -31,4 +32,16 @@ export async function listPublicTestimonialsHandler(_req: Request, res: Response
 
 export async function listPublicGalleryHandler(_req: Request, res: Response): Promise<void> {
   res.json(await cmsPublic.listPublicGallery());
+}
+
+export async function getPublicCmsPageHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cmsPublic.getPublishedCmsPage(req.params.slug));
+}
+
+export async function getPublicMenuHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cmsPublic.getPublicMenu(req.params.location));
+}
+
+export async function listPublicBannersHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cmsPublic.listPublicBanners(publicBannerListQuerySchema.parse(req.query)));
 }

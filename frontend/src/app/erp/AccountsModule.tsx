@@ -11,6 +11,7 @@ import {
   FileText, Edit2, Trash2, X, Check, Globe, Layers, BarChart3,
   Eye, Send, Receipt,
 } from "lucide-react";
+import { SampleBadge } from "../portal/SampleBadge";
 import { cn, fmtPrice } from "../lib/utils";
 import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import {
@@ -18,6 +19,7 @@ import {
   useJournal, useCreateJournal, useReverseJournal,
 } from "../hooks/finance";
 import { Loader2 } from "lucide-react";
+import { AiInsightCard } from "../design-system";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AccountsView =
@@ -216,7 +218,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
   icon: React.ElementType; color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", color)}>
           <Icon size={18} className="text-white" />
@@ -238,7 +240,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, actions, children }: { title: string; actions?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <h3 className="font-semibold text-slate-800">{title}</h3>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -315,15 +317,22 @@ function ChartOfAccountsView() {
       return next;
     });
   };
+  const detailCount = (accounts ?? []).filter((a) => a.role !== "HEADER").length;
   return (
     <div className="space-y-5">
+      <AiInsightCard title="AI Finance Tips" collapsedByDefault>
+        <ul className="text-xs space-y-1.5 list-disc pl-4">
+          <li>{detailCount} active detail account{detailCount === 1 ? "" : "s"} in the chart of accounts.</li>
+          <li>Reconcile bank and cash accounts regularly to keep balances accurate.</li>
+        </ul>
+      </AiInsightCard>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Chart of Accounts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Double-entry bookkeeping structure</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={15} /> Export
           </button>
           <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
@@ -334,12 +343,12 @@ function ChartOfAccountsView() {
       {isError ? (
         <div className="p-2"><ErrorBanner message={(error as Error)?.message || "Failed to load accounts."} onRetry={() => refetch()} /></div>
       ) : isLoading ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={4} /></div>
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={8} cols={4} /></div>
       ) : (
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 w-32">Code</th>
               <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Account Name</th>
               <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 w-24">Type</th>
@@ -376,10 +385,10 @@ function LedgerTableView({ title, rows, type }: {
           <p className="text-sm text-slate-500 mt-0.5">July 2024</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Filter size={14} /> Filter
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Download size={14} /> Export
           </button>
           <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
@@ -394,10 +403,10 @@ function LedgerTableView({ title, rows, type }: {
         <KpiCard label="Pending" value={fmtCurrency(pending)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Transactions" value={String(rows.length)} icon={FileText} color="bg-blue-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Date", "Ref #", "Category", "Description", "Amount", "Method", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -470,21 +479,21 @@ function JournalEntryView() {
       </div>
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
             <div className="grid grid-cols-3 gap-4 mb-5">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Reference #</label>
                 <input value={ref} onChange={e => setRef(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Currency</label>
-                <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option>BDT – Bangladeshi Taka</option>
                   <option>USD – US Dollar</option>
                   <option>SAR – Saudi Riyal</option>
@@ -506,7 +515,7 @@ function JournalEntryView() {
                   <tr key={i} className="border-b border-slate-50">
                     <td className="py-2 pr-3">
                       <select value={line.account} onChange={e => updateLine(i, "account", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none">
                         <option value="">Select account…</option>
                         {detailAccounts.map(a => (
                           <option key={a.id} value={a.id}>{a.code} – {a.name}</option>
@@ -516,17 +525,17 @@ function JournalEntryView() {
                     <td className="py-2 pr-3">
                       <input type="number" placeholder="0.00" value={line.debit}
                         onChange={e => updateLine(i, "debit", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
                     </td>
                     <td className="py-2 pr-3">
                       <input type="number" placeholder="0.00" value={line.credit}
                         onChange={e => updateLine(i, "credit", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
                     </td>
                     <td className="py-2 pr-3">
                       <input placeholder="Narration…" value={line.narration}
                         onChange={e => updateLine(i, "narration", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
                     </td>
                     <td className="py-2">
                       {lines.length > 2 && (
@@ -562,7 +571,7 @@ function JournalEntryView() {
             </button>
             <div className="flex justify-end gap-3 mt-5 pt-5 border-t border-slate-100">
               <button onClick={() => submit("DRAFT")} disabled={create.isPending}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">Save Draft</button>
+                className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">Save Draft</button>
               <button onClick={() => submit("POSTED")} disabled={!balanced || create.isPending}
                 className={cn("px-5 py-2 text-sm rounded-lg text-white flex items-center gap-2", balanced && !create.isPending ? "bg-[#1B75BC] hover:bg-[#14588F]" : "bg-slate-300 cursor-not-allowed")}>
                 {create.isPending && <Loader2 size={14} className="animate-spin" />} Post Entry
@@ -627,7 +636,7 @@ function BankCashView() {
       {isLoading && <SkeletonTable rows={3} />}
       {error && <ErrorBanner message={(error as Error).message} />}
       {!isLoading && !error && accounts.length === 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-400">No bank or cash accounts yet.</div>
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-10 text-center text-sm text-slate-400">No bank or cash accounts yet.</div>
       )}
 
       {account && (
@@ -640,7 +649,7 @@ function BankCashView() {
                   className={cn("text-left p-4 rounded-xl border transition-all",
                     account.id === acc.id
                       ? "border-[#1B75BC] bg-[#1B75BC]/5 ring-1 ring-[#1B75BC]/20"
-                      : "border-slate-200 bg-white hover:border-slate-300")}>
+                      : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-slate-300")}>
                   <div className="flex items-center gap-2 mb-2">
                     {isCash ? <Banknote size={16} className="text-emerald-600" /> : <Building2 size={16} className="text-[#1B75BC]" />}
                     <span className="text-xs font-medium text-slate-500 capitalize">{acc.type.toLowerCase()}</span>
@@ -711,20 +720,20 @@ function TransferView() {
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Money Transfer</h2>
       <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <h3 className="font-semibold text-slate-800 mb-5">New Transfer</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">From Account</label>
               <select value={fromAcc} onChange={e => setFromAcc(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 {BANK_ACCOUNTS.map(a => <option key={a.id} value={a.id}>{a.name} ({fmtCurrency(a.balance, a.currency)})</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">To Account</label>
               <select value={toAcc} onChange={e => setToAcc(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 {BANK_ACCOUNTS.filter(a => a.id !== fromAcc).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </div>
@@ -735,13 +744,13 @@ function TransferView() {
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-mono">{CURRENCY_SYMBOL[currency]}</span>
                 <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg pl-8 pr-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Currency</label>
               <select value={currency} onChange={e => setCurrency(e.target.value as Currency)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="BDT">BDT – Bangladeshi Taka</option>
                 <option value="USD">USD – US Dollar</option>
                 <option value="SAR">SAR – Saudi Riyal</option>
@@ -751,10 +760,10 @@ function TransferView() {
           <div className="mb-5">
             <label className="block text-xs font-medium text-slate-600 mb-1">Narration / Reference</label>
             <input placeholder="Transfer narration…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+              className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+            <button className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
             <button className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] flex items-center gap-2">
               <Send size={14} /> Submit Transfer
             </button>
@@ -799,10 +808,10 @@ function InstallmentsView() {
         <KpiCard label="Collected This Month" value={fmtCurrency(4180000)} trend={12} icon={TrendingUp} color="bg-emerald-500" />
         <KpiCard label="Overdue" value={fmtCurrency(2400000)} trend={-3} icon={AlertTriangle} color="bg-red-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Plan ID", "Customer", "Service", "Progress", "Total", "Paid", "Remaining", "Next Due", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -862,10 +871,10 @@ function SupplierPaymentsView() {
         <KpiCard label="Paid This Month" value={fmtCurrency(3920000)} icon={CheckCircle} color="bg-emerald-500" />
         <KpiCard label="Overdue Invoices" value="2" icon={AlertTriangle} color="bg-amber-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Ref", "Vendor", "Invoice #", "Due Date", "Total", "Paid", "Outstanding", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -916,10 +925,10 @@ function CustomerPaymentsView() {
         <KpiCard label="Outstanding" value={fmtCurrency(1283000)} trend={-5} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Transactions" value={String(CUSTOMER_PAYMENTS.length)} icon={Receipt} color="bg-blue-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Ref", "Customer", "Booking", "Total", "Received", "Method", "Date", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -969,20 +978,21 @@ function PaymentGatewaysView() {
   const gw = GATEWAYS.find(g => g.id === selected)!;
   return (
     <div className="space-y-5">
+      <SampleBadge />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Payment Gateways</h2>
           <p className="text-sm text-slate-500 mt-0.5">Manage MFS and card gateway integrations</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
           <Plus size={14} /> Add Gateway
         </button>
       </div>
       <div className="grid grid-cols-4 gap-4">
         {GATEWAYS.map(g => (
           <button key={g.id} onClick={() => setSelected(g.id)}
-            className={cn("text-left p-5 rounded-xl border transition-all bg-white",
-              selected === g.id ? "border-[#1B75BC] ring-1 ring-[#1B75BC]/20" : "border-slate-200 hover:border-slate-300")}>
+            className={cn("text-left p-5 rounded-xl border transition-all bg-[var(--color-surface)]",
+              selected === g.id ? "border-[#1B75BC] ring-1 ring-[#1B75BC]/20" : "border-[var(--color-border)] hover:border-slate-300")}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: g.color }}>{g.logo}</div>
@@ -998,7 +1008,7 @@ function PaymentGatewaysView() {
         ))}
       </div>
       <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
               style={{ background: gw.color }}>{gw.logo}</div>
@@ -1019,13 +1029,13 @@ function PaymentGatewaysView() {
               <div key={label}>
                 <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
                 <input defaultValue={val} readOnly
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-700 font-mono focus:outline-none" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-700 font-mono focus:outline-none" />
               </div>
             ))}
           </div>
           <div className="flex gap-3 mt-5 pt-4 border-t border-slate-100">
             <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save Changes</button>
-            <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Test Connection</button>
+            <button className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Test Connection</button>
             {gw.status === "sandbox" && (
               <button className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 ml-auto">Go Live</button>
             )}
@@ -1117,14 +1127,14 @@ function AccountsOverview() {
 function IncomeLedgerView() {
   const { data, isLoading, isError, error, refetch } = useIncome({ pageSize: 100 });
   if (isError) return <ErrorBanner message={(error as Error)?.message || "Failed to load income."} onRetry={() => refetch()} />;
-  if (isLoading) return <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={6} /></div>;
+  if (isLoading) return <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={8} cols={6} /></div>;
   const rows = (data?.data ?? []).map(r => ({ date: (r.date || "").slice(0, 10), ref: r.ref ?? "—", category: r.category, description: r.description ?? r.party ?? "", amount: r.amount, method: r.method ?? "—", status: (r.status || "").toLowerCase() }));
   return <LedgerTableView title="Income Ledger" rows={rows} type="income" />;
 }
 function ExpenseLedgerView() {
   const { data, isLoading, isError, error, refetch } = useExpenses({ pageSize: 100 });
   if (isError) return <ErrorBanner message={(error as Error)?.message || "Failed to load expenses."} onRetry={() => refetch()} />;
-  if (isLoading) return <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={6} /></div>;
+  if (isLoading) return <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={8} cols={6} /></div>;
   const rows = (data?.data ?? []).map(r => ({ date: (r.date || "").slice(0, 10), ref: r.ref ?? "—", category: r.category, description: r.description ?? "", vendor: r.party ?? "", amount: r.amount, method: r.method ?? "—", status: (r.status || "").toLowerCase() }));
   return <LedgerTableView title="Expense Ledger" rows={rows} type="expense" />;
 }
@@ -1152,7 +1162,7 @@ export function AccountsModule() {
   return (
     <div className="flex h-full min-h-screen bg-[#F0F2F5]">
       {/* Sub-nav sidebar */}
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
         <div className="px-4 py-4 border-b border-slate-100">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accounts</h2>
         </div>

@@ -37,7 +37,7 @@ function HeroCtas() {
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full max-w-lg mx-auto">
       <Link
         to="/book"
-        className="flex-1 py-3.5 px-6 bg-[#F15A24] hover:bg-[#CC3C17] text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center shadow-[0_12px_32px_rgba(241,90,36,0.35)] hover:shadow-[0_16px_40px_rgba(241,90,36,0.45)] hover:-translate-y-0.5"
+        className="flex-1 py-3.5 px-6 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center shadow-[0_12px_32px_rgba(241,90,36,0.35)] hover:shadow-[0_16px_40px_rgba(241,90,36,0.45)] hover:-translate-y-0.5"
       >
         {t("hero.cta.book")}
       </Link>
@@ -327,7 +327,7 @@ export function Home() {
           <div className="text-center mt-12">
             <Link
               to="/packages"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-bold text-sm transition-colors"
             >
               {t("packages.viewAllPackages")} <ArrowRight size={14} />
             </Link>
@@ -377,7 +377,7 @@ export function Home() {
 
               <Link
                 to="/about"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold text-sm transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-bold text-sm transition-colors"
               >
                 {t("why.learnStory")} <ArrowRight size={14} />
               </Link>
@@ -532,7 +532,7 @@ export function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
             <Link
               to="/book"
-              className="w-full sm:w-auto px-8 py-3.5 bg-[#F15A24] hover:bg-[#CC3C17] text-white font-bold text-sm transition-colors min-h-[48px] flex items-center justify-center"
+              className="w-full sm:w-auto px-8 py-3.5 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] text-white font-bold text-sm transition-colors min-h-[48px] flex items-center justify-center"
             >
               {t("hero.cta.book")}
             </Link>

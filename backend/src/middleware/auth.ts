@@ -28,6 +28,17 @@ export function isGlobalRole(role: UserRole): boolean {
   return GLOBAL_ROLES.includes(role);
 }
 
+/** Load active user from DB so demotion/disable takes effect before JWT expiry. */
+async function attachAuthFromToken(token: string): Promise<AuthCtx | null> {
+  const claims = verifyAccessToken(token);
+  const user = await prisma.user.findFirst({
+    where: { id: claims.sub, deletedAt: null },
+    select: { id: true, role: true, branchId: true, status: true },
+  });
+  if (!user || user.status !== "active") return null;
+  return { userId: user.id, role: user.role, branchId: user.branchId };
+}
+
 /** Verify the Bearer access token and attach req.auth. 401 on missing/invalid/expired. */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
@@ -36,28 +47,38 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     res.status(401).json({ error: "Unauthorized", message: "Missing bearer token", requestId: req.id });
     return;
   }
-  try {
-    const claims = verifyAccessToken(token);
-    req.auth = { userId: claims.sub, role: claims.role, branchId: claims.branchId };
-    next();
-  } catch {
-    res.status(401).json({ error: "Unauthorized", message: "Invalid or expired token", requestId: req.id });
-  }
+  void (async () => {
+    try {
+      const auth = await attachAuthFromToken(token);
+      if (!auth) {
+        res.status(401).json({ error: "Unauthorized", message: "Invalid or expired token", requestId: req.id });
+        return;
+      }
+      req.auth = auth;
+      next();
+    } catch {
+      res.status(401).json({ error: "Unauthorized", message: "Invalid or expired token", requestId: req.id });
+    }
+  })();
 }
 
 /** Attach req.auth when a valid Bearer token is present; never 401s. */
 export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
   const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
-  if (token) {
+  if (!token) {
+    next();
+    return;
+  }
+  void (async () => {
     try {
-      const claims = verifyAccessToken(token);
-      req.auth = { userId: claims.sub, role: claims.role, branchId: claims.branchId };
+      const auth = await attachAuthFromToken(token);
+      if (auth) req.auth = auth;
     } catch {
       /* treat as anonymous */
     }
-  }
-  next();
+    next();
+  })();
 }
 
 /** Coarse gate on the token's role hint (fast, no DB). Use for route-family

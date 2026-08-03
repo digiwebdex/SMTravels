@@ -7,7 +7,7 @@ import {
   AlertCircle, Plane, Hotel, Globe, Star, Phone, Mail,
   Upload, Paperclip, Send, X, Plus, ArrowRight, Eye,
   MapPin, Shield, Camera, Edit2, Check, Info, Package,
-  Wallet, Ticket, RefreshCw, MoreHorizontal,
+  Wallet, Ticket, RefreshCw, MoreHorizontal, Bot, Stamp,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
@@ -15,15 +15,19 @@ import { openPrintPage } from "../lib/api";
 import { toast } from "sonner";
 import {
   usePortalMe, usePortalDashboard, usePortalBookings, usePortalBooking,
+  usePortalVisas, usePortalDownloads,
   usePortalInvoices, usePortalInvoice, usePortalPayments, usePortalInstallments, usePortalDocuments,
   usePortalTickets, usePortalTicket, useCreateTicket, useAddTicketMessage,
   usePortalNotifications, useMarkAllNotificationsRead,
   useUploadPortalDocument, downloadPortalDocument,
 } from "../hooks/portal";
+import { usePortalAiChat } from "../hooks/ai";
 import { usePortalBankAccounts, useSubmitPaymentProof } from "../hooks/payments";
 import { DOCUMENT_TYPES } from "../lib/documentTypes"; // runtime value — NEVER from @contracts (type-only imports erase; values would drag backend code into the bundle)
 import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { PortalBooking } from "../hooks/portal";
+import { useAuth } from "../auth/AuthContext";
+import { PortalShell, type PortalNavItem } from "../design-system";
 
 // ── shared query-state wrapper ────────────────────────────────────────────────
 function PortalState({ query, children, empty }: {
@@ -33,7 +37,7 @@ function PortalState({ query, children, empty }: {
   const { t } = useTranslation("portalCustomer");
   if (query.isLoading) return <div className="flex items-center justify-center py-20 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
   if (query.isError) return <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-sm text-red-600 text-center">{(query.error as Error)?.message || t("portalCommon:empty.failed")}</div>;
-  if (empty) return <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-10 text-center text-sm text-slate-400">{t("portalCommon:empty.nothing")}</div>;
+  if (empty) return <div className="bg-[var(--color-surface)] border border-dashed border-[var(--color-border)] rounded-2xl p-10 text-center text-sm text-slate-400">{t("portalCommon:empty.nothing")}</div>;
   return <>{children}</>;
 }
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -42,27 +46,23 @@ const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(
 type PortalView =
   | "dashboard" | "bookings" | "booking-detail"
   | "payments" | "installments" | "invoices"
-  | "documents" | "voucher" | "support" | "notifications" | "profile";
+  | "visas" | "documents" | "downloads" | "voucher"
+  | "ai" | "support" | "notifications" | "profile";
 
 const NAV = [
   { id:"dashboard"     as PortalView, labelKey:"portalCommon:nav.myDashboard",   icon:LayoutDashboard },
   { id:"bookings"      as PortalView, labelKey:"portalCommon:nav.myBookings",    icon:Calendar        },
+  { id:"visas"         as PortalView, labelKey:"portalCommon:nav.visaStatus",    icon:Stamp           },
   { id:"payments"      as PortalView, labelKey:"portalCommon:nav.paymentHistory",icon:CreditCard      },
   { id:"installments"  as PortalView, labelKey:"portalCommon:nav.installments",  icon:Layers          },
   { id:"invoices"      as PortalView, labelKey:"portalCommon:nav.invoices",      icon:FileText        },
   { id:"documents"     as PortalView, labelKey:"portalCommon:nav.myDocuments",   icon:FolderOpen      },
-  { id:"voucher"       as PortalView, labelKey:"portalCommon:nav.voucher",       icon:Download        },
+  { id:"downloads"     as PortalView, labelKey:"portalCommon:nav.downloads",     icon:Download        },
+  { id:"voucher"       as PortalView, labelKey:"portalCommon:nav.voucher",       icon:Ticket          },
+  { id:"ai"            as PortalView, labelKey:"portalCommon:nav.aiAssistant",   icon:Bot             },
   { id:"support"       as PortalView, labelKey:"portalCommon:nav.support",       icon:MessageCircle   },
-  { id:"notifications" as PortalView, labelKey:"portalCommon:nav.notifications", icon:Bell, badge:2   },
+  { id:"notifications" as PortalView, labelKey:"portalCommon:nav.notifications", icon:Bell            },
   { id:"profile"       as PortalView, labelKey:"portalCommon:nav.myProfile",     icon:User            },
-];
-
-const BOTTOM_NAV = [
-  { id:"dashboard"   as PortalView, icon:LayoutDashboard, labelKey:"portalCustomer:bottomNav.home" },
-  { id:"bookings"    as PortalView, icon:Calendar,        labelKey:"portalCommon:nav.bookings"     },
-  { id:"payments"    as PortalView, icon:CreditCard,      labelKey:"portalCommon:nav.payments"     },
-  { id:"support"     as PortalView, icon:MessageCircle,   labelKey:"portalCommon:nav.support"      },
-  { id:"profile"     as PortalView, icon:User,            labelKey:"portalCommon:nav.profile"      },
 ];
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -112,22 +112,22 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
             <h2 className="text-2xl font-bold mb-1">{d.customerName}</h2>
             <p className="text-white/60 text-sm">{next ? <>{t("dashboard.bookingPrefix")} <span className="text-[#D64A12] font-semibold">{next.serviceType.replace(/_/g, " ").toLowerCase()}</span> {t("dashboard.bookingActive")}</> : t("dashboard.noActiveBookings")}</p>
             <div className="flex items-center gap-3 mt-5">
-              <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
+              <div className="flex-1 bg-[var(--color-surface)]/10 rounded-xl p-3 text-center">
                 <p className="text-xl font-bold" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{d.counts.bookings}</p>
                 <p className="text-xs text-white/60 mt-0.5">{t("portalCommon:nav.bookings")}</p>
               </div>
-              <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
+              <div className="flex-1 bg-[var(--color-surface)]/10 rounded-xl p-3 text-center">
                 <p className="text-xl font-bold" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{d.counts.documents}</p>
                 <p className="text-xs text-white/60 mt-0.5">{t("portalCommon:nav.documents")}</p>
               </div>
-              <div className="flex-1 bg-white/10 rounded-xl p-3 text-center">
+              <div className="flex-1 bg-[var(--color-surface)]/10 rounded-xl p-3 text-center">
                 <p className="text-xl font-bold" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{d.counts.unpaidInvoices}</p>
                 <p className="text-xs text-white/60 mt-0.5">{t("portalCommon:status.unpaid")}</p>
               </div>
             </div>
           </div>
-          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5"/>
-          <div className="absolute -bottom-6 -right-4 w-24 h-24 rounded-full bg-white/5"/>
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-[var(--color-surface)]/5"/>
+          <div className="absolute -bottom-6 -right-4 w-24 h-24 rounded-full bg-[var(--color-surface)]/5"/>
         </div>
 
         {/* Next booking card */}
@@ -148,7 +148,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
         )}
 
         {/* Balance due */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-semibold text-slate-800">{t("labels.balanceDue")}</p>
           </div>
@@ -181,7 +181,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
             { icon:Layers,       label:t("portalCommon:nav.installments"),color:"bg-amber-50 text-amber-600",  v:"installments" as PortalView },
           ].map(l=>(
             <button key={l.label} onClick={()=>onGo(l.v)}
-              className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#1B75BC]/30 hover:shadow-sm transition-all group text-left">
+              className="flex items-center gap-3 p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl hover:border-[#1B75BC]/30 hover:shadow-sm transition-all group text-left">
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", l.color)}><l.icon size={18}/></div>
               <span className="text-sm font-semibold text-slate-700">{l.label}</span>
               <ChevronRight size={14} className="ml-auto text-slate-300 group-hover:text-[#1B75BC] transition-colors"/>
@@ -190,7 +190,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
         </div>
 
         {/* Recent notifications */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-semibold text-slate-800">{t("dashboard.recentUpdates")}</p>
             <button onClick={()=>onGo("notifications")} className="text-xs text-[#1B75BC] hover:underline">{t("dashboard.seeAll")}</button>
@@ -198,7 +198,7 @@ function Dashboard({ onGo }: { onGo: (v: PortalView) => void }) {
           <div className="space-y-2.5">
             {d.recentNotifications.length === 0 && <p className="text-sm text-slate-400 py-2">{t("dashboard.noUpdates")}</p>}
             {d.recentNotifications.map(n=>(
-              <div key={n.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", n.read?"bg-slate-50":"bg-[#1B75BC]/4")}>
+              <div key={n.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", n.read?"bg-[var(--color-bg)]":"bg-[#1B75BC]/4")}>
                 <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: n.color || "#1B75BC" }}/>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-800">{n.title}</p>
@@ -225,8 +225,8 @@ function BookingsView({ onDetail }: { onDetail: (id: string) => void }) {
       <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.myBookings")}</h2>
       <PortalState query={q} empty={rows.length === 0}>
         {rows.map(b=>(
-          <div key={b.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={()=>onDetail(b.id)}>
-            <div className="px-5 py-4 border-b border-slate-100">
+          <div key={b.id} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={()=>onDetail(b.id)}>
+            <div className="px-5 py-4 border-b border-[var(--color-border-subtle)]">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-slate-400 font-mono mb-1">{b.bookingNo || "—"}</p>
@@ -250,7 +250,7 @@ function BookingsView({ onDetail }: { onDetail: (id: string) => void }) {
                 )}
               </div>
             </div>
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+            <div className="px-5 py-3 bg-[var(--color-bg)] border-t border-[var(--color-border-subtle)] flex items-center justify-end">
               <span className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold whitespace-nowrap">{t("common:actions.viewDetails")} <ChevronRight size={12}/></span>
             </div>
           </div>
@@ -283,7 +283,7 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
           </div>
 
           {Object.keys(b.detail).length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-4">
             <p className="font-semibold text-slate-700 text-sm">{t("bookingDetail.journeyDetails")}</p>
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(b.detail).filter(([, v]) => v).map(([label, val])=>(
@@ -296,7 +296,7 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
           </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
             <p className="font-semibold text-slate-700 text-sm mb-5">{t("bookingDetail.timeline")}</p>
             <div className="relative">
               <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-slate-100"/>
@@ -304,7 +304,7 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
                 {b.timeline.map((step,i)=>(
                   <div key={i} className="flex items-center gap-4 relative">
                     <div className={cn("w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 z-10",
-                      step.done ? "bg-[#1B75BC] border-[#1B75BC]" : "bg-white border-slate-200")}>
+                      step.done ? "bg-[#1B75BC] border-[#1B75BC]" : "bg-[var(--color-surface)] border-[var(--color-border)]")}>
                       {step.done ? <Check size={14} className="text-white"/> : <Circle size={10} className="text-slate-300"/>}
                     </div>
                     <div className="flex-1"><p className={cn("text-sm font-semibold", step.done?"text-slate-800":"text-slate-400")}>{step.label}</p></div>
@@ -315,11 +315,11 @@ function BookingDetail({ bookingId, onBack }: { bookingId: string; onBack: () =>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
             <p className="font-semibold text-slate-700 text-sm mb-3">{t("bookingDetail.paymentSummary")}</p>
             <div className="space-y-2.5">
               {[[t("labels.totalAmount"),b.amount],[t("labels.amountPaid"),b.paidAmount],[t("labels.balanceDue"),b.dueAmount]].map(([k,v],i)=>(
-                <div key={i} className={cn("flex justify-between items-center",i===2&&"pt-2.5 border-t border-slate-100")}>
+                <div key={i} className={cn("flex justify-between items-center",i===2&&"pt-2.5 border-t border-[var(--color-border-subtle)]")}>
                   <span className={cn("text-sm",i===2?"font-bold text-red-500":"text-slate-600")}>{k}</span>
                   <span className={cn("font-bold",i===2?"text-red-500":"text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT(v as number)}</span>
                 </div>
@@ -360,7 +360,7 @@ function NpsbPayForm() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#1B75BC]/25 p-5 space-y-4">
+    <div className="bg-[var(--color-surface)] rounded-2xl border border-[#1B75BC]/25 p-5 space-y-4">
       <div className="flex items-center gap-2">
         <div className="w-9 h-9 rounded-xl bg-[#1B75BC]/10 flex items-center justify-center"><Wallet size={18} className="text-[#1B75BC]"/></div>
         <div>
@@ -376,7 +376,7 @@ function NpsbPayForm() {
       ) : (
         <div className="space-y-2">
           {(banksQ.data ?? []).map((b) => (
-            <div key={b.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+            <div key={b.id} className="p-3 bg-[var(--color-bg)] rounded-xl border border-[var(--color-border-subtle)] text-sm">
               <p className="font-semibold text-slate-800">{b.name}</p>
               {b.bankName && <p className="text-xs text-slate-500">{b.bankName}{b.branchName ? ` · ${b.branchName}` : ""}</p>}
               <div className="flex flex-wrap gap-3 mt-1.5 font-mono text-xs text-slate-700">
@@ -393,12 +393,12 @@ function NpsbPayForm() {
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">{t("portalCommon:labels.amount")}</label>
           <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0"
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 font-mono"/>
+            className="w-full px-3 py-2.5 text-sm border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 font-mono"/>
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">{t("payments.npsbRef", { defaultValue: "NPSB Reference" })}</label>
           <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Txn / reference no."
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 font-mono"/>
+            className="w-full px-3 py-2.5 text-sm border border-[var(--color-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 font-mono"/>
         </div>
       </div>
 
@@ -406,7 +406,7 @@ function NpsbPayForm() {
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">{t("payments.linkInvoice", { defaultValue: "Link to invoice (optional)" })}</label>
           <select value={invoiceId} onChange={(e) => setInvoiceId(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none">
+            className="w-full px-3 py-2.5 text-sm border border-[var(--color-border)] rounded-xl focus:outline-none">
             <option value="">{t("payments.noInvoice", { defaultValue: "General payment" })}</option>
             {unpaid.map((i) => (
               <option key={i.id} value={i.id}>{i.invoiceNo || "Draft"} — {fmtBDT(i.dueAmount)} due</option>
@@ -419,7 +419,7 @@ function NpsbPayForm() {
         <label className="block text-xs font-medium text-slate-500 mb-1">{t("payments.proofFile", { defaultValue: "Payment proof (screenshot / receipt)" })}</label>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50">
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-xl text-slate-600 hover:bg-[var(--color-bg)]">
             <Paperclip size={14}/> {file ? file.name : t("payments.chooseFile", { defaultValue: "Choose file" })}
           </button>
           <input ref={fileRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png"
@@ -448,7 +448,7 @@ function PaymentsView() {
       <PortalState query={q} empty={rows.length === 0}>
         <div className="grid grid-cols-2 gap-3">
           {[[t("payments.totalPaid"),fmtBDT(totalPaid)],[t("payments.transactions"),String(rows.length)]].map(([l,v])=>(
-            <div key={l} className="bg-white rounded-2xl border border-slate-200 p-4 text-center">
+            <div key={l} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 text-center">
               <p className="text-xs text-slate-400 mb-1">{l}</p>
               <p className="text-xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{v}</p>
             </div>
@@ -456,7 +456,7 @@ function PaymentsView() {
         </div>
         <div className="space-y-3">
           {rows.map(p=>(
-            <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div key={p.id} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2.5">
                   <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0", p.reversed?"bg-red-100":"bg-emerald-100")}>
@@ -505,16 +505,16 @@ function InstallmentsView() {
                   </div>
                   <div className="w-14 h-14 rounded-full border-4 border-white/20 flex items-center justify-center"><span className="text-lg font-black">{pct}%</span></div>
                 </div>
-                <div className="h-2.5 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-[#F15A24] rounded-full transition-all" style={{ width:`${pct}%` }}/></div>
+                <div className="h-2.5 bg-[var(--color-surface)]/20 rounded-full overflow-hidden"><div className="h-full bg-[#F15A24] rounded-full transition-all" style={{ width:`${pct}%` }}/></div>
               </div>
               <div className="space-y-3">
                 {plan.installments.map((inst)=>{
                   const isPaid = inst.status === "PAID";
                   const isNext = inst.status === "DUE" || inst.status === "OVERDUE";
                   return (
-                    <div key={inst.number} className={cn("bg-white rounded-2xl border p-5 transition-all", isNext?"border-[#1B75BC]/40 shadow-md shadow-[#1B75BC]/8":"border-slate-200")}>
+                    <div key={inst.number} className={cn("bg-[var(--color-surface)] rounded-2xl border p-5 transition-all", isNext?"border-[#1B75BC]/40 shadow-md shadow-[#1B75BC]/8":"border-[var(--color-border)]")}>
                       <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0", isPaid?"border-emerald-500 bg-emerald-50":isNext?"border-[#F15A24] bg-amber-50":"border-slate-200 bg-slate-50")}>
+                        <div className={cn("w-10 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0", isPaid?"border-emerald-500 bg-emerald-50":isNext?"border-[#F15A24] bg-amber-50":"border-[var(--color-border)] bg-[var(--color-bg)]")}>
                           {isPaid ? <Check size={16} className="text-emerald-600"/> : <span className="text-xs font-bold text-slate-500">{inst.number}</span>}
                         </div>
                         <div className="flex-1">
@@ -547,8 +547,8 @@ function InvoicePreview({ id, onClose }: { id: string; onClose: () => void }) {
   const inv = q.data;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-3xl z-10">
+      <div className="bg-[var(--color-surface)] rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-subtle)] sticky top-0 bg-[var(--color-surface)] rounded-t-3xl z-10">
           <h3 className="font-bold text-slate-800 font-mono">{inv?.invoiceNo || t("invoices.invoice")}</h3>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400"><X size={18}/></button>
         </div>
@@ -568,7 +568,7 @@ function InvoicePreview({ id, onClose }: { id: string; onClose: () => void }) {
                 </div>
               </div>
               <table className="w-full mb-4">
-                <thead><tr className="border-b border-slate-100"><th className="text-left text-xs text-slate-400 pb-2">{t("invoices.item")}</th><th className="text-right text-xs text-slate-400 pb-2">{t("portalCommon:labels.amount")}</th></tr></thead>
+                <thead><tr className="border-b border-[var(--color-border-subtle)]"><th className="text-left text-xs text-slate-400 pb-2">{t("invoices.item")}</th><th className="text-right text-xs text-slate-400 pb-2">{t("portalCommon:labels.amount")}</th></tr></thead>
                 <tbody>
                   {inv.items.map((it,i)=>(
                     <tr key={i} className="border-b border-slate-50">
@@ -579,7 +579,7 @@ function InvoicePreview({ id, onClose }: { id: string; onClose: () => void }) {
                 </tbody>
               </table>
               {([[t("portalCommon:labels.total"),inv.total],[t("portalCommon:labels.paid"),inv.paidAmount],[t("labels.balanceDue"),inv.dueAmount]] as [string,number][]).map(([k,v],i)=>(
-                <div key={k} className={cn("flex justify-between",i===2&&"font-bold text-red-500 pt-2 border-t border-slate-100")}>
+                <div key={k} className={cn("flex justify-between",i===2&&"font-bold text-red-500 pt-2 border-t border-[var(--color-border-subtle)]")}>
                   <span className="text-sm">{k}</span><span className="text-sm font-mono">{fmtBDT(v)}</span>
                 </div>
               ))}
@@ -601,7 +601,7 @@ function InvoicesView() {
       <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.invoices")}</h2>
       <PortalState query={q} empty={rows.length === 0}>
         {rows.map(inv=>(
-          <div key={inv.id} className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div key={inv.id} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="text-xs text-slate-400 font-mono">{inv.invoiceNo || t("invoices.draft")}</p>
@@ -610,12 +610,12 @@ function InvoicesView() {
               <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border",
                 inv.status==="PAID"?"bg-emerald-50 text-emerald-700 border-emerald-200":"bg-amber-50 text-amber-700 border-amber-200")}>{t(`portalCommon:status.${inv.status.toLowerCase()}`)}</span>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border-subtle)]">
               <div>
                 <p className="font-black text-slate-800 text-lg" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{fmtBDT(inv.total)}</p>
                 {inv.dueAmount > 0 && <p className="text-xs text-red-500">{t("invoices.balanceShort", { amount: fmtBDT(inv.dueAmount) })}</p>}
               </div>
-              <button onClick={()=>setPreview(inv.id)} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 whitespace-nowrap"><Eye size={13}/> {t("common.view")}</button>
+              <button onClick={()=>setPreview(inv.id)} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-xl text-slate-600 hover:bg-[var(--color-bg)] whitespace-nowrap"><Eye size={13}/> {t("common.view")}</button>
             </div>
           </div>
         ))}
@@ -648,7 +648,7 @@ function DocumentsView() {
         </div>
         <div className="flex items-center gap-2">
           <select value={docType} onChange={e=>setDocType(e.target.value as DocumentTypeDto)}
-            className="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 focus:outline-none">
+            className="border border-[var(--color-border)] rounded-xl px-3 py-2 text-sm text-slate-600 focus:outline-none">
             {DOCUMENT_TYPES.map(t=>(
               <option key={t} value={t}>{t.replace(/_/g," ").toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}</option>
             ))}
@@ -672,7 +672,7 @@ function DocumentsView() {
             const sc = DOC_STATUS_CFG[doc.status.toLowerCase()] ?? DOC_STATUS_CFG.pending;
             const Icon = sc.icon;
             return (
-              <div key={doc.id} className="bg-white rounded-2xl border border-slate-200 p-4">
+              <div key={doc.id} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0"><Shield size={18} className="text-slate-400"/></div>
                   <div className="flex-1">
@@ -687,7 +687,7 @@ function DocumentsView() {
                   <span className="text-xs text-slate-400 capitalize flex-shrink-0">{doc.type.toLowerCase()}</span>
                   {doc.hasFile && (
                     <button onClick={()=>void downloadPortalDocument(doc)} title={t("common:actions.download")}
-                      className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 cursor-pointer flex-shrink-0">
+                      className="p-2 rounded-xl border border-[var(--color-border)] text-slate-500 hover:bg-[var(--color-bg)] cursor-pointer flex-shrink-0">
                       <Download size={14}/>
                     </button>
                   )}
@@ -697,6 +697,204 @@ function DocumentsView() {
           })}
         </div>
       </PortalState>
+    </div>
+  );
+}
+
+// ─── VISA STATUS ─────────────────────────────────────────────────────────────
+const STAGE_CFG: Record<string,{ labelKey:string; cls:string }> = {
+  PENDING:       { labelKey:"visas.stage.pending",      cls:"bg-amber-50 text-amber-700 border-amber-200" },
+  IN_PROGRESS:   { labelKey:"visas.stage.inProgress",   cls:"bg-blue-50 text-blue-700 border-blue-200" },
+  DONE:          { labelKey:"visas.stage.done",         cls:"bg-emerald-50 text-emerald-700 border-emerald-200" },
+  NOT_APPLICABLE:{ labelKey:"visas.stage.notApplicable",cls:"bg-[var(--color-bg)] text-slate-500 border-[var(--color-border)]" },
+};
+
+function VisaStatusView({ onDetail }: { onDetail: (id: string) => void }) {
+  const { t } = useTranslation("portalCustomer");
+  const q = usePortalVisas();
+  const rows = q.data ?? [];
+  return (
+    <div className="space-y-4" data-portal="visas">
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.visaStatus")}</h2>
+        <p className="text-sm text-slate-500 mt-0.5">{t("visas.subtitle")}</p>
+      </div>
+      <PortalState query={q} empty={rows.length === 0}>
+        {rows.map((v) => {
+          const stage = STAGE_CFG[v.stageStatus ?? ""] ?? STAGE_CFG.PENDING;
+          return (
+            <div key={v.id} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onDetail(v.id)}>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <p className="text-xs text-slate-400 font-mono mb-1">{v.bookingNo || "—"}</p>
+                  <h3 className="font-bold text-slate-800">{v.destinationCountry || t("visas.visaApplication")}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{v.visaType || "—"}{v.visaNumber ? ` · ${v.visaNumber}` : ""}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1.5">
+                  <StatusChip status={v.status.toLowerCase()}/>
+                  <span className={cn("text-xs px-2.5 py-0.5 rounded-full font-semibold border", stage.cls)}>{t(stage.labelKey)}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-[var(--color-border-subtle)]">
+                <span>{t("visas.depart", { date: fmtDate(v.departureDate) })}</span>
+                <span className="flex items-center gap-1 text-[#1B75BC] font-semibold">{t("common:actions.viewDetails")} <ChevronRight size={12}/></span>
+              </div>
+            </div>
+          );
+        })}
+      </PortalState>
+    </div>
+  );
+}
+
+// ─── DOWNLOADS HUB ───────────────────────────────────────────────────────────
+const CAT_LABEL: Record<string, string> = {
+  ticket: "downloads.categories.ticket",
+  visa: "downloads.categories.visa",
+  voucher: "downloads.categories.voucher",
+  invoice: "downloads.categories.invoice",
+};
+
+function DownloadsView() {
+  const { t } = useTranslation("portalCustomer");
+  const q = usePortalDownloads();
+  const rows = q.data ?? [];
+  const [filter, setFilter] = useState<"all" | "ticket" | "visa" | "voucher" | "invoice">("all");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [invoicePreview, setInvoicePreview] = useState<string | null>(null);
+  const filtered = filter === "all" ? rows : rows.filter((r) => r.category === filter);
+
+  const act = async (item: (typeof rows)[number]) => {
+    if (item.kind === "invoice") {
+      setInvoicePreview(item.id);
+      return;
+    }
+    setBusy(item.id);
+    try {
+      if (item.kind === "document") {
+        await downloadPortalDocument({ id: item.id, name: item.name });
+      } else if (item.kind === "voucher" && item.bookingId) {
+        await openPrintPage(`/portal/bookings/${item.bookingId}/voucher`);
+      }
+    } catch (e) {
+      toast.error((e as Error).message || t("downloads.failed"));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="space-y-4" data-portal="downloads">
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.downloads")}</h2>
+        <p className="text-sm text-slate-500 mt-0.5">{t("downloads.subtitle")}</p>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {(["all", "ticket", "visa", "voucher", "invoice"] as const).map((f) => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={cn("px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors",
+              filter === f ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "bg-[var(--color-surface)] text-slate-600 border-[var(--color-border)] hover:border-[#1B75BC]/40")}>
+            {f === "all" ? t("downloads.all") : t(CAT_LABEL[f])}
+          </button>
+        ))}
+      </div>
+      <PortalState query={q} empty={filtered.length === 0}>
+        <div className="space-y-3">
+          {filtered.map((item) => (
+            <div key={`${item.kind}-${item.id}`} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#1B75BC]/10 flex items-center justify-center flex-shrink-0">
+                {item.category === "ticket" ? <Ticket size={18} className="text-[#1B75BC]"/> :
+                 item.category === "visa" ? <Stamp size={18} className="text-[#1B75BC]"/> :
+                 item.category === "invoice" ? <FileText size={18} className="text-[#1B75BC]"/> :
+                 <Download size={18} className="text-[#1B75BC]"/>}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-800 truncate">{item.name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{t(CAT_LABEL[item.category])} · {fmtDate(item.createdAt)}</p>
+              </div>
+              <button
+                type="button"
+                disabled={!item.hasFile || busy === item.id}
+                onClick={() => void act(item)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F] disabled:opacity-50 whitespace-nowrap">
+                {busy === item.id ? <Loader2 size={14} className="animate-spin"/> : item.kind === "document" ? <Download size={14}/> : <Eye size={14}/>}
+                {item.kind === "voucher" ? t("voucher.print", { defaultValue: "Print" }) : item.kind === "invoice" ? t("common.view") : t("common:actions.download")}
+              </button>
+            </div>
+          ))}
+        </div>
+      </PortalState>
+      {invoicePreview && <InvoicePreview id={invoicePreview} onClose={() => setInvoicePreview(null)}/>}
+    </div>
+  );
+}
+
+// ─── AI ASSISTANT ────────────────────────────────────────────────────────────
+function AiAssistantView() {
+  const { t } = useTranslation("portalCustomer");
+  const chat = usePortalAiChat();
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const bottomRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (messages.length === 0) setMessages([{ role: "assistant", content: t("ai.greeting") }]);
+  }, [messages.length, t]);
+
+  React.useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, chat.isPending]);
+
+  const send = () => {
+    const text = input.trim();
+    if (!text || chat.isPending) return;
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setInput("");
+    chat.mutate(text, {
+      onSuccess: (r) => setMessages((prev) => [...prev, { role: "assistant", content: r.reply }]),
+      onError: () => setMessages((prev) => [...prev, { role: "assistant", content: t("ai.error") }]),
+    });
+  };
+
+  return (
+    <div className="space-y-4" data-portal="ai">
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.aiAssistant")}</h2>
+        <p className="text-sm text-slate-500 mt-0.5">{t("ai.subtitle")}</p>
+      </div>
+      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] flex flex-col overflow-hidden" style={{ height: "min(70vh, 560px)" }}>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.map((m, i) => (
+            <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
+              {m.role === "assistant" && (
+                <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white mr-2 flex-shrink-0 self-end">
+                  <Bot size={14}/>
+                </div>
+              )}
+              <div className={cn("max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
+                m.role === "user" ? "bg-[#1B75BC] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
+                {m.content}
+              </div>
+            </div>
+          ))}
+          {chat.isPending && (
+            <div className="flex items-center gap-2 text-xs text-slate-400 px-2">
+              <Loader2 size={14} className="animate-spin"/> {t("ai.typing")}
+            </div>
+          )}
+          <div ref={bottomRef}/>
+        </div>
+        <div className="p-3 border-t border-[var(--color-border-subtle)] flex items-center gap-2">
+          <input value={input} onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
+            placeholder={t("ai.placeholder")}
+            className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none"/>
+          <button type="button" onClick={send} disabled={!input.trim() || chat.isPending}
+            className="p-2.5 bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F] disabled:opacity-50">
+            <Send size={16}/>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -733,7 +931,7 @@ function VoucherView() {
           const service = b.serviceType.replace(/_/g, " ").toLowerCase();
           return (
             <div key={b.id} className={cn("rounded-2xl p-5 flex items-center gap-4",
-              ready ? "bg-white border border-slate-200" : "bg-slate-50 border border-dashed border-slate-200")}>
+              ready ? "bg-[var(--color-surface)] border border-[var(--color-border)]" : "bg-[var(--color-bg)] border border-dashed border-[var(--color-border)]")}>
               <div className="w-12 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
                 style={{ background: ready ? "#1B75BC" : "#CBD5E1" }}>
                 <FileText size={22} className="text-white"/>
@@ -832,18 +1030,18 @@ function SupportView() {
         <button onClick={()=>setCreating(true)} className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F] whitespace-nowrap"><Plus size={14}/> {t("support.newTicket")}</button>
       </div>
       {creating && (
-        <div className="bg-white rounded-2xl border border-[#1B75BC]/30 p-4 space-y-3">
-          <input value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t("support.subject")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
-          <textarea value={message} onChange={e=>setMessage(e.target.value)} rows={3} placeholder={t("support.helpPlaceholder")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none resize-none"/>
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[#1B75BC]/30 p-4 space-y-3">
+          <input value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t("support.subject")} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"/>
+          <textarea value={message} onChange={e=>setMessage(e.target.value)} rows={3} placeholder={t("support.helpPlaceholder")} className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm focus:outline-none resize-none"/>
           <div className="flex gap-2 justify-end">
-            <button onClick={()=>setCreating(false)} className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 whitespace-nowrap">{t("common:actions.cancel")}</button>
+            <button onClick={()=>setCreating(false)} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-xl text-slate-600 whitespace-nowrap">{t("common:actions.cancel")}</button>
             <button onClick={submit} disabled={create.isPending || subject.trim().length<3 || !message.trim()} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-xl disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap">{create.isPending&&<Loader2 size={13} className="animate-spin"/>}{t("support.create")}</button>
           </div>
         </div>
       )}
       <PortalState query={q} empty={rows.length === 0 && !creating}>
         {rows.map(tk=>(
-          <div key={tk.id} onClick={()=>setActive(tk.id)} className="bg-white rounded-2xl border border-slate-200 p-5 cursor-pointer hover:shadow-md transition-shadow">
+          <div key={tk.id} onClick={()=>setActive(tk.id)} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 cursor-pointer hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1 pr-3">
                 <p className="text-xs text-slate-400 font-mono mb-1">{tk.ticketNo}</p>
@@ -879,7 +1077,7 @@ function NotificationsView() {
       <PortalState query={q} empty={rows.length === 0}>
         <div className="space-y-3">
           {rows.map(n=>(
-            <div key={n.id} className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all", n.read?"bg-white border-slate-200":"bg-[#1B75BC]/4 border-[#1B75BC]/15")}>
+            <div key={n.id} className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all", n.read?"bg-[var(--color-surface)] border-[var(--color-border)]":"bg-[#1B75BC]/4 border-[#1B75BC]/15")}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: (n.color||"#1B75BC")+"20" }}>
                 <div className="w-3 h-3 rounded-full" style={{ background: n.color || "#1B75BC" }}/>
               </div>
@@ -910,7 +1108,7 @@ function ProfileView() {
       <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.myProfile")}</h2>
       <PortalState query={q}>
         {me && (<>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white text-2xl font-black">{initials}</div>
               <div>
@@ -926,7 +1124,7 @@ function ProfileView() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-3">
             <p className="font-semibold text-slate-700 text-sm">{t("profile.personalInfo")}</p>
             {[
               { field:"Full Name",     label:t("profile.fullName"),        val:me.name },
@@ -938,17 +1136,17 @@ function ProfileView() {
             ].map(f=>(
               <div key={f.field}>
                 <label className="block text-xs font-medium text-slate-400 mb-1">{f.label}</label>
-                <input value={f.val} disabled data-field={f.field} className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-slate-50 text-slate-700 cursor-default"/>
+                <input value={f.val} disabled data-field={f.field} className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-[var(--color-bg)] text-slate-700 cursor-default"/>
               </div>
             ))}
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-3">
             <p className="font-semibold text-slate-700 text-sm">{t("profile.addressSection")}</p>
             {[[t("profile.address"),me.addressLine ?? "—"],[t("profile.district"),me.district ?? "—"],[t("profile.division"),me.division ?? "—"],[t("profile.country"),me.country ?? "—"]].map(([l,v])=>(
               <div key={l}>
                 <label className="block text-xs font-medium text-slate-400 mb-1">{l}</label>
-                <input value={v} disabled className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-slate-50 text-slate-700"/>
+                <input value={v} disabled className="w-full px-3 py-2.5 text-sm rounded-xl border border-transparent bg-[var(--color-bg)] text-slate-700"/>
               </div>
             ))}
           </div>
@@ -965,27 +1163,49 @@ function ProfileView() {
 // ─── PORTAL SHELL ────────────────────────────────────────────────────────────
 export function CustomerPortal() {
   const { t } = useTranslation("portalCustomer");
+  const { logout } = useAuth();
   const [view, setView] = useState<PortalView>("dashboard");
   const [bookingId, setBookingId] = useState<string | null>(null);
   const { data: me } = usePortalMe();
   const { data: dash } = usePortalDashboard();
   const unreadNotif = dash?.counts.unreadNotifications ?? 0;
   const name = me?.name ?? t("common.customerFallback");
-  const initials = name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
 
   const go = (v: PortalView) => setView(v);
   const openBooking = (id: string) => { setBookingId(id); setView("booking-detail"); };
+
+  const navItems: PortalNavItem[] = NAV.map((item) => ({ id: item.id, label: t(item.labelKey), icon: item.icon }));
+  const activeId = view === "booking-detail" ? "bookings" : view;
+
+  const headerExtra = (
+    <button
+      type="button"
+      onClick={() => go("notifications")}
+      aria-label={t("portalCommon:nav.notifications")}
+      className="relative p-2 rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)] transition-colors mr-1 cursor-pointer"
+    >
+      <Bell size={18}/>
+      {unreadNotif > 0 && (
+        <span className="absolute top-1 right-1 w-4 h-4 bg-[var(--color-danger)] text-white text-[10px] flex items-center justify-center rounded-full font-bold">
+          {unreadNotif > 9 ? "9+" : unreadNotif}
+        </span>
+      )}
+    </button>
+  );
 
   const renderView = () => {
     switch(view) {
       case "dashboard":      return <Dashboard onGo={go}/>;
       case "bookings":       return <BookingsView onDetail={openBooking}/>;
       case "booking-detail": return bookingId ? <BookingDetail bookingId={bookingId} onBack={()=>go("bookings")}/> : <BookingsView onDetail={openBooking}/>;
+      case "visas":          return <VisaStatusView onDetail={openBooking}/>;
       case "payments":       return <PaymentsView/>;
       case "installments":   return <InstallmentsView/>;
       case "invoices":       return <InvoicesView/>;
       case "documents":      return <DocumentsView/>;
+      case "downloads":      return <DownloadsView/>;
       case "voucher":        return <VoucherView/>;
+      case "ai":             return <AiAssistantView/>;
       case "support":        return <SupportView/>;
       case "notifications":  return <NotificationsView/>;
       case "profile":        return <ProfileView/>;
@@ -993,107 +1213,19 @@ export function CustomerPortal() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Desktop layout */}
-      <div className="hidden md:flex h-screen">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
-          {/* Brand */}
-          <div className="px-5 py-5 border-b border-slate-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">SM</div>
-              <div>
-                <p className="text-sm font-bold text-slate-800">SM Travels International</p>
-                <p className="text-xs text-[#0E7C66] font-medium">{t("shell.myPortal")}</p>
-              </div>
-            </div>
-          </div>
-          {/* User */}
-          <div className="px-4 py-4 border-b border-slate-100">
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">{initials}</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate" data-portal-name>{name}</p>
-                <p className="text-xs text-slate-400 truncate">{t("shell.myPortal")}</p>
-              </div>
-            </div>
-          </div>
-          {/* Nav */}
-          <nav className="flex-1 py-3 px-3 overflow-y-auto no-scrollbar">
-            {NAV.map(item=>(
-              <button key={item.id} onClick={()=>go(item.id)}
-                className={cn("w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all mb-0.5",
-                  view===item.id||view==="booking-detail"&&item.id==="bookings"
-                    ? "bg-[#1B75BC] text-white shadow-sm shadow-[#1B75BC]/25"
-                    : "text-slate-600 hover:bg-slate-100")}>
-                <item.icon size={17} className={view===item.id?"text-white":"text-slate-400"}/>
-                <span className="font-medium">{t(item.labelKey)}</span>
-                {item.badge && (
-                  <span className="ml-auto w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
-                )}
-              </button>
-            ))}
-          </nav>
-          {/* Footer */}
-          <div className="p-4 border-t border-slate-100">
-            <button className="flex items-center gap-2.5 text-sm text-slate-400 hover:text-red-500 w-full px-2 py-1.5 rounded-xl hover:bg-red-50 transition-colors whitespace-nowrap">
-              <LogOut size={15}/> {t("common.signOut")}
-            </button>
-          </div>
-        </div>
-
-        {/* Main */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-8 py-8">
-            {renderView()}
-          </div>
-        </div>
+    <PortalShell
+      title={t("shell.myPortal")}
+      navItems={navItems}
+      activeId={activeId}
+      onNav={(id) => go(id as PortalView)}
+      onLogout={() => void logout()}
+      userName={name}
+      headerExtra={headerExtra}
+    >
+      <div className="max-w-2xl mx-auto">
+        {renderView()}
       </div>
-
-      {/* Mobile layout */}
-      <div className="md:hidden flex flex-col min-h-screen">
-        {/* Mobile header */}
-        <div className="bg-white border-b border-slate-200 px-4 py-3.5 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-black">SM</div>
-            <span className="font-bold text-slate-800 text-sm">{t("shell.myPortal")}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={()=>go("notifications")} className="relative p-2 hover:bg-slate-100 rounded-xl">
-              <Bell size={18} className="text-slate-500"/>
-              {unreadNotif>0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full font-bold">{unreadNotif}</span>
-              )}
-            </button>
-            <button onClick={()=>go("profile")} className="p-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1B75BC] to-[#0E7C66] flex items-center justify-center text-white text-xs font-black">{initials}</div>
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-5 pb-24">
-          {renderView()}
-        </div>
-
-        {/* Bottom nav */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2 safe-area-pb z-30">
-          <div className="flex items-center justify-around">
-            {BOTTOM_NAV.map(item=>{
-              const active = view===item.id||(view==="booking-detail"&&item.id==="bookings");
-              return (
-                <button key={item.id} onClick={()=>go(item.id)}
-                  className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all">
-                  <item.icon size={22} className={active?"text-[#1B75BC]":"text-slate-400"}/>
-                  <span className={cn("text-xs font-medium",active?"text-[#1B75BC]":"text-slate-400")}>{t(item.labelKey)}</span>
-                  {active && <div className="w-1 h-1 rounded-full bg-[#1B75BC]"/>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
+    </PortalShell>
   );
 }
 

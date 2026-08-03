@@ -5,7 +5,7 @@ import { HttpError } from "../middleware/errorHandler";
 import { money, type CurrencyCode } from "../lib/money";
 import { allocateSequence, formatBookingNo } from "../lib/sequence";
 import { reserveBatchSeat, reserveQuotaSlot, releaseBatchSeat, releaseQuotaSlot } from "../lib/capacity";
-import { notifyBookingConfirmed } from "./notification.service";
+import { notifyBookingConfirmed, notifyBookingCancelled, notifyBookingUpdated } from "./notification.service";
 import {
   detailSchemaFor,
   travelerSchema,
@@ -145,7 +145,13 @@ async function logActivity(tx: Tx, bookingId: string, actorId: string | null, ac
 
 // ── serialization (row → DTO) ─────────────────────────────────────────────────
 type BookingWithRels = Prisma.BookingGetPayload<{
-  include: { branch: true; customer: true; package: true; assignedStaff: true; agent: true };
+  include: {
+    branch: { select: { name: true } };
+    customer: { select: { name: true; phone: true; email: true } };
+    package: { select: { name: true } };
+    assignedStaff: { select: { name: true } };
+    agent: { select: { name: true } };
+  };
 }>;
 
 function toListItem(b: BookingWithRels): BookingListItem {
@@ -224,7 +230,13 @@ export async function listBookings(auth: AuthCtx, q: BookingListQuery): Promise<
   const [rows, total, grouped] = await Promise.all([
     prisma.booking.findMany({
       where,
-      include: { branch: true, customer: true, package: true, assignedStaff: true, agent: true },
+      include: {
+        branch: { select: { name: true } },
+        customer: { select: { name: true, phone: true, email: true } },
+        package: { select: { name: true } },
+        assignedStaff: { select: { name: true } },
+        agent: { select: { name: true } },
+      },
       orderBy,
       skip: (q.page - 1) * q.pageSize,
       take: q.pageSize,
@@ -371,6 +383,9 @@ export async function updateBooking(auth: AuthCtx, id: string, input: BookingUpd
     await syncCharges(tx, id, input.charges);
     await logActivity(tx, id, auth.userId, "Booking updated");
   });
+
+  if (input.status === "CANCELLED") notifyBookingCancelled(id);
+  else notifyBookingUpdated(id);
 
   return getBooking(auth, id);
 }

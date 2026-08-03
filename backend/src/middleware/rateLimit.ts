@@ -1,4 +1,14 @@
 import rateLimit from "express-rate-limit";
+import type { Request, Response } from "express";
+
+function tooManyHandler(_req: Request, res: Response): void {
+  const requestId = (_req as Request & { id?: string }).id;
+  res.status(429).json({
+    error: "TooManyRequests",
+    message: "Too many attempts, slow down and try again later.",
+    requestId,
+  });
+}
 
 /** Coarse per-IP limiter for the whole /api surface. Tighten per-route later. */
 export const apiRateLimiter = rateLimit({
@@ -6,13 +16,13 @@ export const apiRateLimiter = rateLimit({
   limit: 300, // requests per IP per window
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  message: { error: "TooManyRequests", message: "Rate limit exceeded, try again later." },
+  handler: tooManyHandler,
 });
 
 const strict = {
   standardHeaders: "draft-7" as const,
   legacyHeaders: false,
-  message: { error: "TooManyRequests", message: "Too many attempts, slow down and try again later." },
+  handler: tooManyHandler,
 };
 
 /** Login is brute-force bait — tighter than the global limiter, but this is the
@@ -36,3 +46,9 @@ export const aiPublicChatRateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, lim
 
 /** Authenticated ERP AI assistant — more headroom for staff. */
 export const aiAuthChatRateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, ...strict });
+
+/** Refresh-token rotation — prevent cookie hammering. */
+export const refreshRateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, ...strict });
+
+/** Authenticated uploads (documents / payment proof / OCR). */
+export const uploadRateLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, ...strict });

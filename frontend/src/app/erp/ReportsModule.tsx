@@ -19,6 +19,7 @@ import {
 } from "../hooks/reports";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { AiInsightCard } from "../design-system";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ReportView =
@@ -79,7 +80,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color, mono = true }: {
   icon: React.ElementType; color: string; mono?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", color)}>
           <Icon size={18} className="text-white" />
@@ -125,11 +126,11 @@ function FilterBar({
         </div>
         <div className="flex items-center gap-2">
           <button onClick={onRefresh}
-            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500">
+            className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-500">
             <RefreshCw size={15} />
           </button>
           <button onClick={() => onExport("pdf")}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> PDF
           </button>
           <button onClick={() => onExport("excel")}
@@ -139,7 +140,7 @@ function FilterBar({
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Calendar size={14} className="text-slate-400" />
           <select value={filters.dateRange} onChange={e => onChange({ dateRange: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -154,7 +155,7 @@ function FilterBar({
             <option value="all">All Time</option>
           </select>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Building2 size={14} className="text-slate-400" />
           <select value={filters.branch} onChange={e => onChange({ branch: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -162,7 +163,7 @@ function FilterBar({
             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Package size={14} className="text-slate-400" />
           <select value={filters.service} onChange={e => onChange({ service: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -175,7 +176,7 @@ function FilterBar({
             <option value="tour">Tour Packages</option>
           </select>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-slate-600">
           <Users size={14} className="text-slate-400" />
           <select value={filters.agent} onChange={e => onChange({ agent: e.target.value })}
             className="bg-transparent focus:outline-none cursor-pointer">
@@ -197,7 +198,7 @@ function LoadingSkeleton() {
     <div className="space-y-5 animate-pulse">
       <div className="grid grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-slate-200 p-5 h-28">
+          <div key={i} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5 h-28">
             <div className="w-10 h-10 bg-slate-100 rounded-lg mb-3" />
             <div className="h-6 bg-slate-100 rounded w-3/4 mb-2" />
             <div className="h-3 bg-slate-100 rounded w-1/2" />
@@ -206,7 +207,7 @@ function LoadingSkeleton() {
       </div>
       <div className="grid grid-cols-2 gap-5">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 h-64">
+          <div key={i} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 h-64">
             <div className="h-4 bg-slate-100 rounded w-1/3 mb-4" />
             <div className="flex items-end gap-3 h-40">
               {[...Array(7)].map((_, j) => (
@@ -216,7 +217,7 @@ function LoadingSkeleton() {
           </div>
         ))}
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 p-6 h-48">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 h-48">
         <div className="h-4 bg-slate-100 rounded w-1/4 mb-4" />
         {[...Array(5)].map((_, i) => (
           <div key={i} className="flex gap-4 py-3 border-b border-slate-50">
@@ -233,7 +234,7 @@ function LoadingSkeleton() {
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ report }: { report: string }) {
   return (
-    <div className="bg-white rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center py-20 text-center">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center py-20 text-center">
       <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
         <BarChart3 size={28} className="text-slate-300" />
       </div>
@@ -241,7 +242,7 @@ function EmptyState({ report }: { report: string }) {
       <p className="text-sm text-slate-400 max-w-xs">
         No {report} data matches the current filters. Try adjusting the date range or branch selection.
       </p>
-      <button className="mt-5 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 flex items-center gap-1.5">
+      <button className="mt-5 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 flex items-center gap-1.5">
         <Filter size={13} /> Reset Filters
       </button>
     </div>
@@ -255,7 +256,7 @@ function ReportState({ query, report, isEmpty, children }: {
 }) {
   if (query.isLoading) return <LoadingSkeleton />;
   if (query.isError) return (
-    <div className="bg-white rounded-xl border border-red-200 p-6 text-center">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-red-200 p-6 text-center">
       <AlertTriangle size={22} className="mx-auto text-red-400 mb-2" />
       <p className="text-sm text-red-600">{(query.error as Error)?.message || `Failed to load ${report} report.`}</p>
     </div>
@@ -269,7 +270,7 @@ function Section({ title, actions, children, className }: {
   title: string; actions?: React.ReactNode; children: React.ReactNode; className?: string;
 }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-slate-200", className)}>
+    <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]", className)}>
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <h3 className="font-semibold text-slate-800 text-sm">{title}</h3>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -283,7 +284,7 @@ function Section({ title, actions, children, className }: {
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 text-xs">
+    <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-lg p-3 text-xs">
       <p className="font-semibold text-slate-700 mb-1.5">{label}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2">
@@ -514,7 +515,7 @@ function SalesReport({ rf }: { rf: ReportFilters }) {
           <KpiCard label="Avg. Invoice Value" value={fmtC(d.avgValue)} icon={DollarSign} color="bg-amber-500" />
         </div>
         {mixed && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2">
             <AlertTriangle size={13} className="text-amber-500" />
             Totals are summed in <b>baseAmount (BDT)</b> so mixed-currency invoices aggregate correctly — a naive raw-amount sum would read {fmtC(d.rawAmountTotal)}.
           </div>
@@ -740,7 +741,7 @@ function PnlReport({ rf }: { rf: ReportFilters }) {
           <KpiCard label="Net Profit" value={fmtC(d.netProfit)} icon={DollarSign} color="bg-[#1B75BC]" />
           <KpiCard label="Net Margin" value={`${d.netMargin}%`} icon={BarChart3} color="bg-amber-500" />
         </div>
-        <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2">
+        <div className="text-xs text-slate-500 bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2 flex items-center gap-2">
           <CheckCircle size={13} className="text-emerald-500" />
           Derived from <b>POSTED</b> journal entries only; reversed entries net to zero.
         </div>
@@ -769,7 +770,7 @@ function PnlReport({ rf }: { rf: ReportFilters }) {
                   <td className="py-2 pr-2 text-sm text-right font-mono text-emerald-700" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(l.amount)}</td>
                 </tr>
               ))}
-              <tr className="border-b border-slate-200 bg-emerald-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Revenue</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-emerald-700">{fmtC(d.revenue)}</td></tr>
+              <tr className="border-b border-[var(--color-border)] bg-emerald-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Revenue</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-emerald-700">{fmtC(d.revenue)}</td></tr>
               <tr className="border-b border-slate-100"><td className="py-2.5 text-sm font-bold text-slate-800 pt-4" colSpan={2}>Expenses</td></tr>
               {d.expenseLines.map(l => (
                 <tr key={l.code} className="border-b border-slate-50">
@@ -777,7 +778,7 @@ function PnlReport({ rf }: { rf: ReportFilters }) {
                   <td className="py-2 pr-2 text-sm text-right font-mono text-red-600" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(l.amount)}</td>
                 </tr>
               ))}
-              <tr className="border-b border-slate-200 bg-red-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Expenses</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-red-600">{fmtC(d.expense)}</td></tr>
+              <tr className="border-b border-[var(--color-border)] bg-red-50/40"><td className="py-2 text-sm font-semibold text-slate-800">Total Expenses</td><td className="py-2 pr-2 text-sm text-right font-bold font-mono text-red-600">{fmtC(d.expense)}</td></tr>
               <tr className="bg-[#1B75BC]/5"><td className="py-3 text-sm font-bold text-[#1B75BC]">Net Profit</td><td className="py-3 pr-2 text-sm text-right font-bold font-mono text-[#1B75BC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(d.netProfit)}</td></tr>
             </tbody>
           </table>
@@ -805,7 +806,7 @@ function BalanceSheetReport({ rf }: { rf: ReportFilters }) {
           {rows.length === 0 && <tr><td colSpan={2} className="py-4 text-center text-xs text-slate-400">No balances.</td></tr>}
         </tbody>
         <tfoot>
-          <tr className="border-t border-slate-200"><td className="py-2 text-xs font-bold text-slate-800">Total</td><td className={cn("py-2 text-xs font-bold text-right font-mono", totalColor)}>{fmtC(total)}</td></tr>
+          <tr className="border-t border-[var(--color-border)]"><td className="py-2 text-xs font-bold text-slate-800">Total</td><td className={cn("py-2 text-xs font-bold text-right font-mono", totalColor)}>{fmtC(total)}</td></tr>
         </tfoot>
       </table>
     </Section>
@@ -850,7 +851,7 @@ function CashFlowReport({ rf }: { rf: ReportFilters }) {
           <KpiCard label="Financing" value={fmtC(d.totalFinancing)} icon={DollarSign} color="bg-amber-500" />
           <KpiCard label="Net Cash Change" value={fmtC(d.netChange)} icon={BarChart3} color="bg-[#1B75BC]" />
         </div>
-        <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">{d.note}</div>
+        <div className="text-xs text-slate-500 bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2">{d.note}</div>
         <Section title={`Cash Flow — ${d.applied.label}`}>
           {d.monthly.length === 0 ? <p className="text-sm text-slate-400 py-10 text-center">No cash movement in range.</p> : (
           <ResponsiveContainer width="100%" height={220}>
@@ -890,7 +891,7 @@ function CashFlowReport({ rf }: { rf: ReportFilters }) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-slate-50 border-t border-slate-200">
+              <tr className="bg-slate-50 border-t border-[var(--color-border)]">
                 <td className="py-3 pr-4 text-xs font-bold text-slate-800">Total</td>
                 <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-emerald-700">{fmtC(d.totalOperating)}</td>
                 <td className="py-3 pr-4 text-sm font-bold text-right font-mono text-red-600">{fmtC(d.totalInvesting)}</td>
@@ -923,31 +924,31 @@ function CustomReports() {
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-5">
         {/* Builder */}
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <h3 className="font-semibold text-slate-800 mb-4">Report Builder</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Report Name</label>
               <input defaultValue="Custom Booking Report — Jul 2024"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Primary Group By</label>
-                <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option>Service Type</option><option>Branch</option><option>Agent</option><option>Month</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Sort By</label>
-                <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option>Amount (desc)</option><option>Date (desc)</option><option>Customer</option>
                 </select>
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-2">Columns to Include</label>
-              <div className="flex flex-wrap gap-1.5 p-3 border border-slate-200 rounded-lg min-h-[80px] bg-slate-50">
+              <div className="flex flex-wrap gap-1.5 p-3 border border-[var(--color-border)] rounded-lg min-h-[80px] bg-slate-50">
                 {fields.map(f => (
                   <span key={f} className="flex items-center gap-1 px-2 py-1 bg-[#1B75BC] text-white text-xs rounded-md">
                     {f}
@@ -962,7 +963,7 @@ function CustomReports() {
               <div className="flex flex-wrap gap-1.5">
                 {AVAILABLE.filter(a => !fields.includes(a)).map(a => (
                   <button key={a} onClick={() => setFields(prev => [...prev, a])}
-                    className="px-2 py-1 border border-slate-200 text-xs text-slate-600 rounded-md hover:border-[#1B75BC] hover:text-[#1B75BC] transition-colors">
+                    className="px-2 py-1 border border-[var(--color-border)] text-xs text-slate-600 rounded-md hover:border-[#1B75BC] hover:text-[#1B75BC] transition-colors">
                     + {a}
                   </button>
                 ))}
@@ -972,7 +973,7 @@ function CustomReports() {
               <button className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
                 Generate Report
               </button>
-              <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+              <button className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                 Save Template
               </button>
             </div>
@@ -1006,13 +1007,13 @@ function CustomReports() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Frequency</label>
-                <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option>Daily</option><option>Weekly</option><option>Monthly</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Deliver to</label>
-                <input placeholder="email@example.com" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+                <input placeholder="email@example.com" className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Format</label>
@@ -1025,7 +1026,7 @@ function CustomReports() {
                   ))}
                 </div>
               </div>
-              <button className="w-full py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+              <button className="w-full py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
                 Set Schedule
               </button>
             </div>
@@ -1113,7 +1114,7 @@ export function ReportsModule() {
   return (
     <div className="flex h-full min-h-screen bg-[#F0F2F5]">
       {/* Sub-nav */}
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
         <div className="px-4 py-4 border-b border-slate-100">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Reports & Analytics</h2>
         </div>
@@ -1137,7 +1138,7 @@ export function ReportsModule() {
 
         {/* Quick export strip */}
         <div className="p-3 border-t border-slate-100 space-y-1.5">
-          <button onClick={() => handleExport("pdf")} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">
+          <button onClick={() => handleExport("pdf")} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-600 border border-[var(--color-border)] rounded-lg hover:bg-slate-50">
             <Printer size={12} /> Export current as PDF
           </button>
           <button onClick={() => handleExport("excel")} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">
@@ -1158,6 +1159,12 @@ export function ReportsModule() {
             title={title}
             subtitle={subtitle}
           />
+          <AiInsightCard title="AI Report Insights" collapsedByDefault>
+            <ul className="text-xs space-y-1.5 list-disc pl-4">
+              <li>Viewing <span className="font-semibold">{title}</span> for the selected period and branch.</li>
+              <li>Compare against the previous period to spot trends before they become issues.</li>
+            </ul>
+          </AiInsightCard>
           {renderReport()}
         </div>
       </div>

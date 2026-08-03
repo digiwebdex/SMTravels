@@ -32,8 +32,20 @@ export const reportQuerySchema = z.object({
 export type ReportQuery = z.infer<typeof reportQuerySchema>;
 
 export const exportQuerySchema = reportQuerySchema.extend({
-  report: z.enum(["sales", "bookings", "agents", "pnl", "expenses", "income"]),
-  format: z.enum(["csv"]).default("csv"),
+  report: z.enum([
+    "sales",
+    "bookings",
+    "agents",
+    "pnl",
+    "expenses",
+    "income",
+    "customers",
+    "notifications",
+    "visa",
+    "hajj",
+    "umrah",
+  ]),
+  format: z.enum(["csv", "xlsx", "pdf"]).default("csv"),
 });
 export type ExportQuery = z.infer<typeof exportQuerySchema>;
 

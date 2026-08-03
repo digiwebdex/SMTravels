@@ -472,3 +472,43 @@ export async function cashFlow(auth: AuthCtx, q: ReportQuery): Promise<CashFlowR
     note: "Net cash movement on cash/bank accounts from POSTED journals, classified by each entry's counter-account class. Investing/financing appear only where the COA carries fixed-asset / equity counter legs.",
   };
 }
+
+/** Customer list report (branch-scoped). */
+export async function customersReport(auth: AuthCtx, q: ReportQuery) {
+  const r = resolveRange(q);
+  const scope = branchScope(auth, q.branchId);
+  const df = dateFilter(r);
+  const rows = await prisma.customer.findMany({
+    where: { ...scope.where, deletedAt: null, ...(df ? { createdAt: df } : {}) },
+    select: { name: true, phone: true, email: true, createdAt: true, branchId: true },
+    orderBy: { createdAt: "desc" },
+    take: 5000,
+  });
+  return {
+    applied: applied(r, scope),
+    total: rows.length,
+    rows: rows.map((c) => ({
+      name: c.name,
+      phone: c.phone,
+      email: c.email,
+      date: c.createdAt.toISOString().slice(0, 10),
+      branchId: c.branchId,
+    })),
+  };
+}
+
+/** Outbound notification channel stats. */
+export async function notificationsReport(auth: AuthCtx, q: ReportQuery) {
+  void auth;
+  const r = resolveRange(q);
+  const df = dateFilter(r);
+  const rows = await prisma.outboundNotification.groupBy({
+    by: ["channel", "status"],
+    where: df ? { createdAt: df } : {},
+    _count: { _all: true },
+  });
+  return {
+    applied: applied(r, { where: {}, branchId: null, scoped: false }),
+    rows: rows.map((x) => ({ channel: x.channel, status: x.status, count: x._count._all })),
+  };
+}

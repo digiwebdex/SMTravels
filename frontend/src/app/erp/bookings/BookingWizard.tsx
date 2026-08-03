@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  ChevronLeft, ChevronRight, Check, Plus, Trash2, Upload,
+  ChevronLeft, Check, Plus, Trash2, Upload,
   AlertCircle, FileText, CreditCard, Banknote,
   Smartphone, Building2, CheckCircle2, Info, Loader2, Camera, ScanText,
 } from "lucide-react";
@@ -14,6 +14,7 @@ import { useUploadDocument } from "../../hooks/documents";
 import { useRunOcr } from "../../hooks/ocr";
 import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { ApiError } from "../../lib/api";
+import { StickySaveBar } from "../../design-system";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface WizardProps {
@@ -1278,28 +1279,16 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
           </div>
         </div>
 
-        {/* Footer nav */}
-        <div className="flex-shrink-0 bg-white border-t border-[#E5E7EB] px-8 py-4 flex items-center justify-between">
-          <button onClick={prev} disabled={busy}
-            className="flex items-center gap-2 px-4 py-2.5 border border-[#E5E7EB] text-[#374151] font-medium text-[13px] rounded-[8px] hover:border-[#1B75BC]/30 transition-colors cursor-pointer disabled:opacity-50">
-            <ChevronLeft size={15} /> {step === 0 ? "Cancel" : "Back"}
-          </button>
-          <div className="flex items-center gap-2">
-            {step === STEPS.length - 1 ? (
-              <button onClick={doConfirm} disabled={busy}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#0E7C66] text-white font-bold text-[13px] rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer shadow-lg shadow-[#0E7C66]/20 disabled:opacity-60">
-                {confirm.isPending ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Confirm Booking
-              </button>
-            ) : (
-              <button onClick={next} disabled={!canNext || busy}
-                className={cn("flex items-center gap-2 px-6 py-2.5 font-bold text-[13px] rounded-[8px] transition-colors cursor-pointer",
-                  canNext && !busy ? "bg-[#1B75BC] text-white hover:bg-[#14588F] shadow-lg shadow-[#1B75BC]/20" : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
-                )}>
-                {busy ? <Loader2 size={15} className="animate-spin" /> : null} Continue <ChevronRight size={15} />
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Footer nav — design-system StickySaveBar (Cancel = go back one step / exit on step 1) */}
+        <StickySaveBar
+          className="rounded-none"
+          onCancel={prev}
+          onSave={step === STEPS.length - 1 ? doConfirm : next}
+          saving={busy}
+          disabled={step !== STEPS.length - 1 && !canNext}
+          label={step === STEPS.length - 1 ? "Confirm Booking" : "Continue"}
+          dirtyHint={`Step ${step + 1} of ${STEPS.length} — progress autosaves as you go`}
+        />
       </div>
     </div>
   );

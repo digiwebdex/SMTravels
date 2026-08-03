@@ -138,17 +138,7 @@ export function BlogDetailPage() {
     );
   }
 
-  const articleContent = apiBody ?? `
-    ${blog.excerpt}
-
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hajj and Umrah represent the pinnacle of Islamic devotion — a physical, spiritual, and emotional journey that millions of Muslims from around the world undertake each year.
-
-    Planning a successful pilgrimage requires months of careful preparation, from obtaining the necessary documents and visas to selecting the right package and understanding the rituals involved. At SMTravel International, we have guided thousands of pilgrims through this sacred journey over our 25+ years of service.
-
-    Key considerations for a successful pilgrimage include: choosing a reputable, government-licensed agency; securing your Hajj or Umrah slot well in advance; ensuring all medical requirements are met; and attending the mandatory pre-departure orientation sessions.
-
-    Our expert guides are available throughout the journey to provide spiritual guidance, handle logistics, and ensure that every pilgrim can focus on what truly matters — their connection with Allah and the performance of the sacred rites.
-  `;
+  const articleContent = apiBody ?? blog.excerpt ?? "";
 
   return (
     <>

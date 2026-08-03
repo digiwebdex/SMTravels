@@ -2,6 +2,7 @@
 @import './tailwind.css';
 @import './theme.css';
 @import './home.css';
+@import '../app/design-system/motion/micro.css';
 
 /* Hide scrollbar but keep scroll functionality */
 .no-scrollbar::-webkit-scrollbar { display: none; }

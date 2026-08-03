@@ -17,6 +17,29 @@ import {
   createTestimonialHandler,
   updateTestimonialHandler,
   deleteTestimonialHandler,
+  listCmsPagesHandler,
+  getCmsPageHandler,
+  createCmsPageHandler,
+  updateCmsPageHandler,
+  deleteCmsPageHandler,
+  listMenusHandler,
+  getMenuHandler,
+  createMenuHandler,
+  updateMenuHandler,
+  deleteMenuHandler,
+  createMenuItemHandler,
+  updateMenuItemHandler,
+  deleteMenuItemHandler,
+  listBannersHandler,
+  getBannerHandler,
+  createBannerHandler,
+  updateBannerHandler,
+  deleteBannerHandler,
+  listMediaAssetsHandler,
+  getMediaAssetHandler,
+  createMediaAssetHandler,
+  updateMediaAssetHandler,
+  deleteMediaAssetHandler,
 } from "../controllers/cms.controller";
 
 /** ERP CMS admin — requireAuth + cms permission. */
@@ -41,3 +64,30 @@ cmsRouter.get("/cms/testimonials/:id", requireAuth, view, asyncHandler(getTestim
 cmsRouter.post("/cms/testimonials", requireAuth, manage, asyncHandler(createTestimonialHandler));
 cmsRouter.patch("/cms/testimonials/:id", requireAuth, manage, asyncHandler(updateTestimonialHandler));
 cmsRouter.delete("/cms/testimonials/:id", requireAuth, manage, asyncHandler(deleteTestimonialHandler));
+
+cmsRouter.get("/cms/pages", requireAuth, view, asyncHandler(listCmsPagesHandler));
+cmsRouter.get("/cms/pages/:id", requireAuth, view, asyncHandler(getCmsPageHandler));
+cmsRouter.post("/cms/pages", requireAuth, manage, asyncHandler(createCmsPageHandler));
+cmsRouter.patch("/cms/pages/:id", requireAuth, manage, asyncHandler(updateCmsPageHandler));
+cmsRouter.delete("/cms/pages/:id", requireAuth, manage, asyncHandler(deleteCmsPageHandler));
+
+cmsRouter.get("/cms/menus", requireAuth, view, asyncHandler(listMenusHandler));
+cmsRouter.get("/cms/menus/:id", requireAuth, view, asyncHandler(getMenuHandler));
+cmsRouter.post("/cms/menus", requireAuth, manage, asyncHandler(createMenuHandler));
+cmsRouter.patch("/cms/menus/:id", requireAuth, manage, asyncHandler(updateMenuHandler));
+cmsRouter.delete("/cms/menus/:id", requireAuth, manage, asyncHandler(deleteMenuHandler));
+cmsRouter.post("/cms/menus/:id/items", requireAuth, manage, asyncHandler(createMenuItemHandler));
+cmsRouter.patch("/cms/menus/:id/items/:itemId", requireAuth, manage, asyncHandler(updateMenuItemHandler));
+cmsRouter.delete("/cms/menus/:id/items/:itemId", requireAuth, manage, asyncHandler(deleteMenuItemHandler));
+
+cmsRouter.get("/cms/banners", requireAuth, view, asyncHandler(listBannersHandler));
+cmsRouter.get("/cms/banners/:id", requireAuth, view, asyncHandler(getBannerHandler));
+cmsRouter.post("/cms/banners", requireAuth, manage, asyncHandler(createBannerHandler));
+cmsRouter.patch("/cms/banners/:id", requireAuth, manage, asyncHandler(updateBannerHandler));
+cmsRouter.delete("/cms/banners/:id", requireAuth, manage, asyncHandler(deleteBannerHandler));
+
+cmsRouter.get("/cms/media", requireAuth, view, asyncHandler(listMediaAssetsHandler));
+cmsRouter.get("/cms/media/:id", requireAuth, view, asyncHandler(getMediaAssetHandler));
+cmsRouter.post("/cms/media", requireAuth, manage, asyncHandler(createMediaAssetHandler));
+cmsRouter.patch("/cms/media/:id", requireAuth, manage, asyncHandler(updateMediaAssetHandler));
+cmsRouter.delete("/cms/media/:id", requireAuth, manage, asyncHandler(deleteMediaAssetHandler));
