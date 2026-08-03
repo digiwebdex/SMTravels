@@ -11,10 +11,10 @@ import {
   CircleDollarSign, Banknote, Upload, ExternalLink, Hash,
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSupplierMe, useSupplierDashboard, useSupplierInvoices, useSupplierPayables, useSupplierPayments, useSupplierRequests, useSupplierServices, useSetRequestStatus } from "../hooks/portals";
-import { SampleBadge } from "./SampleBadge";
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -40,7 +40,7 @@ const NAV: { id: SupView; icon: React.ElementType; label: string; badge?: number
   { id: "payments",   icon: CreditCard,      label: "portalCommon:nav.payments"            },
   { id: "statements", icon: BookOpen,        label: "portalCommon:nav.statements"          },
   { id: "reports",    icon: BarChart3,       label: "portalCommon:nav.reports"             },
-  { id: "messages",   icon: MessageSquare,   label: "portalSupplier:nav.messages", badge: 2 },
+  { id: "messages",   icon: MessageSquare,   label: "portalSupplier:nav.messages" },
   { id: "support",    icon: LifeBuoy,        label: "portalCommon:nav.support"             },
   { id: "profile",    icon: User,            label: "portalSupplier:nav.profileSettings"   },
 ];
@@ -51,42 +51,6 @@ const BOTTOM_NAV: { id: SupView; icon: React.ElementType; label: string }[] = [
   { id: "invoices",  icon: FileText,        label: "portalCommon:nav.invoices"     },
   { id: "payments",  icon: CreditCard,      label: "portalCommon:nav.payments"     },
   { id: "profile",   icon: User,            label: "portalCommon:nav.profile"      },
-];
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MESSAGES = [
-  {
-    id: "MSG-001", from: "BDH Procurement", subject: "Room allocation — REQ-2024-0841",
-    preview: "Hi, could you confirm adjacent rooms on the same floor for the 42-pax group?",
-    time: "Jul 15", unread: true,
-    thread: [
-      { from: "BDH Procurement", text: "Hi, could you confirm adjacent rooms on the same floor for the 42-pax group arriving Aug 5?", time: "Jul 15 09:00", mine: false },
-      { from: "Me",              text: "Hello! Yes, floors 4–6 are fully available. I'll block them now.", time: "Jul 15 10:30", mine: true  },
-      { from: "BDH Procurement", text: "Perfect. Please send room confirmation document when ready.", time: "Jul 15 11:00", mine: false },
-    ],
-  },
-  {
-    id: "MSG-002", from: "BDH Accounts", subject: "Payment for INV-SUP-0241 scheduled",
-    preview: "Payment of ৳29,40,000 has been scheduled for Aug 1, 2024 via bank transfer.",
-    time: "Jul 16", unread: true,
-    thread: [
-      { from: "BDH Accounts", text: "Payment of ৳29,40,000 for INV-SUP-0241 has been scheduled for Aug 1, 2024.", time: "Jul 16 14:00", mine: false },
-    ],
-  },
-  {
-    id: "MSG-003", from: "BDH Operations", subject: "Meal plan update — REQ-2024-0818",
-    preview: "Please note the meal plan change from half-board to full-board for Umrah group.",
-    time: "Jun 1", unread: false,
-    thread: [
-      { from: "BDH Operations", text: "Please note the Umrah group requires full-board instead of half-board for all 12 pax.", time: "Jun 1 08:30", mine: false },
-      { from: "Me",             text: "Noted and updated. Revised invoice will be sent shortly.", time: "Jun 1 09:00", mine: true },
-    ],
-  },
-];
-
-const SUP_TICKETS = [
-  { id: "ST-041", subject: "Invoice payment delay — INV-SUP-0241", status: "open",     date: "Jul 16", msgs: 2 },
-  { id: "ST-038", subject: "Service listing update request",        status: "resolved", date: "Jun 20", msgs: 3 },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -562,75 +526,11 @@ function StatementsView() {
 // ─── REPORTS ──────────────────────────────────────────────────────────────────
 function ReportsView() {
   const { t } = useTranslation("portalSupplier");
-  const months = ["Feb", "Mar", "Apr", "May", "Jun", "Jul"];
-  const values = [6500, 135000, 420000, 64000, 0, 2940000];
-  const maxV = Math.max(...values);
-
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.reports")}</h2>
-
-      <div className="grid grid-cols-2 gap-3">
-        <KpiCard label={t("reports.kpi.totalRequests")} value="5"  sub={t("reports.kpi.totalRequestsSub")}         icon={Inbox}    accent="bg-[#1B75BC]"  delta="+40%" up />
-        <KpiCard label={t("reports.kpi.acceptanceRate")} value="80%" sub={t("reports.kpi.acceptanceRateSub")}  icon={Check}    accent="bg-emerald-600"             />
-        <KpiCard label={t("reports.kpi.turnaround")} value="3.2d" sub={t("reports.kpi.turnaroundSub")} icon={Clock} accent="bg-amber-500"            />
-        <KpiCard label={t("reports.kpi.clientRating")}  value="4.8★" sub={t("reports.kpi.clientRatingSub")}   icon={Star}     accent="bg-purple-500"              />
-      </div>
-
-      {/* Revenue by month */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-slate-800">{t("reports.revenueByMonth")}</p>
-          <button className="text-xs text-[#1B75BC] flex items-center gap-1 font-semibold hover:underline"><Download size={12}/> CSV</button>
-        </div>
-        <div className="flex items-end gap-2 h-32">
-          {values.map((v, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-t-lg transition-all"
-                style={{ height: v > 0 ? `${Math.max((v / maxV) * 100, 4)}%` : "4%", background: i === months.length - 1 ? "#1B75BC" : "#1B75BC33" }} />
-              <p className="text-xs text-slate-400">{months[i]}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Service breakdown */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <p className="font-bold text-slate-800 mb-4">{t("reports.revenueByService")}</p>
-        <div className="space-y-3">
-          {[
-            { label: "Hotel — Makkah",  pct: 83, val: 2940000, color: "#1B75BC" },
-            { label: "Hotel — Madinah", pct: 12, val: 420000,  color: "#0E7C66" },
-            { label: "Hotel — Malaysia",pct: 2,  val: 64000,   color: "#F15A24" },
-            { label: "Visa Processing", pct: 0,  val: 6500,    color: "#7C3AED" },
-          ].map(s => (
-            <div key={s.label}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-600 font-medium">{s.label}</span>
-                <span className="font-bold text-slate-700" style={{ fontFamily: "'JetBrains Mono',monospace" }}>{fmtBDT(s.val)}</span>
-              </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${Math.max(s.pct, 1)}%`, background: s.color }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Download reports */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <p className="font-bold text-slate-800 mb-3">{t("reports.downloadReports")}</p>
-        <div className="space-y-2">
-          {["Annual Summary 2024", "Q2 Report (Apr–Jun)", "Service Performance Report", "Payment Reconciliation"].map(r => (
-            <div key={r} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-              <span className="text-sm text-slate-700 font-medium">{r}</span>
-              <button className="flex items-center gap-1.5 text-xs text-[#1B75BC] font-semibold hover:underline">
-                <Download size={12} /> PDF
-              </button>
-            </div>
-          ))}
-        </div>
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="no-data" title="Reports" desc="Your performance reports will appear here once you have activity." />
       </div>
     </div>
   );
@@ -639,73 +539,11 @@ function ReportsView() {
 // ─── MESSAGES ─────────────────────────────────────────────────────────────────
 function MessagesView() {
   const { t } = useTranslation("portalSupplier");
-  const [active, setActive] = useState<string | null>(null);
-  const [msgs, setMsgs] = useState(MESSAGES);
-  const [input, setInput] = useState("");
-
-  const thread = msgs.find(m => m.id === active);
-
-  if (thread) return (
-    <div className="flex flex-col h-[600px]">
-      <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => setActive(null)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-500">
-          <ChevronRight size={16} className="rotate-180" />
-        </button>
-        <div className="flex-1">
-          <p className="font-bold text-slate-800 text-sm leading-tight">{thread.subject}</p>
-          <p className="text-xs text-slate-400">{thread.from}</p>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-        {thread.thread.map((m, i) => (
-          <div key={i} className={cn("flex", m.mine ? "justify-end" : "justify-start")}>
-            {!m.mine && (
-              <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>
-            )}
-            <div className={cn("max-w-xs lg:max-w-sm px-4 py-2.5 rounded-2xl text-sm",
-              m.mine ? "bg-[#1B75BC] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
-              {m.text}
-              <p className={cn("text-xs mt-1", m.mine ? "text-white/60" : "text-slate-400")}>{m.time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16} /></button>
-        <input value={input} onChange={e => setInput(e.target.value)} placeholder={t("messages.replyPlaceholder")}
-          className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl hover:bg-[#14588F]"><Send size={16} /></button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("nav.messages")}</h2>
-      <div className="space-y-2.5">
-        {msgs.map(m => (
-          <div key={m.id} onClick={() => { setActive(m.id); setMsgs(ms => ms.map(x => x.id === m.id ? { ...x, unread: false } : x)); }}
-            className={cn("bg-white rounded-2xl border p-4 cursor-pointer hover:shadow-sm transition-all",
-              m.unread ? "border-[#1B75BC]/25 bg-[#1B75BC]/3" : "border-slate-200")}>
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                BD
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-slate-800">{m.from}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">{m.time}</span>
-                    {m.unread && <div className="w-2 h-2 rounded-full bg-[#1B75BC]" />}
-                  </div>
-                </div>
-                <p className="text-sm font-semibold text-slate-600 mt-0.5">{m.subject}</p>
-                <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{m.preview}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="coming-soon" title="Messages" desc="Direct messaging with the SM Travels team is planned for a later release." />
       </div>
     </div>
   );
@@ -714,76 +552,12 @@ function MessagesView() {
 // ─── SUPPORT ──────────────────────────────────────────────────────────────────
 function SupportView() {
   const { t } = useTranslation("portalSupplier");
-  const [active, setActive] = useState<string | null>(null);
-  const ticket = SUP_TICKETS[0];
-  const TMSG = [
-    { from: "Me",           text: "The payment for INV-SUP-0241 is still showing as pending. Could you provide an update?", time: "Jul 16 10:00", mine: true  },
-    { from: "BDH Support",  text: "Hi! We've escalated this to accounts. Payment is scheduled for Aug 1 as per the invoice terms.", time: "Jul 16 14:30", mine: false },
-  ];
-
-  if (active) return (
-    <div className="flex flex-col h-[600px]">
-      <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => setActive(null)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-500">
-          <ChevronRight size={16} className="rotate-180" />
-        </button>
-        <div>
-          <p className="font-bold text-slate-800 text-sm">{ticket.subject}</p>
-          <p className="text-xs text-slate-400">{active} · {t("support.status.open")}</p>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-        {TMSG.map((m, i) => (
-          <div key={i} className={cn("flex", m.mine ? "justify-end" : "justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">BD</div>}
-            <div className={cn("max-w-xs px-4 py-2.5 rounded-2xl text-sm",
-              m.mine ? "bg-[#1B75BC] text-white rounded-br-sm" : "bg-slate-100 text-slate-700 rounded-bl-sm")}>
-              {m.text}
-              <p className={cn("text-xs mt-1", m.mine ? "text-white/60" : "text-slate-400")}>{m.time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <button className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400"><Paperclip size={16} /></button>
-        <input placeholder={t("support.messagePlaceholder")} className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl"><Send size={16} /></button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.support")}</h2>
-        <button className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] whitespace-nowrap">
-          <Plus size={14} /> {t("support.newTicket")}
-        </button>
+      <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.support")}</h2>
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="no-data" title="Support" desc="Your support tickets will appear here." />
       </div>
-      <div className="bg-[#1B75BC]/5 border border-[#1B75BC]/15 rounded-2xl p-4">
-        <p className="text-sm font-semibold text-slate-800">{t("support.line")}</p>
-        <p className="text-xs text-slate-500 mt-0.5">{t("support.priority")}: <span className="text-[#1B75BC] font-bold">+880 31 123 4569</span> · Mon–Sat 9am–6pm</p>
-      </div>
-      {SUP_TICKETS.map(tk => (
-        <div key={tk.id} onClick={() => setActive(tk.id)}
-          className="bg-white rounded-2xl border border-slate-200 p-5 cursor-pointer hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 pr-3">
-              <p className="text-xs font-mono text-slate-400 mb-1">{tk.id}</p>
-              <p className="font-semibold text-slate-800">{tk.subject}</p>
-            </div>
-            <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border flex-shrink-0",
-              tk.status === "open" ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-emerald-50 text-emerald-600 border-emerald-200")}>
-              {t(`support.status.${tk.status}`, { defaultValue: tk.status })}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1"><MessageSquare size={11} />{t("support.messagesCount", { count: tk.msgs })}</span>
-            <span>{tk.date}</span>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -852,7 +626,7 @@ export function SupplierPortal() {
   const pendingReqs = (reqs ?? []).filter(r => r.status === "PENDING").length;
   const name = me?.name ?? "Supplier";
   const initials = name.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
-  const unread = MESSAGES.filter(m => m.unread).length;
+  const unread = 0;
 
   const go = (v: SupView) => setView(v);
 

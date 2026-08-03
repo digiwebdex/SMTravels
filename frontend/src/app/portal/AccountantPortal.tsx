@@ -11,13 +11,13 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
+import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
 import { useIncome, useExpenses, useInvoices, usePayments, useJournal, useBankAccounts } from "../hooks/finance";
 import { useOverview, usePnlReport } from "../hooks/reports";
 import { useAuditLogs } from "../hooks/ops";
-import { SampleBadge } from "./SampleBadge";
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
@@ -42,55 +42,6 @@ const NAV: { id: AccView; icon: React.ElementType; label: string; badge?: number
   { id: "tax",              icon: Shield,          label: "portalAccountant:nav.taxReports"      },
   { id: "audit",            icon: ClipboardList,   label: "portalAccountant:nav.auditLogs",  badge: 3 },
   { id: "profile",          icon: User,            label: "portalCommon:nav.profile"             },
-];
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul"];
-const INCOME_DATA  = [820000,940000,1050000,1240000,1080000,1540000,1380000];
-const EXPENSE_DATA = [540000,620000,690000,780000,690000,920000,850000];
-
-const INCOME_ROWS = [
-  { category:"Package Sales",        amount:980000,  pct:71, color:"#1B75BC" },
-  { category:"Visa Services",        amount:145000,  pct:10, color:"#0E7C66" },
-  { category:"Air Ticket Commission",amount:138000,  pct:10, color:"#F15A24" },
-  { category:"Hotel Bookings",       amount:82000,   pct:6,  color:"#7C3AED" },
-  { category:"Tour Packages",        amount:35000,   pct:3,  color:"#2563EB" },
-];
-
-const EXPENSE_ROWS = [
-  { category:"Supplier Payments",  amount:590000, pct:69, color:"#EF4444" },
-  { category:"Salaries",           amount:120000, pct:14, color:"#F97316" },
-  { category:"Office Rent",        amount:45000,  pct:5,  color:"#EAB308" },
-  { category:"Marketing",          amount:42000,  pct:5,  color:"#8B5CF6" },
-  { category:"Utilities & Others", amount:53000,  pct:7,  color:"#94A3B8" },
-];
-
-const JOURNAL_ENTRIES = [
-  { id:"JNL-0741", date:"Jul 15", desc:"Commission income — July batch",         debit:"Commission Receivable", credit:"Income — Commission", amount:55000,  ref:"BK-0892",  status:"posted"  },
-  { id:"JNL-0740", date:"Jul 14", desc:"Supplier payment — Dar Al-Tawhid Hotel", debit:"Supplier Payable",      credit:"Bank — DBBL",          amount:2940000,ref:"INV-SUP-0241",status:"posted"  },
-  { id:"JNL-0739", date:"Jul 12", desc:"Salary disbursement — July 2024",        debit:"Salary Expense",         credit:"Bank — IBBL",          amount:120000, ref:"HR-JUL-24", status:"posted"  },
-  { id:"JNL-0738", date:"Jul 10", desc:"Client payment received — BK-0892",      debit:"Bank — DBBL",            credit:"Customer Deposits",    amount:130000, ref:"TXN-1092",  status:"posted"  },
-  { id:"JNL-0737", date:"Jul 8",  desc:"Office rent — July 2024",               debit:"Rent Expense",            credit:"Bank — BRAC",          amount:45000,  ref:"RENT-JUL",  status:"draft"   },
-];
-
-const INVOICES_DATA = [
-  { id:"INV-2024-0247", customer:"Md. Karim Ullah",  type:"customer", amount:520000, paid:390000, balance:130000, due:"Jul 31", status:"partial" },
-  { id:"INV-2024-0108", customer:"Shahana Parvin",   type:"customer", amount:215000, paid:215000, balance:0,      due:"Apr 30", status:"paid"    },
-  { id:"INV-SUP-0241",  customer:"Al-Amin Hotels",   type:"supplier", amount:2940000,paid:0,      balance:2940000,due:"Aug 1",  status:"unpaid"  },
-  { id:"INV-SUP-0238",  customer:"Al-Amin Hotels",   type:"supplier", amount:420000, paid:420000, balance:0,      due:"Jun 25", status:"paid"    },
-];
-
-const PAYMENTS_DATA = [
-  { id:"PAY-1044", type:"received", from:"Md. Karim Ullah", amount:130000, method:"bKash",       date:"Jun 29",  ref:"TXN-1092"     },
-  { id:"PAY-1043", type:"paid",     to:"Al-Amin Hotels",    amount:420000, method:"Bank Transfer",date:"Jun 27",  ref:"DBBL-TXN-XXX" },
-  { id:"PAY-1042", type:"received", from:"Shahana Parvin",  amount:215000, method:"Bank Transfer",date:"May 2",   ref:"BRAC-TXN-XXX" },
-  { id:"PAY-1041", type:"paid",     to:"Al-Amin Hotels",    amount:64000,  method:"Bank Transfer",date:"Jun 1",   ref:"DBBL-TXN-XXX" },
-];
-
-const TAX_DATA = [
-  { quarter:"Q1 (Jan–Mar)", income:2810000, vat:422000, tax:56200, filed:true,  deadline:"Apr 30" },
-  { quarter:"Q2 (Apr–Jun)", income:3860000, vat:579000, tax:77200, filed:true,  deadline:"Jul 31" },
-  { quarter:"Q3 (Jul–Sep)", income:null,    vat:null,   tax:null,  filed:false, deadline:"Oct 31" },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -420,84 +371,9 @@ function TaxView() {
   const { t } = useTranslation("portalAccountant");
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("nav.taxReports")}</h2>
-
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:t("tax.vatCollected"),  val:"৳10,01,000", color:"bg-[#1B75BC]"  },
-          { label:t("tax.incomeTax"),  val:"৳1,33,400",  color:"bg-purple-500" },
-          { label:t("tax.nextFiling"),        val:"Oct 31",     color:"bg-amber-500"  },
-        ].map(s => (
-          <div key={s.label} className={cn("rounded-2xl p-5 text-white", s.color)}>
-            <p className="text-2xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-white/80 text-sm mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* VAT rates info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
-        <Info size={15} className="text-blue-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-blue-800">{t("tax.vatRatesTitle")}</p>
-          <p className="text-xs text-blue-600 mt-0.5">{t("tax.vatRatesBody")}</p>
-        </div>
-      </div>
-
-      {/* Quarterly breakdown */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <p className="font-bold text-slate-800">{t("tax.quarterlySummary")}</p>
-        </div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalAccountant:tax.cols.quarter","portalAccountant:tax.cols.taxableIncome","portalAccountant:tax.cols.vatCollected","portalAccountant:tax.cols.incomeTax","portalCommon:labels.status","portalAccountant:tax.cols.dueDate",""].map((h,hi) => (
-                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {TAX_DATA.map(q => (
-              <tr key={q.quarter} className="hover:bg-slate-50">
-                <td className="px-4 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{q.quarter}</td>
-                <td className="px-4 py-4 text-sm font-mono font-bold text-slate-800">{q.income ? fmtShort(q.income) : "—"}</td>
-                <td className="px-4 py-4 text-sm font-mono text-purple-600">{q.vat ? fmtShort(q.vat) : "—"}</td>
-                <td className="px-4 py-4 text-sm font-mono text-[#1B75BC]">{q.tax ? fmtShort(q.tax) : "—"}</td>
-                <td className="px-4 py-4">
-                  <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border",
-                    q.filed
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200")}>
-                    {q.filed ? t("tax.filed") : t("portalCommon:status.pending")}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-xs text-slate-500">{q.deadline}</td>
-                <td className="px-4 py-4">
-                  {q.filed
-                    ? <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap"><Download size={12}/> {t("tax.return")}</button>
-                    : <button className="text-xs bg-[#1B75BC] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14588F] whitespace-nowrap">{t("tax.prepare")}</button>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Tax documents */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-3">{t("tax.documents")}</p>
-        <div className="space-y-2">
-          {["VAT Return Q1 2024","VAT Return Q2 2024","TIN Certificate","Trade License 2024"].map(doc => (
-            <div key={doc} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-              <span className="text-sm font-medium text-slate-700">{doc}</span>
-              <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">
-                <Download size={12}/> {t("common:actions.download")}
-              </button>
-            </div>
-          ))}
-        </div>
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="coming-soon" title="Tax reports" desc="VAT and income-tax reporting is planned for a later release." />
       </div>
     </div>
   );

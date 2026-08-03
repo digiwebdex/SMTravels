@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, RadarChart,
-  Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import {
   LayoutDashboard, Plane, Hotel, TrendingUp, TrendingDown, DollarSign, Users,
@@ -12,7 +11,7 @@ import {
   ArrowUpRight, ArrowDownRight, Clock, AlertTriangle,
   FileText, Sliders, Globe, Layers, CheckCircle, TrendingDown,
 } from "lucide-react";
-import { SampleBadge } from "../portal/SampleBadge";
+import { EmptyState } from "../lib/ds";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import {
@@ -51,25 +50,6 @@ const NAV = [
   { id:"agents"    as BiView, label:"Agent Performance",    icon:Users       },
   { id:"staff"     as BiView, label:"Staff KPI Dashboard",  icon:Star        },
   { id:"custom"    as BiView, label:"Custom Report Builder",icon:Sliders     },
-];
-
-// ─── Mock data (staff KPI / custom builder — no API) ───────────────────────────
-const STAFF = [
-  { name:"Abdullah Chowdhury", role:"Ops Manager",  tasks:48, done:45, csat:96, sales:0,       hours:176, kpi:94 },
-  { name:"Fatema Begum",       role:"Visa Officer",  tasks:62, done:60, csat:92, sales:0,       hours:168, kpi:91 },
-  { name:"Rahim Khan",         role:"Sales Exec",   tasks:38, done:36, csat:89, sales:8400000,  hours:172, kpi:87 },
-  { name:"Nasir Ahmed",        role:"Manpower Mgr", tasks:29, done:28, csat:88, sales:0,       hours:160, kpi:85 },
-  { name:"Salma Khatun",       role:"Customer Rel.",tasks:55, done:51, csat:94, sales:0,       hours:168, kpi:89 },
-  { name:"Kamal Hossain",      role:"Accounts",     tasks:41, done:40, csat:0,  sales:0,       hours:176, kpi:92 },
-];
-
-const RADAR_DATA = [
-  { subject:"Bookings",    A:94, B:80 },
-  { subject:"Revenue",     A:88, B:72 },
-  { subject:"CSAT",        A:96, B:78 },
-  { subject:"Attendance",  A:100,B:90 },
-  { subject:"Tasks",       A:92, B:85 },
-  { subject:"Compliance",  A:98, B:88 },
 ];
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
@@ -763,325 +743,39 @@ function AgentReport({ rf, filters, branches, onFilterChange, onRefresh }: {
 
 // ─── STAFF KPI ────────────────────────────────────────────────────────────────
 function StaffKpi() {
-  const [selected, setSelected] = useState(0);
-  const emp = STAFF[selected];
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Staff KPI Dashboard</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Individual performance tracking — July 2024</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
-            <Printer size={14} /> PDF Report
-          </button>
-        </div>
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">Staff KPI Dashboard</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Individual performance tracking</p>
       </div>
-      <div className="grid grid-cols-4 gap-4">
-        {[
-          { label:"Avg KPI Score",   value:"90%",   delta:"+4%", up:true, icon:Award,      color:"bg-[#1B75BC]"  },
-          { label:"Tasks Completed", value:"260/273",delta:"+8%", up:true, icon:CheckCircle,color:"bg-emerald-500"},
-          { label:"Avg CSAT",        value:"91.8%",  delta:"+3%", up:true, icon:Star,       color:"bg-amber-500"  },
-          { label:"Avg Hours",       value:"170h",   delta:"",    up:true, icon:Clock,      color:"bg-blue-500"   },
-        ].map(p => <KpiCard key={p.label} {...p} />)}
-      </div>
-
-      <div className="grid grid-cols-3 gap-5">
-        {/* Staff list */}
-        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-800">Team Members</p>
-          </div>
-          <div>
-            {STAFF.map((s, i) => (
-              <button key={i} onClick={() => setSelected(i)}
-                className={cn("w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-50 transition-colors",
-                  selected === i ? "bg-[#1B75BC]/5 border-l-2 border-[#1B75BC]" : "")}>
-                <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {s.name.slice(0,2)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">{s.name}</p>
-                  <p className="text-xs text-slate-400">{s.role}</p>
-                </div>
-                <span className={cn("text-xs font-bold ml-auto",
-                  s.kpi >= 90 ? "text-emerald-600" : s.kpi >= 80 ? "text-amber-600" : "text-red-500")}>
-                  {s.kpi}%
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Detail + radar */}
-        <div className="col-span-2 space-y-4">
-          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-bold text-slate-800 text-base">{emp.name}</p>
-                <p className="text-sm text-slate-500">{emp.role}</p>
-              </div>
-              <div className={cn("text-3xl font-black",
-                emp.kpi >= 90 ? "text-emerald-600" : emp.kpi >= 80 ? "text-amber-600" : "text-red-500")}>
-                {emp.kpi}%
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {[
-                { label:"Tasks Done", value:`${emp.done}/${emp.tasks}`, color:"text-[#1B75BC]" },
-                { label:"CSAT Score", value:emp.csat > 0 ? `${emp.csat}%` : "N/A", color:"text-emerald-600" },
-                { label:"Hours Worked", value:`${emp.hours}h`, color:"text-slate-700" },
-                { label:"Sales Revenue", value:emp.sales > 0 ? fmtC(emp.sales) : "N/A", color:"text-amber-600" },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-slate-50 rounded-xl p-3">
-                  <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-                  <p className={cn("text-lg font-bold", color)} style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-            <p className="text-sm font-semibold text-slate-800 mb-3">Performance Radar</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <RadarChart data={RADAR_DATA} cx="50%" cy="50%" outerRadius={75}>
-                <PolarGrid stroke="#F1F5F9" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: "#94A3B8" }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 9, fill: "#CBD5E1" }} tickCount={4} />
-                <Radar name="This Period" dataKey="A" stroke="#1B75BC" fill="#1B75BC" fillOpacity={0.25} strokeWidth={2} />
-                <Radar name="Department Avg" dataKey="B" stroke="#F15A24" fill="#F15A24" fillOpacity={0.1} strokeWidth={1.5} strokeDasharray="4 2" />
-                <Legend wrapperStyle={{ fontSize: 10 }} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+        <EmptyState
+          variant="no-data"
+          title="Staff performance analytics"
+          desc="Metrics will appear once staff activity is recorded."
+        />
       </div>
     </div>
   );
 }
 
 // ─── CUSTOM REPORT BUILDER ────────────────────────────────────────────────────
-const ALL_FIELDS = [
-  { id:"date",      label:"Date",           group:"Basic"    },
-  { id:"booking_id",label:"Booking ID",     group:"Basic"    },
-  { id:"customer",  label:"Customer Name",  group:"Customer" },
-  { id:"phone",     label:"Phone",          group:"Customer" },
-  { id:"email",     label:"Email",          group:"Customer" },
-  { id:"service",   label:"Service Type",   group:"Service"  },
-  { id:"package",   label:"Package Name",   group:"Service"  },
-  { id:"branch",    label:"Branch",         group:"Office"   },
-  { id:"agent",     label:"Agent",          group:"Office"   },
-  { id:"staff",     label:"Staff Member",   group:"Office"   },
-  { id:"amount",    label:"Amount",         group:"Finance"  },
-  { id:"paid",      label:"Amount Paid",    group:"Finance"  },
-  { id:"balance",   label:"Balance Due",    group:"Finance"  },
-  { id:"method",    label:"Payment Method", group:"Finance"  },
-  { id:"status",    label:"Status",         group:"Status"   },
-  { id:"departure", label:"Departure Date", group:"Travel"   },
-  { id:"return",    label:"Return Date",    group:"Travel"   },
-  { id:"visa_no",   label:"Visa Number",    group:"Travel"   },
-  { id:"hotel",     label:"Hotel",          group:"Travel"   },
-  { id:"flight",    label:"Flight No.",     group:"Travel"   },
-  { id:"notes",     label:"Notes",          group:"Basic"    },
-];
-
-const PREVIEW_ROWS = [
-  { date:"Jul 14", booking_id:"BK-0892", customer:"Md. Abdullah", service:"Hajj Economy", branch:"Chattogram HQ", amount:"৳5,20,000", status:"Confirmed" },
-  { date:"Jul 13", booking_id:"BK-0891", customer:"Rabeya Khatun", service:"Umrah VIP",  branch:"Dhaka Office",  amount:"৳1,85,000", status:"Partial"   },
-  { date:"Jul 12", booking_id:"BK-0890", customer:"Ahmed Family",  service:"Malaysia Tour",branch:"Chattogram HQ",amount:"৳2,15,000", status:"Pending"   },
-];
 
 function CustomBuilder() {
-  const [selected, setSelected] = useState(["date","booking_id","customer","service","branch","amount","status"]);
-  const [groupBy, setGroupBy] = useState("service");
-  const [sortBy, setSortBy] = useState("date");
-  const [preview, setPreview] = useState(false);
-  const [name, setName] = useState("My Custom Report");
-
-  const groups = [...new Set(ALL_FIELDS.map(f => f.group))];
-  const toggle = (id: string) =>
-    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Custom Report Builder</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Drag-select fields · configure · preview · export</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setPreview(v => !v)}
-            className={cn("flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-all",
-              preview ? "bg-[#1B75BC] text-white border-[#1B75BC]" : "border-[var(--color-border)] text-slate-600 hover:bg-slate-50")}>
-            <Eye size={14} /> {preview ? "Hide Preview" : "Preview"}
-          </button>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
-            <Printer size={14} /> PDF
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-            <Download size={14} /> Excel
-          </button>
-        </div>
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">Custom Report Builder</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Build-your-own reports</p>
       </div>
-
-      <div className="grid grid-cols-3 gap-5">
-        {/* Field selector */}
-        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-semibold text-slate-800">Select Fields</p>
-            <span className="text-xs text-slate-400">{selected.length} selected</span>
-          </div>
-          <div className="space-y-4">
-            {groups.map(group => (
-              <div key={group}>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{group}</p>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_FIELDS.filter(f => f.group === group).map(f => (
-                    <button key={f.id} onClick={() => toggle(f.id)}
-                      className={cn("flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-all",
-                        selected.includes(f.id)
-                          ? "bg-[#1B75BC] text-white border-[#1B75BC]"
-                          : "border-[var(--color-border)] text-slate-600 hover:border-[#1B75BC] hover:text-[#1B75BC]")}>
-                      {selected.includes(f.id) && <Check size={11} />}
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Selected chips with drag handles */}
-          {selected.length > 0 && (
-            <div className="mt-5 pt-4 border-t border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 mb-2">Column Order (drag to reorder)</p>
-              <div className="flex flex-wrap gap-2">
-                {selected.map(id => {
-                  const f = ALL_FIELDS.find(x => x.id === id)!;
-                  return (
-                    <div key={id} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1B75BC]/10 border border-[#1B75BC]/20 rounded-lg text-xs text-[#1B75BC]">
-                      <GripVertical size={11} className="text-[#1B75BC]/40 cursor-grab" />
-                      {f.label}
-                      <button onClick={() => toggle(id)} className="hover:text-red-500"><X size={10} /></button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Config panel */}
-        <div className="space-y-4">
-          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-            <h3 className="font-semibold text-slate-800 mb-4">Report Settings</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Report Name</label>
-                <input value={name} onChange={e => setName(e.target.value)}
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Date Range</label>
-                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
-                  {["This Month","Last Month","Q2 2024","YTD 2024","Custom…"].map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Group By</label>
-                <select value={groupBy} onChange={e => setGroupBy(e.target.value)}
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
-                  {["none","service","branch","agent","month","status"].map(o => <option key={o} value={o}>{o === "none" ? "No grouping" : o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Sort By</label>
-                <div className="flex gap-2">
-                  <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                    className="flex-1 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
-                    {selected.map(id => <option key={id} value={id}>{ALL_FIELDS.find(f=>f.id===id)?.label}</option>)}
-                  </select>
-                  <select className="border border-[var(--color-border)] rounded-lg px-2 py-2 text-sm focus:outline-none">
-                    <option>Desc</option><option>Asc</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Filters</label>
-                {[
-                  { label:"Branch", opts:["All","Chattogram HQ","Dhaka"] },
-                  { label:"Service", opts:["All","Hajj","Umrah","Visa"] },
-                  { label:"Status", opts:["All","Confirmed","Pending","Overdue"] },
-                ].map(f => (
-                  <select key={f.label} className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm mb-1.5 focus:outline-none">
-                    {f.opts.map(o => <option key={o}>{o === "All" ? `${f.label}: All` : o}</option>)}
-                  </select>
-                ))}
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Run Report</button>
-                <button className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Save</button>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
-            <p className="text-xs font-semibold text-slate-500 mb-2">Saved Templates</p>
-            {["Monthly Agent Summary","Hajj Season Overview","Overdue Payments"].map(t => (
-              <button key={t} className="w-full text-left text-xs text-[#1B75BC] hover:underline py-1 flex items-center gap-1.5">
-                <ChevronRight size={10} /> {t}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+        <EmptyState
+          variant="coming-soon"
+          title="Custom report builder"
+          desc="Build-your-own reports is planned for a later release."
+        />
       </div>
-
-      {/* Preview table */}
-      {preview && (
-        <div className="bg-[var(--color-surface)] rounded-xl border border-[#1B75BC]/20 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 bg-[#1B75BC]/5 border-b border-[#1B75BC]/10">
-            <p className="text-sm font-semibold text-[#1B75BC]">Report Preview — {name}</p>
-            <span className="text-xs text-slate-400">Showing 3 of ~{Math.floor(Math.random()*200+100)} rows</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  {selected.map(id => (
-                    <th key={id} className="text-left text-xs font-medium text-slate-500 px-4 py-3 whitespace-nowrap">
-                      {ALL_FIELDS.find(f=>f.id===id)?.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {PREVIEW_ROWS.map((row, i) => (
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                    {selected.map(id => (
-                      <td key={id} className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
-                        {(row as any)[id] ?? "—"}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Preview showing 3 sample rows</span>
-            <div className="flex gap-2">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
-                <Printer size={12} /> Export PDF
-              </button>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                <Download size={12} /> Export Excel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

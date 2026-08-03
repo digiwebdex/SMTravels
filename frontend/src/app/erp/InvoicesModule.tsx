@@ -10,7 +10,7 @@ import {
   TrendingUp, TrendingDown, RotateCcw, Tag, Banknote,
 } from "lucide-react";
 import { cn, img, fmtPrice } from "../lib/utils";
-import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import { SkeletonTable, ErrorBanner, EmptyState } from "../lib/ds";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
 import {
   useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
@@ -21,7 +21,6 @@ import { downloadViaApi } from "../lib/api";
 import { useCustomers } from "../hooks/crm";
 import { Loader2 } from "lucide-react";
 import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem, PendingPaymentDto, InstallmentPlanDto } from "@contracts/finance.contract";
-import { SampleBadge } from "../portal/SampleBadge";
 import { AiInsightCard } from "../design-system";
 
 const st2vm = (s: string): InvoiceStatus => s.toLowerCase() as InvoiceStatus;
@@ -41,23 +40,7 @@ const CURRENCY_SYMBOL: Record<Currency, string> = { BDT: "৳", USD: "$", SAR: "
 const fmtC = (n: number, cur: Currency = "BDT") =>
   `${CURRENCY_SYMBOL[cur]} ${n.toLocaleString("en-BD")}`;
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const PAYMENT_HISTORY = [
-  { id: "PAY-9041", date: "Jul 14", invoice: "INV-2401", customer: "Md. Abdullah Al-Mamun", amount: 520000, method: "Bank Transfer", gateway: "DBBL", status: "confirmed" as PayStatus },
-  { id: "PAY-9040", date: "Jul 12", invoice: "INV-2402", customer: "Rabeya Khatun", amount: 92500, method: "bKash", gateway: "bKash", status: "confirmed" as PayStatus },
-  { id: "PAY-9039", date: "Jul 10", invoice: "INV-2404", customer: "Karim & Family", amount: 43000, method: "SSLCommerz", gateway: "SSLCommerz", status: "confirmed" as PayStatus },
-  { id: "PAY-9038", date: "Jul 9", invoice: "INV-2406", customer: "Rahman Brothers", amount: 88000, method: "Nagad", gateway: "Nagad", status: "confirmed" as PayStatus },
-  { id: "PAY-9037", date: "Jul 7", invoice: "INV-2403", customer: "NMT Travels Agency", amount: 150000, method: "Bank Transfer", gateway: "DBBL", status: "failed" as PayStatus },
-];
-
-
-const VOUCHERS = [
-  { id: "VCH-001", code: "HAJJ100", type: "flat", value: 100, currency: "USD" as Currency, service: "Hajj Packages", used: 12, limit: 20, expires: "Aug 31", status: "active" },
-  { id: "VCH-002", code: "UMRAH10", type: "percent", value: 10, currency: "BDT" as Currency, service: "Umrah Packages", used: 31, limit: 50, expires: "Jul 31", status: "active" },
-  { id: "VCH-003", code: "FIRST500", type: "flat", value: 500, currency: "BDT" as Currency, service: "All Services", used: 8, limit: 100, expires: "Dec 31", status: "active" },
-  { id: "VCH-004", code: "AGENT15", type: "percent", value: 15, currency: "BDT" as Currency, service: "Agent Bookings", used: 50, limit: 50, expires: "Jul 15", status: "expired" },
-];
+// ─── Aging buckets ─────────────────────────────────────────────────────────────────
 
 const AGING_BUCKETS = [
   { range: "0–30 days", min: 0, max: 30, color: "#F59E0B" },
@@ -1295,69 +1278,11 @@ function PaymentHistoryView() {
 function OnlinePaymentsView() {
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <h2 className="text-xl font-bold text-slate-800">Online Payments</h2>
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { name: "bKash", logo: "bK", color: "#E2136E", vol: 3200000, txn: 148, rate: "98.6%" },
-          { name: "Nagad", logo: "Na", color: "#F05A28", vol: 1850000, txn: 97, rate: "99.1%" },
-          { name: "SSLCommerz", logo: "SSL", color: "#0065BD", vol: 2100000, txn: 62, rate: "97.8%" },
-        ].map(gw => (
-          <div key={gw.name} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: gw.color }}>{gw.logo}</div>
-              <div>
-                <p className="font-semibold text-slate-800">{gw.name}</p>
-                <span className="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Active</span>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Monthly Volume</span>
-                <span className="font-mono font-semibold text-slate-800">{fmtC(gw.vol)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Transactions</span>
-                <span className="font-mono font-semibold text-slate-800">{gw.txn}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Success Rate</span>
-                <span className="font-semibold text-emerald-600">{gw.rate}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-        <h3 className="font-semibold text-slate-800 mb-4">Recent Online Transactions</h3>
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              {["Txn ID", "Customer", "Invoice", "Gateway", "Amount", "Time", "Status"].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 pb-2 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {PAYMENT_HISTORY.map(p => (
-              <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.id}</td>
-                <td className="py-3 pr-4 text-sm text-slate-700">{p.customer}</td>
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.invoice}</td>
-                <td className="py-3 pr-4 text-sm text-slate-500">{p.gateway}</td>
-                <td className="py-3 pr-4 text-sm font-mono font-semibold text-slate-800">{fmtC(p.amount)}</td>
-                <td className="py-3 pr-4 text-sm text-slate-400">{p.date}, 10:41 AM</td>
-                <td className="py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status])}>
-                    {p.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <EmptyState
+        variant="coming-soon"
+        title="Online payments"
+        desc="Payments are recorded manually in the Payments tab. Online gateway collection is planned for a later release."
+      />
     </div>
   );
 }
@@ -1429,65 +1354,11 @@ function RefundsView() {
 function VouchersView() {
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Vouchers & Promo Codes</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Create and manage discount vouchers</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> Create Voucher
-        </button>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        {VOUCHERS.map(v => (
-          <div key={v.id} className={cn("bg-[var(--color-surface)] rounded-xl border p-5 relative overflow-hidden",
-            v.status === "expired" ? "border-[var(--color-border)] opacity-60" : "border-[var(--color-border)]")}>
-            {v.status === "active" && (
-              <div className="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">ACTIVE</div>
-            )}
-            {v.status === "expired" && (
-              <div className="absolute top-0 right-0 bg-slate-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">EXPIRED</div>
-            )}
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#F15A24]/10 flex items-center justify-center">
-                <Tag size={18} className="text-[#D64A12]" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 font-mono text-lg">{v.code}</p>
-                <p className="text-sm text-slate-500">{v.service}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-              <div>
-                <p className="text-xs text-slate-400">Discount</p>
-                <p className="font-bold text-[#1B75BC]">
-                  {v.type === "flat" ? `${CURRENCY_SYMBOL[v.currency]}${v.value} off` : `${v.value}% off`}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Expires</p>
-                <p className="font-semibold text-slate-700">{v.expires}</p>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-xs text-slate-500 mb-1">
-                <span>Usage: {v.used}/{v.limit}</span>
-                <span>{Math.round((v.used / v.limit) * 100)}%</span>
-              </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#F15A24] rounded-full" style={{ width: `${(v.used / v.limit) * 100}%` }} />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-              <button className="text-xs text-[#1B75BC] hover:underline">Edit</button>
-              <span className="text-slate-300">·</span>
-              <button className="text-xs text-slate-400 hover:underline">View Usage</button>
-              {v.status === "active" && <><span className="text-slate-300">·</span><button className="text-xs text-red-500 hover:underline">Disable</button></>}
-            </div>
-          </div>
-        ))}
-      </div>
+      <EmptyState
+        variant="no-data"
+        title="No vouchers yet"
+        desc="Booking vouchers will appear here once issued."
+      />
     </div>
   );
 }

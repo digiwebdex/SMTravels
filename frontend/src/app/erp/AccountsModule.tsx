@@ -1,9 +1,5 @@
 import React, { useState } from "react";
 import {
-  BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer,
-} from "recharts";
-import {
   Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   Plus, Search, Filter, Download, RefreshCw, ChevronRight,
   ChevronDown, Building2, CreditCard, Banknote, ArrowLeftRight,
@@ -11,9 +7,8 @@ import {
   FileText, Edit2, Trash2, X, Check, Globe, Layers, BarChart3,
   Eye, Send, Receipt,
 } from "lucide-react";
-import { SampleBadge } from "../portal/SampleBadge";
 import { cn, fmtPrice } from "../lib/utils";
-import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import { SkeletonTable, ErrorBanner, EmptyState } from "../lib/ds";
 import {
   useAccounts, buildCoaTree, useBankAccounts, useIncome, useExpenses,
   useJournal, useCreateJournal, useReverseJournal,
@@ -131,7 +126,7 @@ const COA_TREE = [
 ];
 
 const INCOME_DATA = [
-  { date: "Jul 01", ref: "INC-0041", category: "Hajj Revenue", description: "Group BDH-2024-07", amount: 3400000, method: "Bank Transfer", status: "confirmed" },
+  { date: "Jul 01", ref: "INC-0041", category: "Hajj Revenue", description: "Group SM-2024-07", amount: 3400000, method: "Bank Transfer", status: "confirmed" },
   { date: "Jul 03", ref: "INC-0042", category: "Umrah Revenue", description: "Ramadan Umrah – 12 pax", amount: 960000, method: "bKash", status: "confirmed" },
   { date: "Jul 05", ref: "INC-0043", category: "Visa Service", description: "Saudi Visa – 8 applicants", amount: 240000, method: "Cash", status: "confirmed" },
   { date: "Jul 07", ref: "INC-0044", category: "Air Ticket", description: "CGP-DAC roundtrip × 4", amount: 88000, method: "Nagad", status: "pending" },
@@ -180,15 +175,6 @@ const CUSTOMER_PAYMENTS = [
   { id: "CP-3203", customer: "Karim & Family", booking: "BK-2024-0875", amount: 680000, received: 680000, method: "SSLCommerz", date: "Jul 10", status: "confirmed" },
   { id: "CP-3204", customer: "NMT Travels Agency", booking: "BK-2024-0867", amount: 1240000, received: 0, method: "—", date: "Jul 8", status: "pending" },
   { id: "CP-3205", customer: "Hosne Ara Begum", booking: "BK-2024-0860", amount: 215000, received: 43000, method: "Nagad", date: "Jul 6", status: "partial" },
-];
-
-const MONTHLY_CASHFLOW = [
-  { month: "Feb", income: 2850000, expense: 1920000 },
-  { month: "Mar", income: 3600000, expense: 2400000 },
-  { month: "Apr", income: 4100000, expense: 2800000 },
-  { month: "May", income: 5200000, expense: 3200000 },
-  { month: "Jun", income: 7800000, expense: 4900000 },
-  { month: "Jul", income: 4680000, expense: 3200000 },
 ];
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
@@ -958,106 +944,14 @@ function CustomerPaymentsView() {
 }
 
 // ─── Payment Gateways ─────────────────────────────────────────────────────────
-type GatewayStatus = "active" | "sandbox" | "inactive";
-type GatewayCfg = { id: string; name: string; logo: string; status: GatewayStatus; txFee: string; settlement: string; monthlyVol: number; txCount: number; color: string };
-const GATEWAYS: GatewayCfg[] = [
-  { id: "bkash", name: "bKash", logo: "bK", status: "active", txFee: "1.5%", settlement: "T+1", monthlyVol: 3200000, txCount: 148, color: "#E2136E" },
-  { id: "nagad", name: "Nagad", logo: "Na", status: "active", txFee: "1.0%", settlement: "T+0", monthlyVol: 1850000, txCount: 97, color: "#F05A28" },
-  { id: "ssl", name: "SSLCommerz", logo: "SSL", status: "active", txFee: "2.5%", settlement: "T+3", monthlyVol: 2100000, txCount: 62, color: "#0065BD" },
-  { id: "card", name: "Visa / Mastercard", logo: "V|M", status: "sandbox", txFee: "2.0% + ৳10", settlement: "T+3", monthlyVol: 0, txCount: 0, color: "#1A1F71" },
-];
-
-const GATEWAY_STATUS_COLOR: Record<GatewayStatus, string> = {
-  active: "bg-emerald-50 text-emerald-700",
-  sandbox: "bg-amber-50 text-amber-700",
-  inactive: "bg-slate-100 text-slate-500",
-};
-
 function PaymentGatewaysView() {
-  const [selected, setSelected] = useState("bkash");
-  const gw = GATEWAYS.find(g => g.id === selected)!;
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Payment Gateways</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Manage MFS and card gateway integrations</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
-          <Plus size={14} /> Add Gateway
-        </button>
-      </div>
-      <div className="grid grid-cols-4 gap-4">
-        {GATEWAYS.map(g => (
-          <button key={g.id} onClick={() => setSelected(g.id)}
-            className={cn("text-left p-5 rounded-xl border transition-all bg-[var(--color-surface)]",
-              selected === g.id ? "border-[#1B75BC] ring-1 ring-[#1B75BC]/20" : "border-[var(--color-border)] hover:border-slate-300")}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: g.color }}>{g.logo}</div>
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", GATEWAY_STATUS_COLOR[g.status])}>{g.status}</span>
-            </div>
-            <p className="font-semibold text-slate-800">{g.name}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Fee: {g.txFee}</p>
-            <p className="text-sm font-bold text-slate-800 mt-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmtCurrency(g.monthlyVol)}
-            </p>
-            <p className="text-xs text-slate-400">{g.txCount} transactions this month</p>
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: gw.color }}>{gw.logo}</div>
-            <div>
-              <h3 className="font-semibold text-slate-800">{gw.name} Configuration</h3>
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", GATEWAY_STATUS_COLOR[gw.status])}>{gw.status}</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              ["Merchant ID", "BDH-MCHT-00421"],
-              ["API Key", "sk_live_••••••••••••••••"],
-              ["Webhook URL", "https://api.bdh-travels.com/webhook/payment"],
-              ["Settlement Account", "DBBL Current – 1021...234"],
-              ["Transaction Fee", gw.txFee],
-              ["Settlement Cycle", gw.settlement],
-            ].map(([label, val]) => (
-              <div key={label}>
-                <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
-                <input defaultValue={val} readOnly
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-700 font-mono focus:outline-none" />
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-3 mt-5 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save Changes</button>
-            <button className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Test Connection</button>
-            {gw.status === "sandbox" && (
-              <button className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 ml-auto">Go Live</button>
-            )}
-          </div>
-        </div>
-        <Section title="Quick Stats">
-          <div className="space-y-4">
-            {[
-              ["Monthly Volume", fmtCurrency(gw.monthlyVol)],
-              ["Transactions", String(gw.txCount)],
-              ["Success Rate", "98.4%"],
-              ["Avg. Settlement", gw.settlement],
-              ["Disputes", "0"],
-            ].map(([label, val]) => (
-              <div key={label} className="flex justify-between text-sm">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-medium text-slate-800 font-mono">{val}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
+      <EmptyState
+        variant="coming-soon"
+        title="Online payment gateways"
+        desc="Payments are recorded manually with a reference number in the Finance module. Live gateway integration (bKash/Nagad/SSLCommerz) is planned for a later release."
+      />
     </div>
   );
 }
@@ -1075,27 +969,7 @@ function AccountsOverview() {
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2">
           <Section title="Cash Flow – Last 6 Months">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={MONTHLY_CASHFLOW} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
-                <defs>
-                  <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0E7C66" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#0E7C66" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-                  tickFormatter={v => `৳${(v / 1000000).toFixed(1)}M`} />
-                <Tooltip formatter={(v: number) => [fmtCurrency(v), ""]} />
-                <Area type="monotone" dataKey="income" name="Income" stroke="#0E7C66" strokeWidth={2} fill="url(#incomeGrad)" />
-                <Area type="monotone" dataKey="expense" name="Expense" stroke="#EF4444" strokeWidth={2} fill="url(#expenseGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EmptyState variant="no-data" title="No cash flow data" desc="Cash flow trends will appear here once income and expense entries are recorded." />
           </Section>
         </div>
         <Section title="Quick Ledger">

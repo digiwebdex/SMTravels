@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable } from "../lib/responsive";
+import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { SampleBadge } from "./SampleBadge";
 import {
   useStaffMe, useStaffDashboard, useStaffTasks, useStaffBookings, useStaffCustomers,
   useStaffDocuments, useStaffAnnouncements, useSetTaskStatus, useCreateTask,
@@ -45,12 +45,6 @@ const NAV: { id: StaffView; icon: React.ElementType; label: string; badge?: numb
   { id: "support",       icon: LifeBuoy,        label: "portalCommon:nav.support"        },
   { id: "notifications", icon: Bell,            label: "portalCommon:nav.notifications" },
   { id: "profile",       icon: User,            label: "portalCommon:nav.profile"        },
-];
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const SUP_TICKETS = [
-  { id:"IT-041", subject:"Cannot access visa processing module", status:"open",     date:"Jul 15", msgs:2 },
-  { id:"IT-038", subject:"Client record merge request — CU-0214",status:"resolved", date:"Jul 5",  msgs:3 },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -557,69 +551,12 @@ function StaffAnnouncements() {
 // ─── SUPPORT ─────────────────────────────────────────────────────────────────
 function StaffSupport() {
   const { t } = useTranslation("portalStaff");
-  const [active, setActive] = useState<string|null>(null);
-  const MSGS = [
-    { from:"Me",         text:"I cannot access the visa processing module. Getting a 403 error.", time:"Jul 15 09:00", mine:true  },
-    { from:"IT Support", text:"Hi Rafiq, I've checked your permissions. A fix has been applied. Please clear your cache and retry.", time:"Jul 15 09:45", mine:false },
-  ];
-
-  if (active) return (
-    <div className="flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => setActive(null)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-500">
-          <ChevronRight size={16} className="rotate-180" />
-        </button>
-        <div>
-          <p className="font-bold text-slate-800">{SUP_TICKETS.find(tk=>tk.id===active)?.subject}</p>
-          <p className="text-xs text-slate-400">{active} · {t("support.status.open")}</p>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-        {MSGS.map((m,i) => (
-          <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">IT</div>}
-            <div className={cn("max-w-sm px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#1B75BC] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
-              {m.text}
-              <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <input placeholder={t("support.replyPlaceholder")} className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl"><Send size={16} /></button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">{t("support.title")}</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] whitespace-nowrap">
-          <Plus size={14}/> {t("support.newTicket")}
-        </button>
+      <h2 className="text-xl font-bold text-slate-800">{t("support.title")}</h2>
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="no-data" title="Support" desc="Your support conversations will appear here." />
       </div>
-      {SUP_TICKETS.map(tk => (
-        <div key={tk.id} onClick={() => setActive(tk.id)}
-          className="bg-white rounded-2xl border border-slate-200 p-5 cursor-pointer hover:shadow-sm transition-all">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 pr-3">
-              <p className="text-xs font-mono text-slate-400 mb-1">{tk.id}</p>
-              <p className="font-semibold text-slate-800">{tk.subject}</p>
-            </div>
-            <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border flex-shrink-0",
-              tk.status==="open"?"bg-blue-50 text-blue-600 border-blue-200":"bg-emerald-50 text-emerald-600 border-emerald-200")}>
-              {t(`support.status.${tk.status}`, { defaultValue: tk.status })}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1"><MessageSquare size={11}/>{t("support.messagesCount", { count: tk.msgs })}</span>
-            <span>{tk.date}</span>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

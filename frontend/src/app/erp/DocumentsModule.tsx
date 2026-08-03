@@ -7,9 +7,8 @@ import {
   ChevronRight, ChevronDown, ChevronLeft, Layers, RefreshCw,
   Users, UserPlus, Grid, List, FilePlus, FolderOpen, Loader2,
 } from "lucide-react";
-import { SampleBadge } from "../portal/SampleBadge";
 import { cn } from "../lib/utils";
-import { OcrInFlow } from "../design-system/ai/OcrInFlow";
+import { EmptyState } from "../lib/ds";
 import { ModulePage } from "../design-system/patterns/ModulePage";
 import { useErpDocuments, useUploadDocument, downloadDocumentFile, useUpdateDocumentStatus } from "../hooks/documents";
 import { useRunOcr } from "../hooks/ocr";
@@ -346,41 +345,15 @@ function UploadView() {
 }
 
 // ─── OCR VALIDATION ───────────────────────────────────────────────────────────
-const OCR_FIELDS = [
-  { field:"Document Type",   extracted:"PASSPORT",          expected:"Passport",  confidence:98, ok:true  },
-  { field:"Surname",         extracted:"AL-MAMUN",          expected:"Al-Mamun",  confidence:97, ok:true  },
-  { field:"Given Names",     extracted:"ABDULIAH",          expected:"ABDULLAH",  confidence:61, ok:false },
-  { field:"Nationality",     extracted:"BANGLADESHI",       expected:"—",         confidence:99, ok:true  },
-  { field:"Passport No.",    extracted:"A 12345678",        expected:"—",         confidence:95, ok:true  },
-  { field:"Date of Birth",   extracted:"05 JAN 1982",       expected:"—",         confidence:93, ok:true  },
-  { field:"Issue Date",      extracted:"14 JUN 2023",       expected:"—",         confidence:96, ok:true  },
-  { field:"Expiry Date",     extracted:"14 JUN 2028",       expected:"2028-06-14",confidence:98, ok:true  },
-  { field:"MRZ Line 1",      extracted:"P<BGDAL-MAMUN<<ABDULIAH<<<<<<<<<<<<<<<", expected:"—", confidence:72, ok:false },
-];
-
 function OcrView() {
   const docs = useErpDocuments({ type: "PASSPORT", pageSize: 50 });
   const runOcr = useRunOcr();
   const ocrDocs = (docs.data?.data ?? []).filter((d) => d.hasFile);
   const [selected, setSelected] = useState<string | null>(null);
   const activeId = selected ?? ocrDocs[0]?.id ?? null;
-  const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editVal, setEditVal] = useState("");
-  const fields = OCR_FIELDS;
-  const failed = fields.filter(f => !f.ok).length;
 
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <OcrInFlow
-        title="OCR in flow"
-        onUpload={async () => {
-          /* Wire via existing useRunOcr when a live file picker is attached */
-          return Object.fromEntries(fields.map((f) => [f.field, f.extracted]));
-        }}
-        onApply={() => { /* apply into form fields — SampleBadge surface */ }}
-        previewFields={Object.fromEntries(fields.map((f) => [f.field, f.extracted]))}
-      />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-[var(--color-text)]">OCR Validation</h2>
@@ -400,156 +373,12 @@ function OcrView() {
             {runOcr.isPending ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             Re-run OCR
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-            <CheckCircle size={14} /> Approve Document
-          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-5">
-        {/* Document preview pane */}
-        <div className="col-span-2 space-y-3">
-          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-700">Document Preview</p>
-              <div className="flex gap-1">
-                <button className="p-1.5 hover:bg-slate-100 rounded"><ZoomIn size={13} className="text-slate-400" /></button>
-                <button className="p-1.5 hover:bg-slate-100 rounded"><Download size={13} className="text-slate-400" /></button>
-              </div>
-            </div>
-            {/* Simulated passport preview */}
-            <div className="bg-[#1a2e1a] p-6 m-4 rounded-xl font-mono text-xs relative" style={{ minHeight: 280 }}>
-              <div className="text-emerald-400 mb-4 text-center font-bold tracking-widest text-sm">
-                PEOPLE'S REPUBLIC OF BANGLADESH
-              </div>
-              <div className="text-emerald-300 mb-4 text-center text-xs tracking-wider">PASSPORT</div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-green-200 text-xs mb-6">
-                {[
-                  ["Surname","AL-MAMUN"],["Given Names","ABDULIAH"],
-                  ["Nationality","BANGLADESHI"],["No.","A 12345678"],
-                  ["Date of Birth","05 JAN 1982"],["Sex","M"],
-                  ["Place of Birth","CHATTOGRAM"],["Expiry","14 JUN 2028"],
-                ].map(([l, v]) => (
-                  <div key={l}>
-                    <div className="text-green-500 text-xs mb-0.5">{l}</div>
-                    <div className="font-bold tracking-widest">{v}</div>
-                  </div>
-                ))}
-              </div>
-              {/* OCR highlight overlay */}
-              <div className="absolute top-[155px] left-[114px] right-6 h-5 bg-red-500/20 border border-red-400/50 rounded pointer-events-none" />
-              <div className="mt-2 border-t border-green-700 pt-2">
-                <div className="text-green-500 text-xs mb-1 tracking-widest">MRZ</div>
-                <div className="text-green-300 text-xs tracking-widest leading-relaxed break-all">
-                  P&lt;BGDAL-MAMUN&lt;&lt;ABDULIAH&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
-                </div>
-              </div>
-            </div>
-            {/* OCR confidence badge */}
-            <div className="px-4 pb-4 flex items-center justify-between">
-              <span className="text-xs text-slate-500">Overall confidence</span>
-              <div className="flex items-center gap-2">
-                <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-400 rounded-full" style={{ width: "87%" }} />
-                </div>
-                <span className="text-xs font-semibold text-amber-600">87%</span>
-              </div>
-            </div>
-          </div>
-          {/* Validation summary */}
-          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
-            <div className="flex items-center gap-3 mb-3">
-              {failed > 0 ? (
-                <AlertTriangle size={18} className="text-red-500" />
-              ) : (
-                <CheckCircle size={18} className="text-emerald-500" />
-              )}
-              <div>
-                <p className="text-sm font-semibold text-slate-800">
-                  {failed > 0 ? `${failed} field${failed > 1 ? "s" : ""} need review` : "All fields validated"}
-                </p>
-                <p className="text-xs text-slate-400">{fields.length - failed}/{fields.length} fields extracted correctly</p>
-              </div>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${((fields.length - failed) / fields.length) * 100}%` }} />
-            </div>
-          </div>
-        </div>
-
-        {/* Extracted fields */}
-        <div className="col-span-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-800">Extracted Fields</p>
-            <p className="text-xs text-slate-400 mt-0.5">Click any row to correct a value</p>
-          </div>
-          <table className="w-full min-w-[680px] md:min-w-0">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                {["Field","Extracted Value","Confidence","Status",""].map(h => (
-                  <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-2.5">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {fields.map((f, i) => (
-                <tr key={i} className={cn("border-b border-slate-50 hover:bg-slate-50 transition-colors",
-                  !f.ok && "bg-red-50/30")}>
-                  <td className="px-4 py-3 text-sm text-slate-600 font-medium whitespace-nowrap">{f.field}</td>
-                  <td className="px-4 py-3 font-mono text-sm">
-                    {editIdx === i ? (
-                      <div className="flex items-center gap-2">
-                        <input value={editVal} onChange={e => setEditVal(e.target.value)}
-                          className="border border-[#1B75BC] rounded px-2 py-1 text-sm font-mono w-full focus:outline-none" />
-                        <button onClick={() => setEditIdx(null)} className="text-emerald-600 hover:text-emerald-700">
-                          <CheckCircle size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <span className={f.ok ? "text-slate-800" : "text-red-600 font-semibold"}>{f.extracted}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={cn("h-full rounded-full", f.confidence >= 90 ? "bg-emerald-500" : f.confidence >= 70 ? "bg-amber-400" : "bg-red-400")}
-                          style={{ width: `${f.confidence}%` }} />
-                      </div>
-                      <span className={cn("text-xs font-mono font-medium",
-                        f.confidence >= 90 ? "text-emerald-600" : f.confidence >= 70 ? "text-amber-600" : "text-red-600")}>
-                        {f.confidence}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {f.ok ? (
-                      <CheckCircle size={15} className="text-emerald-500" />
-                    ) : (
-                      <XCircle size={15} className="text-red-500" />
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => { setEditIdx(i); setEditVal(f.extracted); }}
-                      className="p-1 hover:bg-slate-100 rounded">
-                      <Edit2 size={13} className="text-slate-400" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="px-5 py-4 border-t border-slate-100 flex gap-3">
-            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-              Save Corrections
-            </button>
-            <button className="px-4 py-2 text-sm border border-emerald-300 text-emerald-700 rounded-lg hover:bg-emerald-50">
-              Approve & Verify
-            </button>
-            <button className="px-4 py-2 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50 ml-auto">
-              Reject Document
-            </button>
-          </div>
-        </div>
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+        <EmptyState variant="no-data" title="OCR field review"
+          desc="Run OCR on a document to extract passport fields for review. Extracted fields will appear here." />
       </div>
     </div>
   );
@@ -658,7 +487,7 @@ function VersionsView() {
 const SIGNERS = [
   { name:"Md. Abdullah Al-Mamun", role:"Customer",        email:"abdullah@gmail.com",   status:"signed",  date:"Jul 12" },
   { name:"Rahim Khan",            role:"Agent",           email:"rahim@rksonline.com",   status:"signed",  date:"Jul 12" },
-  { name:"Abdullah Chowdhury",    role:"BDH Authorized",  email:"a.chowdhury@bdh.com",  status:"pending", date:"—"      },
+  { name:"Abdullah Chowdhury",    role:"SM Travels Authorized",  email:"a.chowdhury@smtravelsinternational.com",  status:"pending", date:"—"      },
 ];
 
 function SignatureView() {
@@ -698,7 +527,7 @@ function SignatureView() {
             {/* Progress */}
             <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-4">
               <AlertTriangle size={16} className="text-amber-600 flex-shrink-0" />
-              <p className="text-sm text-amber-700">Waiting for 1 signature — <strong>Abdullah Chowdhury</strong> (BDH Authorized)</p>
+              <p className="text-sm text-amber-700">Waiting for 1 signature — <strong>Abdullah Chowdhury</strong> (SM Travels Authorized)</p>
             </div>
             {/* Signature canvas */}
             <div>
@@ -768,10 +597,10 @@ function SignatureView() {
 
 // ─── EXPIRY REMINDERS ─────────────────────────────────────────────────────────
 const EXPIRY_DOCS = [
-  { name:"Hotel_Voucher_DarAlTawhid.pdf", type:"Hotel",   expiry:"Jul 25, 2024", daysLeft:11, customer:"BDH Travels",  status:"expiring" },
-  { name:"Group_Insurance_Policy.pdf",   type:"Insurance",expiry:"Jul 1, 2024",  daysLeft:-13, customer:"BDH Travels", status:"expired"  },
+  { name:"Hotel_Voucher_DarAlTawhid.pdf", type:"Hotel",   expiry:"Jul 25, 2024", daysLeft:11, customer:"SM Travels",  status:"expiring" },
+  { name:"Group_Insurance_Policy.pdf",   type:"Insurance",expiry:"Jul 1, 2024",  daysLeft:-13, customer:"SM Travels", status:"expired"  },
   { name:"Visa_Application_BK0892.pdf",  type:"Visa",     expiry:"Dec 1, 2024",  daysLeft:140, customer:"Rabeya K.",  status:"pending"  },
-  { name:"Company_Trade_License.pdf",    type:"License",  expiry:"Jan 31, 2025", daysLeft:201, customer:"BDH Travels", status:"verified" },
+  { name:"Company_Trade_License.pdf",    type:"License",  expiry:"Jan 31, 2025", daysLeft:201, customer:"SM Travels", status:"verified" },
   { name:"Medical_Certificate_H2024.pdf",type:"Medical",  expiry:"Oct 31, 2024", daysLeft:109, customer:"Hosne Ara",  status:"verified" },
 ];
 
@@ -948,7 +777,7 @@ function SharingView() {
 
 // ─── WATERMARK ────────────────────────────────────────────────────────────────
 function WatermarkView() {
-  const [text, setText] = useState("CONFIDENTIAL – BDH TRAVELS");
+  const [text, setText] = useState("CONFIDENTIAL – SM TRAVELS");
   const [opacity, setOpacity] = useState(20);
   const [angle, setAngle] = useState(45);
   const [position, setPosition] = useState("center");

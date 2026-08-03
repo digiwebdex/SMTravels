@@ -7,7 +7,6 @@ import {
   Globe, Zap, Key, Server, HardDrive, Bell, Save, Copy,
   Info, GitBranch, FileText, Handshake, Truck,
 } from "lucide-react";
-import { SampleBadge } from "../portal/SampleBadge";
 import { cn } from "../lib/utils";
 import { Loader2 } from "lucide-react";
 import { useIntegrationsStatus, useTestIntegration } from "../hooks/integrations";
@@ -19,6 +18,7 @@ import {
 } from "../hooks/settings";
 import type { AgentListItem, SupplierListItem } from "@contracts/settings.contract";
 import { ModulePage } from "../design-system/patterns/ModulePage";
+import { EmptyState } from "../lib/ds";
 
 type SView =
   | "general" | "email" | "sms" | "whatsapp" | "payment"
@@ -213,7 +213,6 @@ function IntegrationTestForm({ channel, placeholder }: { channel: "email" | "sms
 function GeneralSettings() {
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <PageHeader title="General Settings" subtitle="Core business information and localization"/>
       <Panel title="Business Information" icon={Building2}>
         <Field label="Company Name"><Inp dv="SM Travels International & Tourism"/></Field>
@@ -241,6 +240,7 @@ function GeneralSettings() {
           </div>
         </Field>
       </Panel>
+      <p className="text-xs text-slate-400 px-1">Changes are not saved yet.</p>
       <SaveBtn/>
     </div>
   );
@@ -404,7 +404,7 @@ function PaymentSettings() {
           <li>Accountant approves or rejects the pending payment in Invoices → Payment Collection.</li>
         </ol>
       </Panel>
-      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">Coming soon — disabled</p>
+      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">Online payment gateways — configured manually for now.</p>
       {disabledGws.map(gw=>(
         <Panel key={gw.name} title={gw.name} icon={CreditCard} iconColor={gw.color} className="opacity-60">
           <div className="flex items-center justify-between">
@@ -479,18 +479,9 @@ function OcrSettings() {
 
 // ─── BACKUP ──────────────────────────────────────────────────────────────────
 function BackupSettings() {
-  const history = [
-    { date:"Jul 14 02:00 AM", size:"284 MB", type:"Auto",   status:"success" },
-    { date:"Jul 13 02:00 AM", size:"281 MB", type:"Auto",   status:"success" },
-    { date:"Jul 12 02:00 AM", size:"279 MB", type:"Auto",   status:"success" },
-    { date:"Jul 11 02:00 AM", size:"278 MB", type:"Auto",   status:"failed"  },
-    { date:"Jul 10 11:30 AM", size:"276 MB", type:"Manual", status:"success" },
-  ];
   return (
     <div className="space-y-5">
-      <SampleBadge />
-      <PageHeader title="Backup Settings" subtitle="Automated database and file backup"
-        action={<button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg"><Download size={14}/> Backup Now</button>}/>
+      <PageHeader title="Backup Settings" subtitle="Automated database and file backup"/>
       <Panel title="Schedule" icon={Database}>
         <Field label="Auto Backup"><Toggle on={true}/></Field>
         <Field label="Frequency"><Sel opts={["Daily","Twice Daily","Weekly","Monthly"]} dv="Daily"/></Field>
@@ -503,25 +494,8 @@ function BackupSettings() {
         <Field label="Backup Path"><Inp dv="/var/www/SMTravels/backups/"/></Field>
         <Field label="Include Files"><Toggle on={true} label="Upload media & documents"/></Field>
       </Panel>
-      <Panel title="Backup History" icon={Database}>
-        <table className="w-full">
-          <thead><tr className="border-b border-slate-100">{["Date","Size","Type","Status",""].map(h=>(
-            <th key={h} className="text-left text-xs font-medium text-slate-500 pb-3 pr-4">{h}</th>
-          ))}</tr></thead>
-          <tbody>{history.map((b,i)=>(
-            <tr key={i} className="border-b border-slate-50">
-              <td className="py-2.5 pr-4 text-sm text-slate-600 font-mono">{b.date}</td>
-              <td className="py-2.5 pr-4 text-sm font-mono text-slate-600">{b.size}</td>
-              <td className="py-2.5 pr-4"><span className={cn("text-xs px-2 py-0.5 rounded-full",b.type==="Auto"?"bg-blue-50 text-blue-600":"bg-purple-50 text-purple-600")}>{b.type}</span></td>
-              <td className="py-2.5 pr-4"><span className={cn("text-xs px-2 py-0.5 rounded-full",b.status==="success"?"bg-emerald-50 text-emerald-600":"bg-red-50 text-red-500")}>{b.status}</span></td>
-              <td className="py-2.5"><div className="flex gap-1">
-                <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Download size={12}/></button>
-                <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><RefreshCw size={12}/></button>
-              </div></td>
-            </tr>
-          ))}</tbody>
-        </table>
-      </Panel>
+      <EmptyState variant="no-data" title="Backup history"
+        desc="Backups run automatically nightly on the server. Backup history is not surfaced in the UI yet." />
     </div>
   );
 }
@@ -1118,70 +1092,12 @@ function UsersView() {
 }
 
 // ─── SYSTEM HEALTH ────────────────────────────────────────────────────────────
-const HEALTH_ITEMS = [
-  { name:"Web Server",      status:"healthy", value:"142ms avg",    icon:Server,   detail:"Nginx 1.24 · 99.97% uptime"    },
-  { name:"Database",        status:"healthy", value:"38ms avg",     icon:Database, detail:"MySQL 8.0 · 0 slow queries"     },
-  { name:"Redis Cache",     status:"healthy", value:"2ms avg",      icon:Zap,      detail:"Hit rate: 94.2%"                },
-  { name:"Queue Worker",    status:"healthy", value:"12 jobs/min",  icon:GitBranch,detail:"4 workers · 0 failed"           },
-  { name:"Disk Storage",    status:"warning", value:"68% used",     icon:HardDrive,detail:"34.2 GB / 50 GB"               },
-  { name:"SSL Certificate", status:"healthy", value:"Valid",        icon:Shield,   detail:"Expires Jan 14, 2025"           },
-  { name:"Email Service",   status:"healthy", value:"98.4% delivery",icon:Mail,   detail:"3 bounces this week"            },
-  { name:"Backup Service",  status:"error",   value:"Last failed",  icon:Database, detail:"Jul 11 backup failed — retry"   },
-];
-const H_STYLE: Record<string,{ card:string; icon:string; dot:string }> = {
-  healthy: { card:"bg-emerald-50 border-emerald-200", icon:"text-emerald-600", dot:"bg-emerald-500" },
-  warning: { card:"bg-amber-50 border-amber-200",     icon:"text-amber-600",   dot:"bg-amber-400"   },
-  error:   { card:"bg-red-50 border-red-200",         icon:"text-red-600",     dot:"bg-red-500"     },
-};
-
 function HealthView() {
   return (
-    <div>
-      <SampleBadge />
-      <div className="flex items-center justify-between mb-5">
-        <div><h2 className="text-xl font-bold text-slate-800">System Health</h2>
-          <p className="text-sm text-slate-500">Last checked: <span className="font-medium text-slate-600">Today 09:14 AM</span></p></div>
-        <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600"><RefreshCw size={13}/> Refresh</button>
-      </div>
-      <div className="flex items-center gap-3 mb-5">
-        {[["healthy","6 Healthy","bg-emerald-500"],["warning","1 Warning","bg-amber-400"],["error","1 Error","bg-red-500"]].map(([k,l,c])=>(
-          <span key={k} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border",
-            k==="healthy"?"bg-emerald-50 text-emerald-700 border-emerald-200":k==="warning"?"bg-amber-50 text-amber-700 border-amber-200":"bg-red-50 text-red-600 border-red-200")}>
-            <span className={cn("w-2 h-2 rounded-full",c)}/>{l}
-          </span>
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        {HEALTH_ITEMS.map(h=>{
-          const s = H_STYLE[h.status];
-          return (
-            <div key={h.name} className={cn("flex items-center gap-4 p-4 rounded-xl border",s.card)}>
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border",s.card)}>
-                <h.icon size={18} className={s.icon}/>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-slate-800">{h.name}</p>
-                  <span className={cn("w-2 h-2 rounded-full animate-pulse",s.dot)}/>
-                </div>
-                <p className="text-xs font-mono font-medium text-slate-700">{h.value}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{h.detail}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="grid grid-cols-4 gap-4">
-        {[{l:"CPU Usage",v:"24%",b:24,c:"bg-[#1B75BC]"},{l:"Memory",v:"58%",b:58,c:"bg-[#0E7C66]"},{l:"Disk I/O",v:"12%",b:12,c:"bg-[#F15A24]"},{l:"Network",v:"8 MB/s",b:35,c:"bg-[#2563EB]"}].map(s=>(
-          <div key={s.l} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
-            <p className="text-xs text-slate-500 mb-1">{s.l}</p>
-            <p className="text-2xl font-black text-slate-800 mb-2" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.v}</p>
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div className={cn("h-full rounded-full",s.c)} style={{ width:`${s.b}%`}}/>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="space-y-5">
+      <PageHeader title="System Health" subtitle="Infrastructure status and metrics"/>
+      <EmptyState variant="coming-soon" title="System health"
+        desc="Live infrastructure metrics are planned for a later release." />
     </div>
   );
 }

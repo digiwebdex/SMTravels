@@ -391,7 +391,7 @@ function ContentEditor({
                 />
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <Globe size={11} />
-                  <span>bdhtravels.com</span>
+                  <span>smtravelsinternational.com</span>
                   <span>/</span>
                   <input value={slug} onChange={e => setSlug(e.target.value)}
                     className="text-[#1B75BC] underline-offset-2 hover:underline focus:outline-none bg-transparent" />
@@ -431,7 +431,7 @@ function ContentEditor({
                   <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                     <p className="text-xs font-medium text-slate-500 mb-2">Google Preview</p>
                     <p className="text-sm text-blue-700 font-medium">{metaTitle || title || "Page Title"}</p>
-                    <p className="text-xs text-green-700">https://bdhtravels.com/{slug || "page-slug"}</p>
+                    <p className="text-xs text-green-700">https://smtravelsinternational.com/{slug || "page-slug"}</p>
                     <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
                       {metaDesc || "Enter a meta description to see how this page appears in search results…"}
                     </p>
@@ -1389,10 +1389,10 @@ function SettingsView() {
       title: "General",
       icon: Globe,
       fields: [
-        { label: "Site Title",       type: "text",     default: "BDH Travels & Tourism" },
+        { label: "Site Title",       type: "text",     default: "SM Travels International" },
         { label: "Tagline",          type: "text",     default: "Your Trusted Travel Partner" },
-        { label: "Site URL",         type: "url",      default: "https://bdhtravels.com" },
-        { label: "Admin Email",      type: "email",    default: "admin@bdhtravels.com" },
+        { label: "Site URL",         type: "url",      default: "https://smtravelsinternational.com" },
+        { label: "Admin Email",      type: "email",    default: "admin@smtravelsinternational.com" },
         { label: "Phone",            type: "text",     default: "+880 31 123 4567" },
         { label: "Address",          type: "textarea", default: "144/A CDA Commercial Area, Agrabad, Chattogram" },
       ],
@@ -1401,7 +1401,7 @@ function SettingsView() {
       title: "SEO & Analytics",
       icon: BarChart2,
       fields: [
-        { label: "Default Meta Title",    type: "text",     default: "BDH Travels & Tourism | Hajj, Umrah & Tour" },
+        { label: "Default Meta Title",    type: "text",     default: "SM Travels International | Hajj, Umrah & Tour" },
         { label: "Default Meta Desc",     type: "textarea", default: "Bangladesh's trusted travel agency for Hajj, Umrah, Visa, Air Tickets and overseas manpower services." },
         { label: "Google Analytics ID",   type: "text",     default: "G-XXXXXXXXXX" },
         { label: "Facebook Pixel ID",     type: "text",     default: "" },
@@ -1423,8 +1423,8 @@ function SettingsView() {
       icon: FileText,
       fields: [
         { label: "Posts Per Page",    type: "number", default: "10" },
-        { label: "Copyright Text",    type: "text",   default: "© 2024 BDH Travels & Tourism. All rights reserved." },
-        { label: "Footer Description",type: "textarea",default: "BDH Travels & Tourism is a leading travel agency in Bangladesh." },
+        { label: "Copyright Text",    type: "text",   default: "© 2024 SM Travels International. All rights reserved." },
+        { label: "Footer Description",type: "textarea",default: "SM Travels International is a leading Hajj, Umrah & travel agency in Bangladesh." },
       ],
     },
   ];
