@@ -14,6 +14,7 @@ import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable
 import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth/AuthContext";
 import {
   useStaffMe, useStaffDashboard, useStaffTasks, useStaffBookings, useStaffCustomers,
   useStaffDocuments, useStaffAnnouncements, useSetTaskStatus, useCreateTask,
@@ -36,7 +37,7 @@ type StaffView =
 
 const NAV: { id: StaffView; icon: React.ElementType; label: string; badge?: number }[] = [
   { id: "dashboard",     icon: LayoutDashboard, label: "portalCommon:nav.dashboard"      },
-  { id: "tasks",         icon: CheckSquare,     label: "portalStaff:nav.dailyTasks",  badge: 4 },
+  { id: "tasks",         icon: CheckSquare,     label: "portalStaff:nav.dailyTasks" },
   { id: "bookings",      icon: Briefcase,       label: "portalCommon:nav.bookings"       },
   { id: "customers",     icon: Users,           label: "portalCommon:nav.customers"      },
   { id: "reports",       icon: BarChart3,       label: "portalStaff:nav.myReports"       },
@@ -607,6 +608,7 @@ function StaffNotifications() {
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 function StaffProfile() {
   const { t } = useTranslation("portalStaff");
+  const { logout } = useAuth();
   const q = useStaffMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -635,7 +637,7 @@ function StaffProfile() {
               </div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
+          <button onClick={() => void logout()} className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -645,6 +647,7 @@ function StaffProfile() {
 // ─── Sidebar inner component (shared desktop + drawer) ───────────────────────
 function StaffSidebar({ view, go, onClose, unreadNotif }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void; unreadNotif: number }) {
   const { t } = useTranslation("portalStaff");
+  const { logout } = useAuth();
   const { data: me } = useStaffMe();
   const sName = me?.name ?? t("roles.staff");
   const sInit = sName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -681,16 +684,16 @@ function StaffSidebar({ view, go, onClose, unreadNotif }: { view: StaffView; go:
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
             <span className="flex-1 text-left">{t(item.label)}</span>
-            {(item.id === "notifications" ? unreadNotif : item.badge) ? (
+            {item.id === "notifications" && unreadNotif > 0 ? (
               <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
-                {item.id === "notifications" ? unreadNotif : item.badge}
+                {unreadNotif}
               </span>
             ) : null}
           </button>
         ))}
       </nav>
       <div className="p-3 border-t border-white/10">
-        <button className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
+        <button onClick={() => void logout()} className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
           style={{ minHeight: 44 }}>
           <LogOut size={14}/> {t("portalCommon:nav.logout")}
         </button>
@@ -702,7 +705,7 @@ function StaffSidebar({ view, go, onClose, unreadNotif }: { view: StaffView; go:
 // Mobile bottom nav items
 const STAFF_BOTTOM_NAV = [
   { id: "dashboard"     as StaffView, icon: LayoutDashboard, label: "portalStaff:bottomNav.home" },
-  { id: "tasks"         as StaffView, icon: CheckSquare,     label: "portalCommon:nav.tasks",  badge: 4 },
+  { id: "tasks"         as StaffView, icon: CheckSquare,     label: "portalCommon:nav.tasks" },
   { id: "bookings"      as StaffView, icon: Briefcase,       label: "portalCommon:nav.bookings" },
   { id: "notifications" as StaffView, icon: Bell,            label: "portalStaff:bottomNav.alerts" },
   { id: "profile"       as StaffView, icon: User,            label: "portalCommon:nav.profile"  },
@@ -716,6 +719,9 @@ export function StaffPortal() {
   const go = (v: StaffView) => setView(v);
   const notifQ = useMyNotifications();
   const unreadNotif = (notifQ.data ?? []).filter(n => !n.read).length;
+  const { data: meShell } = useStaffMe();
+  const meName = meShell?.name ?? t("roles.staff");
+  const meInit = meName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
   const render = () => {
     switch (view) {
@@ -752,7 +758,7 @@ export function StaffPortal() {
                 )}
               </button>
               <button onClick={() => go("profile")} className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
-                RI
+                {meInit}
               </button>
             </div>
           </header>
@@ -781,7 +787,7 @@ export function StaffPortal() {
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight">{currentLabel}</p>
-              <p className="text-xs text-slate-400">Rafiqul Islam · Staff</p>
+              <p className="text-xs text-slate-400">{meName} · {t("roles.staff")}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -795,7 +801,7 @@ export function StaffPortal() {
             </button>
             <button onClick={() => go("profile")}
               className="w-8 h-8 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
-              RI
+              {meInit}
             </button>
           </div>
         </div>
@@ -810,7 +816,7 @@ export function StaffPortal() {
           items={STAFF_BOTTOM_NAV.map(i => ({
             ...i,
             label: t(i.label),
-            badge: i.id === "notifications" && unreadNotif > 0 ? unreadNotif : i.badge,
+            badge: i.id === "notifications" && unreadNotif > 0 ? unreadNotif : undefined,
           }))}
           active={view}
           onChange={go}

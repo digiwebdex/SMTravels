@@ -310,8 +310,8 @@ function BrandPanel({ view }: { view: AuthView }) {
         <div className="mt-auto pt-8 border-t border-white/10 flex items-center justify-between">
           <div className="text-white/30 text-[10px]">{t("brandPanel.footer.copyright")}</div>
           <div className="flex gap-3">
-            {(["privacy", "terms", "support"] as const).map(l => (
-              <a key={l} href="#" className="text-white/30 text-[10px] hover:text-white/60 transition-colors">{t(`brandPanel.footer.${l}`)}</a>
+            {([["privacy", "/privacy"], ["terms", "/terms"], ["support", "/contact"]] as const).map(([l, href]) => (
+              <a key={l} href={href} target="_blank" rel="noopener noreferrer" className="text-white/30 text-[10px] hover:text-white/60 transition-colors">{t(`brandPanel.footer.${l}`)}</a>
             ))}
           </div>
         </div>
@@ -641,8 +641,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <span className="text-[12px] text-[#6B7280]">
                       <Trans t={t} i18nKey="registerCustomer.terms"
                         components={{
-                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
-                          privacy: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          privacy: <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
                         }} />
                     </span>
                   </label>

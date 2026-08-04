@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Outlet, Link, useLocation } from "react-router";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import {
   Menu, X, ChevronDown, Globe, Star, MapPin, Shield, Plane,
   Briefcase, Hotel, Phone, Mail, Facebook, Instagram, Youtube,
@@ -307,6 +307,7 @@ export function Header() {
 // ─── FOOTER ──────────────────────────────────────────────────────────────────
 export function Footer() {
   const { t } = useTranslation("layout");
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
 
   return (
@@ -402,7 +403,8 @@ export function Footer() {
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder={t("footer.newsletter.placeholder")}
                   className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-[8px] text-[12px] text-white placeholder-white/30 outline-none focus:border-[#F15A24] transition-all" />
-                <button onClick={() => setEmail("")}
+                <button onClick={() => { navigate("/contact", { state: { email } }); setEmail(""); }}
+                  aria-label={t("footer.newsletter.heading")}
                   className="w-9 h-9 flex-shrink-0 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
                   <Mail size={14} />
                 </button>

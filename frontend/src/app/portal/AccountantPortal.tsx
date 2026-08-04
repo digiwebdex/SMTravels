@@ -14,6 +14,7 @@ import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
 import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth/AuthContext";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
 import { useIncome, useExpenses, useInvoices, usePayments, useJournal, useBankAccounts } from "../hooks/finance";
 import { useOverview, usePnlReport } from "../hooks/reports";
@@ -40,7 +41,7 @@ const NAV: { id: AccView; icon: React.ElementType; label: string; badge?: number
   { id: "invoices-payments",icon: FileText,        label: "portalAccountant:nav.invoicesPayments"},
   { id: "reports",          icon: BarChart3,       label: "portalAccountant:nav.financialReports"},
   { id: "tax",              icon: Shield,          label: "portalAccountant:nav.taxReports"      },
-  { id: "audit",            icon: ClipboardList,   label: "portalAccountant:nav.auditLogs",  badge: 3 },
+  { id: "audit",            icon: ClipboardList,   label: "portalAccountant:nav.auditLogs" },
   { id: "profile",          icon: User,            label: "portalCommon:nav.profile"             },
 ];
 
@@ -476,6 +477,7 @@ function AuditView() {
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function AccProfile() {
   const { t } = useTranslation("portalAccountant");
+  const { logout } = useAuth();
   const q = useAccountantMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -504,7 +506,7 @@ function AccProfile() {
               </div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
+          <button onClick={() => void logout()} className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -514,6 +516,7 @@ function AccProfile() {
 // ─── Sidebar inner ────────────────────────────────────────────────────────────
 function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => void; onClose?: () => void }) {
   const { t } = useTranslation("portalAccountant");
+  const { logout } = useAuth();
   const { data: me } = useAccountantMe();
   const aName = me?.name ?? "Accountant";
   const aInit = aName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -550,14 +553,11 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
             <span className="flex-1 text-left text-xs">{t(item.label)}</span>
-            {item.badge ? (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
-            ) : null}
           </button>
         ))}
       </nav>
       <div className="p-3 border-t border-white/10">
-        <button className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
+        <button onClick={() => void logout()} className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
           style={{ minHeight: 44 }}>
           <LogOut size={14}/> {t("portalCommon:nav.logout")}
         </button>
@@ -572,7 +572,7 @@ const ACC_BOTTOM_NAV = [
   { id: "income-expense"   as AccView, icon: TrendingUp,      label: "portalAccountant:bottomNav.pl"     },
   { id: "bank-cash"        as AccView, icon: Building2,       label: "portalAccountant:bottomNav.bank"    },
   { id: "invoices-payments"as AccView, icon: FileText,        label: "portalCommon:nav.invoices"},
-  { id: "audit"            as AccView, icon: ClipboardList,   label: "portalAccountant:bottomNav.audit", badge: 3 },
+  { id: "audit"            as AccView, icon: ClipboardList,   label: "portalAccountant:bottomNav.audit" },
 ];
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
@@ -581,6 +581,9 @@ export function AccountantPortal() {
   const [view, setView] = useState<AccView>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const go = (v: AccView) => setView(v);
+  const { data: meShell } = useAccountantMe();
+  const meName = meShell?.name ?? t("roles.finance");
+  const meInit = meName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
   const render = () => {
     switch (view) {
@@ -612,7 +615,7 @@ export function AccountantPortal() {
               </div>
               <button onClick={() => go("profile")}
                 className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
-                FA
+                {meInit}
               </button>
             </div>
           </header>
@@ -640,14 +643,14 @@ export function AccountantPortal() {
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[160px]">{currentLabel}</p>
-              <p className="text-xs text-slate-400">Ferdous Ahmed · Accountant</p>
+              <p className="text-xs text-slate-400">{meName} · {t("roles.finance")}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-400 font-mono">{t("fy")} 2024</span>
             <button onClick={() => go("profile")}
               className="w-8 h-8 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">
-              FA
+              {meInit}
             </button>
           </div>
         </div>

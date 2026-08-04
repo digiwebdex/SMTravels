@@ -14,6 +14,7 @@ import { cn } from "../lib/utils";
 import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth/AuthContext";
 import { useSupplierMe, useSupplierDashboard, useSupplierInvoices, useSupplierPayables, useSupplierPayments, useSupplierRequests, useSupplierServices, useSetRequestStatus } from "../hooks/portals";
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
@@ -565,6 +566,7 @@ function SupportView() {
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function ProfileView() {
   const { t } = useTranslation("portalSupplier");
+  const { logout } = useAuth();
   const q = useSupplierMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -610,7 +612,7 @@ function ProfileView() {
               <div key={l}><label className="block text-xs font-medium text-slate-400 mb-1">{l}</label><div className="px-3 py-2.5 bg-slate-50 rounded-xl text-sm text-slate-700">{v}</div></div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50 transition-colors"><LogOut size={16} /> {t("portalCommon:nav.logout")}</button>
+          <button onClick={() => void logout()} className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50 transition-colors"><LogOut size={16} /> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -620,6 +622,7 @@ function ProfileView() {
 // ─── PORTAL SHELL ─────────────────────────────────────────────────────────────
 export function SupplierPortal() {
   const { t } = useTranslation("portalSupplier");
+  const { logout } = useAuth();
   const [view, setView] = useState<SupView>("dashboard");
   const { data: me } = useSupplierMe();
   const { data: reqs } = useSupplierRequests();
@@ -701,7 +704,7 @@ export function SupplierPortal() {
           </nav>
           {/* Footer */}
           <div className="p-4 border-t border-slate-100">
-            <button className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-500 w-full px-2 py-1.5 rounded-xl hover:bg-red-50 transition-colors">
+            <button onClick={() => void logout()} className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-500 w-full px-2 py-1.5 rounded-xl hover:bg-red-50 transition-colors">
               <LogOut size={14} /> Sign Out
             </button>
           </div>
@@ -719,11 +722,10 @@ export function SupplierPortal() {
                 <MessageSquare size={17} className="text-slate-500" />
                 {unread > 0 && <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full font-bold">{unread}</span>}
               </button>
-              <button className="relative p-2 hover:bg-slate-100 rounded-xl">
+              <button onClick={() => go("messages")} className="relative p-2 hover:bg-slate-100 rounded-xl" title={t("nav.messages", { defaultValue: "Messages" })}>
                 <Bell size={17} className="text-slate-500" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full" />
               </button>
-              <div className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">AI</div>
+              <div className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">{initials}</div>
             </div>
           </div>
           <div className="max-w-2xl mx-auto px-8 py-7">
