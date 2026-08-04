@@ -1,12 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  MessageSquare, Users, Megaphone, Mail, Phone, Globe,
-  Send, Paperclip, Search, Plus, MoreHorizontal, Check,
-  CheckCircle, X, ChevronDown, Star, Archive, Trash2,
-  RefreshCw, Filter, Edit2, UserPlus, Hash, AtSign,
-  Bell, Lock, Image, FileText, Smile, Clock, AlertTriangle,
-  ChevronRight, Layers, Info, Eye, Download, Link2,
-  LayoutTemplate, History, Loader2,
+  Users, Mail, Phone, Globe, Send, Edit2, Bell,
+  Clock, Layers, LayoutTemplate, History, Loader2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import {
@@ -14,40 +9,13 @@ import {
   useNotificationDashboard, useOutboundQueue, useRetryOutbound,
   type MessageTemplateDto, type TemplateChannelDto,
 } from "../hooks/communications";
+import { EmptyState } from "../lib/ds";
 import { ModulePage } from "../design-system/patterns/ModulePage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 /** UI channel keys for outbound compose panels (lowercase). */
 type OutboundChannelDto = "email" | "sms" | "whatsapp";
 type Channel = "internal" | "group" | "announcements" | "email" | "sms" | "whatsapp";
-
-interface Message {
-  id: string;
-  sender: string;
-  avatar: string;
-  content: string;
-  time: string;
-  status?: "sent" | "delivered" | "read";
-  attachment?: { name: string; size: string };
-  mine?: boolean;
-}
-
-interface Conversation {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMsg: string;
-  time: string;
-  unread: number;
-  online?: boolean;
-  pinned?: boolean;
-  channel: Channel;
-  isGroup?: boolean;
-  members?: number;
-}
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
 
 // ─── Channel tab config ───────────────────────────────────────────────────────
 type OutboundTab = "templates" | "send" | "bulk" | "log" | "queue" | "dashboard";
@@ -67,6 +35,15 @@ const CHANNELS: { id: Channel; label: string; icon: React.ElementType; color: st
   { id:"whatsapp",     label:"WhatsApp",     icon:Globe,         color:"#25D366" },
   { id:"announcements",label:"Center",       icon:Bell,          color:"#1B75BC" },
 ];
+
+// ─── Inline loader ────────────────────────────────────────────────────────────
+function Loader() {
+  return (
+    <div className="flex justify-center py-10">
+      <Loader2 size={20} className="animate-spin text-slate-300" />
+    </div>
+  );
+}
 
 // ─── Outbound ops (email / SMS / WhatsApp) ────────────────────────────────────
 
@@ -133,7 +110,8 @@ function OutboundOpsPanel({ channel, channelCfg }: { channel: OutboundChannelDto
 
           {tab === "dashboard" && (
             <div className="space-y-4">
-              {dashQ.isLoading && <p className="text-sm text-slate-400">Loading dashboard…</p>}
+              {dashQ.isLoading && <Loader />}
+              {dashQ.isError && !dashQ.isLoading && <EmptyState variant="error" compact />}
               {dashQ.data && (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -197,9 +175,10 @@ function OutboundOpsPanel({ channel, channelCfg }: { channel: OutboundChannelDto
 
           {tab === "queue" && (
             <div className="space-y-2">
-              {queueQ.isLoading && <p className="text-sm text-slate-400">Loading queue…</p>}
-              {(queueQ.data?.items.length ?? 0) === 0 && !queueQ.isLoading && (
-                <p className="text-sm text-slate-400 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-5">Queue is empty.</p>
+              {queueQ.isLoading && <Loader />}
+              {queueQ.isError && !queueQ.isLoading && <EmptyState variant="error" compact />}
+              {!queueQ.isLoading && !queueQ.isError && (queueQ.data?.items.length ?? 0) === 0 && (
+                <EmptyState variant="no-data" title="Queue is empty" desc="No queued messages for this channel." compact />
               )}
               {(queueQ.data?.items ?? []).map((item) => (
                 <div key={item.id} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4">
@@ -251,10 +230,10 @@ function OutboundOpsPanel({ channel, channelCfg }: { channel: OutboundChannelDto
 
           {tab === "templates" && (
             <div className="space-y-3">
-              {templatesQ.isLoading && <p className="text-sm text-slate-400">Loading templates…</p>}
-              {templatesQ.isError && <p className="text-sm text-red-500">Failed to load templates.</p>}
-              {(templatesQ.data ?? []).length === 0 && !templatesQ.isLoading && (
-                <p className="text-sm text-slate-400 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-5">No templates for {channelCfg.label} yet.</p>
+              {templatesQ.isLoading && <Loader />}
+              {templatesQ.isError && !templatesQ.isLoading && <EmptyState variant="error" compact />}
+              {!templatesQ.isLoading && !templatesQ.isError && (templatesQ.data ?? []).length === 0 && (
+                <EmptyState variant="no-data" title={`No ${channelCfg.label} templates`} desc="Templates you create will appear here." compact />
               )}
               {(templatesQ.data ?? []).map(t => (
                 <div key={t.id} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4">
@@ -298,9 +277,10 @@ function OutboundOpsPanel({ channel, channelCfg }: { channel: OutboundChannelDto
 
           {tab === "log" && (
             <div className="space-y-2">
-              {outboundQ.isLoading && <p className="text-sm text-slate-400">Loading history…</p>}
-              {(outboundQ.data ?? []).length === 0 && !outboundQ.isLoading && (
-                <p className="text-sm text-slate-400 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-5">No outbound messages logged yet.</p>
+              {outboundQ.isLoading && <Loader />}
+              {outboundQ.isError && !outboundQ.isLoading && <EmptyState variant="error" compact />}
+              {!outboundQ.isLoading && !outboundQ.isError && (outboundQ.data ?? []).length === 0 && (
+                <EmptyState variant="no-data" title="No history yet" desc="Sent messages will be logged here." compact />
               )}
               {(outboundQ.data ?? []).map(row => (
                 <div key={row.id} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-4 py-3 flex items-center justify-between gap-3">
@@ -318,226 +298,6 @@ function OutboundOpsPanel({ channel, channelCfg }: { channel: OutboundChannelDto
     </div>
   );
 }
-
-// ─── Avatar circle ────────────────────────────────────────────────────────────
-function Avatar({ initials, color = "#1B75BC", size = "md", online }: {
-  initials: string; color?: string; size?: "sm" | "md" | "lg"; online?: boolean;
-}) {
-  const sz = size === "sm" ? "w-7 h-7 text-xs" : size === "lg" ? "w-12 h-12 text-base" : "w-9 h-9 text-sm";
-  return (
-    <div className="relative flex-shrink-0">
-      <div className={cn("rounded-full flex items-center justify-center font-bold text-white", sz)}
-        style={{ background: color }}>
-        {initials.slice(0, 2)}
-      </div>
-      {online && (
-        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
-      )}
-    </div>
-  );
-}
-
-// ─── Message bubble ───────────────────────────────────────────────────────────
-function MsgBubble({ msg, channel }: { msg: Message; channel: Channel }) {
-  const isEmail = channel === "email";
-  return (
-    <div className={cn("flex gap-2.5 mb-4", msg.mine ? "flex-row-reverse" : "flex-row")}>
-      {!msg.mine && <Avatar initials={msg.avatar} size="sm" color={msg.avatar === "SY" ? "#64748B" : "#1B75BC"} />}
-      <div className={cn("max-w-[70%]", isEmail && "max-w-[85%]")}>
-        {!msg.mine && (
-          <p className="text-xs font-medium text-slate-500 mb-1 ml-1">{msg.sender}</p>
-        )}
-        <div className={cn("rounded-2xl px-4 py-2.5 text-sm",
-          msg.mine
-            ? "bg-[#1B75BC] text-white rounded-tr-sm"
-            : "bg-[var(--color-surface)] border border-[var(--color-border)] text-slate-700 rounded-tl-sm",
-          isEmail && "rounded-xl"
-        )}>
-          {isEmail ? (
-            <p className="whitespace-pre-line leading-relaxed">{msg.content}</p>
-          ) : (
-            <p>{msg.content}</p>
-          )}
-          {msg.attachment && (
-            <div className={cn("flex items-center gap-2 mt-2 pt-2 border-t text-xs",
-              msg.mine ? "border-white/20" : "border-slate-100")}>
-              <FileText size={13} />
-              <span className="font-medium">{msg.attachment.name}</span>
-              <span className="opacity-60">{msg.attachment.size}</span>
-            </div>
-          )}
-        </div>
-        <div className={cn("flex items-center gap-1 mt-1 text-xs text-slate-400", msg.mine ? "justify-end" : "justify-start")}>
-          <span>{msg.time}</span>
-          {msg.mine && msg.status === "read" && <CheckCircle size={11} className="text-blue-400" />}
-          {msg.mine && msg.status === "delivered" && <Check size={11} />}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Compose bar ──────────────────────────────────────────────────────────────
-function ComposeBar({ channel, onSend }: { channel: Channel; onSend: (msg: string) => void }) {
-  const [text, setText] = useState("");
-  const isEmail = channel === "email";
-  const isSms = channel === "sms";
-
-  if (isEmail) {
-    return (
-      <div className="border-t border-slate-100 bg-[var(--color-surface)] p-4 space-y-2">
-        <div className="grid grid-cols-2 gap-2">
-          <input placeholder="To:" className="border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none col-span-2" />
-          <input placeholder="Subject:" className="border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none col-span-2" />
-        </div>
-        <textarea value={text} onChange={e => setText(e.target.value)}
-          placeholder="Compose email…" rows={4}
-          className="w-full border border-[var(--color-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none" />
-        <div className="flex items-center justify-between">
-          <div className="flex gap-1">
-            {[Paperclip, Image, Link2].map((Icon, i) => (
-              <button key={i} className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Icon size={15} /></button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Save Draft</button>
-            <button onClick={() => { onSend(text); setText(""); }}
-              className="px-4 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] flex items-center gap-2">
-              <Send size={13} /> Send
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="border-t border-slate-100 bg-[var(--color-surface)] p-3">
-      {isSms && (
-        <div className="text-xs text-slate-400 mb-2 flex items-center justify-between">
-          <span>SMS to +880 171-234-5678</span>
-          <span className={cn(text.length > 140 ? "text-red-500" : "")}>{text.length}/160</span>
-        </div>
-      )}
-      <div className="flex items-end gap-2">
-        {!isSms && (
-          <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 flex-shrink-0">
-            <Paperclip size={16} />
-          </button>
-        )}
-        <textarea value={text} onChange={e => setText(e.target.value)}
-          placeholder={
-            channel === "whatsapp" ? "Type a WhatsApp message…" :
-            channel === "sms" ? "Type an SMS message…" :
-            channel === "announcements" ? "Write an announcement…" :
-            "Type a message…"
-          }
-          rows={1}
-          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(text); setText(""); } }}
-          className="flex-1 border border-[var(--color-border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20 resize-none" />
-        {!isSms && (
-          <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 flex-shrink-0">
-            <Smile size={16} />
-          </button>
-        )}
-        <button onClick={() => { onSend(text); setText(""); }} disabled={!text.trim()}
-          className={cn("p-2 rounded-xl flex-shrink-0 transition-all",
-            text.trim()
-              ? channel === "whatsapp" ? "bg-[#25D366] text-white" : "bg-[#1B75BC] text-white"
-              : "bg-slate-100 text-slate-300 cursor-not-allowed")}>
-          <Send size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Announcements compose ────────────────────────────────────────────────────
-function AnnouncementCompose({ onPost }: { onPost: () => void }) {
-  return (
-    <div className="border-t border-slate-100 bg-[var(--color-surface)] p-4 space-y-2">
-      <div className="flex items-center gap-2 mb-1">
-        <Megaphone size={15} className="text-[#D64A12]" />
-        <span className="text-sm font-semibold text-slate-700">New Announcement</span>
-      </div>
-      <input placeholder="Title…" className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
-      <textarea rows={3} placeholder="Announcement content…"
-        className="w-full border border-[var(--color-border)] rounded-xl px-3 py-2 text-sm focus:outline-none resize-none" />
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 text-sm text-slate-500">
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" className="accent-[#1B75BC]" defaultChecked /> All Staff
-          </label>
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" className="accent-[#1B75BC]" /> Send Email
-          </label>
-        </div>
-        <button onClick={onPost} className="px-4 py-1.5 text-sm bg-[#F15A24] text-white rounded-lg hover:bg-amber-600 flex items-center gap-2">
-          <Megaphone size={13} /> Post Announcement
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Conversation info panel ──────────────────────────────────────────────────
-function ConvInfo({ conv, channel }: { conv: Conversation; channel: Channel }) {
-  if (!conv) return null;
-  return (
-    <div className="w-64 flex-shrink-0 border-l border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col overflow-y-auto no-scrollbar">
-      <div className="p-4 border-b border-slate-100 text-center">
-        <Avatar initials={conv.avatar} size="lg" online={conv.online} color={CHANNELS.find(c => c.id === channel)?.color} />
-        <p className="font-semibold text-slate-800 mt-2 text-sm">{conv.name}</p>
-        {conv.isGroup && <p className="text-xs text-slate-400">{conv.members} members</p>}
-        {conv.online && <p className="text-xs text-emerald-500">Online</p>}
-      </div>
-      <div className="p-4 space-y-3">
-        {conv.isGroup && (
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Members</p>
-            {["Abdullah C.", "Rahim K.", "Fatema B.", "Nasir A."].map(m => (
-              <div key={m} className="flex items-center gap-2 py-1">
-                <Avatar initials={m.slice(0,2).replace(/\s/,"")} size="sm" color="#64748B" />
-                <span className="text-xs text-slate-600">{m}</span>
-              </div>
-            ))}
-            <button className="text-xs text-[#1B75BC] hover:underline mt-1 flex items-center gap-1">
-              <UserPlus size={11} /> Add member
-            </button>
-          </div>
-        )}
-        <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Shared Files</p>
-          {[
-            { name:"DepartureList.xlsx", size:"84 KB" },
-            { name:"Hajj2025_Brochure.pdf", size:"2.1 MB" },
-          ].map(f => (
-            <div key={f.name} className="flex items-center gap-2 py-1.5">
-              <FileText size={12} className="text-slate-400 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-slate-700 truncate">{f.name}</p>
-                <p className="text-xs text-slate-400">{f.size}</p>
-              </div>
-              <button className="ml-auto p-1 hover:bg-slate-100 rounded"><Download size={11} className="text-slate-400" /></button>
-            </div>
-          ))}
-        </div>
-        <div className="pt-2 border-t border-slate-100 space-y-1.5">
-          {[
-            { label:"Mute notifications", icon:Bell },
-            { label:"Search in conversation", icon:Search },
-            { label:"Archive", icon:Archive },
-          ].map(({ label, icon: Icon }) => (
-            <button key={label} className="w-full flex items-center gap-2.5 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-50 rounded-lg">
-              <Icon size={13} className="text-slate-400" /> {label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 
 // ─── Main Module ──────────────────────────────────────────────────────────────
 export function CommunicationsModule() {
@@ -592,6 +352,8 @@ export function CommunicationsModule() {
                   </div>
                 )}
                 <div className="bg-[var(--color-surface)] border rounded-xl divide-y">
+                  {allQueue.isLoading && <Loader />}
+                  {allQueue.isError && !allQueue.isLoading && <EmptyState variant="error" compact />}
                   {(allQueue.data?.items ?? []).slice(0, 40).map((item) => (
                     <div key={item.id} className="p-3 flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -606,8 +368,8 @@ export function CommunicationsModule() {
                       </div>
                     </div>
                   ))}
-                  {(allQueue.data?.items.length ?? 0) === 0 && (
-                    <p className="p-5 text-sm text-slate-400">No outbound notifications yet.</p>
+                  {!allQueue.isLoading && !allQueue.isError && (allQueue.data?.items.length ?? 0) === 0 && (
+                    <EmptyState variant="no-data" title="No notifications yet" desc="Outbound notifications will appear here." compact />
                   )}
                 </div>
               </div>

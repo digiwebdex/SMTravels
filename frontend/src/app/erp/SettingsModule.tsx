@@ -143,13 +143,17 @@ function SecretInp({ dv="" }: { dv?:string }) {
   );
 }
 
+// Honest state: there is no settings-persistence API (integration credentials
+// are managed via the server environment; company settings have no endpoint).
+// Rather than a fake "Saved!" toast, the control is disabled with an explanation.
 function SaveBtn() {
-  const [ok, setOk] = useState(false);
   return (
-    <div className="flex justify-end mt-5">
-      <button onClick={()=>{ setOk(true); setTimeout(()=>setOk(false),2200); }}
-        className="flex items-center gap-2 px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-        {ok?<><Check size={14}/> Saved!</>:<><Save size={14}/> Save Changes</>}
+    <div className="flex justify-end items-center gap-3 mt-5">
+      <span className="text-xs text-slate-400">Managed via server configuration</span>
+      <button disabled
+        title="These settings are configured on the server (environment). Saving from the UI is not enabled in this build."
+        className="flex items-center gap-2 px-5 py-2 text-sm bg-slate-100 text-slate-400 rounded-lg cursor-not-allowed">
+        <Save size={14}/> Save Changes
       </button>
     </div>
   );

@@ -51,7 +51,7 @@ interface Package {
   availability?: { departureDate: string; totalSeats: number; soldSeats: number; availableSeats: number }[];
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Presentation config (colours only — data comes from usePackages) ─────────
 const TYPE_CFG: Record<PkgType, { color: string; bg: string; text: string }> = {
   Hajj:     { color: "#1B75BC", bg: "#EEF2FF", text: "text-[#1B75BC]" },
   Umrah:    { color: "#F15A24", bg: "#FFF9E6", text: "text-[#D64A12]" },
