@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import {
   ChevronLeft, Printer, Share2, Edit3, Download, MoreHorizontal,
   User, Phone, Mail, MapPin, Calendar, Clock, CheckCircle2, XCircle,
@@ -263,7 +264,8 @@ function UmrahVisaWindow({ booking }: { booking: Booking }) {
 }
 
 // ─── Overview tab ──────────────────────────────────────────────────────────────
-function OverviewTab({ booking }: { booking: Booking }) {
+function OverviewTab({ booking, onEdit }: { booking: Booking; onEdit: () => void }) {
+  const navigate = useNavigate();
   const cfg = SERVICE_CFG[booking.service];
   const statusCfg = STATUS_CFG[booking.status];
   const due = booking.amount - booking.paid;
@@ -367,7 +369,9 @@ function OverviewTab({ booking }: { booking: Booking }) {
                 )}
               </div>
               {due > 0 && (
-                <button className="w-full py-2.5 bg-[#0E7C66] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                <button onClick={() => navigate("/erp/invoices")}
+                  title="Record payments in the Invoices &amp; Payments module"
+                  className="w-full py-2.5 bg-[#0E7C66] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer flex items-center justify-center gap-1.5">
                   <CreditCard size={13} /> Record Payment
                 </button>
               )}
@@ -379,22 +383,25 @@ function OverviewTab({ booking }: { booking: Booking }) {
             <SectionHeader title="Actions" />
             <div className="p-4 flex flex-col gap-2">
               {[
-                { icon: Printer,      label: "Print Voucher",    color: "#374151" },
-                { icon: Download,     label: "Download PDF",     color: "#374151" },
-                { icon: Receipt,      label: "Generate Invoice", color: "#1B75BC" },
-                { icon: MessageSquare,label: "Send SMS",         color: "#0E7C66" },
-                { icon: Share2,       label: "Share Booking",    color: "#7C3AED" },
-                { icon: Edit3,        label: "Edit Booking",     color: "#F15A24" },
+                { icon: Printer,      label: "Print Voucher",    color: "#374151", onClick: () => window.print() },
+                { icon: Download,     label: "Download PDF",     color: "#374151", onClick: () => window.print() },
+                { icon: Receipt,      label: "Generate Invoice", color: "#1B75BC", onClick: () => navigate("/erp/invoices") },
+                { icon: MessageSquare,label: "Send SMS",         color: "#0E7C66", onClick: () => navigate("/erp/communications") },
+                { icon: Edit3,        label: "Edit Booking",     color: "#F15A24", onClick: onEdit },
               ].map(a => {
                 const Icon = a.icon;
                 return (
-                  <button key={a.label}
+                  <button key={a.label} onClick={a.onClick}
                     className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer text-left">
                     <Icon size={14} style={{ color: a.color }} />
                     {a.label}
                   </button>
                 );
               })}
+              <button disabled title="Direct sharing is not available in this build — use Print/PDF or Send SMS"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed text-left">
+                <Share2 size={14} /> Share Booking
+              </button>
             </div>
           </Card>
         </div>
@@ -404,7 +411,8 @@ function OverviewTab({ booking }: { booking: Booking }) {
 }
 
 // ─── Travelers tab ─────────────────────────────────────────────────────────────
-function TravelersTab({ booking }: { booking: Booking }) {
+function TravelersTab({ booking, onEdit }: { booking: Booking; onEdit: () => void }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState<string | null>("T1");
 
   if (!booking.travelerList.length) {
@@ -412,7 +420,7 @@ function TravelersTab({ booking }: { booking: Booking }) {
       <Card className="py-16 text-center">
         <User size={32} className="text-[#E5E7EB] mx-auto mb-2" />
         <p className="text-[13px] text-[#9CA3AF]">No traveler details entered yet.</p>
-        <button className="mt-3 text-[12px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">+ Add Travelers</button>
+        <button onClick={onEdit} className="mt-3 text-[12px] text-[#1B75BC] font-semibold hover:underline cursor-pointer">+ Add Travelers</button>
       </Card>
     );
   }
@@ -456,10 +464,10 @@ function TravelersTab({ booking }: { booking: Booking }) {
               {t.email && <KV label="Email" value={t.email} />}
               {t.mahram && <KV label="Mahram Relationship" value={t.mahram} />}
               <div className="col-span-3 flex gap-2 mt-2">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#1B75BC]/30 cursor-pointer">
+                <button onClick={onEdit} className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#1B75BC]/30 cursor-pointer">
                   <Edit3 size={11} /> Edit
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#1B75BC]/30 cursor-pointer">
+                <button onClick={() => navigate("/erp/documents")} className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] text-[11px] font-medium text-[#374151] rounded-[6px] hover:border-[#1B75BC]/30 cursor-pointer">
                   <FileText size={11} /> View Docs
                 </button>
               </div>
@@ -468,7 +476,7 @@ function TravelersTab({ booking }: { booking: Booking }) {
         </Card>
       ))}
 
-      <button className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#E5E7EB] rounded-[12px] text-[12px] font-medium text-[#9CA3AF] hover:border-[#1B75BC]/40 hover:text-[#1B75BC] transition-colors cursor-pointer w-full justify-center">
+      <button onClick={onEdit} className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#E5E7EB] rounded-[12px] text-[12px] font-medium text-[#9CA3AF] hover:border-[#1B75BC]/40 hover:text-[#1B75BC] transition-colors cursor-pointer w-full justify-center">
         + Add another traveler
       </button>
     </div>
@@ -531,8 +539,9 @@ const DOC_STATUS_CFG: Record<string, { color: string; bg: string }> = {
 };
 
 function DocumentsTab({ booking }: { booking: Booking }) {
+  const navigate = useNavigate();
   const docs = DOC_LIST[booking.service] || [];
-  const [statuses, setStatuses] = useState<Record<string, string>>(
+  const [statuses] = useState<Record<string, string>>(
     Object.fromEntries(docs.map((d, i) => [d.name, i < 2 ? "Verified" : i < 3 ? "Uploaded" : d.required ? "Pending" : "Not Required"]))
   );
 
@@ -558,7 +567,9 @@ function DocumentsTab({ booking }: { booking: Booking }) {
             }
           </div>
         </div>
-        <button className="ml-auto flex items-center gap-1.5 px-3 py-2 border border-[#E5E7EB] rounded-[8px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer">
+        <button onClick={() => navigate("/erp/documents")}
+          title="Upload and manage documents in the Documents module"
+          className="ml-auto flex items-center gap-1.5 px-3 py-2 border border-[#E5E7EB] rounded-[8px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer">
           <Upload size={12} /> Upload All
         </button>
       </Card>
@@ -588,12 +599,10 @@ function DocumentsTab({ booking }: { booking: Booking }) {
                     )}
                   </>
                 ) : (
-                  <label className="flex flex-col items-center gap-1 cursor-pointer group">
+                  <button type="button" onClick={() => navigate("/erp/documents")} className="flex flex-col items-center gap-1 cursor-pointer group">
                     <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#1B75BC] transition-colors" />
                     <span className="text-[10px] text-[#9CA3AF] group-hover:text-[#1B75BC] transition-colors">Upload</span>
-                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={() => setStatuses(s => ({ ...s, [d.name]: "Uploaded" }))} />
-                  </label>
+                  </button>
                 )}
               </div>
 
@@ -609,8 +618,8 @@ function DocumentsTab({ booking }: { booking: Booking }) {
                 </div>
                 {(isVerified || isUploaded) && (
                   <div className="flex gap-1">
-                    <button className="p-1 text-[#9CA3AF] hover:text-[#1B75BC] cursor-pointer"><Eye size={12} /></button>
-                    <button className="p-1 text-[#9CA3AF] hover:text-[#1B75BC] cursor-pointer"><Download size={12} /></button>
+                    <button onClick={() => navigate("/erp/documents")} title="View in Documents module" className="p-1 text-[#9CA3AF] hover:text-[#1B75BC] cursor-pointer"><Eye size={12} /></button>
+                    <button onClick={() => navigate("/erp/documents")} title="Download in Documents module" className="p-1 text-[#9CA3AF] hover:text-[#1B75BC] cursor-pointer"><Download size={12} /></button>
                   </div>
                 )}
               </div>
@@ -624,6 +633,7 @@ function DocumentsTab({ booking }: { booking: Booking }) {
 
 // ─── Payments tab ──────────────────────────────────────────────────────────────
 function PaymentsTab({ booking }: { booking: Booking }) {
+  const navigate = useNavigate();
   const pct = Math.round((booking.paid / booking.amount) * 100);
   const INST_CFG: Record<string, { color: string; bg: string }> = {
     "Paid":     { color: "#065F46", bg: "#D1FAE5" },
@@ -657,7 +667,7 @@ function PaymentsTab({ booking }: { booking: Booking }) {
         </div>
         <div className="flex items-center justify-between mt-1.5">
           <span className="text-[10px] text-[#9CA3AF]">{pct}% paid</span>
-          <button className="text-[11px] text-[#1B75BC] font-bold hover:underline cursor-pointer flex items-center gap-1">
+          <button onClick={() => navigate("/erp/invoices")} className="text-[11px] text-[#1B75BC] font-bold hover:underline cursor-pointer flex items-center gap-1">
             <Receipt size={11} /> Generate Invoice
           </button>
         </div>
@@ -668,7 +678,7 @@ function PaymentsTab({ booking }: { booking: Booking }) {
         <Card className="overflow-hidden">
           <SectionHeader title="Payment Schedule"
             action={
-              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B75BC] text-white rounded-[7px] text-[11px] font-bold cursor-pointer hover:bg-[#14588F] transition-colors">
+              <button onClick={() => navigate("/erp/invoices")} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1B75BC] text-white rounded-[7px] text-[11px] font-bold cursor-pointer hover:bg-[#14588F] transition-colors">
                 <CreditCard size={11} /> Record Payment
               </button>
             }
@@ -692,7 +702,7 @@ function PaymentsTab({ booking }: { booking: Booking }) {
                     {inst.status}
                   </span>
                   {inst.status !== "Paid" && (
-                    <button className="text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer whitespace-nowrap">
+                    <button onClick={() => navigate("/erp/invoices")} className="text-[11px] text-[#1B75BC] font-semibold hover:underline cursor-pointer whitespace-nowrap">
                       Record
                     </button>
                   )}
@@ -716,7 +726,8 @@ function ActivityTab({ booking }: { booking: Booking }) {
   return (
     <Card>
       <SectionHeader title="Activity Log" action={
-        <button className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] cursor-pointer hover:border-[#1B75BC]/30">
+        <button disabled title="Adding booking notes is not available in this build"
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed">
           <MessageSquare size={11} /> Add Note
         </button>
       } />
@@ -749,13 +760,14 @@ function ActivityTab({ booking }: { booking: Booking }) {
           </div>
         )}
 
-        {/* Add note inline */}
+        {/* Add note inline — disabled: no booking-note API in this build */}
         <div className="mt-5 pt-5 border-t border-[#F3F4F6]">
-          <textarea
-            className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none resize-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]"
-            rows={2} placeholder="Add a note or update (e.g. 'Customer called to confirm departure time...')" />
+          <textarea disabled
+            className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none resize-none bg-[#F7F8FA] placeholder:text-[#D1D5DB] cursor-not-allowed"
+            rows={2} placeholder="Adding booking notes is not available in this build." />
           <div className="flex justify-end mt-2">
-            <button className="px-4 py-1.5 bg-[#1B75BC] text-white text-[11px] font-bold rounded-[7px] hover:bg-[#14588F] cursor-pointer transition-colors">
+            <button disabled title="Adding booking notes is not available in this build"
+              className="px-4 py-1.5 bg-[#E5E7EB] text-[#9CA3AF] text-[11px] font-bold rounded-[7px] cursor-not-allowed transition-colors">
               Save Note
             </button>
           </div>
@@ -807,18 +819,17 @@ export function BookingDetail({ booking, onBack, onEdit }: DetailProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer transition-colors">
+            <button onClick={() => window.print()}
+              className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer transition-colors">
               <Printer size={12} /> Print
             </button>
-            <button className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer transition-colors">
+            <button onClick={() => window.print()}
+              className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer transition-colors">
               <Download size={12} /> PDF
             </button>
             <button onClick={onEdit}
               className="flex items-center gap-1.5 h-8 px-3 bg-[#1B75BC] text-white rounded-[7px] text-[11px] font-bold hover:bg-[#14588F] cursor-pointer transition-colors">
               <Edit3 size={12} /> Edit
-            </button>
-            <button className="h-8 w-8 flex items-center justify-center border border-[#E5E7EB] rounded-[7px] text-[#9CA3AF] hover:text-[#374151] cursor-pointer hover:border-[#1B75BC]/30 transition-colors">
-              <MoreHorizontal size={14} />
             </button>
           </div>
         </div>
@@ -846,8 +857,8 @@ export function BookingDetail({ booking, onBack, onEdit }: DetailProps) {
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="p-5 md:p-7">
-          {tab === "overview"  && <OverviewTab booking={booking} />}
-          {tab === "travelers" && <TravelersTab booking={booking} />}
+          {tab === "overview"  && <OverviewTab booking={booking} onEdit={onEdit} />}
+          {tab === "travelers" && <TravelersTab booking={booking} onEdit={onEdit} />}
           {tab === "documents" && <DocumentsTab booking={booking} />}
           {tab === "payments"  && <PaymentsTab booking={booking} />}
           {tab === "activity"  && <ActivityTab booking={booking} />}
