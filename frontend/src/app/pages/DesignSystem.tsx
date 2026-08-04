@@ -331,7 +331,7 @@ export function DesignSystemPage() {
                   <Btn variant="secondary" icon={Download}>Export</Btn>
                   <Btn variant="ghost">Filter</Btn>
                   <Btn variant="danger" icon={Trash2}>Delete</Btn>
-                  <Btn variant="gold">Upgrade</Btn>
+                  <Btn variant="gold">Confirm</Btn>
                 </div>
               </Demo>
               <Demo label="Sizes">

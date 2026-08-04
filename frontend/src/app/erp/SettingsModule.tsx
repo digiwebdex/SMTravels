@@ -459,22 +459,12 @@ function OcrSettings() {
         <Field label="Flag low-confidence fields"><Toggle on={true}/></Field>
       </Panel>
       <Panel title="Supported Document Types" icon={ScanText} iconColor="#7C3AED">
-        {[["Passport (MRZ zone)","Active","1,840 scans"],["National ID (NID)","Active","342 scans"],["Visa Sticker","Active","510 scans"],["Birth Certificate","Disabled","0 scans"],["Driving License","Disabled","0 scans"]].map(([doc,status,usage])=>(
+        {[["Passport (MRZ zone)","Active"],["National ID (NID)","Active"],["Visa Sticker","Active"],["Birth Certificate","Disabled"],["Driving License","Disabled"]].map(([doc,status])=>(
           <div key={doc} className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
             <span className="text-sm text-slate-700">{doc}</span>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-400">{usage}</span>
-              <Toggle on={status==="Active"}/>
-            </div>
+            <Toggle on={status==="Active"}/>
           </div>
         ))}
-      </Panel>
-      <Panel title="Monthly Usage" icon={Star}>
-        <div className="flex justify-between text-xs text-slate-500 mb-1"><span>Scans used</span><span className="font-medium">312 / 500</span></div>
-        <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-1.5">
-          <div className="h-full bg-[#1B75BC] rounded-full" style={{ width:"62.4%" }}/>
-        </div>
-        <p className="text-xs text-slate-400">Resets Aug 1, 2024 · <button className="text-[#1B75BC] hover:underline">Upgrade Plan</button></p>
       </Panel>
       <SaveBtn/>
     </div>
