@@ -28,6 +28,26 @@ export function isGlobalRole(role: UserRole): boolean {
   return GLOBAL_ROLES.includes(role);
 }
 
+/** Global admins often have no pinned home branch. So their writes still land on a
+ *  real branch — instead of surfacing a raw "specify branchId" error — fall back to
+ *  the company HQ branch, or the oldest active branch if none is flagged HQ. Read
+ *  scope is unaffected: global roles see every branch regardless of this value
+ *  (branchWhere / canAccessBranch short-circuit on isGlobalRole). */
+async function defaultBranchForGlobal(): Promise<string | null> {
+  const hq = await prisma.branch.findFirst({
+    where: { deletedAt: null, status: "active", isHq: true },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (hq) return hq.id;
+  const any = await prisma.branch.findFirst({
+    where: { deletedAt: null, status: "active" },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  return any?.id ?? null;
+}
+
 /** Load active user from DB so demotion/disable takes effect before JWT expiry. */
 async function attachAuthFromToken(token: string): Promise<AuthCtx | null> {
   const claims = verifyAccessToken(token);
@@ -36,7 +56,11 @@ async function attachAuthFromToken(token: string): Promise<AuthCtx | null> {
     select: { id: true, role: true, branchId: true, status: true },
   });
   if (!user || user.status !== "active") return null;
-  return { userId: user.id, role: user.role, branchId: user.branchId };
+  let branchId = user.branchId;
+  if (!branchId && isGlobalRole(user.role)) {
+    branchId = await defaultBranchForGlobal();
+  }
+  return { userId: user.id, role: user.role, branchId };
 }
 
 /** Verify the Bearer access token and attach req.auth. 401 on missing/invalid/expired. */
