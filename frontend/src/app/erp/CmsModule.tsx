@@ -160,8 +160,8 @@ function RichEditor({ value, onChange }: { value: string; onChange: (v: string) 
           t === null
             ? <div key={i} className="w-px h-5 bg-slate-200 mx-1" />
             : (
-              <button key={i} title={t.label}
-                className="p-1.5 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-colors">
+              <button key={i} disabled title={`${t.label} is not available in this build`}
+                className="p-1.5 rounded text-[#9CA3AF] opacity-60 cursor-not-allowed">
                 <t.icon size={14} />
               </button>
             )
@@ -972,8 +972,10 @@ function CategoriesView() {
               </div>
               <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{cat.count} posts</span>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Edit2 size={12} /></button>
-                <button className="p-1.5 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={12} /></button>
+                <button disabled title="Editing categories is not available in this build"
+                  className="p-1.5 rounded text-[#9CA3AF] opacity-60 cursor-not-allowed"><Edit2 size={12} /></button>
+                <button disabled title="Deleting categories is not available in this build"
+                  className="p-1.5 rounded text-[#9CA3AF] opacity-60 cursor-not-allowed"><Trash2 size={12} /></button>
               </div>
             </div>
           ))}
@@ -1445,9 +1447,9 @@ function SettingsView() {
           <h2 className="text-xl font-bold text-slate-800">Web Settings</h2>
           <p className="text-sm text-slate-500 mt-0.5">Global configuration for the public website</p>
         </div>
-        <button onClick={save}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          {saved ? <><Check size={13} /> Saved!</> : <><Save size={13} /> Save All Changes</>}
+        <button disabled title="Saving website settings is not available in this build (configured on the server)"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm bg-slate-100 text-slate-400 rounded-lg cursor-not-allowed">
+          <Save size={13} /> Save All Changes
         </button>
       </div>
 
@@ -1510,7 +1512,8 @@ function SettingsView() {
             <p className="text-sm font-medium text-red-700">Clear Site Cache</p>
             <p className="text-xs text-red-400">Forces all cached pages to regenerate on next visit</p>
           </div>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-100">
+          <button disabled title="Clear Cache is not available in this build"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <RefreshCw size={13} /> Clear Cache
           </button>
         </div>
@@ -1581,7 +1584,8 @@ export function CmsModule() {
           ))}
         </nav>
         <div className="p-3 border-t border-slate-100">
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#1B75BC] border border-[#1B75BC]/30 rounded-lg hover:bg-[#1B75BC]/5">
+          <button onClick={() => window.open("/", "_blank")}
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[#1B75BC] border border-[#1B75BC]/30 rounded-lg hover:bg-[#1B75BC]/5">
             <ExternalLink size={12} /> Preview Website
           </button>
         </div>

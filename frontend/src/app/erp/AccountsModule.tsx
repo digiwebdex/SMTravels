@@ -148,7 +148,8 @@ function CoaRow({ node, depth = 0, expanded, onToggle }: {
         </td>
         <td className="py-2.5 px-4 text-center">
           {node.type === "detail" && (
-            <button className="p-1 hover:bg-slate-100 rounded"><Edit2 size={13} className="text-slate-400" /></button>
+            <button disabled title="Edit account is not available in this build"
+              className="p-1 rounded opacity-60 cursor-not-allowed"><Edit2 size={13} className="text-[#9CA3AF]" /></button>
           )}
         </td>
       </tr>
@@ -185,10 +186,12 @@ function ChartOfAccountsView() {
           <p className="text-sm text-slate-500 mt-0.5">Double-entry bookkeeping structure</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={15} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+          <button disabled title="Add Account is not available in this build"
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
             <Plus size={15} /> Add Account
           </button>
         </div>
@@ -238,13 +241,16 @@ function LedgerTableView({ title, rows, type }: {
           <p className="text-sm text-slate-500 mt-0.5">July 2024</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Filter is not available in this build"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Filter size={14} /> Filter
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={14} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+          <button disabled title={`Add ${type === "income" ? "Income" : "Expense"} is not available in this build`}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
             <Plus size={14} /> Add {type === "income" ? "Income" : "Expense"}
           </button>
         </div>
@@ -283,7 +289,8 @@ function LedgerTableView({ title, rows, type }: {
                 <td className="px-4 py-3 text-sm text-slate-500">{r.method}</td>
                 <td className="px-4 py-3"><StatusChip status={r.status} /></td>
                 <td className="px-4 py-3">
-                  <button className="p-1 hover:bg-slate-100 rounded"><MoreHorizontal size={14} className="text-slate-400" /></button>
+                  <button disabled title="More actions are not available in this build"
+                    className="p-1 rounded opacity-60 cursor-not-allowed"><MoreHorizontal size={14} className="text-[#9CA3AF]" /></button>
                 </td>
               </tr>
             ))}
@@ -490,7 +497,8 @@ function BankCashView() {
           <h2 className="text-xl font-bold text-slate-800">Bank & Cash Accounts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Manage all bank and cash positions</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+        <button disabled title="Add Account is not available in this build"
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
           <Plus size={15} /> Add Account
         </button>
       </div>

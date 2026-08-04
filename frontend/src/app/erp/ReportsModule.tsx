@@ -242,7 +242,8 @@ function EmptyState({ report }: { report: string }) {
       <p className="text-sm text-slate-400 max-w-xs">
         No {report} data matches the current filters. Try adjusting the date range or branch selection.
       </p>
-      <button className="mt-5 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 flex items-center gap-1.5">
+      <button disabled title="Adjust the filters in the toolbar above to change results"
+        className="mt-5 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed flex items-center gap-1.5">
         <Filter size={13} /> Reset Filters
       </button>
     </div>
@@ -970,10 +971,12 @@ function CustomReports() {
               </div>
             </div>
             <div className="pt-3 border-t border-slate-100 flex gap-2">
-              <button className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+              <button disabled title="Report generation is not available in this build"
+                className="flex-1 py-2 text-sm bg-[#1B75BC] text-white rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
                 Generate Report
               </button>
-              <button className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+              <button disabled title="Saving report templates is not available in this build"
+                className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
                 Save Template
               </button>
             </div>
@@ -997,7 +1000,8 @@ function CustomReports() {
                       r.format === "Excel" ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700")}>
                       {r.format}
                     </span>
-                    <button className="text-xs text-[#1B75BC] hover:underline">Run</button>
+                    <button disabled title="Running saved reports is not available in this build"
+                      className="text-xs text-[#9CA3AF] opacity-60 cursor-not-allowed">Run</button>
                   </div>
                 </div>
               ))}
@@ -1026,7 +1030,8 @@ function CustomReports() {
                   ))}
                 </div>
               </div>
-              <button className="w-full py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+              <button disabled title="Report scheduling is not available in this build"
+                className="w-full py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
                 Set Schedule
               </button>
             </div>

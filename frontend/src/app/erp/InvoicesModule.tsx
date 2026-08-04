@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -242,7 +243,8 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           <p className="text-sm text-slate-500 mt-0.5">{data?.total ?? 0} invoices · manage all customer invoices</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={14} /> Export
           </button>
           <button onClick={onNew} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
@@ -345,6 +347,7 @@ function RecordPaymentDrawer({ invoice, onClose }: { invoice: InvoiceDetailDto; 
 }
 
 function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; onBack: () => void; onPrint: () => void }) {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useInvoice(invoiceId);
   const issue = useIssueInvoice();
   const cancel = useCancelInvoice();
@@ -370,7 +373,8 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{inv.id}</span>
         <div className="ml-auto flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button onClick={() => navigate("/erp/communications")}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Send size={14} /> Send to Customer
           </button>
           <button onClick={onPrint} className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
@@ -725,7 +729,7 @@ function ReceiptsView() {
                 <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
                 <td className="px-4 py-3 text-sm text-slate-500">{new Date(p.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
                 <td className="px-4 py-3">
-                  <button className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
+                  <button onClick={() => window.print()} className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
                     <Printer size={12} /> Print
                   </button>
                 </td>
@@ -1079,6 +1083,7 @@ function InstallmentBuilderView() {
 
 // ─── Due Management ───────────────────────────────────────────────────────────
 function DueManagementView() {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useInvoices({ pageSize: 500 });
   const stats = data?.stats ?? { total: 0, totalBilled: 0, totalPaid: 0, totalDue: 0, overdue: 0 };
   const outstanding = (data?.data ?? []).filter(inv => inv.dueAmount > 0 && inv.status !== "CANCELLED" && inv.status !== "DRAFT");
@@ -1117,7 +1122,8 @@ function DueManagementView() {
           <h2 className="text-xl font-bold text-slate-800">Due Management</h2>
           <p className="text-sm text-slate-500 mt-0.5">Aging analysis and follow-up</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+        <button onClick={() => navigate("/erp/communications")}
+          className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
           <Send size={14} /> Send All Reminders
         </button>
       </div>
@@ -1196,9 +1202,9 @@ function DueManagementView() {
                   <td className="px-4 py-3"><InvStatusChip status={st2vm(inv.status)} /></td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
-                      <button className="text-xs text-[#1B75BC] hover:underline">Remind</button>
+                      <button onClick={() => navigate("/erp/communications")} className="text-xs text-[#1B75BC] hover:underline">Remind</button>
                       <span className="text-slate-300">·</span>
-                      <button className="text-xs text-emerald-600 hover:underline">Collect</button>
+                      <button onClick={() => navigate("/erp/communications")} className="text-xs text-emerald-600 hover:underline">Collect</button>
                     </div>
                   </td>
                 </tr>

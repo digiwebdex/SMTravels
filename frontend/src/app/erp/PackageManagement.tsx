@@ -200,7 +200,8 @@ function PackageListView({
           <p className="text-[12px] text-[#9CA3AF] mt-0.5">{stats.total} total packages · {stats.active} active</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={13} className="text-[#9CA3AF]" /> Export
           </button>
           <button onClick={onNew}
@@ -246,8 +247,8 @@ function PackageListView({
             {selected.size > 0 && (
               <div className="flex items-center gap-2 ml-auto text-[12px]">
                 <span className="text-[#9CA3AF]">{selected.size} selected</span>
-                <button className="h-7 px-2.5 bg-[#FEF2F2] text-[#DC2626] font-medium rounded-[6px] hover:bg-[#FEE2E2] transition-colors cursor-pointer text-[11px]">Archive</button>
-                <button className="h-7 px-2.5 bg-[#F3F4F6] text-[#374151] font-medium rounded-[6px] hover:bg-[#E9EAEC] transition-colors cursor-pointer text-[11px]">Duplicate</button>
+                <button disabled title="Archive is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Archive</button>
+                <button disabled title="Duplicate is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Duplicate</button>
               </div>
             )}
           </div>
@@ -337,8 +338,8 @@ function PackageListView({
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => onView(pkg.id)} title="View" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Eye size={14} /></button>
                         <button onClick={() => onEdit(pkg.id)} title="Edit" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Edit2 size={14} /></button>
-                        <button title="Duplicate" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><Copy size={14} /></button>
-                        <button title="More" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><MoreHorizontal size={14} /></button>
+                        <button disabled title="Duplicate is not available in this build" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed rounded-[6px]"><Copy size={14} /></button>
+                        <button disabled title="More is not available in this build" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed rounded-[6px]"><MoreHorizontal size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -1102,15 +1103,15 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                   <div key={imgId} className="relative aspect-video rounded-[10px] overflow-hidden bg-[#F3F4F6] group">
                     <img src={`https://images.unsplash.com/${imgId}?w=400&h=225&fit=crop`} alt="Package image" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#374151] hover:text-[#DC2626] cursor-pointer"><Trash2 size={13} /></button>
+                      <button disabled title="Removing images is not available in this build" className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed"><Trash2 size={13} /></button>
                     </div>
                     {i === 0 && <span className="absolute top-2 left-2 text-[9px] font-black bg-[#F15A24] text-[#1B75BC] px-1.5 py-0.5 rounded-full">COVER</span>}
                   </div>
                 ))}
                 {/* Upload slot */}
-                <button className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 hover:border-[#1B75BC]/50 hover:bg-[#EEF2FF]/50 transition-all cursor-pointer group">
-                  <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#1B75BC] transition-colors" />
-                  <span className="text-[10px] font-medium text-[#9CA3AF] group-hover:text-[#1B75BC] transition-colors">Upload Image</span>
+                <button disabled title="Image upload is not available in this build" className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 opacity-60 cursor-not-allowed">
+                  <Upload size={20} className="text-[#D1D5DB]" />
+                  <span className="text-[10px] font-medium text-[#9CA3AF]">Upload Image</span>
                 </button>
               </div>
               <div className="mt-4 p-3 bg-[#F7F8FA] rounded-[8px] text-[11px] text-[#9CA3AF] flex items-center gap-2">
@@ -1312,7 +1313,10 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
 
       {tab === "pricing" && (
         <Card className="p-5">
-          <PricingTierEditor tiers={pkg.tiers} onChange={() => {}} />
+          {/* Read-only preview in the detail view — pricing is edited from the package Edit form. */}
+          <fieldset disabled className="border-0 p-0 m-0">
+            <PricingTierEditor tiers={pkg.tiers} onChange={() => undefined} />
+          </fieldset>
         </Card>
       )}
 

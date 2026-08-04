@@ -710,8 +710,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <span className="text-[12px] text-[#6B7280]">
                       <Trans t={t} i18nKey="registerAgent.terms"
                         components={{
-                          agreement: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
-                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          agreement: <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
                         }} />
                     </span>
                   </label>
@@ -798,7 +798,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   <HelpCircle size={13} className="text-[#9CA3AF] flex-shrink-0" />
                   <span className="text-[11px] text-[#9CA3AF]">
                     <Trans t={t} i18nKey="twoFactor.lostAccess"
-                      components={{ a: <a href="#" className="text-[#1B75BC] font-bold hover:underline" /> }} />
+                      components={{ a: <a href="/contact" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-bold hover:underline" /> }} />
                   </span>
                 </div>
               </div>

@@ -131,10 +131,11 @@ function FilterBar({
           <button type="button" onClick={onRefresh} className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-500">
             <RefreshCw size={14} />
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button type="button" onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> PDF
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+          <button type="button" disabled title="Export is not available in this build"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-emerald-600 text-white rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={14} /> Excel
           </button>
         </div>
@@ -831,10 +832,11 @@ export function ReportsBIModule() {
           ))}
         </nav>
         <div className="p-3 border-t border-slate-100 space-y-1.5">
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
+          <button type="button" onClick={() => window.print()} className="w-full flex items-center gap-2 px-3 py-2 text-xs border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={12} /> Export Current PDF
           </button>
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+          <button type="button" disabled title="Export is not available in this build"
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs bg-emerald-600 text-white rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={12} /> Export Excel
           </button>
         </div>

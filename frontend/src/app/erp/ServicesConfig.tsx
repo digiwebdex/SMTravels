@@ -202,9 +202,9 @@ function FieldLabel({ children, required }: { children: React.ReactNode; require
   );
 }
 
-function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+function Toggle({ checked, onChange, label, disabled }: { checked: boolean; onChange: (v: boolean) => void; label?: string; disabled?: boolean }) {
   return (
-    <div className="flex items-center gap-2 cursor-pointer" onClick={() => onChange(!checked)}>
+    <div className={cn("flex items-center gap-2", disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer")} onClick={disabled ? undefined : () => onChange(!checked)}>
       <div className={cn("w-10 h-5 rounded-full transition-colors relative flex-shrink-0", checked ? "bg-[#0E7C66]" : "bg-[#D1D5DB]")}>
         <div className={cn("absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform", checked ? "left-5" : "left-0.5")} />
       </div>
@@ -393,17 +393,13 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
           <span className="text-[#374151] font-semibold">{svc.name}</span>
         </div>
         <div className="flex items-center gap-2">
-          {saved && (
-            <span className="flex items-center gap-1 text-[11px] text-[#0E7C66] font-semibold">
-              <CheckCircle size={13} /> Saved
-            </span>
-          )}
+          <span className="text-[11px] text-[#9CA3AF] hidden sm:inline">Read-only — configuration changes are not persisted in this build</span>
           <button onClick={onBack} className="h-9 px-3 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] transition-colors cursor-pointer">
             <ChevronLeft size={14} className="inline" /> Back
           </button>
-          <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] rounded-[8px] text-[12px] font-bold text-white hover:bg-[#14588F] transition-colors cursor-pointer disabled:opacity-60 shadow-sm">
-            {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving…</> : <><Save size={13} /> Save Changes</>}
+          <button disabled title="Saving service configuration is not available in this build"
+            className="flex items-center gap-1.5 h-9 px-4 bg-[#E5E7EB] rounded-[8px] text-[12px] font-bold text-[#9CA3AF] cursor-not-allowed shadow-sm">
+            <Save size={13} /> Save Changes
           </button>
         </div>
       </div>
@@ -508,7 +504,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                       <div className="text-[12px] font-semibold text-[#374151]">{opt.label}</div>
                       <div className="text-[10px] text-[#9CA3AF]">{opt.hint}</div>
                     </div>
-                    <Toggle checked={opt.defaultChecked} onChange={() => {}} />
+                    <Toggle checked={opt.defaultChecked} onChange={() => undefined} disabled />
                   </div>
                 ))}
               </div>
@@ -545,10 +541,10 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
             <Card className="p-5">
               <h2 className="text-[13px] font-black text-[#111827] pb-3 mb-3 border-b border-[#F3F4F6]">Danger Zone</h2>
               <div className="space-y-2">
-                <button className="w-full h-9 border border-[#E5E7EB] rounded-[8px] text-[11px] font-semibold text-[#6B7280] hover:bg-[#F7F8FA] transition-colors cursor-pointer">
+                <button disabled title="Reset to Defaults is not available in this build" className="w-full h-9 border border-[#E5E7EB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] opacity-60 cursor-not-allowed">
                   Reset to Defaults
                 </button>
-                <button className="w-full h-9 border border-[#FECACA] rounded-[8px] text-[11px] font-semibold text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer">
+                <button disabled title="Disable Service Permanently is not available in this build" className="w-full h-9 border border-[#FECACA] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] opacity-60 cursor-not-allowed">
                   Disable Service Permanently
                 </button>
               </div>
@@ -775,7 +771,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                 <div className="text-[12px] font-semibold text-[#374151]">Express Processing Available</div>
                 <div className="text-[10px] text-[#9CA3AF]">Offer faster turnaround for additional fee</div>
               </div>
-              <Toggle checked={true} onChange={() => {}} />
+              <Toggle checked={true} onChange={() => undefined} disabled />
             </div>
             <div>
               <FieldLabel>Express Processing Time (business days)</FieldLabel>
@@ -811,7 +807,7 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                   <span className="w-1.5 h-1.5 rounded-full bg-[#0E7C66] flex-shrink-0" />
                 </div>
               ))}
-              <button className="w-full h-8 border-2 border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] hover:border-[#1B75BC]/50 hover:text-[#1B75BC] transition-colors cursor-pointer flex items-center justify-center gap-1">
+              <button disabled title="Add Step is not available in this build" className="w-full h-8 border-2 border-dashed border-[#D1D5DB] rounded-[8px] text-[11px] font-semibold text-[#9CA3AF] opacity-60 cursor-not-allowed flex items-center justify-center gap-1">
                 <Plus size={12} /> Add Step
               </button>
             </div>
@@ -842,10 +838,10 @@ function ServiceConfigPanel({ svc, onBack }: { svc: ServiceDef; onBack: () => vo
                     ))}
                   </div>
                 </div>
-                <button className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#374151] hover:bg-[#F3F4F6] cursor-pointer transition-colors">
+                <button disabled title="Edit Template is not available in this build" className="h-7 px-2.5 border border-[#E5E7EB] rounded-[6px] text-[11px] text-[#9CA3AF] opacity-60 cursor-not-allowed">
                   Edit Template
                 </button>
-                <Toggle checked={notif.active} onChange={() => {}} />
+                <Toggle checked={notif.active} onChange={() => undefined} disabled />
               </div>
             ))}
           </div>

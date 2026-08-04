@@ -325,7 +325,7 @@ function StaffBookings() {
                   <td className="px-4 py-3.5 text-sm font-mono font-bold text-slate-800">{fmtBDT(b.baseAmount)}</td>
                   <td className="px-4 py-3.5"><Chip label={t(`portalCommon:status.${b.status.toLowerCase()}`, { defaultValue: bkCfg(b.status).label })} cls={bkCfg(b.status).cls} /></td>
                   <td className="px-4 py-3.5">
-                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
+                    <button disabled title="Details view is not available in the staff portal" className="p-1.5 rounded-lg text-slate-300 opacity-60 cursor-not-allowed"><Eye size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -382,7 +382,7 @@ function StaffCustomers() {
                   <td className="px-4 py-3.5 text-xs text-slate-500">{iso2date(c.createdAt)}</td>
                   <td className="px-4 py-3.5 text-sm font-bold text-slate-700">{c.bookings}</td>
                   <td className="px-4 py-3.5">
-                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
+                    <button disabled title="Details view is not available in the staff portal" className="p-1.5 rounded-lg text-slate-300 opacity-60 cursor-not-allowed"><Eye size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -496,7 +496,7 @@ function StaffDocuments() {
                   </td>
                   <td className="px-4 py-3.5 text-xs text-slate-400">{iso2date(d.createdAt)}</td>
                   <td className="px-4 py-3.5">
-                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">
+                    <button disabled title="Document download is not available in the staff portal" className="flex items-center gap-1 text-xs text-slate-400 opacity-60 cursor-not-allowed whitespace-nowrap">
                       <Download size={12}/> {t("common:actions.download")}
                     </button>
                   </td>

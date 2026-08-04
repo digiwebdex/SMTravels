@@ -334,9 +334,9 @@ export function Footer() {
             </div>
             <div className="flex gap-3">
               {[Facebook, Instagram, Youtube, Twitter].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F15A24] transition-colors">
+                <span key={i} className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center text-white/70">
                   <Icon size={15} />
-                </a>
+                </span>
               ))}
             </div>
           </div>

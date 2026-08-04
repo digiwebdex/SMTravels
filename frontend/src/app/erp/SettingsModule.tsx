@@ -240,7 +240,8 @@ function GeneralSettings() {
         <Field label="Company Logo">
           <div className="flex items-center gap-3">
             <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold">SM</div>
-            <button className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Upload size={13}/> Upload</button>
+            <button disabled title="Logo upload is not available in this build"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed"><Upload size={13}/> Upload</button>
           </div>
         </Field>
       </Panel>
@@ -272,7 +273,8 @@ function EmailSettings() {
         {["Booking Confirmation","Payment Receipt","Visa Update","Password Reset","Welcome Email"].map(t=>(
           <div key={t} className="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
             <span className="text-sm text-slate-700">{t}</span>
-            <button className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Edit2 size={11}/> Edit</button>
+            <button disabled title="Editing email templates is not available in this build"
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed"><Edit2 size={11}/> Edit</button>
           </div>
         ))}
       </Panel>
@@ -333,7 +335,9 @@ function WhatsappSettings() {
       <Panel title="Wasender API" icon={Phone} iconColor="#25D366">
         <Field label="Webhook URL" hint="For incoming message events">
           <div className="flex gap-2"><Inp dv="https://your-domain.com/api/whatsapp/webhook"/>
-            <button className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-slate-400 hover:bg-slate-50 flex-shrink-0"><Copy size={14}/></button>
+            <button onClick={() => navigator.clipboard.writeText("https://your-domain.com/api/whatsapp/webhook")}
+              title="Copy webhook URL"
+              className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-slate-400 hover:bg-slate-50 flex-shrink-0"><Copy size={14}/></button>
           </div>
         </Field>
         <Field label="Connection">
@@ -345,7 +349,8 @@ function WhatsappSettings() {
       </Panel>
       <Panel title="Message Templates" icon={MessageSquare} iconColor="#25D366">
         <div className="mb-3 flex justify-end">
-          <button className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50"><Plus size={13}/> Add Template</button>
+          <button disabled title="Adding message templates is not available in this build"
+            className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed"><Plus size={13}/> Add Template</button>
         </div>
         {[["booking_confirmation","approved","UTILITY"],["payment_receipt","approved","UTILITY"],["visa_approved","approved","UTILITY"],["departure_reminder","pending","MARKETING"],["otp_verification","approved","AUTHENTICATION"]].map(([name,status,cat])=>(
           <div key={name} className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0">
@@ -353,7 +358,8 @@ function WhatsappSettings() {
             <span className="text-xs text-slate-400">{cat}</span>
             <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
               status==="approved"?"bg-emerald-50 text-emerald-600":"bg-amber-50 text-amber-600")}>{status}</span>
-            <button className="p-1.5 hover:bg-slate-100 rounded text-slate-400"><Eye size={12}/></button>
+            <button disabled title="Viewing this template is not available in this build"
+              className="p-1.5 rounded text-[#9CA3AF] opacity-60 cursor-not-allowed"><Eye size={12}/></button>
           </div>
         ))}
       </Panel>
@@ -666,7 +672,8 @@ function SystemConfig() {
         <Field label="Cache TTL (seconds)"><Inp dv="3600"/></Field>
         <Field label="Queue Driver"><Sel opts={["Sync","Database","Redis"]} dv="Redis"/></Field>
         <div className="pt-2">
-          <button className="flex items-center gap-1.5 text-sm px-3 py-2 border border-red-200 text-red-500 rounded-lg hover:bg-red-50"><RefreshCw size={13}/> Clear All Caches</button>
+          <button disabled title="Clear All Caches is not available in this build"
+            className="flex items-center gap-1.5 text-sm px-3 py-2 border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed"><RefreshCw size={13}/> Clear All Caches</button>
         </div>
       </Panel>
       <SaveBtn/>

@@ -309,7 +309,7 @@ function LeadsView() {
               <a href={`tel:${l.phone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-[var(--color-bg)] whitespace-nowrap">
                 <Phone size={12}/> {t("leads.call")}
               </a>
-              <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-[var(--color-bg)] whitespace-nowrap">
+              <button disabled title={t("leads.managedByStaff")} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold border border-[var(--color-border)] rounded-lg text-slate-400 opacity-50 cursor-not-allowed whitespace-nowrap">
                 <Mail size={12}/> {t("portalCommon:labels.email")}
               </button>
               <button disabled title={t("leads.managedByStaff")} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-[#1B75BC] text-white rounded-lg opacity-50 cursor-not-allowed whitespace-nowrap">

@@ -1100,6 +1100,7 @@ function NotificationsView() {
 // ─── PROFILE ────────────────────────────────────────────────────────────────
 function ProfileView() {
   const { t } = useTranslation("portalCustomer");
+  const { logout } = useAuth();
   const q = usePortalMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -1151,7 +1152,7 @@ function ProfileView() {
             ))}
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50 transition-colors whitespace-nowrap">
+          <button onClick={() => void logout()} className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50 transition-colors whitespace-nowrap">
             <LogOut size={16}/> {t("common.signOut")}
           </button>
         </>)}

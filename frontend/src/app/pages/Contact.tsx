@@ -223,9 +223,9 @@ export function ContactPage() {
                   <div className="text-[11px] text-white/40 mb-2">{t("quick.social")}</div>
                   <div className="flex gap-3">
                     {[Facebook, Instagram].map((Icon, i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F15A24] transition-colors">
+                      <span key={i} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-white/70">
                         <Icon size={14} />
-                      </a>
+                      </span>
                     ))}
                   </div>
                 </div>

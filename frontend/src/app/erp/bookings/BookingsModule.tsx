@@ -206,7 +206,8 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
           <p className="text-[11px] text-[#9CA3AF] mt-0.5">{total} total{isFetching ? " · refreshing…" : ""}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={13} className="text-[#9CA3AF]" /> Export
           </button>
           <button onClick={onNew}
@@ -369,7 +370,7 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                               className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#1B75BC]/8 transition-colors cursor-pointer" title="View">
                               <Eye size={13} />
                             </button>
-                            <button className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer" title="Edit">
+                            <button onClick={() => onDetail(b.id)} className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer" title="Edit">
                               <Edit3 size={13} />
                             </button>
                             {b.status === "Draft" ? (
@@ -378,7 +379,7 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
                                 <Trash2 size={13} />
                               </button>
                             ) : (
-                              <button className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer" title="Print">
+                              <button onClick={() => window.print()} className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors cursor-pointer" title="Print">
                                 <Printer size={13} />
                               </button>
                             )}

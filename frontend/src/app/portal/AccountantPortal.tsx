@@ -173,7 +173,7 @@ function BankCashView() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.bankCash")}</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+        <button disabled title="Statement export is not available in this build" className="flex items-center gap-1.5 text-sm text-slate-400 font-semibold border border-slate-200 px-3 py-1.5 rounded-xl opacity-60 cursor-not-allowed whitespace-nowrap">
           <Download size={14}/> {t("portalCommon:nav.statements")}
         </button>
       </div>
@@ -402,7 +402,7 @@ function AuditView() {
           <button type="button" onClick={() => auditQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
             <RefreshCw size={14} className={auditQ.isFetching ? "animate-spin" : ""} />
           </button>
-          <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+          <button disabled title="Audit log export is not available in this build" className="flex items-center gap-1.5 text-sm text-slate-400 font-semibold border border-slate-200 px-3 py-1.5 rounded-xl opacity-60 cursor-not-allowed whitespace-nowrap">
             <Download size={14}/> {t("audit.export")}
           </button>
         </div>
