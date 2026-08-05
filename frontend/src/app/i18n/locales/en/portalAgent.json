@@ -118,6 +118,8 @@
   "support": {
     "newTicket": "New Ticket",
     "open": "Open",
+    "subject": "Subject",
+    "create": "Create",
     "messagePlaceholder": "Type your message…",
     "agentHotline": "Agent Hotline",
     "prioritySupport": "Priority support",
@@ -125,8 +127,31 @@
     "messagesCount_other": "{{count}} messages",
     "status": {
       "open": "Open",
-      "resolved": "Resolved"
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "pending": "Pending"
     }
+  },
+  "statements": {
+    "subtitle": "Export commission and wallet ledgers as CSV",
+    "downloadCsv": "Download CSV",
+    "commissionRows_one": "{{count}} commission row",
+    "commissionRows_other": "{{count}} commission rows",
+    "walletRows_one": "{{count}} wallet transaction",
+    "walletRows_other": "{{count}} wallet transactions",
+    "exportedCommissions": "Commissions CSV downloaded",
+    "exportedWallet": "Wallet CSV downloaded"
+  },
+  "documents": {
+    "subtitle": "Documents linked to your customers and bookings"
+  },
+  "payments": {
+    "subtitle": "Payments collected for your customers",
+    "totalCollected": "Total collected",
+    "payment": "Payment"
+  },
+  "notifications": {
+    "markAllRead": "Mark all read"
   },
   "profile": {
     "personalInfo": "Personal Information",

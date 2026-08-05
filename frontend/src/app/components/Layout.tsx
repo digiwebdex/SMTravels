@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Outlet, Link, useLocation } from "react-router";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import {
   Menu, X, ChevronDown, Globe, Star, MapPin, Shield, Plane,
   Briefcase, Hotel, Phone, Mail, Facebook, Instagram, Youtube,
-  Twitter, ChevronRight, Clock, MessageCircle, ArrowRight,
+  Twitter, ChevronRight, Clock, MessageCircle, ArrowRight, Calendar,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
+import { AiChatWidget } from "./AiChatWidget";
+import { PwaInstallBanner } from "./PwaInstallBanner";
 import { useLang } from "../i18n/useLang";
+import { CONTACT, telUrl, whatsappUrl } from "../lib/contact";
 
 // ─── WhatsApp Icon ────────────────────────────────────────────────────────────
 function WhatsAppIcon({ size = 24 }: { size?: number }) {
@@ -80,7 +83,9 @@ export function Header() {
     <>
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled ? "bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]" : "bg-white/95 backdrop-blur-md"
+        scrolled
+          ? "bg-[var(--color-surface)] shadow-[var(--elevation-2)]"
+          : "bg-[var(--color-surface)]/95 backdrop-blur-md shadow-none"
       )}>
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 h-[60px] md:h-[68px] flex items-center gap-3 md:gap-6">
 
@@ -131,7 +136,7 @@ export function Header() {
                     })}
                   </div>
                   <div className="mt-3 pt-3 border-t border-[#F3F4F6]">
-                    <Link to="/packages" className="flex items-center justify-between p-3 bg-[#1B75BC] rounded-[10px] hover:bg-[#14588F] transition-colors">
+                    <Link to="/packages" className="flex items-center justify-between p-3 bg-[var(--color-primary)] rounded-[10px] hover:bg-[var(--color-primary-hover)] transition-colors">
                       <div>
                         <div className="text-[13px] font-bold text-white">{t("services.viewAllPackages")}</div>
                         <div className="text-[11px] text-white/60">{t("services.viewAllSub")}</div>
@@ -165,19 +170,19 @@ export function Header() {
                 never clip/wrap when Bangla labels run longer; px-3 xl:px-4 buys space at lg. */}
             {/* Login — desktop only */}
             <Link to="/login"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] text-[12px] font-bold rounded-[8px] hover:bg-[#1B75BC]/5 transition-all min-h-[40px] whitespace-nowrap shrink-0">
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-[12px] font-bold rounded-[8px] hover:bg-[var(--color-primary)]/5 transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.login")}
             </Link>
 
             {/* Agent Register — tablet+ */}
             <Link to="/register"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[#F15A24] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#CC3C17] transition-all min-h-[40px] whitespace-nowrap shrink-0">
+              className="hidden md:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[var(--color-brand-mark)] text-white text-[12px] font-bold rounded-[8px] hover:bg-[var(--color-brand-mark-hover)] transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.agentRegister")}
             </Link>
 
             {/* Book Now — desktop */}
             <Link to="/book"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[#1B75BC] text-white text-[12px] font-bold rounded-[8px] hover:bg-[#14588F] transition-all min-h-[40px] whitespace-nowrap shrink-0">
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 xl:px-4 py-2.5 bg-[var(--color-primary)] text-white text-[12px] font-bold rounded-[8px] hover:bg-[var(--color-primary-hover)] transition-all min-h-[40px] whitespace-nowrap shrink-0">
               {t("common:actions.bookNow")}
             </Link>
 
@@ -267,11 +272,11 @@ export function Header() {
             {/* Auth + Lang */}
             <div className="border-t border-[#F3F4F6] pt-3 flex flex-col gap-2 px-1">
               <Link to="/login"
-                className="flex items-center justify-center min-h-[48px] border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-[14px] hover:bg-[#1B75BC]/5 transition-colors">
+                className="flex items-center justify-center min-h-[48px] border-2 border-[var(--color-primary)] text-[var(--color-primary)] font-bold rounded-[10px] text-[14px] hover:bg-[var(--color-primary)]/5 transition-colors">
                 {t("mobile.customerLogin")}
               </Link>
               <Link to="/register"
-                className="flex items-center justify-center min-h-[48px] bg-[#F15A24] text-white font-bold rounded-[10px] text-[14px] hover:bg-[#CC3C17] transition-colors">
+                className="flex items-center justify-center min-h-[48px] bg-[var(--color-brand-mark)] text-white font-bold rounded-[10px] text-[14px] hover:bg-[var(--color-brand-mark-hover)] transition-colors">
                 {t("common:actions.agentRegister")}
               </Link>
               <button
@@ -302,6 +307,7 @@ export function Header() {
 // ─── FOOTER ──────────────────────────────────────────────────────────────────
 export function Footer() {
   const { t } = useTranslation("layout");
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
 
   return (
@@ -328,9 +334,9 @@ export function Footer() {
             </div>
             <div className="flex gap-3">
               {[Facebook, Instagram, Youtube, Twitter].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F15A24] transition-colors">
+                <span key={i} className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center text-white/70">
                   <Icon size={15} />
-                </a>
+                </span>
               ))}
             </div>
           </div>
@@ -397,8 +403,9 @@ export function Footer() {
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder={t("footer.newsletter.placeholder")}
                   className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-[8px] text-[12px] text-white placeholder-white/30 outline-none focus:border-[#F15A24] transition-all" />
-                <button onClick={() => setEmail("")}
-                  className="w-9 h-9 flex-shrink-0 bg-[#F15A24] hover:bg-[#CC3C17] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
+                <button onClick={() => { navigate("/contact", { state: { email } }); setEmail(""); }}
+                  aria-label={t("footer.newsletter.heading")}
+                  className="w-9 h-9 flex-shrink-0 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] rounded-[8px] flex items-center justify-center transition-colors cursor-pointer">
                   <Mail size={14} />
                 </button>
               </div>
@@ -412,11 +419,11 @@ export function Footer() {
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="text-[11px] text-white/40">{t("footer.copyright")}</div>
           <div className="flex items-center gap-3 md:gap-4 flex-wrap">
-            {[t("footer.legal.privacy"), t("footer.legal.terms"), t("footer.legal.refund")].map(l => (
-              <a key={l} href="#" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{l}</a>
-            ))}
-            <Link to="/sitemap" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.sitemap")}</Link>
-            <Link to="/ds" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.designSystem")}</Link>
+            <Link to="/privacy" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.legal.privacy")}</Link>
+            <Link to="/terms" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.legal.terms")}</Link>
+            <Link to="/refund" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.legal.refund")}</Link>
+            <Link to="/branches" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.links.branches", { defaultValue: "Branches" })}</Link>
+            <Link to="/career" className="text-[10px] md:text-[11px] text-white/35 hover:text-white/60 transition-colors">{t("footer.links.career", { defaultValue: "Career" })}</Link>
           </div>
           <div className="text-[10px] text-white/30 w-full md:w-auto">{t("footer.license")}</div>
         </div>
@@ -436,7 +443,7 @@ function WhatsAppFloat() {
           {t("whatsapp.tooltip")}
         </div>
       )}
-      <a href="https://wa.me/8801712345678?text=Hello%20SMTravel"
+      <a href={whatsappUrl()}
         target="_blank" rel="noopener noreferrer"
         onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}
         className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all"
@@ -447,26 +454,42 @@ function WhatsAppFloat() {
   );
 }
 
-// ─── MOBILE STICKY BOTTOM BAR ─────────────────────────────────────────────────
+// ─── MOBILE STICKY CTA BAR — Call / WhatsApp / Book ───────────────────────────
 function MobileBottomBar() {
   const { t } = useTranslation("layout");
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E5E7EB] px-4 py-3 safe-area-inset-bottom">
-      <div className="flex gap-3">
-        {/* WhatsApp */}
-        <a href="https://wa.me/8801712345678?text=Hello%20SMTravel"
-          target="_blank" rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#25D366] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#1da855] transition-colors">
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(10,46,77,0.08)]"
+      aria-label={t("mobileCta.aria")}
+    >
+      <div className="flex gap-2 max-w-lg mx-auto">
+        <a
+          href={telUrl()}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl border border-[#1B75BC]/25 bg-[#E8F2FA] text-[#17456B] font-bold text-[11px] hover:bg-[#1B75BC]/10 transition-colors"
+          aria-label={t("mobileCta.callAria", { phone: CONTACT.phoneDisplay })}
+        >
+          <Phone size={18} className="text-[#1B75BC]" />
+          {t("mobileCta.call")}
+        </a>
+        <a
+          href={whatsappUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-[1.15] flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl bg-[#25D366] text-white font-bold text-[11px] hover:bg-[#1da855] transition-colors shadow-sm"
+          aria-label={t("aria.whatsapp")}
+        >
           <WhatsAppIcon size={18} />
           {t("whatsapp.label")}
         </a>
-        {/* Book Now */}
-        <Link to="/book"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#1B75BC] text-white font-bold rounded-[12px] text-[14px] hover:bg-[#14588F] transition-colors">
-          {t("common:actions.bookNow")}
+        <Link
+          to="/book"
+          className="flex-[1.15] flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl bg-[var(--color-brand-mark)] text-white font-bold text-[11px] hover:bg-[var(--color-brand-mark-hover)] transition-colors shadow-sm"
+        >
+          <Calendar size={18} />
+          {t("mobileCta.book")}
         </Link>
       </div>
-    </div>
+    </nav>
   );
 }
 
@@ -484,10 +507,12 @@ export function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      {/* Bottom spacing on mobile for sticky bar */}
-      <div className="md:hidden h-[72px]" />
       <Footer />
+      {/* Bottom spacing on mobile for sticky CTA bar */}
+      <div className="md:hidden h-[76px] safe-area-inset-bottom" aria-hidden />
       <WhatsAppFloat />
+      <AiChatWidget />
+      <PwaInstallBanner />
       <MobileBottomBar />
     </div>
   );

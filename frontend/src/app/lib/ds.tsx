@@ -1,12 +1,6 @@
 /**
- * BDH Travels Design System — Canonical Primitives
- * Single source of truth for all shared UI patterns.
- *
- * Brand tokens:
- *   Navy   #1B75BC  (primary)
- *   Gold   #F15A24  (accent)
- *   Emerald #0E7C66 (success / finance)
- *   BG     #F0F2F5  (ERP background)
+ * Implementation for design-system; prefer importing from design-system.
+ * Prefer CSS variables from styles/tokens.css. BRAND constants are fallbacks.
  */
 
 import React, { useState, useEffect } from "react";
@@ -16,15 +10,8 @@ import {
   RefreshCw, WifiOff, ServerCrash, Search, Plus,
 } from "lucide-react";
 import { cn } from "./utils";
-
-// ─── Brand tokens (use these constants, not raw hex) ─────────────────────────
-export const BRAND = {
-  navy:    "#1B75BC",
-  navyDk:  "#14588F",
-  gold:    "#F15A24",
-  emerald: "#0E7C66",
-  erpBg:   "#F0F2F5",
-} as const;
+export { BRAND } from "../design-system/tokens";
+import { BRAND } from "../design-system/tokens";
 
 // ─── Status catalog ───────────────────────────────────────────────────────────
 // Every status used anywhere in the system lives here.
@@ -113,11 +100,11 @@ type BtnVariant = "primary" | "secondary" | "ghost" | "danger" | "gold";
 type BtnSize    = "xs" | "sm" | "md" | "lg";
 
 const BTN_VARIANT: Record<BtnVariant, string> = {
-  primary:   "bg-[#1B75BC] text-white hover:bg-[#14588F] border-transparent shadow-sm",
-  secondary: "bg-white text-slate-700 border-slate-200 hover:border-[#1B75BC]/30 hover:bg-slate-50",
-  ghost:     "bg-transparent text-slate-600 border-transparent hover:bg-slate-100",
-  danger:    "bg-red-600 text-white hover:bg-red-700 border-transparent shadow-sm",
-  gold:      "bg-[#F15A24] text-white hover:bg-[#CC3C17] border-transparent shadow-sm",
+  primary:   "bg-[var(--color-primary)] text-[var(--color-primary-fg)] hover:bg-[var(--color-primary-hover)] border-transparent shadow-[var(--elevation-1)]",
+  secondary: "bg-[var(--color-surface)] text-[var(--color-text)] border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-bg)]",
+  ghost:     "bg-transparent text-[var(--color-text-muted)] border-transparent hover:bg-[var(--color-bg)]",
+  danger:    "bg-[var(--color-danger)] text-white hover:opacity-90 border-transparent shadow-[var(--elevation-1)]",
+  gold:      "bg-[var(--color-brand-mark)] text-white hover:bg-[var(--color-brand-mark-hover)] border-transparent shadow-[var(--elevation-1)]",
 };
 
 const BTN_SIZE: Record<BtnSize, string> = {
@@ -181,9 +168,9 @@ export function KpiTile({
     ? "text-slate-400"
     : trend > 0 ? "text-emerald-600" : "text-red-500";
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col gap-3">
+    <div className="bg-[var(--color-surface)] rounded-[var(--radius-lg)] border border-[var(--color-border)] p-5 flex flex-col gap-3 shadow-[var(--elevation-1)] transition-shadow hover:shadow-[var(--elevation-2)]">
       <div className="flex items-start justify-between">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+        <div className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0"
           style={{ backgroundColor: `${accent}18` }}>
           <Icon size={18} style={{ color: accent }} />
         </div>
@@ -195,10 +182,9 @@ export function KpiTile({
         )}
       </div>
       <div>
-        <p className="text-2xl font-black text-slate-800 leading-none"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
-        <p className="text-xs text-slate-500 mt-1 font-medium">{label}</p>
-        {sub && <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>}
+        <p className="text-2xl font-black text-[var(--color-text)] leading-none font-mono-num">{value}</p>
+        <p className="text-xs text-[var(--color-text-muted)] mt-1 font-medium">{label}</p>
+        {sub && <p className="text-[10px] text-[var(--color-text-faint)] mt-0.5">{sub}</p>}
       </div>
     </div>
   );
@@ -206,23 +192,23 @@ export function KpiTile({
 
 // ─── PageHeader ───────────────────────────────────────────────────────────────
 export function PageHeader({
-  title, subtitle, actions, badge,
+  title, subtitle, actions, badge, breadcrumb,
 }: {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
   badge?: { label: string; status: StatusKey };
+  breadcrumb?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-6">
-      <div className="flex items-center gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-black text-slate-800">{title}</h1>
-            {badge && <StatusBadge status={badge.status} label={badge.label} />}
-          </div>
-          {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-6">
+      <div className="min-w-0">
+        {breadcrumb && <div className="mb-1.5 text-xs text-[var(--color-text-faint)]">{breadcrumb}</div>}
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--color-text)]">{title}</h1>
+          {badge && <StatusBadge status={badge.status} label={badge.label} />}
         </div>
+        {subtitle && <p className="text-sm text-[var(--color-text-muted)] mt-0.5">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
     </div>
@@ -240,12 +226,12 @@ export function SectionCard({
   noPad?: boolean;
 }) {
   return (
-    <div className={cn("bg-white rounded-xl border border-slate-200 overflow-hidden", className)}>
+    <div className={cn("ds-hover-lift bg-[var(--color-surface)] rounded-[var(--radius-lg)] border border-[var(--color-border)] overflow-hidden shadow-[var(--elevation-1)]", className)}>
       {(title || actions) && (
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border-subtle)]">
           <div>
-            {title && <p className="font-bold text-slate-800 text-sm">{title}</p>}
-            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+            {title && <p className="font-bold text-[var(--color-text)] text-sm">{title}</p>}
+            {subtitle && <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{subtitle}</p>}
           </div>
           {actions && <div className="flex items-center gap-2">{actions}</div>}
         </div>
@@ -293,7 +279,7 @@ export function EmptyState({
       <p className="text-xs text-slate-400 max-w-xs leading-relaxed">{desc ?? cfg.desc}</p>
       {action && (
         <button onClick={action}
-          className="mt-5 flex items-center gap-1.5 px-4 py-2 bg-[#1B75BC] text-white text-xs font-bold rounded-xl hover:bg-[#14588F] transition-colors"
+          className="mt-5 flex items-center gap-1.5 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-primary-fg)] text-xs font-bold rounded-[var(--radius-md)] hover:bg-[var(--color-primary-hover)] transition-colors"
           style={{ minHeight: 40 }}>
           <Plus size={13} /> {actionLabel}
         </button>
@@ -445,9 +431,9 @@ export function FormField({
 }
 
 const inputBase = [
-  "w-full px-3 py-2.5 text-sm border rounded-xl bg-white text-slate-800",
-  "placeholder:text-slate-300 outline-none transition-all",
-  "focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10",
+  "w-full px-3 py-2.5 text-sm border rounded-[var(--radius-md)] bg-[var(--color-surface)] text-[var(--color-text)]",
+  "placeholder:text-[var(--color-text-faint)] outline-none transition-all",
+  "focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/15",
 ].join(" ");
 
 export function TextInput({

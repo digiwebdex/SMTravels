@@ -4,7 +4,7 @@
  * findFirst({ where: { id, customerId } }) → a non-owned id returns null → 404.
  * The client-supplied id is only ever an ADDITIONAL filter, never the scope.
  */
-import { Prisma } from "@prisma/client";
+import { Prisma, BookingStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { AuthCtx, requireCustomerId } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
@@ -13,7 +13,8 @@ import { moveIntoStore, removeQuietly, absoluteStorePath } from "../lib/uploads"
 import type {
   PortalProfile, PortalBooking, PortalBookingDetail, PortalTimelineStep,
   PortalInvoice, PortalInvoiceDetail, PortalPayment, PortalInstallmentPlan,
-  PortalDocument, PortalTicket, PortalTicketDetail, PortalNotification, PortalDashboard,
+  PortalDocument, PortalVisa, PortalDownloadItem,
+  PortalTicket, PortalTicketDetail, PortalNotification, PortalDashboard,
   TicketCreateInput,
 } from "../contracts/portal.contract";
 import type { PortalDocumentUploadInput } from "../contracts/document.contract";
@@ -38,9 +39,9 @@ export async function getProfile(auth: AuthCtx): Promise<PortalProfile> {
 }
 
 // ── bookings ───────────────────────────────────────────────────────────────────
-const toBooking = (b: { id: string; bookingNo: string | null; serviceType: string; status: string; amount: Prisma.Decimal; paidAmount: Prisma.Decimal; currency: string; departureDate: Date | null; returnDate: Date | null; createdAt: Date }): PortalBooking => {
+const toBooking = (b: { id: string; bookingNo: string | null; serviceType: string; status: string; amount: Prisma.Decimal; paidAmount: Prisma.Decimal; currency: string; travelersCount: number; departureDate: Date | null; returnDate: Date | null; createdAt: Date }): PortalBooking => {
   const amount = num(b.amount), paid = num(b.paidAmount);
-  return { id: b.id, bookingNo: b.bookingNo, serviceType: b.serviceType, status: b.status, amount, paidAmount: paid, dueAmount: Math.max(0, amount - paid), currency: b.currency, departureDate: dOnly(b.departureDate), returnDate: dOnly(b.returnDate), createdAt: iso(b.createdAt) };
+  return { id: b.id, bookingNo: b.bookingNo, serviceType: b.serviceType, status: b.status, amount, paidAmount: paid, dueAmount: Math.max(0, amount - paid), currency: b.currency, travelersCount: b.travelersCount, departureDate: dOnly(b.departureDate), returnDate: dOnly(b.returnDate), createdAt: iso(b.createdAt) };
 };
 
 export async function listBookings(auth: AuthCtx): Promise<PortalBooking[]> {
@@ -196,6 +197,98 @@ export async function getDocumentFile(auth: AuthCtx, id: string): Promise<{ absP
   const d = await prisma.document.findFirst({ where: { id, ...docWhere(customerId) }, select: { filePath: true, mimeType: true, name: true } });
   if (!d || !d.filePath) throw new HttpError(404, "NotFound", { detail: "Document file not found." });
   return { absPath: absoluteStorePath(d.filePath), mimeType: d.mimeType ?? "application/octet-stream", name: d.name };
+}
+
+// ── visas (VISA service bookings + VisaBooking detail) ─────────────────────────
+export async function listVisas(auth: AuthCtx): Promise<PortalVisa[]> {
+  const customerId = await requireCustomerId(auth);
+  const rows = await prisma.booking.findMany({
+    where: { customerId, deletedAt: null, serviceType: "VISA" },
+    include: { visa: true },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map((b) => ({
+    id: b.id,
+    bookingNo: b.bookingNo,
+    status: b.status,
+    stageStatus: b.visa?.stageStatus ?? null,
+    destinationCountry: b.visa?.destinationCountry ?? null,
+    visaType: b.visa?.visaType ?? null,
+    visaNumber: b.visa?.visaNumber ?? null,
+    departureDate: dOnly(b.departureDate),
+    createdAt: iso(b.createdAt),
+  }));
+}
+
+/** Documents typed as ticket/visa/voucher + invoices + printable vouchers. */
+const DOWNLOAD_DOC_TYPES = new Set(["AIR_TICKET", "VISA", "HOTEL"]);
+const DOC_CATEGORY: Record<string, PortalDownloadItem["category"]> = {
+  AIR_TICKET: "ticket",
+  VISA: "visa",
+  HOTEL: "voucher",
+};
+const VOUCHER_READY: BookingStatus[] = ["CONFIRMED", "PROCESSING", "COMPLETED"];
+
+export async function listDownloads(auth: AuthCtx): Promise<PortalDownloadItem[]> {
+  const customerId = await requireCustomerId(auth);
+  const [docs, invoices, bookings] = await Promise.all([
+    prisma.document.findMany({
+      where: { ...docWhere(customerId), type: { in: ["AIR_TICKET", "VISA", "HOTEL"] } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.invoice.findMany({
+      where: { customerId, deletedAt: null, status: { not: "DRAFT" } },
+      orderBy: { issueDate: "desc" },
+    }),
+    prisma.booking.findMany({
+      where: { customerId, deletedAt: null, status: { in: VOUCHER_READY } },
+      select: { id: true, bookingNo: true, status: true, serviceType: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+  const items: PortalDownloadItem[] = [];
+  for (const d of docs) {
+    if (!DOWNLOAD_DOC_TYPES.has(d.type)) continue;
+    items.push({
+      id: d.id,
+      kind: "document",
+      category: DOC_CATEGORY[d.type] ?? "voucher",
+      name: d.name,
+      type: d.type,
+      status: d.status,
+      hasFile: !!d.filePath,
+      bookingId: d.bookingId,
+      createdAt: iso(d.createdAt),
+    });
+  }
+  for (const inv of invoices) {
+    items.push({
+      id: inv.id,
+      kind: "invoice",
+      category: "invoice",
+      name: inv.invoiceNo ?? "Invoice",
+      type: "INVOICE",
+      status: inv.status,
+      hasFile: true,
+      bookingId: inv.bookingId,
+      createdAt: iso(inv.issueDate ?? inv.createdAt),
+    });
+  }
+  for (const b of bookings) {
+    items.push({
+      id: b.id,
+      kind: "voucher",
+      category: "voucher",
+      name: b.bookingNo ? `Voucher ${b.bookingNo}` : "Booking voucher",
+      type: "VOUCHER",
+      status: b.status,
+      hasFile: true,
+      bookingId: b.id,
+      createdAt: iso(b.createdAt),
+    });
+  }
+  items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  return items;
 }
 
 // ── support tickets ─────────────────────────────────────────────────────────────

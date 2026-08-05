@@ -14,8 +14,11 @@ import { AuthCtx, requireAgentId } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import type {
   AgentProfile, AgentLead, AgentBooking, AgentCommissionRow, AgentWalletView,
-  AgentTeamMember, AgentDashboard, LeadCreateInput,
+  AgentTeamMember, AgentDashboard, AgentCustomer, LeadCreateInput,
+  AgentDocument, AgentPayment,
+  PortalTicket, PortalTicketDetail, TicketCreateInput,
 } from "../contracts/portal.contract";
+import { allocateSequence, formatDocNo } from "../lib/sequence";
 
 const num = (d: Prisma.Decimal | number | null | undefined): number => (d == null ? 0 : Number(d));
 const iso = (d: Date): string => d.toISOString();
@@ -63,6 +66,33 @@ export async function listBookings(auth: AuthCtx): Promise<AgentBooking[]> {
   const agentId = await requireAgentId(auth);
   const rows = await prisma.booking.findMany({ where: { agentId, deletedAt: null }, include: { customer: { select: { name: true } } }, orderBy: { createdAt: "desc" } });
   return rows.map((b) => ({ id: b.id, bookingNo: b.bookingNo, customerName: b.customer?.name ?? null, serviceType: b.serviceType, status: b.status, baseAmount: num(b.baseAmount), createdAt: iso(b.createdAt) }));
+}
+
+/** Distinct customers from the agent's bookings (aggregated). */
+export async function listCustomers(auth: AuthCtx): Promise<AgentCustomer[]> {
+  const agentId = await requireAgentId(auth);
+  const bookings = await prisma.booking.findMany({
+    where: { agentId, deletedAt: null, customerId: { not: null } },
+    include: { customer: { select: { id: true, name: true, phone: true, rating: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  const byCustomer = new Map<string, { id: string; name: string; phone: string; status: string; bookingsCount: number; totalValue: number; lastBookingAt: Date }>();
+  for (const b of bookings) {
+    if (!b.customer) continue;
+    const cur = byCustomer.get(b.customer.id) ?? {
+      id: b.customer.id, name: b.customer.name, phone: b.customer.phone,
+      status: b.customer.rating?.toLowerCase().includes("vip") ? "vip" : "active",
+      bookingsCount: 0, totalValue: 0, lastBookingAt: b.createdAt,
+    };
+    cur.bookingsCount += 1;
+    cur.totalValue += num(b.baseAmount);
+    if (b.createdAt > cur.lastBookingAt) cur.lastBookingAt = b.createdAt;
+    byCustomer.set(b.customer.id, cur);
+  }
+  return [...byCustomer.values()].map((c) => ({
+    id: c.id, name: c.name, phone: c.phone, bookingsCount: c.bookingsCount,
+    totalValue: c.totalValue, lastBookingAt: iso(c.lastBookingAt), status: c.status,
+  }));
 }
 
 export async function listCommissions(auth: AuthCtx): Promise<AgentCommissionRow[]> {
@@ -127,4 +157,124 @@ export async function getDashboard(auth: AuthCtx): Promise<AgentDashboard> {
     commissionEarned: earned, commissionPending: pending,
     recentLeads: leads.map((l) => ({ id: l.id, name: l.name, phone: l.phone, serviceInterest: l.serviceInterest, stage: l.stage, interest: l.interest, createdAt: iso(l.createdAt) })),
   };
+}
+
+// ── documents on the agent's bookings / customers ─────────────────────────────
+export async function listDocuments(auth: AuthCtx): Promise<AgentDocument[]> {
+  const agentId = await requireAgentId(auth);
+  const rows = await prisma.document.findMany({
+    where: {
+      deletedAt: null,
+      OR: [{ booking: { agentId, deletedAt: null } }, { customer: { agentId, deletedAt: null } }],
+    },
+    include: { booking: { select: { bookingNo: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+  return rows.map((d) => ({
+    id: d.id, name: d.name, type: d.type, status: d.status, hasFile: !!d.filePath,
+    bookingNo: d.booking?.bookingNo ?? null, createdAt: iso(d.createdAt),
+  }));
+}
+
+/** Payments for the agent's customers or bookings. */
+export async function listPayments(auth: AuthCtx): Promise<AgentPayment[]> {
+  const agentId = await requireAgentId(auth);
+  const [custIds, bookIds] = await Promise.all([
+    prisma.customer.findMany({ where: { agentId, deletedAt: null }, select: { id: true } }).then((r) => r.map((c) => c.id)),
+    prisma.booking.findMany({ where: { agentId, deletedAt: null }, select: { id: true } }).then((r) => r.map((b) => b.id)),
+  ]);
+  if (!custIds.length && !bookIds.length) return [];
+  const rows = await prisma.payment.findMany({
+    where: {
+      OR: [
+        ...(custIds.length ? [{ customerId: { in: custIds } }] : []),
+        ...(bookIds.length ? [{ bookingId: { in: bookIds } }] : []),
+        ...(custIds.length ? [{ invoice: { customerId: { in: custIds } } }] : []),
+      ],
+    },
+    include: {
+      receipt: { select: { receiptNo: true } },
+      invoice: { select: { invoiceNo: true, customer: { select: { name: true } } } },
+    },
+    orderBy: { paidAt: "desc" },
+    take: 200,
+  });
+  return rows.map((p) => ({
+    id: p.id,
+    receiptNo: p.receipt?.receiptNo ?? p.paymentNo,
+    invoiceNo: p.invoice?.invoiceNo ?? null,
+    customerName: p.invoice?.customer?.name ?? null,
+    amount: num(p.amount),
+    currency: p.currency,
+    method: p.method,
+    paidAt: iso(p.paidAt),
+    status: p.status,
+    reversed: p.isReversed,
+  }));
+}
+
+// ── support tickets (requesterType=agent, requesterId=agentId) ─────────────────
+const toTicket = (t: { id: string; ticketNo: string; subject: string; status: string; category: string | null; createdAt: Date; messages: { body: string }[] }): PortalTicket => ({
+  id: t.id, ticketNo: t.ticketNo, subject: t.subject, status: t.status, category: t.category,
+  messageCount: t.messages.length, lastMessage: t.messages[t.messages.length - 1]?.body ?? null, createdAt: iso(t.createdAt),
+});
+
+export async function listTickets(auth: AuthCtx): Promise<PortalTicket[]> {
+  const agentId = await requireAgentId(auth);
+  const rows = await prisma.supportTicket.findMany({
+    where: { requesterType: "agent", requesterId: agentId, deletedAt: null },
+    include: { messages: { select: { body: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(toTicket);
+}
+
+export async function getTicket(auth: AuthCtx, id: string): Promise<PortalTicketDetail> {
+  const agentId = await requireAgentId(auth);
+  const t = await prisma.supportTicket.findFirst({
+    where: { id, requesterType: "agent", requesterId: agentId, deletedAt: null },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
+  });
+  if (!t) throw new HttpError(404, "NotFound", { detail: "Ticket not found." });
+  return {
+    ...toTicket({ ...t, messages: t.messages }),
+    messages: t.messages.map((m) => ({ id: m.id, fromLabel: m.fromLabel, mine: m.fromId === auth.userId, body: m.body, createdAt: iso(m.createdAt) })),
+  };
+}
+
+export async function createTicket(auth: AuthCtx, input: TicketCreateInput): Promise<PortalTicketDetail> {
+  const agentId = await requireAgentId(auth);
+  const a = await prisma.agent.findUniqueOrThrow({ where: { id: agentId }, select: { branchId: true } });
+  const branchId = a.branchId ?? "brn_dhaka";
+  const branch = await prisma.branch.findUniqueOrThrow({ where: { id: branchId }, select: { code: true } });
+  const year = new Date().getUTCFullYear();
+  const id = await prisma.$transaction(async (tx) => {
+    const seq = await allocateSequence(tx, "BOOKING", branchId, year);
+    const ticket = await tx.supportTicket.create({
+      data: {
+        ticketNo: formatDocNo("SUP", branch.code, year, seq),
+        subject: input.subject,
+        category: input.category,
+        requesterType: "agent",
+        requesterId: agentId,
+        branchId,
+        status: "OPEN",
+      },
+    });
+    await tx.ticketMessage.create({ data: { ticketId: ticket.id, fromId: auth.userId, fromLabel: "Me", body: input.message } });
+    return ticket.id;
+  });
+  return getTicket(auth, id);
+}
+
+export async function addTicketMessage(auth: AuthCtx, ticketId: string, body: string): Promise<PortalTicketDetail> {
+  const agentId = await requireAgentId(auth);
+  const owned = await prisma.supportTicket.findFirst({
+    where: { id: ticketId, requesterType: "agent", requesterId: agentId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!owned) throw new HttpError(404, "NotFound", { detail: "Ticket not found." });
+  await prisma.ticketMessage.create({ data: { ticketId, fromId: auth.userId, fromLabel: "Me", body } });
+  return getTicket(auth, ticketId);
 }

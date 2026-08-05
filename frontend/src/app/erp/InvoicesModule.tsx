@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import {
   FileText, Plus, Search, Filter, Download, Eye, Send, Printer,
@@ -10,14 +11,18 @@ import {
   TrendingUp, TrendingDown, RotateCcw, Tag, Banknote,
 } from "lucide-react";
 import { cn, img, fmtPrice } from "../lib/utils";
-import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import { SkeletonTable, ErrorBanner, EmptyState } from "../lib/ds";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
 import {
   useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
+  usePayments, useRefunds, useInstallmentPlans, useCreateInstallmentPlan,
 } from "../hooks/finance";
+import { usePendingVerifyPayments, useVerifyPayment } from "../hooks/payments";
+import { downloadViaApi } from "../lib/api";
 import { useCustomers } from "../hooks/crm";
 import { Loader2 } from "lucide-react";
-import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem } from "@contracts/finance.contract";
+import type { InvoiceDetail as InvoiceDetailDto, InvoiceListItem, PendingPaymentDto, InstallmentPlanDto } from "@contracts/finance.contract";
+import { AiInsightCard } from "../design-system";
 
 const st2vm = (s: string): InvoiceStatus => s.toLowerCase() as InvoiceStatus;
 
@@ -36,53 +41,27 @@ const CURRENCY_SYMBOL: Record<Currency, string> = { BDT: "৳", USD: "$", SAR: "
 const fmtC = (n: number, cur: Currency = "BDT") =>
   `${CURRENCY_SYMBOL[cur]} ${n.toLocaleString("en-BD")}`;
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-interface Invoice {
-  id: string; date: string; dueDate: string;
-  customer: string; email: string; phone: string;
-  service: string; currency: Currency;
-  amount: number; paid: number; status: InvoiceStatus;
-  items: { desc: string; qty: number; rate: number; total: number }[];
-  notes?: string;
+// ─── Aging buckets ─────────────────────────────────────────────────────────────────
+
+const AGING_BUCKETS = [
+  { range: "0–30 days", min: 0, max: 30, color: "#F59E0B" },
+  { range: "31–60 days", min: 31, max: 60, color: "#F97316" },
+  { range: "61–90 days", min: 61, max: 90, color: "#EF4444" },
+  { range: "90+ days", min: 91, max: Infinity, color: "#991B1B" },
+] as const;
+
+function daysOverdue(dueDate: string | null): number {
+  if (!dueDate) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.floor((today.getTime() - due.getTime()) / 86400000));
 }
 
-const INVOICES: Invoice[] = [
-  { id: "INV-2401", date: "Jul 1, 2024", dueDate: "Jul 15, 2024", customer: "Md. Abdullah Al-Mamun", email: "abdullah@gmail.com", phone: "+880 171-234-5678", service: "Hajj 2024 – Economy", currency: "BDT", amount: 520000, paid: 520000, status: "paid", items: [{ desc: "Hajj Package – Economy (1 person)", qty: 1, rate: 480000, total: 480000 }, { desc: "Visa Processing Fee", qty: 1, rate: 25000, total: 25000 }, { desc: "Airport Assistance", qty: 1, rate: 15000, total: 15000 }] },
-  { id: "INV-2402", date: "Jul 3, 2024", dueDate: "Jul 20, 2024", customer: "Rabeya Khatun", email: "rabeya.k@yahoo.com", phone: "+880 181-345-6789", service: "Umrah Ramadan – VIP", currency: "BDT", amount: 185000, paid: 92500, status: "partial", items: [{ desc: "Umrah Package – VIP (1 person)", qty: 1, rate: 165000, total: 165000 }, { desc: "Visa Fee", qty: 1, rate: 20000, total: 20000 }], notes: "Customer agreed to 2-installment plan." },
-  { id: "INV-2403", date: "Jul 5, 2024", dueDate: "Jul 12, 2024", customer: "NMT Travels Agency", email: "accounts@nmt-travels.com", phone: "+880 191-456-7890", service: "Saudi Visa × 15", currency: "BDT", amount: 450000, paid: 0, status: "overdue", items: [{ desc: "Saudi Tourist Visa", qty: 15, rate: 28000, total: 420000 }, { desc: "Handling Fee", qty: 15, rate: 2000, total: 30000 }] },
-  { id: "INV-2404", date: "Jul 8, 2024", dueDate: "Aug 5, 2024", customer: "Karim & Family", email: "akarim@gmail.com", phone: "+880 171-567-8901", service: "Malaysia 5N Tour × 3", currency: "BDT", amount: 215000, paid: 43000, status: "partial", items: [{ desc: "Malaysia 5N/6D Tour Package", qty: 3, rate: 65000, total: 195000 }, { desc: "Travel Insurance", qty: 3, rate: 5000, total: 15000 }, { desc: "Airport Pickup", qty: 1, rate: 5000, total: 5000 }] },
-  { id: "INV-2405", date: "Jul 10, 2024", dueDate: "Jul 25, 2024", customer: "Hosne Ara Begum", email: "hosne.a@gmail.com", phone: "+880 181-678-9012", service: "Hajj 2024 – Premium", currency: "BDT", amount: 680000, paid: 0, status: "sent", items: [{ desc: "Hajj Package – Premium (1 person)", qty: 1, rate: 620000, total: 620000 }, { desc: "Visa + Biometric", qty: 1, rate: 35000, total: 35000 }, { desc: "Pre-Hajj Training", qty: 1, rate: 25000, total: 25000 }] },
-  { id: "INV-2406", date: "Jun 28, 2024", dueDate: "Jul 10, 2024", customer: "Rahman Brothers", email: "info@rahmanbrothers.com", phone: "+880 191-789-0123", service: "Air Ticket × 4", currency: "BDT", amount: 88000, paid: 88000, status: "paid", items: [{ desc: "CGP-DAC Roundtrip Ticket", qty: 4, rate: 22000, total: 88000 }] },
-];
-
-const PAYMENT_HISTORY = [
-  { id: "PAY-9041", date: "Jul 14", invoice: "INV-2401", customer: "Md. Abdullah Al-Mamun", amount: 520000, method: "Bank Transfer", gateway: "DBBL", status: "confirmed" as PayStatus },
-  { id: "PAY-9040", date: "Jul 12", invoice: "INV-2402", customer: "Rabeya Khatun", amount: 92500, method: "bKash", gateway: "bKash", status: "confirmed" as PayStatus },
-  { id: "PAY-9039", date: "Jul 10", invoice: "INV-2404", customer: "Karim & Family", amount: 43000, method: "SSLCommerz", gateway: "SSLCommerz", status: "confirmed" as PayStatus },
-  { id: "PAY-9038", date: "Jul 9", invoice: "INV-2406", customer: "Rahman Brothers", amount: 88000, method: "Nagad", gateway: "Nagad", status: "confirmed" as PayStatus },
-  { id: "PAY-9037", date: "Jul 7", invoice: "INV-2403", customer: "NMT Travels Agency", amount: 150000, method: "Bank Transfer", gateway: "DBBL", status: "failed" as PayStatus },
-];
-
-const REFUNDS = [
-  { id: "REF-041", date: "Jul 11", invoice: "INV-2390", customer: "Arif Hossain", reason: "Package cancelled – COVID", amount: 185000, method: "Bank Transfer", status: "approved" },
-  { id: "REF-040", date: "Jul 8", invoice: "INV-2381", customer: "Salma Begum", reason: "Visa rejected", amount: 25000, method: "bKash", status: "processed" },
-  { id: "REF-039", date: "Jul 5", invoice: "INV-2374", customer: "Hasan Khan", reason: "Flight cancelled", amount: 44000, method: "Nagad", status: "pending" },
-];
-
-const VOUCHERS = [
-  { id: "VCH-001", code: "HAJJ100", type: "flat", value: 100, currency: "USD" as Currency, service: "Hajj Packages", used: 12, limit: 20, expires: "Aug 31", status: "active" },
-  { id: "VCH-002", code: "UMRAH10", type: "percent", value: 10, currency: "BDT" as Currency, service: "Umrah Packages", used: 31, limit: 50, expires: "Jul 31", status: "active" },
-  { id: "VCH-003", code: "FIRST500", type: "flat", value: 500, currency: "BDT" as Currency, service: "All Services", used: 8, limit: 100, expires: "Dec 31", status: "active" },
-  { id: "VCH-004", code: "AGENT15", type: "percent", value: 15, currency: "BDT" as Currency, service: "Agent Bookings", used: 50, limit: 50, expires: "Jul 15", status: "expired" },
-];
-
-const AGING_DATA = [
-  { range: "Current", amount: 1283000, count: 3, color: "#0E7C66" },
-  { range: "1–30 days", amount: 450000, count: 2, color: "#F59E0B" },
-  { range: "31–60 days", amount: 268000, count: 1, color: "#F97316" },
-  { range: "61–90 days", amount: 120000, count: 1, color: "#EF4444" },
-  { range: "90+ days", amount: 85000, count: 1, color: "#991B1B" },
-];
+function agingBucket(days: number): (typeof AGING_BUCKETS)[number] {
+  return AGING_BUCKETS.find(b => days >= b.min && days <= b.max) ?? AGING_BUCKETS[0];
+}
 
 const INV_STATUS_CFG: Record<InvoiceStatus, { label: string; cls: string }> = {
   draft:     { label: "Draft",      cls: "bg-slate-100 text-slate-500" },
@@ -131,7 +110,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
   icon: React.ElementType; color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", color)}>
           <Icon size={18} className="text-white" />
@@ -146,6 +125,100 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
       <p className="text-2xl font-bold text-slate-800" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{value}</p>
       <p className="text-sm text-slate-500 mt-0.5">{label}</p>
       {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+// ─── Pending NPSB verification ────────────────────────────────────────────────
+function PendingNpsbPanel({ compact }: { compact?: boolean }) {
+  const { data, isLoading, isError, error, refetch } = usePendingVerifyPayments();
+  const verify = useVerifyPayment();
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const rows: PendingPaymentDto[] = data?.data ?? [];
+
+  const approve = (id: string) => verify.mutate({ id, approve: true });
+  const reject = (id: string) => {
+    verify.mutate({ id, approve: false, note: rejectNote.trim() || undefined }, {
+      onSuccess: () => { setRejectId(null); setRejectNote(""); },
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5", compact && "mb-5")}>
+        <div className="flex items-center gap-2 text-sm text-slate-400"><Loader2 size={16} className="animate-spin"/> Loading pending NPSB…</div>
+      </div>
+    );
+  }
+  if (isError) {
+    return (
+      <div className={cn(compact && "mb-5")}>
+        <ErrorBanner message={(error as Error)?.message || "Failed to load pending NPSB payments."} onRetry={() => refetch()} />
+      </div>
+    );
+  }
+  if (rows.length === 0 && compact) return null;
+
+  return (
+    <div className={cn("bg-[var(--color-surface)] rounded-xl border border-[#F15A24]/30 overflow-hidden", compact && "mb-5")}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-[#F15A24]/5">
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-[#F15A24]"/>
+          <h3 className="font-semibold text-slate-800 text-sm">Pending NPSB verification</h3>
+          {rows.length > 0 && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#F15A24] text-white font-bold">{rows.length}</span>
+          )}
+        </div>
+        <button onClick={() => refetch()} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><RefreshCw size={14}/></button>
+      </div>
+      {rows.length === 0 ? (
+        <p className="px-5 py-6 text-sm text-slate-400 text-center">No customer payment proofs awaiting verification.</p>
+      ) : (
+        <div className="divide-y divide-slate-50">
+          {rows.map((p) => (
+            <div key={p.id} className="px-5 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-mono text-slate-400">{p.paymentNo || p.id.slice(0, 8)}</p>
+                  <p className="text-sm font-semibold text-slate-800">{p.customerName || "Customer"}</p>
+                  {p.invoiceNo && <p className="text-xs text-slate-500 mt-0.5">Invoice {p.invoiceNo}</p>}
+                  <p className="text-lg font-black text-slate-800 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    {fmtC(p.amount, p.currency as Currency)}
+                  </p>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">Ref: {p.reference || "—"} · {p.paidAt?.slice(0, 10)}</p>
+                  {p.proofDocumentName && (
+                    <button
+                      onClick={() => p.proofDocumentId && void downloadViaApi(`/documents/${p.proofDocumentId}/file`, p.proofDocumentName!)}
+                      disabled={!p.proofDocumentId}
+                      className="mt-2 flex items-center gap-1 text-xs text-[#1B75BC] hover:underline disabled:opacity-40">
+                      <Download size={11}/> {p.proofDocumentName}
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  <button onClick={() => approve(p.id)} disabled={verify.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap">
+                    <CheckCircle size={12}/> Approve
+                  </button>
+                  <button onClick={() => setRejectId(rejectId === p.id ? null : p.id)} disabled={verify.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-red-200 text-red-500 rounded-lg hover:bg-red-50 disabled:opacity-50 whitespace-nowrap">
+                    <XCircle size={12}/> Reject
+                  </button>
+                </div>
+              </div>
+              {rejectId === p.id && (
+                <div className="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                  <input value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="Rejection note (optional)"
+                    className="flex-1 px-3 py-2 text-xs border border-[var(--color-border)] rounded-lg focus:outline-none"/>
+                  <button onClick={() => reject(p.id)} disabled={verify.isPending}
+                    className="px-3 py-2 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50">Confirm reject</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -170,7 +243,8 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           <p className="text-sm text-slate-500 mt-0.5">{data?.total ?? 0} invoices · manage all customer invoices</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={14} /> Export
           </button>
           <button onClick={onNew} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
@@ -178,21 +252,28 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           </button>
         </div>
       </div>
+      <AiInsightCard title="AI Finance Tips" collapsedByDefault>
+        <ul className="text-xs space-y-1.5 list-disc pl-4">
+          <li>{stats.overdue > 0 ? `${stats.overdue} invoice${stats.overdue === 1 ? "" : "s"} overdue — prioritize follow-up calls.` : "No overdue invoices — collections are on track."}</li>
+          <li>Outstanding balance: {fmtC(stats.totalDue)} across {stats.total} invoice{stats.total === 1 ? "" : "s"}.</li>
+        </ul>
+      </AiInsightCard>
+      <PendingNpsbPanel compact/>
       <div className="grid grid-cols-4 gap-4">
         <KpiCard label="Total Billed" value={fmtC(stats.totalBilled)} icon={FileText} color="bg-[#1B75BC]" />
         <KpiCard label="Collected" value={fmtC(stats.totalPaid)} icon={CheckCircle} color="bg-emerald-500" />
         <KpiCard label="Outstanding" value={fmtC(stats.totalDue)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Overdue" value={String(stats.overdue)} icon={AlertTriangle} color="bg-red-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
           <div className="relative flex-1 max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input placeholder="Search invoices…" value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+              className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
           </div>
           <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value as InvoiceStatus | "all"); setPage(1); }}
-            className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none">
+            className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg focus:outline-none">
             <option value="all">All Statuses</option>
             {(Object.keys(INV_STATUS_CFG) as InvoiceStatus[]).map(s => (
               <option key={s} value={s}>{INV_STATUS_CFG[s].label}</option>
@@ -207,7 +288,7 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
         <div className="overflow-x-auto">
         <table className="w-full min-w-[900px]">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Invoice #", "Issued", "Due Date", "Customer", "Amount", "Paid", "Balance", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -250,7 +331,7 @@ function RecordPaymentDrawer({ invoice, onClose }: { invoice: InvoiceDetailDto; 
   };
   return (
     <Drawer open onClose={onClose} title="Record Payment" subtitle={`${invoice.invoiceNo} · due ${fmtC(invoice.dueAmount, invoice.currency as Currency)}`}
-      footer={<><button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={record.isPending || !(Number(amount) > 0)}>{record.isPending && <Loader2 size={13} className="animate-spin" />} Record Payment</PrimaryBtn></>}>
+      footer={<><button onClick={onClose} className="h-9 px-4 border border-[var(--color-border)] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={record.isPending || !(Number(amount) > 0)}>{record.isPending && <Loader2 size={13} className="animate-spin" />} Record Payment</PrimaryBtn></>}>
       <div className="flex flex-col gap-4">
         <Field label="Amount" required><input type="number" className={inputCls} value={amount} onChange={e => setAmount(e.target.value)} /></Field>
         <Field label="Method" required>
@@ -266,6 +347,7 @@ function RecordPaymentDrawer({ invoice, onClose }: { invoice: InvoiceDetailDto; 
 }
 
 function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; onBack: () => void; onPrint: () => void }) {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useInvoice(invoiceId);
   const issue = useIssueInvoice();
   const cancel = useCancelInvoice();
@@ -291,10 +373,11 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-800">{inv.id}</span>
         <div className="ml-auto flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button onClick={() => navigate("/erp/communications")}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Send size={14} /> Send to Customer
           </button>
-          <button onClick={onPrint} className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button onClick={onPrint} className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
             <Printer size={14} /> Print / PDF
           </button>
           {data.status === "DRAFT" && (
@@ -313,7 +396,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
       {payOpen && <RecordPaymentDrawer invoice={data} onClose={() => setPayOpen(false)} />}
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h3 className="text-2xl font-bold text-slate-800">{inv.id}</h3>
@@ -323,9 +406,9 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-600">BDH Travels & Tourism</p>
-                <p className="text-xs text-slate-400">23 Agrabad C/A, Chattogram</p>
-                <p className="text-xs text-slate-400">+880 31-716-4521</p>
+                <p className="text-sm font-medium text-slate-600">SM Travels International</p>
+                <p className="text-xs text-slate-400">smtravelsinternational.com</p>
+                <p className="text-xs text-slate-400">Govt. Licensed Hajj &amp; Umrah Operator</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-5 mb-6 p-4 bg-slate-50 rounded-lg">
@@ -343,7 +426,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
             </div>
             <table className="w-full mb-4">
               <thead>
-                <tr className="border-b border-slate-200">
+                <tr className="border-b border-[var(--color-border)]">
                   <th className="text-left text-xs font-semibold text-slate-500 pb-2">Description</th>
                   <th className="text-right text-xs font-semibold text-slate-500 pb-2 w-16">Qty</th>
                   <th className="text-right text-xs font-semibold text-slate-500 pb-2 w-32">Unit Price</th>
@@ -371,7 +454,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                   <span className="text-slate-500">VAT (5%)</span>
                   <span className="text-slate-700 font-mono">{fmtC(tax, inv.currency)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold border-t border-slate-200 pt-2">
+                <div className="flex justify-between text-sm font-bold border-t border-[var(--color-border)] pt-2">
                   <span className="text-slate-800">Total</span>
                   <span className="text-slate-800 font-mono" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmtC(total, inv.currency)}</span>
                 </div>
@@ -382,7 +465,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
                   </div>
                 )}
                 {inv.amount - inv.paid > 0 && (
-                  <div className="flex justify-between text-sm font-bold text-red-600 border-t border-slate-200 pt-2">
+                  <div className="flex justify-between text-sm font-bold text-red-600 border-t border-[var(--color-border)] pt-2">
                     <span>Balance Due</span>
                     <span className="font-mono">{fmtC(inv.amount - inv.paid, inv.currency)}</span>
                   </div>
@@ -398,7 +481,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
           </div>
         </div>
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-4">Payment Summary</h4>
             <div className="space-y-3">
               <div>
@@ -415,7 +498,7 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
             </div>
           </div>
           {/* Payment history for this invoice */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Payments</h4>
             <div className="space-y-2">
               {data.payments.length === 0 && <p className="text-xs text-slate-400">No payments yet.</p>}
@@ -430,11 +513,11 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
               ))}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Actions</h4>
             <div className="space-y-2">
               {canPay && <button onClick={() => setPayOpen(true)} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg bg-[#1B75BC] text-white hover:bg-[#14588F]"><CreditCard size={14} /> Record Payment</button>}
-              <button onClick={onPrint} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><Download size={14} /> Print / PDF</button>
+              <button onClick={onPrint} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-[var(--color-border)] text-slate-600 hover:bg-slate-50"><Download size={14} /> Print / PDF</button>
               {data.status !== "CANCELLED" && data.paidAmount === 0 && (
                 <button onClick={() => cancel.mutate(data.id)} disabled={cancel.isPending} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-60"><XCircle size={14} /> Cancel Invoice</button>
               )}
@@ -448,10 +531,32 @@ function InvoiceDetailView({ invoiceId, onBack, onPrint }: { invoiceId: string; 
 
 // ─── Printable Invoice ────────────────────────────────────────────────────────
 function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack: () => void }) {
-  const inv = INVOICES.find(i => i.id === invoiceId)!;
-  if (!inv) return null;
-  const subtotal = inv.items.reduce((s, i) => s + i.total, 0);
-  const tax = Math.round(subtotal * 0.05);
+  const { data, isLoading, isError, error, refetch } = useInvoice(invoiceId);
+  if (isLoading) return <div className="p-6"><SkeletonTable rows={8} cols={4} /></div>;
+  if (isError || !data) {
+    return (
+      <div className="p-6">
+        <ErrorBanner message={(error as Error)?.message || "Invoice not found."} onRetry={() => refetch()} />
+        <button onClick={onBack} className="mt-3 text-sm text-[#1B75BC]">← Back</button>
+      </div>
+    );
+  }
+  const inv = {
+    id: data.invoiceNo || "DRAFT",
+    date: data.issueDate || "—",
+    dueDate: data.dueDate || "—",
+    customer: data.customerName || "—",
+    email: data.customerEmail || "",
+    phone: data.customerPhone || "",
+    service: data.items[0]?.description || "—",
+    currency: data.currency as Currency,
+    notes: data.notes,
+    status: st2vm(data.status),
+    items: data.items.map((it) => ({ desc: it.description, qty: it.qty, rate: it.unitPrice, total: it.amount })),
+  };
+  const subtotal = data.subtotal;
+  const tax = data.taxAmount;
+  const total = data.total;
 
   return (
     <div className="space-y-4">
@@ -459,31 +564,27 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800">
           <ArrowLeft size={16} /> Back
         </button>
-        <button className="ml-auto flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+        <button onClick={() => window.print()} className="ml-auto flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
           <Printer size={14} /> Print
         </button>
       </div>
-      {/* A4 invoice preview */}
-      <div className="bg-white rounded-xl border border-slate-200 max-w-3xl mx-auto" style={{ minHeight: "297mm" }}>
-        {/* Header stripe */}
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] max-w-3xl mx-auto" style={{ minHeight: "297mm" }}>
         <div className="h-2 rounded-t-xl" style={{ background: "linear-gradient(90deg, #1B75BC 0%, #F15A24 100%)" }} />
         <div className="p-10">
-          {/* Company header */}
           <div className="flex items-start justify-between mb-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 rounded-xl bg-[#1B75BC] flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">BDH</span>
+                  <span className="text-white text-xs font-bold">SM</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-[#1B75BC]">BDH Travels & Tourism</h1>
-                  <p className="text-xs text-slate-500">Govt. Registered Hajj & Umrah Operator · License No. HA-2024-0421</p>
+                  <h1 className="text-2xl font-bold text-[#1B75BC]">SM Travels International</h1>
+                  <p className="text-xs text-slate-500">Govt. Registered Hajj &amp; Umrah Operator</p>
                 </div>
               </div>
               <div className="text-xs text-slate-500 space-y-0.5 mt-2">
-                <p>23 Agrabad C/A, Chattogram-4100, Bangladesh</p>
-                <p>Phone: +880 31-716-4521 · Email: info@bdhravels.com</p>
-                <p>Web: www.bdhtravels.com · Trade Lic: CTG-2019-0081234</p>
+                <p>smtravelsinternational.com</p>
+                <p>Email: info@smtravelsinternational.com</p>
               </div>
             </div>
             <div className="text-right">
@@ -506,7 +607,6 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </div>
           </div>
 
-          {/* Bill to */}
           <div className="grid grid-cols-2 gap-6 mb-8">
             <div className="p-4 bg-slate-50 rounded-xl">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Bill To</p>
@@ -522,7 +622,6 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </div>
           </div>
 
-          {/* Items table */}
           <table className="w-full mb-6">
             <thead>
               <tr style={{ background: "#1B75BC" }}>
@@ -534,7 +633,7 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </thead>
             <tbody>
               {inv.items.map((item, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                <tr key={i} className={i % 2 === 0 ? "bg-[var(--color-surface)]" : "bg-slate-50"}>
                   <td className="px-4 py-3 text-sm text-slate-700">{item.desc}</td>
                   <td className="px-4 py-3 text-sm text-slate-500 text-right">{item.qty}</td>
                   <td className="px-4 py-3 text-sm text-slate-700 text-right font-mono">{fmtC(item.rate, inv.currency)}</td>
@@ -544,56 +643,37 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
             </tbody>
           </table>
 
-          {/* Totals */}
           <div className="flex justify-end mb-8">
             <div className="w-72 space-y-2">
-              {[
-                { label: "Subtotal", value: fmtC(subtotal, inv.currency), bold: false },
-                { label: "VAT (5%)", value: fmtC(tax, inv.currency), bold: false },
-              ].map(({ label, value, bold }) => (
-                <div key={label} className="flex justify-between text-sm">
-                  <span className="text-slate-500">{label}</span>
-                  <span className={cn("font-mono", bold ? "font-bold text-slate-800" : "text-slate-700")}>{value}</span>
-                </div>
-              ))}
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Subtotal</span>
+                <span className="font-mono text-slate-700">{fmtC(subtotal, inv.currency)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Tax</span>
+                <span className="font-mono text-slate-700">{fmtC(tax, inv.currency)}</span>
+              </div>
               <div className="flex justify-between font-bold border-t border-slate-300 pt-2">
                 <span className="text-slate-800">Total</span>
-                <span className="text-[#1B75BC] font-mono text-lg" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtC(subtotal + tax, inv.currency)}
-                </span>
+                <span className="text-[#1B75BC] font-mono text-lg">{fmtC(total, inv.currency)}</span>
               </div>
-              {inv.paid > 0 && (
+              {data.paidAmount > 0 && (
                 <div className="flex justify-between text-sm text-emerald-600">
                   <span>Amount Paid</span>
-                  <span className="font-mono">−{fmtC(inv.paid, inv.currency)}</span>
+                  <span className="font-mono">−{fmtC(data.paidAmount, inv.currency)}</span>
                 </div>
               )}
-              {inv.amount - inv.paid > 0 && (
+              {data.dueAmount > 0 && (
                 <div className="flex justify-between font-bold text-red-600 border-t border-red-200 pt-2">
                   <span>Balance Due</span>
-                  <span className="font-mono">{fmtC(inv.amount - inv.paid, inv.currency)}</span>
+                  <span className="font-mono">{fmtC(data.dueAmount, inv.currency)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="border-t border-slate-200 pt-6 grid grid-cols-2 gap-6">
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Payment Methods</p>
-              <div className="text-xs text-slate-600 space-y-1">
-                <p>Bank Transfer: DBBL A/C 1021-0110-0000-234 (Agrabad)</p>
-                <p>bKash Merchant: 01712-345-678</p>
-                <p>Nagad Merchant: 01812-345-678</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Terms & Conditions</p>
-              <p className="text-xs text-slate-500">Payment is due by the date shown above. Late payments are subject to a 2% monthly fee. All sales are final. Refund policy applies per service agreement.</p>
-            </div>
-          </div>
           <div className="text-center mt-6 pt-4 border-t border-slate-100">
-            <p className="text-xs text-slate-400">Thank you for choosing BDH Travels & Tourism · Serving pilgrims since 2001</p>
+            <p className="text-xs text-slate-400">Thank you for choosing SM Travels International</p>
           </div>
         </div>
       </div>
@@ -603,6 +683,21 @@ function PrintableInvoiceView({ invoiceId, onBack }: { invoiceId: string; onBack
 
 // ─── Receipts ─────────────────────────────────────────────────────────────────
 function ReceiptsView() {
+  const { data, isLoading, isError, error, refetch } = usePayments({ pageSize: 100 });
+  const receipts = (data?.data ?? []).filter(p => p.status === "CONFIRMED" && p.receiptNo);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16 text-slate-400">
+        <Loader2 size={22} className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return <ErrorBanner message={(error as Error)?.message || "Failed to load receipts."} onRetry={() => refetch()} />;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -610,30 +705,31 @@ function ReceiptsView() {
           <h2 className="text-xl font-bold text-slate-800">Receipts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Issued payment receipts</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> Issue Receipt
-        </button>
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Receipt #", "Invoice", "Customer", "Amount", "Method", "Date", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.filter(p => p.status === "confirmed").map((p, i) => (
+            {receipts.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-400">No receipts issued yet.</td>
+              </tr>
+            ) : receipts.map(p => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">REC-{(9000 + i + 1).toString()}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoice}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{p.customer}</td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.receiptNo}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoiceNo ?? "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{p.customerName ?? "—"}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount, p.currency as Currency)}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{new Date(p.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
                 <td className="px-4 py-3">
-                  <button className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
+                  <button onClick={() => window.print()} className="flex items-center gap-1 text-xs text-[#1B75BC] hover:underline">
                     <Printer size={12} /> Print
                   </button>
                 </td>
@@ -647,24 +743,74 @@ function ReceiptsView() {
 }
 
 // ─── Payment Collection ───────────────────────────────────────────────────────
+const COLLECTION_METHODS: Record<string, string> = {
+  bank: "BANK_TRANSFER",
+  bkash: "BKASH",
+  nagad: "NAGAD",
+  ssl: "SSLCOMMERZ",
+};
+
 function PaymentCollectionView() {
+  const { data, isLoading, isError, error, refetch } = useInvoices({ pageSize: 200 });
+  const record = useRecordPayment();
   const [selectedInv, setSelectedInv] = useState("");
   const [method, setMethod] = useState("bank");
   const [amount, setAmount] = useState("");
+  const [reference, setReference] = useState("");
+  const [paidAt, setPaidAt] = useState(() => new Date().toISOString().slice(0, 10));
+
+  const pending = (data?.data ?? []).filter(
+    inv => inv.dueAmount > 0 && !["DRAFT", "PAID", "CANCELLED"].includes(inv.status),
+  );
+  const selected = pending.find(i => i.id === selectedInv);
+
+  const onSelectInvoice = (id: string) => {
+    setSelectedInv(id);
+    const inv = pending.find(i => i.id === id);
+    if (inv) setAmount(String(inv.dueAmount));
+  };
+
+  const submit = () => {
+    if (!selected || !(Number(amount) > 0)) return;
+    record.mutate(
+      {
+        invoiceId: selected.id,
+        amount: Number(amount),
+        method: COLLECTION_METHODS[method] as never,
+        reference: reference.trim() || undefined,
+        paidAt: paidAt || undefined,
+      },
+      {
+        onSuccess: () => {
+          setSelectedInv("");
+          setAmount("");
+          setReference("");
+        },
+      },
+    );
+  };
+
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Payment Collection</h2>
+      <PendingNpsbPanel/>
+      {isError && <ErrorBanner message={(error as Error)?.message || "Failed to load invoices."} onRetry={() => refetch()} />}
       <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <h3 className="font-semibold text-slate-800 mb-5">Collect Payment</h3>
+          {isLoading ? (
+            <div className="flex justify-center py-12 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>
+          ) : (
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Invoice / Booking</label>
-              <select value={selectedInv} onChange={e => setSelectedInv(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              <select value={selectedInv} onChange={e => onSelectInvoice(e.target.value)}
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">Select invoice…</option>
-                {INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled").map(i => (
-                  <option key={i.id} value={i.id}>{i.id} – {i.customer} ({fmtC(i.amount - i.paid)} due)</option>
+                {pending.map(i => (
+                  <option key={i.id} value={i.id}>
+                    {i.invoiceNo ?? i.id.slice(0, 8)} – {i.customerName ?? "Customer"} ({fmtC(i.dueAmount, i.currency as Currency)} due)
+                  </option>
                 ))}
               </select>
             </div>
@@ -672,69 +818,81 @@ function PaymentCollectionView() {
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Amount</label>
                 <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
-                <input type="date" defaultValue="2024-07-14"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+                <input type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)}
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-2">Payment Method</label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: "bank", label: "Bank Transfer", icon: Building2 },
-                  { id: "bkash", label: "bKash", icon: Phone },
-                  { id: "nagad", label: "Nagad", icon: Banknote },
-                  { id: "ssl", label: "SSLCommerz", icon: Globe },
-                ].map(({ id, label, icon: Icon }) => (
-                  <button key={id} onClick={() => setMethod(id)}
+                  { id: "bank", label: "Bank Transfer", icon: Building2, disabled: false },
+                  { id: "bkash", label: "bKash", icon: Phone, disabled: true },
+                  { id: "nagad", label: "Nagad", icon: Banknote, disabled: true },
+                  { id: "ssl", label: "SSLCommerz", icon: Globe, disabled: true },
+                ].map(({ id, label, icon: Icon, disabled }) => (
+                  <button key={id} type="button" onClick={() => !disabled && setMethod(id)} disabled={disabled}
                     className={cn("flex flex-col items-center gap-1 p-3 border rounded-lg text-xs transition-all",
-                      method === id ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+                      disabled ? "border-slate-100 text-slate-300 cursor-not-allowed opacity-50" :
+                      method === id ? "border-[#1B75BC] bg-[#1B75BC]/5 text-[#1B75BC]" : "border-[var(--color-border)] text-slate-600 hover:border-slate-300")}>
                     <Icon size={16} />
                     {label}
+                    {disabled && <span className="text-[10px] text-slate-300">Soon</span>}
                   </button>
                 ))}
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Reference / Transaction ID</label>
-              <input placeholder="TXN ID or cheque number…"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+              <input placeholder="TXN ID or cheque number…" value={reference} onChange={e => setReference(e.target.value)}
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Remarks</label>
               <textarea rows={2} placeholder="Optional remarks…"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none resize-none" />
             </div>
             <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
-              <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
-              <button className="px-5 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+              <button type="button" onClick={() => { setSelectedInv(""); setAmount(""); setReference(""); }}
+                className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
+              <button type="button" onClick={submit} disabled={record.isPending || !selected || !(Number(amount) > 0)}
+                className="px-5 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50">
+                {record.isPending && <Loader2 size={14} className="animate-spin" />}
                 <CheckCircle size={14} /> Record Payment
               </button>
             </div>
           </div>
+          )}
         </div>
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
             <h4 className="font-semibold text-slate-800 mb-3">Pending Collections</h4>
+            {isLoading ? (
+              <div className="flex justify-center py-8 text-slate-400"><Loader2 size={18} className="animate-spin" /></div>
+            ) : pending.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-6">No outstanding invoices.</p>
+            ) : (
             <div className="space-y-3">
-              {INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled").map(inv => (
+              {pending.map(inv => (
                 <div key={inv.id} className="pb-3 border-b border-slate-50 last:border-0 last:pb-0">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs font-mono text-slate-400">{inv.id}</p>
-                      <p className="text-sm font-medium text-slate-700">{inv.customer}</p>
+                      <p className="text-xs font-mono text-slate-400">{inv.invoiceNo ?? inv.id.slice(0, 8)}</p>
+                      <p className="text-sm font-medium text-slate-700">{inv.customerName ?? "—"}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-red-500 font-mono">{fmtC(inv.amount - inv.paid)}</p>
-                      <InvStatusChip status={inv.status} />
+                      <p className="text-sm font-bold text-red-500 font-mono">{fmtC(inv.dueAmount, inv.currency as Currency)}</p>
+                      <InvStatusChip status={st2vm(inv.status)} />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -743,41 +901,89 @@ function PaymentCollectionView() {
 }
 
 // ─── Installment Plan Builder ─────────────────────────────────────────────────
+function planProgress(plan: InstallmentPlanDto) {
+  const paid = plan.downAmount + plan.installments.reduce((s, i) => s + i.paidAmount, 0);
+  const paidCount = plan.installments.filter(i => i.status === "PAID" || i.paidAmount >= i.amountDue).length;
+  const next = plan.installments.find(i => i.status !== "PAID" && i.paidAmount < i.amountDue);
+  const isOverdue = plan.installments.some(i => i.status === "OVERDUE");
+  return { paid, paidCount, next, isOverdue };
+}
+
 function InstallmentBuilderView() {
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState("");
   const [totalAmount, setTotalAmount] = useState("520000");
   const [installments, setInstallments] = useState(4);
   const [downPct, setDownPct] = useState(20);
+
+  const { data: invData } = useInvoices({ pageSize: 50 });
+  const { data: plansData, isLoading: plansLoading } = useInstallmentPlans({ pageSize: 20 });
+  const createPlan = useCreateInstallmentPlan();
+
+  const invoiceOptions = invData?.data ?? [];
+  const selectedInv = invoiceOptions.find(i => i.id === selectedInvoiceId);
 
   const total = parseFloat(totalAmount) || 0;
   const down = Math.round(total * (downPct / 100));
   const remaining = total - down;
   const each = installments > 0 ? Math.round(remaining / installments) : 0;
 
-  const TRACKER_PLANS = [
-    { id: "IP-2401", customer: "Md. Karim Ullah", total: 520000, paid: 312000, installments: 5, paid_n: 3, next: "Aug 1", status: "active" },
-    { id: "IP-2403", customer: "Ahmed Family × 3", total: 215000, paid: 43000, installments: 5, paid_n: 1, next: "Jul 20", status: "active" },
-    { id: "IP-2404", customer: "Rahim & Sons Agency", total: 450000, paid: 0, installments: 3, paid_n: 0, next: "Jul 16", status: "overdue" },
-  ];
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const buildInstallmentRows = () =>
+    Array.from({ length: installments }, (_, i) => {
+      const d = new Date();
+      d.setMonth(d.getMonth() + i + 1);
+      return {
+        label: `Installment ${i + 1}`,
+        amountDue: each,
+        dueDate: d.toISOString().slice(0, 10),
+        monthLabel: `${monthLabels[d.getMonth()]} ${d.getDate()}`,
+      };
+    });
+
+  const handleCreatePlan = () => {
+    if (!selectedInv) return;
+    createPlan.mutate({
+      invoiceId: selectedInv.id,
+      customerId: selectedInv.customerId,
+      currency: selectedInv.currency,
+      downAmount: down,
+      installments: buildInstallmentRows().map(({ label, amountDue, dueDate }) => ({ label, amountDue, dueDate })),
+    });
+  };
+
+  const activePlans = plansData?.data ?? [];
 
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold text-slate-800">Installment Plan Builder</h2>
       <div className="grid grid-cols-3 gap-5">
         {/* Builder */}
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+        <div className="col-span-2 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
           <h3 className="font-semibold text-slate-800 mb-5">Create New Plan</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Customer / Booking</label>
-              <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                <option>Select booking…</option>
-                {INVOICES.map(i => <option key={i.id}>{i.id} – {i.customer}</option>)}
+              <select
+                value={selectedInvoiceId}
+                onChange={e => {
+                  const id = e.target.value;
+                  setSelectedInvoiceId(id);
+                  const inv = invoiceOptions.find(i => i.id === id);
+                  if (inv) setTotalAmount(String(inv.dueAmount || inv.total));
+                }}
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none"
+              >
+                <option value="">Select invoice…</option>
+                {invoiceOptions.map(i => (
+                  <option key={i.id} value={i.id}>{i.invoiceNo ?? i.id} – {i.customerName ?? "Customer"}</option>
+                ))}
               </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Total Amount (BDT)</label>
               <input type="number" value={totalAmount} onChange={e => setTotalAmount(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-5">
@@ -805,57 +1011,70 @@ function InstallmentBuilderView() {
                   <span className="font-mono font-semibold text-slate-800">{fmtC(down)}</span>
                 </div>
               </div>
-              {Array.from({ length: installments }, (_, i) => (
+              {buildInstallmentRows().map((row, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{i + 1}</div>
                   <div className="flex-1 flex justify-between text-sm">
-                    <span className="text-slate-600">Installment {i + 1} – {["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"][i]} 1</span>
-                    <span className="font-mono font-semibold text-slate-800">{fmtC(each)}</span>
+                    <span className="text-slate-600">Installment {i + 1} – {row.monthLabel}</span>
+                    <span className="font-mono font-semibold text-slate-800">{fmtC(row.amountDue)}</span>
                   </div>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-bold">
+              <div className="flex justify-between pt-2 border-t border-[var(--color-border)] text-sm font-bold">
                 <span className="text-slate-800">Total</span>
                 <span className="font-mono text-[#1B75BC]">{fmtC(down + each * installments)}</span>
               </div>
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Save Draft</button>
-            <button className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Create Plan</button>
+            <button
+              onClick={handleCreatePlan}
+              disabled={!selectedInv || createPlan.isPending}
+              className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] disabled:opacity-50 flex items-center gap-2"
+            >
+              {createPlan.isPending && <Loader2 size={14} className="animate-spin" />}
+              Create Plan
+            </button>
           </div>
         </div>
         {/* Active plans tracker */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h4 className="font-semibold text-slate-800 mb-4">Active Plans</h4>
-          <div className="space-y-4">
-            {TRACKER_PLANS.map(plan => {
-              const pct = Math.round((plan.paid / plan.total) * 100);
-              return (
-                <div key={plan.id} className="pb-4 border-b border-slate-50 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono text-slate-400">{plan.id}</span>
-                    <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full",
-                      plan.status === "overdue" ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700")}>
-                      {plan.status}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-slate-700">{plan.customer}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", plan.status === "overdue" ? "bg-red-400" : "bg-[#1B75BC]")}
-                        style={{ width: `${pct}%` }} />
+          {plansLoading ? (
+            <div className="flex justify-center py-8 text-slate-400"><Loader2 size={18} className="animate-spin" /></div>
+          ) : activePlans.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-6">No installment plans yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {activePlans.map(plan => {
+                const { paid, paidCount, next, isOverdue } = planProgress(plan);
+                const pct = plan.total > 0 ? Math.round((paid / plan.total) * 100) : 0;
+                return (
+                  <div key={plan.id} className="pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-mono text-slate-400">{plan.id.slice(0, 8).toUpperCase()}</span>
+                      <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full",
+                        isOverdue ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700")}>
+                        {isOverdue ? "overdue" : plan.status}
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-500 font-mono">{pct}%</span>
+                    <p className="text-sm font-medium text-slate-700">{plan.customerName ?? "Customer"}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={cn("h-full rounded-full", isOverdue ? "bg-red-400" : "bg-[#1B75BC]")}
+                          style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs text-slate-500 font-mono">{pct}%</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 mt-1">
+                      <span>{paidCount}/{plan.installments.length} paid</span>
+                      <span>Next: {next ? new Date(next.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—"}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>{plan.paid_n}/{plan.installments} paid</span>
-                    <span>Next: {plan.next}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -864,7 +1083,38 @@ function InstallmentBuilderView() {
 
 // ─── Due Management ───────────────────────────────────────────────────────────
 function DueManagementView() {
-  const totalDue = AGING_DATA.reduce((s, d) => s + d.amount, 0);
+  const navigate = useNavigate();
+  const { data, isLoading, isError, error, refetch } = useInvoices({ pageSize: 500 });
+  const stats = data?.stats ?? { total: 0, totalBilled: 0, totalPaid: 0, totalDue: 0, overdue: 0 };
+  const outstanding = (data?.data ?? []).filter(inv => inv.dueAmount > 0 && inv.status !== "CANCELLED" && inv.status !== "DRAFT");
+
+  const agingData = AGING_BUCKETS.map(b => ({
+    range: b.range,
+    color: b.color,
+    amount: 0,
+    count: 0,
+  }));
+  for (const inv of outstanding) {
+    const days = daysOverdue(inv.dueDate);
+    const bucket = agingBucket(days);
+    const idx = AGING_BUCKETS.indexOf(bucket);
+    agingData[idx].amount += inv.dueAmount;
+    agingData[idx].count += 1;
+  }
+
+  const overdue30Plus = outstanding
+    .filter(inv => daysOverdue(inv.dueDate) > 30)
+    .reduce((s, inv) => s + inv.dueAmount, 0);
+  const avgDays = outstanding.length
+    ? Math.round(outstanding.reduce((s, inv) => s + daysOverdue(inv.dueDate), 0) / outstanding.length)
+    : 0;
+
+  const dueRows = [...outstanding].sort((a, b) => daysOverdue(b.dueDate) - daysOverdue(a.dueDate));
+
+  if (isLoading) {
+    return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -872,40 +1122,42 @@ function DueManagementView() {
           <h2 className="text-xl font-bold text-slate-800">Due Management</h2>
           <p className="text-sm text-slate-500 mt-0.5">Aging analysis and follow-up</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+        <button onClick={() => navigate("/erp/communications")}
+          className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600">
           <Send size={14} /> Send All Reminders
         </button>
       </div>
+      {isError && <ErrorBanner message={(error as Error)?.message || "Failed to load invoices."} onRetry={() => refetch()} />}
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Total Outstanding" value={fmtC(totalDue)} icon={Wallet} color="bg-amber-500" />
-        <KpiCard label="Overdue (30+ days)" value={fmtC(473000)} trend={-5} icon={AlertTriangle} color="bg-red-500" />
-        <KpiCard label="Invoices Due" value="8" icon={FileText} color="bg-[#1B75BC]" />
-        <KpiCard label="Avg. Days Outstanding" value="18 days" icon={Clock} color="bg-slate-500" />
+        <KpiCard label="Total Outstanding" value={fmtC(stats.totalDue)} icon={Wallet} color="bg-amber-500" />
+        <KpiCard label="Overdue (30+ days)" value={fmtC(overdue30Plus)} icon={AlertTriangle} color="bg-red-500" />
+        <KpiCard label="Invoices Due" value={String(outstanding.length)} icon={FileText} color="bg-[#1B75BC]" />
+        <KpiCard label="Avg. Days Outstanding" value={outstanding.length ? `${avgDays} days` : "—"} icon={Clock} color="bg-slate-500" />
       </div>
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
             <h3 className="font-semibold text-slate-800 mb-4">Aging Analysis</h3>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={AGING_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 10 }}>
+              <BarChart data={agingData} margin={{ top: 5, right: 5, bottom: 5, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                 <XAxis dataKey="range" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
                   tickFormatter={v => `৳${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: number) => [fmtC(v), "Amount"]} />
                 <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                  {AGING_DATA.map((d, i) => (
-                    <rect key={i} fill={d.color} />
+                  {agingData.map((d, i) => (
+                    <Cell key={i} fill={d.color} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
           <h4 className="font-semibold text-slate-800 mb-4">Aging Summary</h4>
           <div className="space-y-3">
-            {AGING_DATA.map(d => (
+            {agingData.map(d => (
               <div key={d.range} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
@@ -915,45 +1167,49 @@ function DueManagementView() {
                 <span className="text-sm font-semibold text-slate-800 font-mono">{fmtC(d.amount)}</span>
               </div>
             ))}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 font-bold">
+            <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)] font-bold">
               <span className="text-sm text-slate-800">Total</span>
-              <span className="text-sm text-slate-800 font-mono">{fmtC(totalDue)}</span>
+              <span className="text-sm text-slate-800 font-mono">{fmtC(stats.totalDue)}</span>
             </div>
           </div>
         </div>
       </div>
       {/* Overdue invoices */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-semibold text-slate-800">Overdue & Pending Invoices</h3>
         </div>
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              {["Invoice", "Customer", "Service", "Due Date", "Outstanding", "Days Overdue", "Status", "Action"].map(h => (
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
+              {["Invoice", "Customer", "Due Date", "Outstanding", "Days Overdue", "Status", "Action"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {INVOICES.filter(i => i.status !== "paid" && i.status !== "cancelled").map(inv => (
-              <tr key={inv.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{inv.id}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{inv.customer}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{inv.service}</td>
-                <td className={cn("px-4 py-3 text-sm", inv.status === "overdue" ? "text-red-600 font-medium" : "text-slate-500")}>{inv.dueDate}</td>
-                <td className="px-4 py-3 text-sm font-mono font-semibold text-red-500">{fmtC(inv.amount - inv.paid)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{inv.status === "overdue" ? "2 days" : "—"}</td>
-                <td className="px-4 py-3"><InvStatusChip status={inv.status} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1">
-                    <button className="text-xs text-[#1B75BC] hover:underline">Remind</button>
-                    <span className="text-slate-300">·</span>
-                    <button className="text-xs text-emerald-600 hover:underline">Collect</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {dueRows.length === 0 ? (
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-400">No outstanding invoices.</td></tr>
+            ) : dueRows.map(inv => {
+              const days = daysOverdue(inv.dueDate);
+              return (
+                <tr key={inv.id} className="border-b border-slate-50 hover:bg-slate-50">
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{inv.invoiceNo ?? inv.id.slice(0, 8)}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-slate-700">{inv.customerName ?? "—"}</td>
+                  <td className={cn("px-4 py-3 text-sm", days > 0 ? "text-red-600 font-medium" : "text-slate-500")}>{inv.dueDate ?? "—"}</td>
+                  <td className="px-4 py-3 text-sm font-mono font-semibold text-red-500">{fmtC(inv.dueAmount, inv.currency as Currency)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-500">{days > 0 ? `${days} days` : "—"}</td>
+                  <td className="px-4 py-3"><InvStatusChip status={st2vm(inv.status)} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      <button onClick={() => navigate("/erp/communications")} className="text-xs text-[#1B75BC] hover:underline">Remind</button>
+                      <span className="text-slate-300">·</span>
+                      <button onClick={() => navigate("/erp/communications")} className="text-xs text-emerald-600 hover:underline">Collect</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -963,6 +1219,17 @@ function DueManagementView() {
 
 // ─── Payment History ──────────────────────────────────────────────────────────
 function PaymentHistoryView() {
+  const payQ = usePayments({ pageSize: 100 });
+  const rows = payQ.data?.data ?? [];
+  const stats = payQ.data?.stats;
+  const confirmed = rows.filter((p) => p.status === "CONFIRMED" && !p.isReversed);
+  const failed = rows.filter((p) => p.status === "FAILED");
+  const totalReceived = stats?.totalIn ?? confirmed.reduce((s, p) => s + p.amount, 0);
+
+  if (payQ.isLoading) {
+    return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -970,37 +1237,38 @@ function PaymentHistoryView() {
           <h2 className="text-xl font-bold text-slate-800">Payment History</h2>
           <p className="text-sm text-slate-500 mt-0.5">All payment transactions</p>
         </div>
-        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-          <Download size={14} /> Export
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Received (Jul)" value={fmtC(743500)} trend={14} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Transactions" value={String(PAYMENT_HISTORY.length)} icon={Receipt} color="bg-blue-500" />
-        <KpiCard label="Failed" value="1" icon={XCircle} color="bg-red-500" />
+        <KpiCard label="Total Received" value={fmtC(totalReceived)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Transactions" value={String(rows.length)} icon={Receipt} color="bg-blue-500" />
+        <KpiCard label="Failed" value={String(failed.length)} icon={XCircle} color="bg-red-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              {["Txn ID", "Invoice", "Customer", "Amount", "Method", "Gateway", "Date", "Status"].map(h => (
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
+              {["Txn ID", "Invoice", "Customer", "Amount", "Method", "Date", "Status"].map((h) => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {PAYMENT_HISTORY.map(p => (
+            {rows.length === 0 ? (
+              <tr><td colSpan={7} className="px-4 py-8 text-sm text-slate-400 text-center">No payments recorded yet.</td></tr>
+            ) : rows.map((p) => (
               <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.id}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoice}</td>
-                <td className="px-4 py-3 text-sm text-slate-700">{p.customer}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{p.paymentNo ?? p.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{p.invoiceNo ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-700">{p.customerName ?? "—"}</td>
                 <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(p.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.gateway}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{p.date}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{p.method.replace(/_/g, " ")}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{new Date(p.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
                 <td className="px-4 py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status])}>
-                    {p.status}
+                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
+                    p.status === "CONFIRMED" && !p.isReversed ? PAY_STATUS_CFG.confirmed :
+                    p.status === "FAILED" ? PAY_STATUS_CFG.failed :
+                    p.isReversed ? PAY_STATUS_CFG.refunded : PAY_STATUS_CFG.pending)}>
+                    {p.isReversed ? "reversed" : p.status.toLowerCase()}
                   </span>
                 </td>
               </tr>
@@ -1016,74 +1284,27 @@ function PaymentHistoryView() {
 function OnlinePaymentsView() {
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold text-slate-800">Online Payments</h2>
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { name: "bKash", logo: "bK", color: "#E2136E", vol: 3200000, txn: 148, rate: "98.6%" },
-          { name: "Nagad", logo: "Na", color: "#F05A28", vol: 1850000, txn: 97, rate: "99.1%" },
-          { name: "SSLCommerz", logo: "SSL", color: "#0065BD", vol: 2100000, txn: 62, rate: "97.8%" },
-        ].map(gw => (
-          <div key={gw.name} className="bg-white rounded-xl border border-slate-200 p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: gw.color }}>{gw.logo}</div>
-              <div>
-                <p className="font-semibold text-slate-800">{gw.name}</p>
-                <span className="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">Active</span>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Monthly Volume</span>
-                <span className="font-mono font-semibold text-slate-800">{fmtC(gw.vol)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Transactions</span>
-                <span className="font-mono font-semibold text-slate-800">{gw.txn}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Success Rate</span>
-                <span className="font-semibold text-emerald-600">{gw.rate}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="font-semibold text-slate-800 mb-4">Recent Online Transactions</h3>
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="border-b border-slate-100">
-              {["Txn ID", "Customer", "Invoice", "Gateway", "Amount", "Time", "Status"].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 pb-2 pr-4">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {PAYMENT_HISTORY.map(p => (
-              <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.id}</td>
-                <td className="py-3 pr-4 text-sm text-slate-700">{p.customer}</td>
-                <td className="py-3 pr-4 text-xs font-mono text-slate-400">{p.invoice}</td>
-                <td className="py-3 pr-4 text-sm text-slate-500">{p.gateway}</td>
-                <td className="py-3 pr-4 text-sm font-mono font-semibold text-slate-800">{fmtC(p.amount)}</td>
-                <td className="py-3 pr-4 text-sm text-slate-400">{p.date}, 10:41 AM</td>
-                <td className="py-3">
-                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", PAY_STATUS_CFG[p.status])}>
-                    {p.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <EmptyState
+        variant="coming-soon"
+        title="Online payments"
+        desc="Payments are recorded manually in the Payments tab. Online gateway collection is planned for a later release."
+      />
     </div>
   );
 }
 
 // ─── Refunds ──────────────────────────────────────────────────────────────────
 function RefundsView() {
+  const refundQ = useRefunds({ pageSize: 100 });
+  const rows = refundQ.data?.data ?? [];
+  const totalRefunded = rows.filter((r) => r.status === "PROCESSED" || r.status === "APPROVED").reduce((s, r) => s + r.amount, 0);
+  const pending = rows.filter((r) => r.status === "PENDING").length;
+  const processed = rows.filter((r) => r.status === "PROCESSED").length;
+
+  if (refundQ.isLoading) {
+    return <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -1091,49 +1312,40 @@ function RefundsView() {
           <h2 className="text-xl font-bold text-slate-800">Refunds</h2>
           <p className="text-sm text-slate-500 mt-0.5">Process and track customer refunds</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> New Refund
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Refunded (Jul)" value={fmtC(210000)} icon={RotateCcw} color="bg-red-500" />
-        <KpiCard label="Pending Approval" value="1" icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Processed" value="2" icon={CheckCircle} color="bg-emerald-500" />
+        <KpiCard label="Total Refunded" value={fmtC(totalRefunded)} icon={RotateCcw} color="bg-red-500" />
+        <KpiCard label="Pending Approval" value={String(pending)} icon={Clock} color="bg-amber-500" />
+        <KpiCard label="Processed" value={String(processed)} icon={CheckCircle} color="bg-emerald-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              {["Ref ID", "Invoice", "Customer", "Reason", "Amount", "Method", "Date", "Status", ""].map(h => (
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
+              {["Ref ID", "Invoice", "Customer", "Reason", "Amount", "Method", "Date", "Status"].map((h) => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {REFUNDS.map(r => (
+            {rows.length === 0 ? (
+              <tr><td colSpan={8} className="px-4 py-8 text-sm text-slate-400 text-center">No refunds recorded yet.</td></tr>
+            ) : rows.map((r) => (
               <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.id}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.invoice}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{r.customer}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.reason}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.refundNo ?? r.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-500">{r.invoiceNo ?? "—"}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-700">{r.customerName ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{r.reason ?? "—"}</td>
                 <td className="px-4 py-3 text-sm font-semibold text-slate-800 font-mono">{fmtC(r.amount)}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.method}</td>
-                <td className="px-4 py-3 text-sm text-slate-500">{r.date}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{r.method?.replace(/_/g, " ") ?? "—"}</td>
+                <td className="px-4 py-3 text-sm text-slate-500">{new Date(r.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
                 <td className="px-4 py-3">
                   <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                    r.status === "processed" ? "bg-emerald-50 text-emerald-700" :
-                    r.status === "approved" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700")}>
-                    {r.status}
+                    r.status === "PROCESSED" ? "bg-emerald-50 text-emerald-700" :
+                    r.status === "APPROVED" ? "bg-blue-50 text-blue-700" :
+                    r.status === "REJECTED" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700")}>
+                    {r.status.toLowerCase()}
                   </span>
-                </td>
-                <td className="px-4 py-3">
-                  {r.status === "pending" && (
-                    <div className="flex gap-1">
-                      <button className="text-xs text-emerald-600 hover:underline">Approve</button>
-                      <span className="text-slate-300">·</span>
-                      <button className="text-xs text-red-500 hover:underline">Reject</button>
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -1148,64 +1360,11 @@ function RefundsView() {
 function VouchersView() {
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Vouchers & Promo Codes</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Create and manage discount vouchers</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={14} /> Create Voucher
-        </button>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        {VOUCHERS.map(v => (
-          <div key={v.id} className={cn("bg-white rounded-xl border p-5 relative overflow-hidden",
-            v.status === "expired" ? "border-slate-200 opacity-60" : "border-slate-200")}>
-            {v.status === "active" && (
-              <div className="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">ACTIVE</div>
-            )}
-            {v.status === "expired" && (
-              <div className="absolute top-0 right-0 bg-slate-400 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">EXPIRED</div>
-            )}
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#F15A24]/10 flex items-center justify-center">
-                <Tag size={18} className="text-[#D64A12]" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 font-mono text-lg">{v.code}</p>
-                <p className="text-sm text-slate-500">{v.service}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm mb-3">
-              <div>
-                <p className="text-xs text-slate-400">Discount</p>
-                <p className="font-bold text-[#1B75BC]">
-                  {v.type === "flat" ? `${CURRENCY_SYMBOL[v.currency]}${v.value} off` : `${v.value}% off`}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">Expires</p>
-                <p className="font-semibold text-slate-700">{v.expires}</p>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-xs text-slate-500 mb-1">
-                <span>Usage: {v.used}/{v.limit}</span>
-                <span>{Math.round((v.used / v.limit) * 100)}%</span>
-              </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#F15A24] rounded-full" style={{ width: `${(v.used / v.limit) * 100}%` }} />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-              <button className="text-xs text-[#1B75BC] hover:underline">Edit</button>
-              <span className="text-slate-300">·</span>
-              <button className="text-xs text-slate-400 hover:underline">View Usage</button>
-              {v.status === "active" && <><span className="text-slate-300">·</span><button className="text-xs text-red-500 hover:underline">Disable</button></>}
-            </div>
-          </div>
-        ))}
-      </div>
+      <EmptyState
+        variant="no-data"
+        title="No vouchers yet"
+        desc="Booking vouchers will appear here once issued."
+      />
     </div>
   );
 }
@@ -1227,7 +1386,7 @@ function CreateInvoiceDrawer({ onClose, onCreated }: { onClose: () => void; onCr
   };
   return (
     <Drawer open onClose={onClose} title="New Invoice" subtitle="Draft — a number is allocated on issue" width="max-w-[620px]"
-      footer={<><button onClick={onClose} className="h-9 px-4 border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={create.isPending || !customerId || total <= 0}>{create.isPending && <Loader2 size={13} className="animate-spin" />} Create Draft</PrimaryBtn></>}>
+      footer={<><button onClick={onClose} className="h-9 px-4 border border-[var(--color-border)] rounded-[8px] text-[12px] font-medium text-[#374151]">Cancel</button><PrimaryBtn onClick={submit} disabled={create.isPending || !customerId || total <= 0}>{create.isPending && <Loader2 size={13} className="animate-spin" />} Create Draft</PrimaryBtn></>}>
       <div className="flex flex-col gap-4">
         <Field label="Customer" required>
           <select className={selectCls} value={customerId} onChange={e => setCustomerId(e.target.value)}>
@@ -1286,7 +1445,7 @@ export function InvoicesModule() {
   return (
     <div className="flex h-full min-h-screen bg-[#F0F2F5]">
       {/* Sub-nav */}
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
         <div className="px-4 py-4 border-b border-slate-100">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Invoices & Payments</h2>
         </div>

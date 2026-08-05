@@ -4,7 +4,7 @@ import {
   SlidersHorizontal, Calendar, Trash2, Phone,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { SkeletonTable, ErrorBanner } from "../../lib/ds";
+import { ErrorBanner } from "../../lib/ds";
 import { SERVICE_LABEL, SERVICE_ENUM } from "../../hooks/bookings";
 import {
   useLeads, useLeadStage, useDeleteLead, useUsers, useBranches,
@@ -15,6 +15,7 @@ import { LeadDetailDrawer } from "./LeadDetail";
 import { LeadFormDrawer } from "./forms";
 import type { ServiceTypeDto } from "@contracts/booking.contract";
 import type { LeadStageDto } from "@contracts/crm.contract";
+import { DataTable, type DataColumn } from "../../design-system";
 
 const SERVICE_OPTS = Object.entries(SERVICE_LABEL) as [ServiceTypeDto, string][];
 
@@ -55,6 +56,42 @@ export function LeadsView() {
 
   const openNew = () => { setEditLead(null); setFormOpen(true); };
   const openEdit = (l: LeadDetail) => { setEditLead(l); setFormOpen(true); setDetailId(null); };
+
+  const columns: DataColumn<LeadListItem>[] = [
+    {
+      id: "name",
+      header: "Name",
+      mobileLabel: "Name",
+      cell: (l) => (
+        <button type="button" onClick={() => setDetailId(l.id)} className="text-left cursor-pointer">
+          <div className="flex items-center gap-1.5">
+            <div className="text-[12px] font-semibold text-[#111827]">{l.name}</div>
+            <Pill label={l.interest[0] + l.interest.slice(1).toLowerCase()} color={INTEREST_META[l.interest].color} bg={INTEREST_META[l.interest].bg} />
+          </div>
+          <div className="text-[10px] text-[#9CA3AF] flex items-center gap-1"><Phone size={9} /> {l.phone}</div>
+        </button>
+      ),
+    },
+    { id: "source", header: "Source", cell: (l) => <span className="text-[11px] text-[#6B7280]">{l.source || "—"}</span> },
+    { id: "service", header: "Service", cell: (l) => <span className="text-[11px] text-[#374151]">{l.serviceInterest ? SERVICE_LABEL[l.serviceInterest] : "—"}</span> },
+    { id: "assigned", header: "Assigned", cell: (l) => <span className="text-[11px] text-[#374151]">{l.assignedToName || <span className="text-[#D1D5DB]">Unassigned</span>}</span> },
+    { id: "stage", header: "Stage", cell: (l) => <StageBadge stage={l.stage} /> },
+    { id: "lastContact", header: "Last Contact", cell: (l) => <span className="text-[10px] text-[#9CA3AF]">{fmtDateTime(l.lastContactAt)}</span> },
+    { id: "nextFollowUp", header: "Next Follow-up", cell: (l) => <span className="text-[10px] text-[#9CA3AF] flex items-center gap-1">{l.nextFollowUpAt && <Calendar size={9} />}{fmtDateTime(l.nextFollowUpAt)}</span> },
+    {
+      id: "actions",
+      header: "",
+      cell: (l) => (
+        <button
+          onClick={(e) => { e.stopPropagation(); del.mutate(l.id); }}
+          className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#DC2626] hover:bg-[#FEE2E2] transition-all cursor-pointer"
+          title="Delete"
+        >
+          <Trash2 size={13} />
+        </button>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -127,48 +164,19 @@ export function LeadsView() {
 
       {isError ? (
         <Card className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load leads."} onRetry={() => refetch()} /></Card>
-      ) : isLoading ? (
-        <Card className="p-4"><SkeletonTable rows={8} cols={7} /></Card>
       ) : view === "kanban" ? (
+        isLoading ? <Card className="p-10 text-center text-[12px] text-[#9CA3AF]">Loading…</Card> :
         <KanbanBoard rows={rows} onOpen={setDetailId} onMove={(id, s) => setStageMut.mutate({ id, stage: s })} />
       ) : (
-        <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px]">
-              <thead className="bg-[#F7F8FA] border-b border-[#E5E7EB]">
-                <tr>
-                  {["Name", "Source", "Service", "Assigned", "Stage", "Last Contact", "Next Follow-up", ""].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F3F4F6]">
-                {rows.map((l) => (
-                  <tr key={l.id} className="hover:bg-[#F7F8FA] transition-colors group cursor-pointer" onClick={() => setDetailId(l.id)}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className="text-[12px] font-semibold text-[#111827]">{l.name}</div>
-                        <Pill label={l.interest[0] + l.interest.slice(1).toLowerCase()} color={INTEREST_META[l.interest].color} bg={INTEREST_META[l.interest].bg} />
-                      </div>
-                      <div className="text-[10px] text-[#9CA3AF] flex items-center gap-1"><Phone size={9} /> {l.phone}</div>
-                    </td>
-                    <td className="px-4 py-3"><span className="text-[11px] text-[#6B7280]">{l.source || "—"}</span></td>
-                    <td className="px-4 py-3"><span className="text-[11px] text-[#374151]">{l.serviceInterest ? SERVICE_LABEL[l.serviceInterest] : "—"}</span></td>
-                    <td className="px-4 py-3"><span className="text-[11px] text-[#374151]">{l.assignedToName || <span className="text-[#D1D5DB]">Unassigned</span>}</span></td>
-                    <td className="px-4 py-3"><StageBadge stage={l.stage} /></td>
-                    <td className="px-4 py-3"><span className="text-[10px] text-[#9CA3AF]">{fmtDateTime(l.lastContactAt)}</span></td>
-                    <td className="px-4 py-3"><span className="text-[10px] text-[#9CA3AF] flex items-center gap-1">{l.nextFollowUpAt && <Calendar size={9} />}{fmtDateTime(l.nextFollowUpAt)}</span></td>
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => del.mutate(l.id)} className="p-1.5 rounded-[6px] text-[#9CA3AF] hover:text-[#DC2626] hover:bg-[#FEE2E2] opacity-0 group-hover:opacity-100 transition-all cursor-pointer" title="Delete"><Trash2 size={13} /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={page} totalPages={data?.totalPages ?? 1} total={data?.total ?? 0} pageSize={PER_PAGE} onPage={setPage} />
-          {rows.length === 0 && <div className="py-16 text-center"><Search size={32} className="text-[#E5E7EB] mx-auto mb-3" /><p className="text-[13px] text-[#6B7280] font-medium">No leads match your filters</p></div>}
-        </Card>
+        <DataTable<LeadListItem>
+          viewKey="crm-leads"
+          columns={columns}
+          rows={rows}
+          rowKey={(l) => l.id}
+          loading={isLoading}
+          emptyTitle="No leads match your filters"
+          footer={<Pagination page={page} totalPages={data?.totalPages ?? 1} total={data?.total ?? 0} pageSize={PER_PAGE} onPage={setPage} />}
+        />
       )}
 
       {detailId && <LeadDetailDrawer leadId={detailId} onClose={() => setDetailId(null)} onEdit={openEdit} />}

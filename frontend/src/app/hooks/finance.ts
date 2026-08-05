@@ -142,6 +142,7 @@ export function useCreatePlan() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (input: InstallmentPlanCreateInput) => apiFetch<InstallmentPlanDto>("/installment-plans", { method: "POST", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["fin", "plans"] }); toast.success("Installment plan created"); }, onError: err });
 }
+export const useCreateInstallmentPlan = useCreatePlan;
 
 // ── Income / Expense ──────────────────────────────────────────────────────────
 export function useIncome(params: Record<string, string | number | undefined>) {

@@ -310,8 +310,8 @@ function BrandPanel({ view }: { view: AuthView }) {
         <div className="mt-auto pt-8 border-t border-white/10 flex items-center justify-between">
           <div className="text-white/30 text-[10px]">{t("brandPanel.footer.copyright")}</div>
           <div className="flex gap-3">
-            {(["privacy", "terms", "support"] as const).map(l => (
-              <a key={l} href="#" className="text-white/30 text-[10px] hover:text-white/60 transition-colors">{t(`brandPanel.footer.${l}`)}</a>
+            {([["privacy", "/privacy"], ["terms", "/terms"], ["support", "/contact"]] as const).map(([l, href]) => (
+              <a key={l} href={href} target="_blank" rel="noopener noreferrer" className="text-white/30 text-[10px] hover:text-white/60 transition-colors">{t(`brandPanel.footer.${l}`)}</a>
             ))}
           </div>
         </div>
@@ -356,7 +356,7 @@ function BackLink({ onClick, label }: { onClick: () => void; label?: string }) {
 
 // ─── Form screen wrappers ──────────────────────────────────────────────────────
 function FormHeader({ icon: Icon, iconColor = "#1B75BC", iconBg = "#EEF2FF", title, sub }: {
-  icon: React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>;
+  icon: React.ElementType;
   iconColor?: string; iconBg?: string; title: string; sub?: string;
 }) {
   return (
@@ -641,8 +641,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <span className="text-[12px] text-[#6B7280]">
                       <Trans t={t} i18nKey="registerCustomer.terms"
                         components={{
-                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
-                          privacy: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          privacy: <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
                         }} />
                     </span>
                   </label>
@@ -710,8 +710,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <span className="text-[12px] text-[#6B7280]">
                       <Trans t={t} i18nKey="registerAgent.terms"
                         components={{
-                          agreement: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
-                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          agreement: <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-semibold hover:underline" />,
                         }} />
                     </span>
                   </label>
@@ -798,7 +798,7 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                   <HelpCircle size={13} className="text-[#9CA3AF] flex-shrink-0" />
                   <span className="text-[11px] text-[#9CA3AF]">
                     <Trans t={t} i18nKey="twoFactor.lostAccess"
-                      components={{ a: <a href="#" className="text-[#1B75BC] font-bold hover:underline" /> }} />
+                      components={{ a: <a href="/contact" target="_blank" rel="noopener noreferrer" className="text-[#1B75BC] font-bold hover:underline" /> }} />
                   </span>
                 </div>
               </div>

@@ -11,11 +11,14 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, ScrollTable } from "../lib/responsive";
+import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth/AuthContext";
 import { useAccountantMe, useAccountantDashboard } from "../hooks/portals";
-import { useIncome, useExpenses, useInvoices, usePayments, useJournal } from "../hooks/finance";
-import { SampleBadge } from "./SampleBadge";
+import { useIncome, useExpenses, useInvoices, usePayments, useJournal, useBankAccounts } from "../hooks/finance";
+import { useOverview, usePnlReport } from "../hooks/reports";
+import { useAuditLogs } from "../hooks/ops";
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 
 const fmtBDT2 = (n: number) => "৳ " + Number(n || 0).toLocaleString("en-BD");
@@ -38,78 +41,17 @@ const NAV: { id: AccView; icon: React.ElementType; label: string; badge?: number
   { id: "invoices-payments",icon: FileText,        label: "portalAccountant:nav.invoicesPayments"},
   { id: "reports",          icon: BarChart3,       label: "portalAccountant:nav.financialReports"},
   { id: "tax",              icon: Shield,          label: "portalAccountant:nav.taxReports"      },
-  { id: "audit",            icon: ClipboardList,   label: "portalAccountant:nav.auditLogs",  badge: 3 },
+  { id: "audit",            icon: ClipboardList,   label: "portalAccountant:nav.auditLogs" },
   { id: "profile",          icon: User,            label: "portalCommon:nav.profile"             },
-];
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul"];
-const INCOME_DATA  = [820000,940000,1050000,1240000,1080000,1540000,1380000];
-const EXPENSE_DATA = [540000,620000,690000,780000,690000,920000,850000];
-
-const INCOME_ROWS = [
-  { category:"Package Sales",        amount:980000,  pct:71, color:"#1B75BC" },
-  { category:"Visa Services",        amount:145000,  pct:10, color:"#0E7C66" },
-  { category:"Air Ticket Commission",amount:138000,  pct:10, color:"#F15A24" },
-  { category:"Hotel Bookings",       amount:82000,   pct:6,  color:"#7C3AED" },
-  { category:"Tour Packages",        amount:35000,   pct:3,  color:"#2563EB" },
-];
-
-const EXPENSE_ROWS = [
-  { category:"Supplier Payments",  amount:590000, pct:69, color:"#EF4444" },
-  { category:"Salaries",           amount:120000, pct:14, color:"#F97316" },
-  { category:"Office Rent",        amount:45000,  pct:5,  color:"#EAB308" },
-  { category:"Marketing",          amount:42000,  pct:5,  color:"#8B5CF6" },
-  { category:"Utilities & Others", amount:53000,  pct:7,  color:"#94A3B8" },
-];
-
-const BANK_ACCOUNTS = [
-  { id:"ACC-01", bank:"Dutch-Bangla Bank",  type:"Current",  acct:"XXXXXXXXX001", balance:2840000, currency:"BDT" },
-  { id:"ACC-02", bank:"Islami Bank BD",     type:"Current",  acct:"XXXXXXXXX002", balance:1560000, currency:"BDT" },
-  { id:"ACC-03", bank:"BRAC Bank",          type:"Savings",  acct:"XXXXXXXXX003", balance:3200000, currency:"BDT" },
-  { id:"ACC-04", bank:"Cash in Hand",       type:"Petty Cash",acct:"—",           balance:45000,   currency:"BDT" },
-];
-
-const JOURNAL_ENTRIES = [
-  { id:"JNL-0741", date:"Jul 15", desc:"Commission income — July batch",         debit:"Commission Receivable", credit:"Income — Commission", amount:55000,  ref:"BK-0892",  status:"posted"  },
-  { id:"JNL-0740", date:"Jul 14", desc:"Supplier payment — Dar Al-Tawhid Hotel", debit:"Supplier Payable",      credit:"Bank — DBBL",          amount:2940000,ref:"INV-SUP-0241",status:"posted"  },
-  { id:"JNL-0739", date:"Jul 12", desc:"Salary disbursement — July 2024",        debit:"Salary Expense",         credit:"Bank — IBBL",          amount:120000, ref:"HR-JUL-24", status:"posted"  },
-  { id:"JNL-0738", date:"Jul 10", desc:"Client payment received — BK-0892",      debit:"Bank — DBBL",            credit:"Customer Deposits",    amount:130000, ref:"TXN-1092",  status:"posted"  },
-  { id:"JNL-0737", date:"Jul 8",  desc:"Office rent — July 2024",               debit:"Rent Expense",            credit:"Bank — BRAC",          amount:45000,  ref:"RENT-JUL",  status:"draft"   },
-];
-
-const INVOICES_DATA = [
-  { id:"INV-2024-0247", customer:"Md. Karim Ullah",  type:"customer", amount:520000, paid:390000, balance:130000, due:"Jul 31", status:"partial" },
-  { id:"INV-2024-0108", customer:"Shahana Parvin",   type:"customer", amount:215000, paid:215000, balance:0,      due:"Apr 30", status:"paid"    },
-  { id:"INV-SUP-0241",  customer:"Al-Amin Hotels",   type:"supplier", amount:2940000,paid:0,      balance:2940000,due:"Aug 1",  status:"unpaid"  },
-  { id:"INV-SUP-0238",  customer:"Al-Amin Hotels",   type:"supplier", amount:420000, paid:420000, balance:0,      due:"Jun 25", status:"paid"    },
-];
-
-const PAYMENTS_DATA = [
-  { id:"PAY-1044", type:"received", from:"Md. Karim Ullah", amount:130000, method:"bKash",       date:"Jun 29",  ref:"TXN-1092"     },
-  { id:"PAY-1043", type:"paid",     to:"Al-Amin Hotels",    amount:420000, method:"Bank Transfer",date:"Jun 27",  ref:"DBBL-TXN-XXX" },
-  { id:"PAY-1042", type:"received", from:"Shahana Parvin",  amount:215000, method:"Bank Transfer",date:"May 2",   ref:"BRAC-TXN-XXX" },
-  { id:"PAY-1041", type:"paid",     to:"Al-Amin Hotels",    amount:64000,  method:"Bank Transfer",date:"Jun 1",   ref:"DBBL-TXN-XXX" },
-];
-
-const AUDIT_LOG = [
-  { id:"AUD-5221", action:"Invoice created",     entity:"INV-2024-0247",  user:"Accountant",  time:"Jul 16 10:00", severity:"info"     },
-  { id:"AUD-5220", action:"Journal entry posted",entity:"JNL-0740",       user:"Accountant",  time:"Jul 14 14:30", severity:"info"     },
-  { id:"AUD-5219", action:"Payment recorded",    entity:"PAY-1044",       user:"Accountant",  time:"Jun 29 11:00", severity:"info"     },
-  { id:"AUD-5218", action:"Unauthorized access attempt",entity:"Reports", user:"Unknown",    time:"Jun 28 02:14", severity:"critical" },
-  { id:"AUD-5217", action:"Large payment flagged",entity:"INV-SUP-0241",  user:"System",      time:"Jul 14 14:31", severity:"warning"  },
-  { id:"AUD-5216", action:"Account balance reconciled",entity:"ACC-01",   user:"Accountant",  time:"Jun 30 17:00", severity:"info"     },
-];
-
-const TAX_DATA = [
-  { quarter:"Q1 (Jan–Mar)", income:2810000, vat:422000, tax:56200, filed:true,  deadline:"Apr 30" },
-  { quarter:"Q2 (Apr–Jun)", income:3860000, vat:579000, tax:77200, filed:true,  deadline:"Jul 31" },
-  { quarter:"Q3 (Jul–Sep)", income:null,    vat:null,   tax:null,  filed:false, deadline:"Oct 31" },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmtBDT  = (n: number) => "৳ " + n.toLocaleString("en-BD");
 const fmtShort = (n: number) => n >= 100000 ? "৳" + (n/100000).toFixed(n%100000===0?0:1)+"L" : "৳"+n.toLocaleString();
+
+const sevNorm = (s: string) => s.toLowerCase();
+const fmtAuditTime = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 const SEV_CFG: Record<string, { dot:string; row:string; badge:string }> = {
   info:     { dot:"bg-slate-400",  row:"",              badge:"bg-slate-100 text-slate-600 border-slate-200"        },
@@ -224,86 +166,53 @@ function IncomeExpenseView() {
 // ─── BANK & CASH ──────────────────────────────────────────────────────────────
 function BankCashView() {
   const { t } = useTranslation("portalAccountant");
-  const TRANSACTIONS = [
-    { date:"Jul 15", desc:"Client payment — BK-0892",      account:"DBBL", type:"credit", amount:130000  },
-    { date:"Jul 14", desc:"Supplier payment — Dar Al-Tawhid", account:"DBBL", type:"debit",  amount:2940000 },
-    { date:"Jul 12", desc:"Salary disbursement — Jul 24",  account:"IBBL", type:"debit",  amount:120000  },
-    { date:"Jul 10", desc:"Client payment — BK-0892",      account:"DBBL", type:"credit", amount:130000  },
-    { date:"Jun 27", desc:"Supplier settlement — Al-Amin", account:"DBBL", type:"debit",  amount:420000  },
-    { date:"Jun 25", desc:"Tour package revenue — BK-0881",account:"BRAC", type:"credit", amount:215000  },
-  ];
+  const { data: banks, isLoading, isError } = useBankAccounts();
+  const accounts = (banks ?? []).filter(a => a.active);
 
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.bankCash")}</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
+        <button disabled title="Statement export is not available in this build" className="flex items-center gap-1.5 text-sm text-slate-400 font-semibold border border-slate-200 px-3 py-1.5 rounded-xl opacity-60 cursor-not-allowed whitespace-nowrap">
           <Download size={14}/> {t("portalCommon:nav.statements")}
         </button>
       </div>
 
-      {/* Account cards */}
-      <div className="grid grid-cols-2 gap-3">
-        {BANK_ACCOUNTS.map((a,i) => (
-          <div key={a.id} className={cn("rounded-2xl p-5", i===0?"bg-gradient-to-br from-[#1B75BC] to-[#0a2a52] text-white":"bg-white border border-slate-200")}>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className={cn("text-xs font-medium", i===0?"text-white/70":"text-slate-400")}>{a.type}</p>
-                <p className={cn("font-bold mt-0.5", i===0?"text-white":"text-slate-800")}>{a.bank}</p>
-              </div>
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i===0?"bg-white/15":"bg-[#1B75BC]/8")}>
-                <Building2 size={14} className={i===0?"text-white":"text-[#1B75BC]"} />
-              </div>
-            </div>
-            <p className={cn("text-2xl font-black", i===0?"text-white":"text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>
-              {fmtShort(a.balance)}
-            </p>
-            <p className={cn("text-xs mt-1 font-mono", i===0?"text-white/50":"text-slate-400")}>{a.acct}</p>
-          </div>
-        ))}
-      </div>
+      {isLoading && <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>}
+      {isError && <p className="text-sm text-red-500 text-center py-8">Failed to load bank accounts.</p>}
 
-      {/* Transaction ledger */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <p className="font-bold text-slate-800">{t("bankCash.recentTransactions")}</p>
-          <div className="flex items-center gap-2">
-            <select className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none text-slate-600">
-              <option>{t("bankCash.allAccounts")}</option>
-              {BANK_ACCOUNTS.map(a=><option key={a.id}>{a.bank}</option>)}
-            </select>
-          </div>
-        </div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalCommon:labels.date","portalAccountant:bankCash.cols.description","portalAccountant:bankCash.cols.account","portalCommon:labels.type","portalCommon:labels.amount"].map((h,hi) => (
-                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {TRANSACTIONS.map((tx,i) => (
-              <tr key={i} className="hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{tx.date}</td>
-                <td className="px-4 py-3 text-sm text-slate-700 max-w-xs truncate">{tx.desc}</td>
-                <td className="px-4 py-3"><span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-mono">{tx.account}</span></td>
-                <td className="px-4 py-3">
-                  <span className={cn("flex items-center gap-1 text-xs font-semibold w-fit",
-                    tx.type==="credit"?"text-emerald-600":"text-red-500")}>
-                    {tx.type==="credit"?<ArrowDownLeft size={12}/>:<ArrowUpRight size={12}/>}
-                    {t(`bankCash.${tx.type}`)}
-                  </span>
-                </td>
-                <td className={cn("px-4 py-3 text-sm font-black font-mono",tx.type==="credit"?"text-emerald-600":"text-red-500")}>
-                  {tx.type==="credit"?"+":"-"}{fmtShort(tx.amount)}
-                </td>
-              </tr>
+      {!isLoading && !isError && accounts.length === 0 && (
+        <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.nothing")}</p>
+      )}
+
+      {accounts.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            {accounts.map((a, i) => (
+              <div key={a.id} className={cn("rounded-2xl p-5", i === 0 ? "bg-gradient-to-br from-[#1B75BC] to-[#0a2a52] text-white" : "bg-white border border-slate-200")}>
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className={cn("text-xs font-medium capitalize", i === 0 ? "text-white/70" : "text-slate-400")}>{a.type.toLowerCase().replace("_", " ")}</p>
+                    <p className={cn("font-bold mt-0.5", i === 0 ? "text-white" : "text-slate-800")}>{a.bankName ?? a.name}</p>
+                  </div>
+                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", i === 0 ? "bg-white/15" : "bg-[#1B75BC]/8")}>
+                    <Building2 size={14} className={i === 0 ? "text-white" : "text-[#1B75BC]"} />
+                  </div>
+                </div>
+                <p className={cn("text-2xl font-black", i === 0 ? "text-white" : "text-slate-800")} style={{ fontFamily:"'JetBrains Mono',monospace" }}>
+                  {fmtShort(Number(a.balance))}
+                </p>
+                <p className={cn("text-xs mt-1 font-mono", i === 0 ? "text-white/50" : "text-slate-400")}>{a.accountNumber ?? "—"}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+            <p className="text-sm text-slate-500">{t("bankCash.recentTransactions")}</p>
+            <p className="text-xs text-slate-400 mt-1">Transaction history is derived from posted journal entries in the ERP.</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -388,74 +297,72 @@ function InvPayView() {
 
 // ─── FINANCIAL REPORTS ────────────────────────────────────────────────────────
 function FinReportsView() {
-  const REPORTS_LIST = [
-    { name:"Profit & Loss Statement — Jul 2024",  type:"P&L",           date:"Jul 20" },
-    { name:"Balance Sheet — Q2 2024",            type:"Balance Sheet",  date:"Jun 30" },
-    { name:"Cash Flow Statement — Q2 2024",      type:"Cash Flow",      date:"Jun 30" },
-    { name:"Accounts Receivable Aging",          type:"AR Aging",       date:"Jul 18" },
-    { name:"Accounts Payable Summary",           type:"AP Summary",     date:"Jul 18" },
-    { name:"Budget vs Actual — H1 2024",         type:"Variance",       date:"Jun 30" },
-  ];
-
   const { t } = useTranslation("portalAccountant");
+  const filters = { range: "ytd" as const };
+  const overviewQ = useOverview(filters);
+  const pnlQ = usePnlReport(filters);
+  const overview = overviewQ.data;
+  const pnl = pnlQ.data;
+  const loading = overviewQ.isLoading || pnlQ.isLoading;
+  const failed = overviewQ.isError || pnlQ.isError;
+
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.financialReports")}</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3.5 py-2 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
-          <Plus size={14}/> {t("reports.customReport")}
-        </button>
       </div>
 
-      {/* KPI summary */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:t("reports.grossRevenue"),  val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)),   color:"text-emerald-600" },
-          { label:t("reports.totalExpenses"), val:fmtShort(EXPENSE_DATA.reduce((s,v)=>s+v,0)),  color:"text-red-500"     },
-          { label:t("reports.netProfit"),     val:fmtShort(INCOME_DATA.reduce((s,v)=>s+v,0)-EXPENSE_DATA.reduce((s,v)=>s+v,0)), color:"text-[#1B75BC]" },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
-            <p className={cn("text-xl font-black", s.color)} style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      {loading && <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin"/></div>}
+      {failed && !loading && <p className="text-sm text-red-500 text-center py-8">{t("portalCommon:empty.failed")}</p>}
 
-      {/* Reports list */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalAccountant:reports.cols.report","portalCommon:labels.type","portalAccountant:reports.cols.generated",""].map((h,hi) => (
-                <th key={hi} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {REPORTS_LIST.map((r,i) => (
-              <tr key={i} className="hover:bg-slate-50 transition-colors">
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-9 bg-[#1B75BC]/10 border border-[#1B75BC]/20 rounded-lg flex items-center justify-center text-[#1B75BC] text-xs font-bold">PDF</div>
-                    <p className="text-sm font-semibold text-slate-800">{r.name}</p>
-                  </div>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">{r.type}</span>
-                </td>
-                <td className="px-5 py-4 text-xs text-slate-400">{r.date}</td>
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap"><Eye size={12}/> {t("reports.view")}</button>
-                    <button className="flex items-center gap-1 text-xs text-slate-500 font-semibold hover:underline whitespace-nowrap"><Download size={12}/> PDF</button>
-                  </div>
-                </td>
-              </tr>
+      {overview && pnl && !loading && (
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: t("reports.grossRevenue"), val: fmtShort(overview.kpis.revenue), color: "text-emerald-600" },
+              { label: t("reports.totalExpenses"), val: fmtShort(overview.kpis.expenses), color: "text-red-500" },
+              { label: t("reports.netProfit"), val: fmtShort(overview.kpis.netProfit), color: "text-[#1B75BC]" },
+            ].map((s) => (
+              <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
+                <p className={cn("text-xl font-black", s.color)} style={{ fontFamily: "'JetBrains Mono',monospace" }}>{s.val}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100">
+              <p className="font-semibold text-slate-800 text-sm">P&amp;L — {pnl.applied.label}</p>
+              <p className="text-xs text-slate-400 mt-0.5">Net profit {fmtBDT(pnl.netProfit)} ({pnl.netMargin.toFixed(1)}% margin)</p>
+            </div>
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  {["Category", "Amount"].map((h) => (
+                    <th key={h} className="px-5 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                <tr><td colSpan={2} className="px-5 py-2 text-xs font-semibold text-emerald-600 uppercase">Revenue</td></tr>
+                {pnl.revenueLines.map((line) => (
+                  <tr key={line.code} className="hover:bg-slate-50">
+                    <td className="px-5 py-2 text-sm text-slate-700">{line.name}</td>
+                    <td className="px-5 py-2 text-sm font-mono font-semibold text-slate-800">{fmtBDT(line.amount)}</td>
+                  </tr>
+                ))}
+                <tr><td colSpan={2} className="px-5 py-2 text-xs font-semibold text-red-500 uppercase">Expenses</td></tr>
+                {pnl.expenseLines.map((line) => (
+                  <tr key={line.code} className="hover:bg-slate-50">
+                    <td className="px-5 py-2 text-sm text-slate-700">{line.name}</td>
+                    <td className="px-5 py-2 text-sm font-mono font-semibold text-slate-800">{fmtBDT(line.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -465,84 +372,9 @@ function TaxView() {
   const { t } = useTranslation("portalAccountant");
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("nav.taxReports")}</h2>
-
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:t("tax.vatCollected"),  val:"৳10,01,000", color:"bg-[#1B75BC]"  },
-          { label:t("tax.incomeTax"),  val:"৳1,33,400",  color:"bg-purple-500" },
-          { label:t("tax.nextFiling"),        val:"Oct 31",     color:"bg-amber-500"  },
-        ].map(s => (
-          <div key={s.label} className={cn("rounded-2xl p-5 text-white", s.color)}>
-            <p className="text-2xl font-black" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-            <p className="text-white/80 text-sm mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* VAT rates info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
-        <Info size={15} className="text-blue-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-blue-800">{t("tax.vatRatesTitle")}</p>
-          <p className="text-xs text-blue-600 mt-0.5">{t("tax.vatRatesBody")}</p>
-        </div>
-      </div>
-
-      {/* Quarterly breakdown */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <p className="font-bold text-slate-800">{t("tax.quarterlySummary")}</p>
-        </div>
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalAccountant:tax.cols.quarter","portalAccountant:tax.cols.taxableIncome","portalAccountant:tax.cols.vatCollected","portalAccountant:tax.cols.incomeTax","portalCommon:labels.status","portalAccountant:tax.cols.dueDate",""].map((h,hi) => (
-                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h ? t(h) : ""}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {TAX_DATA.map(q => (
-              <tr key={q.quarter} className="hover:bg-slate-50">
-                <td className="px-4 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{q.quarter}</td>
-                <td className="px-4 py-4 text-sm font-mono font-bold text-slate-800">{q.income ? fmtShort(q.income) : "—"}</td>
-                <td className="px-4 py-4 text-sm font-mono text-purple-600">{q.vat ? fmtShort(q.vat) : "—"}</td>
-                <td className="px-4 py-4 text-sm font-mono text-[#1B75BC]">{q.tax ? fmtShort(q.tax) : "—"}</td>
-                <td className="px-4 py-4">
-                  <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border",
-                    q.filed
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200")}>
-                    {q.filed ? t("tax.filed") : t("portalCommon:status.pending")}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-xs text-slate-500">{q.deadline}</td>
-                <td className="px-4 py-4">
-                  {q.filed
-                    ? <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap"><Download size={12}/> {t("tax.return")}</button>
-                    : <button className="text-xs bg-[#1B75BC] text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-[#14588F] whitespace-nowrap">{t("tax.prepare")}</button>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Tax documents */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <p className="font-bold text-slate-800 mb-3">{t("tax.documents")}</p>
-        <div className="space-y-2">
-          {["VAT Return Q1 2024","VAT Return Q2 2024","TIN Certificate","Trade License 2024"].map(doc => (
-            <div key={doc} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-              <span className="text-sm font-medium text-slate-700">{doc}</span>
-              <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">
-                <Download size={12}/> {t("common:actions.download")}
-              </button>
-            </div>
-          ))}
-        </div>
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="coming-soon" title="Tax reports" desc="VAT and income-tax reporting is planned for a later release." />
       </div>
     </div>
   );
@@ -552,59 +384,92 @@ function TaxView() {
 function AuditView() {
   const { t } = useTranslation("portalAccountant");
   const [filter, setFilter] = useState("all");
-  const shown = AUDIT_LOG.filter(l => filter==="all" || l.severity===filter);
+  const [textFilter, setTextFilter] = useState("");
+  const auditQ = useAuditLogs();
+  const logs = auditQ.data ?? [];
+  const shown = logs.filter((l) => {
+    if (filter !== "all" && sevNorm(l.severity) !== filter) return false;
+    if (!textFilter.trim()) return true;
+    const q = textFilter.toLowerCase();
+    return [l.event, l.resource, l.userName, l.id].some((v) => (v ?? "").toLowerCase().includes(q));
+  });
 
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("nav.auditLogs")}</h2>
-        <button className="flex items-center gap-1.5 text-sm text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-xl hover:bg-[#1B75BC]/5 whitespace-nowrap">
-          <Download size={14}/> {t("audit.export")}
-        </button>
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {["all","info","warning","critical"].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap flex-shrink-0",
-              filter===f ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
-            {t(`audit.filters.${f}`)}
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => auditQ.refetch()} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <RefreshCw size={14} className={auditQ.isFetching ? "animate-spin" : ""} />
           </button>
-        ))}
+          <button disabled title="Audit log export is not available in this build" className="flex items-center gap-1.5 text-sm text-slate-400 font-semibold border border-slate-200 px-3 py-1.5 rounded-xl opacity-60 cursor-not-allowed whitespace-nowrap">
+            <Download size={14}/> {t("audit.export")}
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["portalAccountant:audit.cols.logId","portalAccountant:audit.cols.action","portalAccountant:audit.cols.entity","portalAccountant:audit.cols.user","portalAccountant:audit.cols.time","portalAccountant:audit.cols.severity"].map((h,hi) => (
-                <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {shown.map(log => {
-              const s = SEV_CFG[log.severity];
-              return (
-                <tr key={log.id} className={cn("hover:bg-slate-50 transition-colors", s.row)}>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{log.id}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-slate-800">{log.action}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-500">{log.entity}</td>
-                  <td className="px-4 py-3 text-xs text-slate-600">{log.user}</td>
-                  <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{log.time}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold border", s.badge)}>
-                      <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
-                      {t(`audit.severity.${log.severity}`, { defaultValue: log.severity })}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={textFilter}
+            onChange={(e) => setTextFilter(e.target.value)}
+            placeholder={t("portalCommon:actions.search", { defaultValue: "Search…" })}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {["all","info","warning","critical"].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={cn("px-3.5 py-2 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap flex-shrink-0",
+                filter===f ? "bg-[#1B75BC] text-white" : "bg-white border border-slate-200 text-slate-600 hover:border-[#1B75BC]/30")}>
+              {t(`audit.filters.${f}`)}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {auditQ.isLoading ? (
+        <div className="flex justify-center py-16 text-slate-400"><Loader2 size={22} className="animate-spin" /></div>
+      ) : auditQ.isError ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 text-center">{(auditQ.error as Error)?.message || t("portalCommon:empty.failed")}</div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {["portalAccountant:audit.cols.logId","portalAccountant:audit.cols.action","portalAccountant:audit.cols.entity","portalAccountant:audit.cols.user","portalAccountant:audit.cols.time","portalAccountant:audit.cols.severity"].map((h,hi) => (
+                  <th key={hi} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">{t(h)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {shown.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-8 text-sm text-slate-400 text-center">{t("portalCommon:empty.nothing")}</td></tr>
+              )}
+              {shown.map(log => {
+                const sev = sevNorm(log.severity);
+                const s = SEV_CFG[sev] ?? SEV_CFG.info;
+                return (
+                  <tr key={log.id} className={cn("hover:bg-slate-50 transition-colors", s.row)}>
+                    <td className="px-4 py-3 text-xs font-mono text-slate-400">{log.id.slice(0, 8)}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-slate-800">{log.event}</td>
+                    <td className="px-4 py-3 text-xs font-mono text-slate-500">{log.resource ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600">{log.userName ?? t("audit.unknownUser", { defaultValue: "Unknown" })}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{fmtAuditTime(log.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn("inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold border", s.badge)}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
+                        {t(`audit.severity.${sev}`, { defaultValue: sev })}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -612,6 +477,7 @@ function AuditView() {
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function AccProfile() {
   const { t } = useTranslation("portalAccountant");
+  const { logout } = useAuth();
   const q = useAccountantMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -640,7 +506,7 @@ function AccProfile() {
               </div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
+          <button onClick={() => void logout()} className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -650,6 +516,7 @@ function AccProfile() {
 // ─── Sidebar inner ────────────────────────────────────────────────────────────
 function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => void; onClose?: () => void }) {
   const { t } = useTranslation("portalAccountant");
+  const { logout } = useAuth();
   const { data: me } = useAccountantMe();
   const aName = me?.name ?? "Accountant";
   const aInit = aName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -686,14 +553,11 @@ function AccSidebar({ view, go, onClose }: { view: AccView; go: (v: AccView) => 
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
             <span className="flex-1 text-left text-xs">{t(item.label)}</span>
-            {item.badge ? (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
-            ) : null}
           </button>
         ))}
       </nav>
       <div className="p-3 border-t border-white/10">
-        <button className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
+        <button onClick={() => void logout()} className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
           style={{ minHeight: 44 }}>
           <LogOut size={14}/> {t("portalCommon:nav.logout")}
         </button>
@@ -708,7 +572,7 @@ const ACC_BOTTOM_NAV = [
   { id: "income-expense"   as AccView, icon: TrendingUp,      label: "portalAccountant:bottomNav.pl"     },
   { id: "bank-cash"        as AccView, icon: Building2,       label: "portalAccountant:bottomNav.bank"    },
   { id: "invoices-payments"as AccView, icon: FileText,        label: "portalCommon:nav.invoices"},
-  { id: "audit"            as AccView, icon: ClipboardList,   label: "portalAccountant:bottomNav.audit", badge: 3 },
+  { id: "audit"            as AccView, icon: ClipboardList,   label: "portalAccountant:bottomNav.audit" },
 ];
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
@@ -717,6 +581,9 @@ export function AccountantPortal() {
   const [view, setView] = useState<AccView>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const go = (v: AccView) => setView(v);
+  const { data: meShell } = useAccountantMe();
+  const meName = meShell?.name ?? t("roles.finance");
+  const meInit = meName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
   const render = () => {
     switch (view) {
@@ -748,7 +615,7 @@ export function AccountantPortal() {
               </div>
               <button onClick={() => go("profile")}
                 className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
-                FA
+                {meInit}
               </button>
             </div>
           </header>
@@ -776,14 +643,14 @@ export function AccountantPortal() {
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[160px]">{currentLabel}</p>
-              <p className="text-xs text-slate-400">Ferdous Ahmed · Accountant</p>
+              <p className="text-xs text-slate-400">{meName} · {t("roles.finance")}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-400 font-mono">{t("fy")} 2024</span>
             <button onClick={() => go("profile")}
               className="w-8 h-8 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold ml-1">
-              FA
+              {meInit}
             </button>
           </div>
         </div>

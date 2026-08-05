@@ -3,8 +3,9 @@ import { UserRole } from "@prisma/client";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth, requireRole } from "../middleware/auth";
 import {
-  agentMe, agentDashboard, agentLeads, agentCreateLead, agentBookings,
+  agentMe, agentDashboard, agentLeads, agentCreateLead, agentBookings, agentCustomers,
   agentCommissions, agentWallet, agentTeam, agentTeamMember,
+  agentDocuments, agentPayments, agentTickets, agentTicket, agentCreateTicket, agentTicketMessage,
 } from "../controllers/portal.agent.controller";
 import {
   supplierMe, supplierDashboard, supplierRequests, supplierRequest, supplierRequestStatus,
@@ -30,10 +31,17 @@ portalRolesRouter.get(`${A}/dashboard`, requireAuth, asyncHandler(agentDashboard
 portalRolesRouter.get(`${A}/leads`, requireAuth, asyncHandler(agentLeads));
 portalRolesRouter.post(`${A}/leads`, requireAuth, asyncHandler(agentCreateLead));
 portalRolesRouter.get(`${A}/bookings`, requireAuth, asyncHandler(agentBookings));
+portalRolesRouter.get(`${A}/customers`, requireAuth, asyncHandler(agentCustomers));
 portalRolesRouter.get(`${A}/commissions`, requireAuth, asyncHandler(agentCommissions));
 portalRolesRouter.get(`${A}/wallet`, requireAuth, asyncHandler(agentWallet)); // READ-ONLY — no POST/PATCH exists
 portalRolesRouter.get(`${A}/team`, requireAuth, asyncHandler(agentTeam));
 portalRolesRouter.get(`${A}/team/:id`, requireAuth, asyncHandler(agentTeamMember));
+portalRolesRouter.get(`${A}/documents`, requireAuth, asyncHandler(agentDocuments));
+portalRolesRouter.get(`${A}/payments`, requireAuth, asyncHandler(agentPayments));
+portalRolesRouter.get(`${A}/tickets`, requireAuth, asyncHandler(agentTickets));
+portalRolesRouter.get(`${A}/tickets/:id`, requireAuth, asyncHandler(agentTicket));
+portalRolesRouter.post(`${A}/tickets`, requireAuth, asyncHandler(agentCreateTicket));
+portalRolesRouter.post(`${A}/tickets/:id/messages`, requireAuth, asyncHandler(agentTicketMessage));
 
 // ── Supplier (requireSupplierId in the service)
 const S = "/portal/supplier";

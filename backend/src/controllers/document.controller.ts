@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { documentUploadSchema, documentListQuerySchema } from "../contracts/document.contract";
+import { documentUploadSchema, documentListQuerySchema, documentStatusUpdateSchema } from "../contracts/document.contract";
 import { HttpError } from "../middleware/errorHandler";
 import * as documents from "../services/document.service";
 
@@ -10,6 +10,11 @@ export async function listDocumentsHandler(req: Request, res: Response): Promise
 export async function uploadDocumentHandler(req: Request, res: Response): Promise<void> {
   if (!req.file) throw new HttpError(400, "FileRequired", { detail: "Attach the file in the \"file\" field." });
   res.status(201).json(await documents.createDocument(req.auth!, req.file, documentUploadSchema.parse(req.body)));
+}
+
+export async function updateDocumentStatusHandler(req: Request, res: Response): Promise<void> {
+  const { status } = documentStatusUpdateSchema.parse(req.body);
+  res.json(await documents.updateDocumentStatus(req.auth!, req.params.id, status));
 }
 
 /** Authenticated download — the ONLY read path for stored files. */

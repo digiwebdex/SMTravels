@@ -350,7 +350,7 @@ export function SitemapWorkflow() {
               <BarChart3 size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-black text-slate-800">BDH Travels ERP</p>
+              <p className="text-sm font-black text-slate-800">SM Travels ERP</p>
               <p className="text-xs text-slate-400">Sitemap & Workflow Reference</p>
             </div>
           </div>

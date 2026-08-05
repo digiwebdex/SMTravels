@@ -5,6 +5,14 @@
  * tiers, services, sample packages, and a demo customer (PII auto-encrypted).
  *
  * Run: npm run prisma:seed   (uses the PII-encrypting Prisma client)
+ *
+ * Phases:
+ *   seedStructural() — always runs; safe on production (upserts only, no demo users).
+ *   seedDemo()       — skipped when NODE_ENV=production or SEED_STRUCTURAL_ONLY=1.
+ *
+ * Structural-only on any environment:
+ *   SEED_STRUCTURAL_ONLY=1 npx tsx prisma/seed.ts
+ *   # or: npm run prisma:seed  (production auto-skips demo)
  */
 import { prisma } from "../src/lib/prisma";
 import { deterministicHash } from "../src/lib/password";
@@ -26,7 +34,7 @@ const DEMO_PW = "Password123!";
 const COMPANY_ID = "cmp_smtravels";
 const MODULES = [
   "dashboard", "bookings", "crm", "packages", "accounts",
-  "invoices", "reports", "documents", "cms", "ops", "settings",
+  "invoices", "reports", "documents", "cms", "ops", "settings", "hr",
   "partners", "suppliers", "operations_team", "sales", "communication",
 ] as const;
 
@@ -35,9 +43,11 @@ const FULL = MODULES.reduce((a, m) => ({ ...a, [m]: "full" }), {} as Record<stri
 const MATRIX: Partial<Record<UserRole, Record<string, string>>> = {
   SUPER_ADMIN: FULL,
   COMPANY_ADMIN: FULL,
-  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", communication: "full", accounts: "view", invoices: "view", reports: "view" },
-  ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view" },
-  STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view" },
+  // Merged: production module grants (partners/suppliers/ops-team/sales/communication)
+  // + branch HR grants (hr). ERP roles get both; portal roles keep production grants.
+  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", communication: "full", hr: "full", accounts: "view", invoices: "view", reports: "view" },
+  ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view", hr: "view" },
+  STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view", hr: "view" },
   SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view", sales: "full", communication: "full" },
   VISA_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", crm: "view", packages: "view" },
   HAJJ_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
@@ -118,6 +128,35 @@ async function seedStructural() {
       });
     }
   }
+
+  // 4b) Default HR leave types
+  const leaveTypes = [
+    { id: "hrlt_annual", name: "Annual", code: "ANNUAL", paid: true, openingBalance: 20, maxPerYear: 20, carryForward: true, maxCarryForward: 5 },
+    { id: "hrlt_casual", name: "Casual", code: "CASUAL", paid: true, openingBalance: 10, maxPerYear: 10, carryForward: false },
+    { id: "hrlt_sick", name: "Sick", code: "SICK", paid: true, openingBalance: 14, maxPerYear: 14, carryForward: false },
+    { id: "hrlt_maternity", name: "Maternity", code: "MATERNITY", paid: true, openingBalance: 0, maxPerYear: 112, carryForward: false },
+    { id: "hrlt_paternity", name: "Paternity", code: "PATERNITY", paid: true, openingBalance: 0, maxPerYear: 7, carryForward: false },
+    { id: "hrlt_unpaid", name: "Unpaid", code: "UNPAID", paid: false, openingBalance: 0, allowNegativeBalance: true },
+    { id: "hrlt_special", name: "Special", code: "SPECIAL", paid: true, openingBalance: 0, maxPerYear: 5, carryForward: false },
+  ];
+  for (const lt of leaveTypes) {
+    await prisma.hrLeaveType.upsert({
+      where: { code: lt.code },
+      create: {
+        id: lt.id,
+        name: lt.name,
+        code: lt.code,
+        paid: lt.paid,
+        openingBalance: lt.openingBalance,
+        maxPerYear: lt.maxPerYear ?? null,
+        carryForward: lt.carryForward ?? false,
+        maxCarryForward: lt.maxCarryForward ?? null,
+        allowNegativeBalance: lt.allowNegativeBalance ?? false,
+      },
+      update: { name: lt.name, paid: lt.paid, active: true },
+    });
+  }
+
   // 6) Commission tiers (volume-driven)
   const tiers: { tier: AgentTier; rate: number; min: number; max: number | null }[] = [
     { tier: "SILVER", rate: 3, min: 0, max: 9 },
@@ -155,7 +194,8 @@ async function seedStructural() {
     { code: "1000", name: "Assets", cls: "ASSET", role: "HEADER" },
     { code: "1100", name: "Current Assets", parent: "1000", cls: "ASSET", role: "HEADER" },
     { code: "1110", name: "Cash in Hand", parent: "1100", cls: "ASSET", role: "DETAIL" },
-    { code: "1120", name: "Dutch-Bangla Bank – Current", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1120", name: "Dutch-Bangla Bank – Current (NPSB receiving account)", parent: "1100", cls: "ASSET", role: "DETAIL" },
+    { code: "1121", name: "Islami Bank Bangladesh – Current (NPSB receiving account)", parent: "1100", cls: "ASSET", role: "DETAIL" },
     { code: "1200", name: "Accounts Receivable", parent: "1000", cls: "ASSET", role: "DETAIL" },
     { code: "2000", name: "Liabilities", cls: "LIABILITY", role: "HEADER" },
     { code: "2100", name: "Accounts Payable", parent: "2000", cls: "LIABILITY", role: "DETAIL" },
@@ -178,20 +218,303 @@ async function seedStructural() {
     });
     acctIdByCode[a.code] = row.id;
   }
-  // 12) A couple of bank accounts linked to COA cash/bank accounts.
+  // 12) Bank accounts linked to COA — NPSB receiving accounts for client payments.
   await prisma.bankAccount.upsert({
     where: { id: "bank_dbbl" },
-    create: { id: "bank_dbbl", name: "Dutch-Bangla Bank Ltd.", bankName: "DBBL", type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Agrabad", currency: "BDT", coaAccountId: acctIdByCode["1120"], balance: 12400000 },
-    update: { name: "Dutch-Bangla Bank Ltd." },
+    create: {
+      id: "bank_dbbl", name: "DBBL – NPSB receiving account", bankName: "Dutch-Bangla Bank Ltd. (DBBL)",
+      type: "CURRENT", accountNumber: "1021 0110 0000 234", branchName: "Motijheel", currency: "BDT",
+      coaAccountId: acctIdByCode["1120"], balance: 12400000, active: true,
+    },
+    update: {
+      name: "DBBL – NPSB receiving account", bankName: "Dutch-Bangla Bank Ltd. (DBBL)",
+      accountNumber: "1021 0110 0000 234", branchName: "Motijheel", active: true,
+    },
+  });
+  await prisma.bankAccount.upsert({
+    where: { id: "bank_ibbl" },
+    create: {
+      id: "bank_ibbl", name: "Islami Bank – NPSB receiving account", bankName: "Islami Bank Bangladesh Ltd. (IBBL)",
+      type: "CURRENT", accountNumber: "2051 0210 0000 567", branchName: "Gulshan", currency: "BDT",
+      coaAccountId: acctIdByCode["1121"], balance: 8750000, active: true,
+    },
+    update: {
+      name: "Islami Bank – NPSB receiving account", bankName: "Islami Bank Bangladesh Ltd. (IBBL)",
+      accountNumber: "2051 0210 0000 567", branchName: "Gulshan", active: true,
+    },
   });
   await prisma.bankAccount.upsert({
     where: { id: "bank_cash" },
-    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000 },
-    update: { name: "Cash in Hand" },
+    create: { id: "bank_cash", name: "Cash in Hand", type: "CASH", currency: "BDT", coaAccountId: acctIdByCode["1110"], balance: 850000, active: true },
+    update: { name: "Cash in Hand", active: true },
   });
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // REPORT DATA — realistic distribution so the Reports module reconciles and
+  // ── Default notification templates (idempotent by stable id) ───────────────
+  const tplSeed: Array<{ id: string; channel: "EMAIL" | "SMS" | "WHATSAPP"; event: string; name: string; content: string }> = [
+    { id: "tpl_email_booking_created", channel: "EMAIL", event: "booking_created", name: "Booking Created (Email)", content: "Dear {name},\n\nYour {service} booking is confirmed. Booking No: {bookingNo}.{departure}\n\nSM Travels International" },
+    { id: "tpl_sms_booking_created", channel: "SMS", event: "booking_created", name: "Booking Created (SMS)", content: "SM Travels: your {service} booking {bookingNo} is confirmed." },
+    { id: "tpl_wa_booking_created", channel: "WHATSAPP", event: "booking_created", name: "Booking Created (WhatsApp)", content: "SM Travels: your {service} booking {bookingNo} is confirmed. We will contact you shortly." },
+    { id: "tpl_email_payment_received", channel: "EMAIL", event: "payment_received", name: "Payment Received (Email)", content: "Dear {name},\n\nWe received your payment of {amount}{invoiceRef}. Reference: {paymentNo}.\n\nThank you.\n\nSM Travels International" },
+    { id: "tpl_sms_payment_received", channel: "SMS", event: "payment_received", name: "Payment Received (SMS)", content: "SM Travels: payment of {amount} received. Ref {paymentNo}." },
+    { id: "tpl_wa_payment_received", channel: "WHATSAPP", event: "payment_received", name: "Payment Received (WhatsApp)", content: "SM Travels: payment of {amount} received. Ref {paymentNo}. Thank you." },
+    { id: "tpl_email_password_reset", channel: "EMAIL", event: "password_reset", name: "Password Reset OTP", content: "Your one-time code is: {otp}\n\nIt expires in 10 minutes." },
+    { id: "tpl_email_visa_approved", channel: "EMAIL", event: "visa_approved", name: "Visa Approved", content: "Dear {name},\n\nYour visa for {bookingNo} has been approved.\n\nSM Travels International" },
+    { id: "tpl_sms_visa_approved", channel: "SMS", event: "visa_approved", name: "Visa Approved (SMS)", content: "SM Travels: visa approved for {bookingNo}." },
+    { id: "tpl_wa_passport_ready", channel: "WHATSAPP", event: "passport_ready", name: "Passport Ready", content: "SM Travels: your passport is ready for collection{ref}." },
+    { id: "tpl_email_welcome", channel: "EMAIL", event: "welcome", name: "Welcome", content: "Dear {name},\n\nWelcome to SM Travels International.\n\n{details}" },
+    { id: "tpl_email_invoice", channel: "EMAIL", event: "invoice_generated", name: "Invoice Generated", content: "Dear {name},\n\nInvoice {invoiceNo} for {amount} has been generated. Due: {dueDate}." },
+  ];
+  for (const t of tplSeed) {
+    await prisma.messageTemplate.upsert({
+      where: { id: t.id },
+      create: { id: t.id, channel: t.channel, event: t.event, name: t.name, content: t.content, category: "system", status: "active" },
+      update: { content: t.content, name: t.name, status: "active" },
+    });
+  }
+
+  // ── Structural CMS pages (idempotent by stable id) ──────────────────────────
+  const cmsPages: Array<{
+    id: string; slug: string; title: string; metaTitle: string; metaDesc: string; body: string;
+  }> = [
+    {
+      id: "page_privacy",
+      slug: "privacy",
+      title: "Privacy Policy / গোপনীয়তা নীতি",
+      metaTitle: "Privacy Policy | SM Travels",
+      metaDesc: "How SM Travels International collects, uses, and protects your personal information.",
+      body: `## Privacy Policy / গোপনীয়তা নীতি
+
+**Last updated / সর্বশেষ আপডেট:** July 2026
+
+SM Travels International ("we", "us") respects your privacy. This policy explains what personal data we collect when you book Hajj, Umrah, visa, tickets, tours, or other services, and how we use it.
+
+### Information we collect / আমরা যে তথ্য সংগ্রহ করি
+- Identity details: name, NID/passport number, date of birth, photos
+- Contact details: phone, email, address
+- Booking & payment records needed to deliver travel services
+- Website usage data (cookies, analytics) when you visit smtravel.com.bd
+
+### How we use your data / তথ্যের ব্যবহার
+We use your data to process bookings, obtain visas, arrange flights and hotels, send itinerary updates, comply with Saudi/Bangladeshi regulations, and improve our services. We do not sell your personal data.
+
+### Sharing / তথ্য শেয়ার
+We share data only with airlines, hotels, embassies, Saudi authorities, payment processors, and licensed partners when required to fulfil your booking — under confidentiality obligations.
+
+### Your rights / আপনার অধিকার
+You may request access, correction, or deletion of your data (subject to legal retention for travel/visa records) by emailing privacy@smtravel.com.bd or contacting any branch office.
+
+### Contact
+Head Office — 32 Motijheel C/A, Dhaka-1000 | +880 2 9553421 | info@smtravel.com.bd`,
+    },
+    {
+      id: "page_terms",
+      slug: "terms",
+      title: "Terms of Use / ব্যবহারের শর্তাবলী",
+      metaTitle: "Terms of Use | SM Travels",
+      metaDesc: "Terms and conditions for booking travel services with SM Travels International.",
+      body: `## Terms of Use / ব্যবহারের শর্তাবলী
+
+By booking with SM Travels International or using our website, you agree to these terms.
+
+### Bookings / বুকিং
+All packages are subject to availability. A booking is confirmed only after the required deposit is received and a booking reference is issued. Prices are in BDT unless stated otherwise and may change until full payment.
+
+### Documents / কাগজপত্র
+You are responsible for providing accurate passport, NID, photos, medical, and vaccination documents on time. Delays or errors may cause visa rejection or extra fees for which SM Travels is not liable.
+
+### Changes by suppliers
+Airlines, hotels, and Saudi authorities may change schedules, hotels, or transport. We will notify you promptly and offer reasonable alternatives where possible.
+
+### Liability / দায়বদ্ধতা
+We act as an agent for transport and accommodation providers. Our liability is limited to the service fees charged by SM Travels, except where prohibited by law.
+
+### Governing law
+These terms are governed by the laws of Bangladesh. Disputes shall first be addressed through our Dhaka head office customer care team.`,
+    },
+    {
+      id: "page_refund",
+      slug: "refund",
+      title: "Refund Policy / ফেরত নীতি",
+      metaTitle: "Refund Policy | SM Travels",
+      metaDesc: "Cancellation and refund rules for Hajj, Umrah, tours, visas, and tickets.",
+      body: `## Refund & Cancellation Policy / ফেরত ও বাতিলকরণ নীতি
+
+### Package tours (Hajj / Umrah / Tour)
+- **60+ days** before departure: 10% cancellation fee on package price
+- **30–59 days**: 25% fee
+- **15–29 days**: 50% fee
+- **Less than 15 days**: no refund of package price
+
+Airline and hotel cancellation rules also apply and may be non-refundable.
+
+### Visas / ভিসা
+Embassy/government visa fees are **non-refundable**. If a visa is refused due to embassy policy despite correct documents, we re-apply at no extra service charge (government fees still apply).
+
+### Air tickets / এয়ার টিকেট
+Refunds follow the airline fare rules. We assist with the claim process; SM Travels service charges are non-refundable.
+
+### How to request a refund
+Email refunds@smtravel.com.bd with your booking number, or visit your branch. Approved refunds are processed within 14–21 working days to the original payment method where possible.
+
+যোগাযোগ: +880 1712-345678 | Dhaka Head Office`,
+    },
+    {
+      id: "page_career",
+      slug: "career",
+      title: "Careers / ক্যারিয়ার",
+      metaTitle: "Careers at SM Travels",
+      metaDesc: "Join SM Travels International — careers in travel, Hajj/Umrah operations, and customer service.",
+      body: `## Careers at SM Travels / এসএম ট্রাভেলসে ক্যারিয়ার
+
+SM Travels International is hiring passionate people who care about pilgrims and travellers.
+
+### Why join us / কেন আমাদের সাথে যোগ দেবেন
+- 25+ years serving Bangladeshi travellers
+- Branches in Dhaka, Chittagong, Sylhet, and Khulna
+- Training on Hajj/Umrah operations, visas, and GDS ticketing
+- Competitive salary, festival bonuses, and travel discounts
+
+### Open roles (apply anytime)
+1. **Sales Executive** — Hajj/Umrah & tour packages (Dhaka / CTG)
+2. **Visa Processing Officer** — document checks & embassy follow-up
+3. **Customer Care Officer** — Bengali/English phone & WhatsApp support
+4. **Accounts Assistant** — invoices, collections, NPSB reconciliations
+
+### How to apply / আবেদন
+Send your CV and a short cover note to **hr@smtravel.com.bd** with the role in the subject line. We review applications on a rolling basis and only contact shortlisted candidates.
+
+সমতা: We welcome applications regardless of gender, religion, or disability status.`,
+    },
+    {
+      id: "page_about",
+      slug: "about",
+      title: "About Us / আমাদের সম্পর্কে",
+      metaTitle: "About SM Travels International",
+      metaDesc: "Trusted Hajj, Umrah, visa and tour partner since 1998 — SM Travels International.",
+      body: `## About SM Travels International / আমাদের সম্পর্কে
+
+Founded in 1998 in Motijheel, Dhaka, SM Travels International helps Bangladeshi Muslims and families travel for Hajj, Umrah, tours, visas, tickets, hotels, and overseas manpower — under one roof.
+
+### Our mission / আমাদের লক্ষ্য
+Make sacred and leisure travel **accessible, affordable, and stress-free** with honest guidance and licensed operations.
+
+### At a glance
+- **25+ years** in the industry
+- **10,000+** pilgrims served
+- **4 branches** — Dhaka, Chittagong, Sylhet, Khulna
+- Licensed for Hajj (Ministry of Religious Affairs), ATAB member, IATA accredited, ISO 9001:2015
+
+### Services
+Hajj & Umrah packages · Visa assistance · Air tickets · Manpower · World tours · Hotel booking
+
+Visit any branch or call **+880 1712-345678** to speak with our team.`,
+    },
+    {
+      id: "page_branches",
+      slug: "branches",
+      title: "Our Branches / আমাদের শাখাসমূহ",
+      metaTitle: "Branch Offices | SM Travels",
+      metaDesc: "Find SM Travels offices in Dhaka, Chittagong, Sylhet, and Khulna.",
+      body: `## Our Branches / আমাদের শাখাসমূহ
+
+Visit us for bookings, payments, passport collection, and counselling.
+
+### Head Office — Dhaka
+32 Motijheel C/A, Dhaka-1000  
+Phone: +880 2 9553421 · Mobile: +880 1712-345678  
+Email: dhaka@smtravel.com.bd  
+Hours: Sun–Thu 9:00 AM – 6:00 PM
+
+### Chittagong Branch
+15 Agrabad C/A, Chittagong-4100  
+Phone: +880 31 714532 · Email: ctg@smtravel.com.bd  
+Hours: Sun–Thu 9:00 AM – 5:30 PM
+
+### Sylhet Branch
+Zindabazar Main Road, Sylhet-3100  
+Phone: +880 821 716234 · Email: sylhet@smtravel.com.bd  
+Hours: Sun–Thu 9:00 AM – 5:30 PM
+
+### Khulna Branch
+KDA Avenue, Khulna-9100  
+Phone: +880 41 720145 · Email: khulna@smtravel.com.bd  
+Hours: Sun–Thu 9:00 AM – 5:00 PM
+
+WhatsApp support: +880 1712-345678`,
+    },
+    {
+      id: "page_hotels",
+      slug: "hotels",
+      title: "Hotel Booking / হোটেল বুকিং",
+      metaTitle: "Hotel Booking | SM Travels",
+      metaDesc: "Competitive hotel rates in Makkah, Madinah, Dubai, Malaysia, and worldwide.",
+      body: `## Hotel Booking / হোটেল বুকিং
+
+SM Travels partners with hotels worldwide — especially Makkah & Madinah for pilgrims, plus Dubai, Malaysia, Thailand, Turkey, and domestic Bangladesh stays.
+
+### What we offer / আমাদের সেবা
+- Haram-view and walking-distance hotels in Makkah & Madinah
+- Family rooms, triple/quad options for groups
+- Corporate rates and flexible cancellation where available
+- Combined hotel + ticket + visa packages
+
+### How to book
+1. Tell us city, dates, room type, and budget  
+2. We send 2–3 options with inclusions  
+3. Confirm with a deposit; vouchers are issued after payment  
+
+Call **+880 1712-345678** or email **hotels@smtravel.com.bd**.  
+হোটেল বুকিংয়ের জন্য যেকোনো শাখায় যোগাযোগ করুন।`,
+    },
+    {
+      id: "page_transport",
+      slug: "transport",
+      title: "Transport Services / পরিবহন সেবা",
+      metaTitle: "Transport Services | SM Travels",
+      metaDesc: "Airport transfers, Ziyarah transport, and group coaches for Hajj, Umrah and tours.",
+      body: `## Transport Services / পরিবহন সেবা
+
+Reliable ground transport for pilgrims and tour groups in Bangladesh and the Kingdom.
+
+### Services / সেবাসমূহ
+- **Airport transfers** — Dhaka / CTG / SYL / KHL and Jeddah / Madinah airports
+- **Ziyarah coaches** — Makkah & Madinah holy sites with licensed guides
+- **Intercity coaches** — for large Hajj/Umrah groups
+- **Private cars / vans** — family and VIP transfers
+
+### Booking notes
+Transport is included in many package itineraries. Standalone transfers can be booked 48+ hours in advance. Share flight numbers and passenger count for accurate quotes.
+
+যোগাযোগ: ops@smtravel.com.bd | +880 1712-345678`,
+    },
+  ];
+
+  for (const p of cmsPages) {
+    await prisma.cmsPage.upsert({
+      where: { id: p.id },
+      create: {
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        body: p.body,
+        status: ContentStatus.PUBLISHED,
+        metaTitle: p.metaTitle,
+        metaDesc: p.metaDesc,
+        visibility: "public",
+        publishedAt: new Date(),
+      },
+      update: {
+        title: p.title,
+        slug: p.slug,
+        body: p.body,
+        status: ContentStatus.PUBLISHED,
+        metaTitle: p.metaTitle,
+        metaDesc: p.metaDesc,
+        visibility: "public",
+      },
+    });
+  }
+
   console.log("[seed] structural done.");
 }
 
@@ -808,6 +1131,10 @@ async function seedDemo() {
 
 async function main() {
   await seedStructural();
+  if (process.env.SEED_STRUCTURAL_ONLY === "1" || process.env.SEED_STRUCTURAL_ONLY === "true") {
+    console.log("[seed] SEED_STRUCTURAL_ONLY set -> demo phase SKIPPED.");
+    return;
+  }
   if (process.env.NODE_ENV === "production") {
     console.log("[seed] NODE_ENV=production -> demo phase SKIPPED (structural only).");
     return;

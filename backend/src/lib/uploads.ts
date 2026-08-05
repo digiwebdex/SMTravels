@@ -69,9 +69,39 @@ export function uploadSingleFile(req: Request, res: Response, next: NextFunction
   });
 }
 
+/** Verify file magic bytes match the declared MIME (blocks polyglot uploads). */
+export function assertMagicMatchesMime(tmpPath: string, mimetype: string): void {
+  const fd = fs.openSync(tmpPath, "r");
+  const buf = Buffer.alloc(16);
+  try {
+    fs.readSync(fd, buf, 0, 16, 0);
+  } finally {
+    fs.closeSync(fd);
+  }
+  const ok =
+    (mimetype === "application/pdf" && buf.subarray(0, 5).toString("ascii") === "%PDF-") ||
+    (mimetype === "image/jpeg" && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) ||
+    (mimetype === "image/png" &&
+      buf[0] === 0x89 &&
+      buf[1] === 0x50 &&
+      buf[2] === 0x4e &&
+      buf[3] === 0x47 &&
+      buf[4] === 0x0d &&
+      buf[5] === 0x0a &&
+      buf[6] === 0x1a &&
+      buf[7] === 0x0a);
+  if (!ok) {
+    removeQuietly(tmpPath);
+    throw new HttpError(415, "UnsupportedFileType", {
+      detail: "File content does not match the declared type (PDF, JPG, or PNG).",
+    });
+  }
+}
+
 /** Move a validated tmp upload into its permanent YYYY/MM home.
  *  Returns the path RELATIVE to uploadRoot (what Document.filePath stores). */
 export function moveIntoStore(tmpPath: string, mimetype: string): string {
+  assertMagicMatchesMime(tmpPath, mimetype);
   const ext = ALLOWED_MIME[mimetype] ?? "";
   const now = new Date();
   const rel = path.join(

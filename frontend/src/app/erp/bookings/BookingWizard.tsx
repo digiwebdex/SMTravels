@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import {
-  ChevronLeft, ChevronRight, Check, Plus, Trash2, Upload,
+  ChevronLeft, Check, Plus, Trash2, Upload,
   AlertCircle, FileText, CreditCard, Banknote,
-  Smartphone, Building2, CheckCircle2, Info, Loader2, Camera,
+  Smartphone, Building2, CheckCircle2, Info, Loader2, Camera, ScanText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -11,8 +11,10 @@ import { ServiceType, SERVICE_CFG } from "./BookingsModule";
 import { useCreateBooking, useSaveDraft, useConfirmBooking, SERVICE_ENUM } from "../../hooks/bookings";
 import { useScanPassport } from "../../hooks/ocr";
 import { useUploadDocument } from "../../hooks/documents";
+import { useRunOcr } from "../../hooks/ocr";
 import type { DocumentTypeDto } from "@contracts/document.contract";
 import type { ApiError } from "../../lib/api";
+import { StickySaveBar } from "../../design-system";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface WizardProps {
@@ -778,9 +780,11 @@ function docTypeFor(label: string): DocumentTypeDto {
 function StepDocuments({ service, bookingId }: { service: ServiceType | null; bookingId: string | null }) {
   const docs = service ? DOC_TYPES[service] : DOC_TYPES["Umrah"];
   const upload = useUploadDocument();
-  // label -> uploaded state (filename once the POST succeeds; "…" while in flight)
-  const [done, setDone] = useState<Record<string, string>>({});
+  const runOcr = useRunOcr();
+  // label -> uploaded state (filename + document id once the POST succeeds)
+  const [done, setDone] = useState<Record<string, { filename: string; docId: string }>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [ocrBusy, setOcrBusy] = useState<string | null>(null);
 
   const pick = (label: string, file: File | null) => {
     if (!file || !bookingId || busy) return;
@@ -788,10 +792,19 @@ function StepDocuments({ service, bookingId }: { service: ServiceType | null; bo
     upload.mutate(
       { file, type: docTypeFor(label), name: label, bookingId },
       {
-        onSuccess: () => { setDone(d => ({ ...d, [label]: file.name })); setBusy(null); },
+        onSuccess: (doc) => { setDone(d => ({ ...d, [label]: { filename: file.name, docId: doc.id } })); setBusy(null); },
         onError: () => setBusy(null),
       },
     );
+  };
+
+  const isPassportDoc = (label: string) => docTypeFor(label) === "PASSPORT";
+
+  const triggerOcr = (label: string) => {
+    const docId = done[label]?.docId;
+    if (!docId || ocrBusy) return;
+    setOcrBusy(label);
+    runOcr.mutate(docId, { onSettled: () => setOcrBusy(null) });
   };
 
   return (
@@ -807,9 +820,21 @@ function StepDocuments({ service, bookingId }: { service: ServiceType | null; bo
             </div>
             <div className="p-3">
               {done[doc] ? (
-                <div className="flex items-center gap-2 h-20 px-3 border-2 border-[#0E7C66]/30 bg-[#0E7C66]/5 rounded-[8px]">
-                  <CheckCircle2 size={16} className="text-[#0E7C66] flex-shrink-0" />
-                  <span className="text-[10px] text-[#0E7C66] font-semibold truncate">{done[doc]}</span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 h-16 px-3 border-2 border-[#0E7C66]/30 bg-[#0E7C66]/5 rounded-[8px]">
+                    <CheckCircle2 size={16} className="text-[#0E7C66] flex-shrink-0" />
+                    <span className="text-[10px] text-[#0E7C66] font-semibold truncate">{done[doc].filename}</span>
+                  </div>
+                  {isPassportDoc(doc) && (
+                    <button
+                      type="button"
+                      onClick={() => triggerOcr(doc)}
+                      disabled={ocrBusy === doc || runOcr.isPending}
+                      className="flex items-center justify-center gap-1.5 w-full py-1.5 text-[10px] font-bold text-[#1B75BC] border border-[#1B75BC]/30 rounded-[6px] hover:bg-[#1B75BC]/5 disabled:opacity-50">
+                      {ocrBusy === doc ? <Loader2 size={12} className="animate-spin"/> : <ScanText size={12}/>}
+                      Run OCR
+                    </button>
+                  )}
                 </div>
               ) : (
                 <label className={cn(
@@ -1254,28 +1279,16 @@ export function BookingWizard({ onBack, onComplete }: WizardProps) {
           </div>
         </div>
 
-        {/* Footer nav */}
-        <div className="flex-shrink-0 bg-white border-t border-[#E5E7EB] px-8 py-4 flex items-center justify-between">
-          <button onClick={prev} disabled={busy}
-            className="flex items-center gap-2 px-4 py-2.5 border border-[#E5E7EB] text-[#374151] font-medium text-[13px] rounded-[8px] hover:border-[#1B75BC]/30 transition-colors cursor-pointer disabled:opacity-50">
-            <ChevronLeft size={15} /> {step === 0 ? "Cancel" : "Back"}
-          </button>
-          <div className="flex items-center gap-2">
-            {step === STEPS.length - 1 ? (
-              <button onClick={doConfirm} disabled={busy}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#0E7C66] text-white font-bold text-[13px] rounded-[8px] hover:bg-[#065F46] transition-colors cursor-pointer shadow-lg shadow-[#0E7C66]/20 disabled:opacity-60">
-                {confirm.isPending ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} Confirm Booking
-              </button>
-            ) : (
-              <button onClick={next} disabled={!canNext || busy}
-                className={cn("flex items-center gap-2 px-6 py-2.5 font-bold text-[13px] rounded-[8px] transition-colors cursor-pointer",
-                  canNext && !busy ? "bg-[#1B75BC] text-white hover:bg-[#14588F] shadow-lg shadow-[#1B75BC]/20" : "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
-                )}>
-                {busy ? <Loader2 size={15} className="animate-spin" /> : null} Continue <ChevronRight size={15} />
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Footer nav — design-system StickySaveBar (Cancel = go back one step / exit on step 1) */}
+        <StickySaveBar
+          className="rounded-none"
+          onCancel={prev}
+          onSave={step === STEPS.length - 1 ? doConfirm : next}
+          saving={busy}
+          disabled={step !== STEPS.length - 1 && !canNext}
+          label={step === STEPS.length - 1 ? "Confirm Booking" : "Continue"}
+          dirtyHint={`Step ${step + 1} of ${STEPS.length} — progress autosaves as you go`}
+        />
       </div>
     </div>
   );

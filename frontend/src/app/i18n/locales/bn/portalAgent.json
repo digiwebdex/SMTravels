@@ -118,6 +118,8 @@
   "support": {
     "newTicket": "নতুন টিকিট",
     "open": "খোলা",
+    "subject": "বিষয়",
+    "create": "তৈরি করুন",
     "messagePlaceholder": "আপনার বার্তা লিখুন…",
     "agentHotline": "এজেন্ট হটলাইন",
     "prioritySupport": "অগ্রাধিকার সহায়তা",
@@ -125,8 +127,31 @@
     "messagesCount_other": "{{count}}টি বার্তা",
     "status": {
       "open": "খোলা",
-      "resolved": "সমাধান হয়েছে"
+      "resolved": "সমাধান হয়েছে",
+      "closed": "বন্ধ",
+      "pending": "অপেক্ষমাণ"
     }
+  },
+  "statements": {
+    "subtitle": "কমিশন ও ওয়ালেট লেজার CSV হিসেবে ডাউনলোড করুন",
+    "downloadCsv": "CSV ডাউনলোড",
+    "commissionRows_one": "{{count}}টি কমিশন সারি",
+    "commissionRows_other": "{{count}}টি কমিশন সারি",
+    "walletRows_one": "{{count}}টি ওয়ালেট লেনদেন",
+    "walletRows_other": "{{count}}টি ওয়ালেট লেনদেন",
+    "exportedCommissions": "কমিশন CSV ডাউনলোড হয়েছে",
+    "exportedWallet": "ওয়ালেট CSV ডাউনলোড হয়েছে"
+  },
+  "documents": {
+    "subtitle": "আপনার গ্রাহক ও বুকিংয়ের সাথে যুক্ত ডকুমেন্ট"
+  },
+  "payments": {
+    "subtitle": "আপনার গ্রাহকদের পেমেন্ট",
+    "totalCollected": "মোট সংগৃহীত",
+    "payment": "পেমেন্ট"
+  },
+  "notifications": {
+    "markAllRead": "সব পঠিত হিসেবে চিহ্নিত করুন"
   },
   "profile": {
     "personalInfo": "ব্যক্তিগত তথ্য",

@@ -3,7 +3,8 @@ import { toast } from "sonner";
 import { apiFetch, downloadViaApi } from "../lib/api";
 import type {
   PortalProfile, PortalBooking, PortalBookingDetail, PortalInvoice, PortalInvoiceDetail,
-  PortalPayment, PortalInstallmentPlan, PortalDocument, PortalTicket, PortalTicketDetail,
+  PortalPayment, PortalInstallmentPlan, PortalDocument, PortalVisa, PortalDownloadItem,
+  PortalTicket, PortalTicketDetail,
   PortalNotification, PortalDashboard, TicketCreateInput,
 } from "@contracts/portal.contract";
 import type { DocumentTypeDto } from "@contracts/document.contract";
@@ -14,6 +15,8 @@ export const portalKeys = {
   dashboard: ["portal", "dashboard"] as const,
   bookings: ["portal", "bookings"] as const,
   booking: (id: string) => ["portal", "booking", id] as const,
+  visas: ["portal", "visas"] as const,
+  downloads: ["portal", "downloads"] as const,
   invoices: ["portal", "invoices"] as const,
   invoice: (id: string) => ["portal", "invoice", id] as const,
   payments: ["portal", "payments"] as const,
@@ -28,6 +31,8 @@ export const usePortalMe = () => useQuery({ queryKey: portalKeys.me, queryFn: ()
 export const usePortalDashboard = () => useQuery({ queryKey: portalKeys.dashboard, queryFn: () => apiFetch<PortalDashboard>("/portal/dashboard") });
 export const usePortalBookings = () => useQuery({ queryKey: portalKeys.bookings, queryFn: () => apiFetch<{ data: PortalBooking[] }>("/portal/bookings").then((r) => r.data) });
 export const usePortalBooking = (id: string | null) => useQuery({ queryKey: portalKeys.booking(id ?? ""), queryFn: () => apiFetch<PortalBookingDetail>(`/portal/bookings/${id}`), enabled: !!id });
+export const usePortalVisas = () => useQuery({ queryKey: portalKeys.visas, queryFn: () => apiFetch<{ data: PortalVisa[] }>("/portal/visas").then((r) => r.data) });
+export const usePortalDownloads = () => useQuery({ queryKey: portalKeys.downloads, queryFn: () => apiFetch<{ data: PortalDownloadItem[] }>("/portal/downloads").then((r) => r.data) });
 export const usePortalInvoices = () => useQuery({ queryKey: portalKeys.invoices, queryFn: () => apiFetch<{ data: PortalInvoice[] }>("/portal/invoices").then((r) => r.data) });
 export const usePortalInvoice = (id: string | null) => useQuery({ queryKey: portalKeys.invoice(id ?? ""), queryFn: () => apiFetch<PortalInvoiceDetail>(`/portal/invoices/${id}`), enabled: !!id });
 export const usePortalPayments = () => useQuery({ queryKey: portalKeys.payments, queryFn: () => apiFetch<{ data: PortalPayment[] }>("/portal/payments").then((r) => r.data) });
@@ -89,5 +94,6 @@ export function useMarkAllNotificationsRead() {
 
 export type {
   PortalProfile, PortalBooking, PortalBookingDetail, PortalInvoice, PortalInvoiceDetail,
-  PortalPayment, PortalInstallmentPlan, PortalDocument, PortalTicket, PortalTicketDetail, PortalNotification, PortalDashboard,
+  PortalPayment, PortalInstallmentPlan, PortalDocument, PortalVisa, PortalDownloadItem,
+  PortalTicket, PortalTicketDetail, PortalNotification, PortalDashboard,
 };

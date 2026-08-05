@@ -36,5 +36,44 @@
   "empty": {
     "failed": "Something went wrong",
     "nothing": "Nothing here yet"
+  },
+  "nav": {
+    "groups": {
+      "dashboard": "ড্যাশবোর্ড",
+      "crm": "সিআরএম",
+      "services": "সেবাসমূহ",
+      "catalog": "ক্যাটালগ",
+      "finance": "অর্থ",
+      "workspace": "ওয়ার্কস্পেস",
+      "reports": "রিপোর্ট",
+      "system": "সিস্টেম"
+    },
+    "executiveDashboard": "এক্সিকিউটিভ ড্যাশবোর্ড",
+    "leads": "লিড",
+    "customers": "গ্রাহক",
+    "corporateClients": "কর্পোরেট ক্লায়েন্ট",
+    "allBookings": "সব বুকিং",
+    "hajj": "হজ্জ",
+    "umrah": "উমরাহ",
+    "visa": "ভিসা",
+    "airTicket": "এয়ার টিকিট",
+    "hotel": "হোটেল",
+    "manpower": "ম্যানপাওয়ার",
+    "tour": "ট্যুর",
+    "packages": "প্যাকেজ",
+    "servicesConfig": "সেবা কনফিগ",
+    "accounts": "অ্যাকাউন্ট",
+    "invoicesPayments": "ইনভয়েস ও পেমেন্ট",
+    "hr": "মানব সম্পদ",
+    "documents": "ডকুমেন্ট",
+    "communications": "যোগাযোগ",
+    "reportsAnalytics": "রিপোর্ট ও অ্যানালিটিক্স",
+    "reportsBi": "রিপোর্ট ও BI",
+    "websiteCms": "ওয়েবসাইট CMS",
+    "operations": "অপারেশন",
+    "settings": "সেটিংস"
+  },
+  "dashboard": {
+    "title": "এক্সিকিউটিভ ড্যাশবোর্ড"
   }
 }

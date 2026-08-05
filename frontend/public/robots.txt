@@ -1,13 +1,27 @@
 User-agent: *
-Allow: /$
+Allow: /
 Allow: /about
+Allow: /hajj
+Allow: /umrah
+Allow: /visa
+Allow: /air-ticket
+Allow: /manpower
+Allow: /tour-packages
+Allow: /hotel-booking
 Allow: /packages
 Allow: /blog
 Allow: /gallery
 Allow: /faq
+Allow: /testimonials
+Allow: /branches
+Allow: /career
 Allow: /contact
 Allow: /book
-# Keep the app/portals out of the index
+Allow: /privacy
+Allow: /terms
+Allow: /refund
+
+# Keep the app/portals and internal tools out of the index
 Disallow: /erp
 Disallow: /portal
 Disallow: /agent
@@ -15,6 +29,9 @@ Disallow: /supplier
 Disallow: /staff
 Disallow: /accountant
 Disallow: /login
+Disallow: /register
 Disallow: /api
+Disallow: /ds
+Disallow: /sitemap
 
 Sitemap: https://smtravelsinternational.com/sitemap.xml

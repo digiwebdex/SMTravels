@@ -15,6 +15,7 @@ import {
   mapListItem, mapDetail, toPackagePayload, pkgTypeToEnum, pkgStatusToEnum,
   type PackageListParams,
 } from "../hooks/catalog";
+import { ModulePage } from "../design-system/patterns/ModulePage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type PkgView = "list" | "form" | "detail";
@@ -50,7 +51,7 @@ interface Package {
   availability?: { departureDate: string; totalSeats: number; soldSeats: number; availableSeats: number }[];
 }
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Presentation config (colours only — data comes from usePackages) ─────────
 const TYPE_CFG: Record<PkgType, { color: string; bg: string; text: string }> = {
   Hajj:     { color: "#1B75BC", bg: "#EEF2FF", text: "text-[#1B75BC]" },
   Umrah:    { color: "#F15A24", bg: "#FFF9E6", text: "text-[#D64A12]" },
@@ -66,33 +67,6 @@ const STATUS_CFG: Record<PkgStatus, { color: string; bg: string; dot: string }> 
   Archived:  { color: "#374151", bg: "#F3F4F6", dot: "#9CA3AF" },
   Suspended: { color: "#991B1B", bg: "#FEE2E2", dot: "#DC2626" },
 };
-
-const SAMPLE_DAYS: ItineraryDay[] = [
-  { id: "d1", day: 1, title: "Arrival in Jeddah (JED)", desc: "Arrive at King Abdulaziz International Airport. Transfer to Makkah hotel. Check-in, rest and orientation briefing.", activities: ["Airport transfer", "Hotel check-in", "Group orientation"], hotel: "Hilton Makkah Convention, Makkah", meals: { breakfast: false, lunch: false, dinner: true }, transport: "Private AC Bus", expanded: true },
-  { id: "d2", day: 2, title: "Makkah — Tawaf & Sa'i", desc: "Perform Tawaf Al-Qudum (arrival circumambulation) around the Kaaba followed by Sa'i between Safa and Marwa. Evening: Quran recitation.", activities: ["Tawaf Al-Qudum", "Sa'i Safa-Marwa", "Zamzam water", "Ziyarat Haram"], hotel: "Hilton Makkah Convention, Makkah", meals: { breakfast: true, lunch: true, dinner: true }, transport: "Walking / Shuttle", expanded: false },
-  { id: "d3", day: 3, title: "Arafat — Day of Hajj", desc: "The most sacred day. Stand on the plain of Arafat from noon to sunset. Supplication, dhikr, and listening to the Hajj sermon.", activities: ["Wuquf Arafat", "Khutbah Al-Hajj", "Maghrib prayer", "Move to Muzdalifah"], hotel: "Camp Mina, Arafat", meals: { breakfast: true, lunch: true, dinner: false }, transport: "Hajj bus convoy", expanded: false },
-  { id: "d4", day: 4, title: "Mina — Stoning & Eid Al-Adha", desc: "Rami Al-Jamarat (stoning of the pillars). Perform Eid sacrifice. Halq (shaving) or Taqsir. Return to Makkah for Ifadah Tawaf.", activities: ["Rami Aqabah", "Eid sacrifice", "Halq/Taqsir", "Tawaf Al-Ifadah", "Sa'i"], hotel: "Camp Mina", meals: { breakfast: true, lunch: true, dinner: true }, transport: "Hajj bus convoy", expanded: false },
-  { id: "d5", day: 5, title: "Madinah — Ziyarat", desc: "Travel to the Prophet's City. Visit Masjid An-Nabawi, Al-Baqi cemetery, Masjid Quba. Evening free for additional worship.", activities: ["Masjid An-Nabawi", "Riyad ul-Jannah", "Al-Baqi", "Masjid Quba", "Masjid Al-Qiblatayn"], hotel: "Al Madinah Millennium, Madinah", meals: { breakfast: true, lunch: false, dinner: true }, transport: "Private AC Bus", expanded: false },
-];
-
-const SAMPLE_TIERS: PricingTier[] = [
-  { id: "t1", label: "Economy",  price: 580000,  originalPrice: 650000,  seats: 20, occupied: 17 },
-  { id: "t2", label: "Standard", price: 720000,  originalPrice: 800000,  seats: 15, occupied: 8  },
-  { id: "t3", label: "Premium",  price: 950000,  originalPrice: undefined, seats: 10, occupied: 2  },
-  { id: "t4", label: "VIP",      price: 1200000, originalPrice: undefined, seats: 5,  occupied: 0  },
-];
-
-const SAMPLE_HOTELS: HotelEntry[] = [
-  { id: "h1", city: "Makkah",  name: "Hilton Makkah Convention Hotel",  stars: 5, roomType: "Deluxe Double",  nights: 7 },
-  { id: "h2", city: "Madinah", name: "Al Madinah Millennium Hotel",     stars: 5, roomType: "Superior Twin",  nights: 4 },
-  { id: "h3", city: "Jeddah",  name: "Jeddah Hilton Hotel",             stars: 4, roomType: "Standard Twin", nights: 1 },
-];
-
-const SAMPLE_FLIGHTS: FlightEntry[] = [
-  { id: "f1", carrier: "Biman Bangladesh Airlines", flightNo: "BG-043", from: "DAC", to: "JED", cabin: "Economy", dep: "09:30", arr: "14:15" },
-  { id: "f2", carrier: "Biman Bangladesh Airlines", flightNo: "BG-044", from: "MED", to: "DAC", cabin: "Economy", dep: "16:00", arr: "01:45+1" },
-];
-
 
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -191,15 +165,16 @@ function PackageListView({
   };
 
   return (
-    <div className="p-5 md:p-7">
+    <div>
       {/* Header */}
       <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h1 className="text-[20px] font-black text-[#111827]">Package Management</h1>
+          <h1 className="text-[20px] font-black text-[#111827]">All Packages</h1>
           <p className="text-[12px] text-[#9CA3AF] mt-0.5">{stats.total} total packages · {stats.active} active</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:border-[#1B75BC]/30 transition-colors cursor-pointer">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={13} className="text-[#9CA3AF]" /> Export
           </button>
           <button onClick={onNew}
@@ -245,8 +220,8 @@ function PackageListView({
             {selected.size > 0 && (
               <div className="flex items-center gap-2 ml-auto text-[12px]">
                 <span className="text-[#9CA3AF]">{selected.size} selected</span>
-                <button className="h-7 px-2.5 bg-[#FEF2F2] text-[#DC2626] font-medium rounded-[6px] hover:bg-[#FEE2E2] transition-colors cursor-pointer text-[11px]">Archive</button>
-                <button className="h-7 px-2.5 bg-[#F3F4F6] text-[#374151] font-medium rounded-[6px] hover:bg-[#E9EAEC] transition-colors cursor-pointer text-[11px]">Duplicate</button>
+                <button disabled title="Archive is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Archive</button>
+                <button disabled title="Duplicate is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Duplicate</button>
               </div>
             )}
           </div>
@@ -336,8 +311,8 @@ function PackageListView({
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => onView(pkg.id)} title="View" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Eye size={14} /></button>
                         <button onClick={() => onEdit(pkg.id)} title="Edit" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Edit2 size={14} /></button>
-                        <button title="Duplicate" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><Copy size={14} /></button>
-                        <button title="More" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] rounded-[6px] transition-colors cursor-pointer"><MoreHorizontal size={14} /></button>
+                        <button disabled title="Duplicate is not available in this build" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed rounded-[6px]"><Copy size={14} /></button>
+                        <button disabled title="More is not available in this build" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed rounded-[6px]"><MoreHorizontal size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -813,11 +788,11 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
   const [shortDesc, setShortDesc] = useState(pkg?.shortDesc || "");
   const [longDesc, setLongDesc] = useState("");
   const [featured, setFeatured] = useState(pkg?.featured || false);
-  const [tiers, setTiers] = useState<PricingTier[]>(pkg?.tiers?.length ? pkg.tiers : SAMPLE_TIERS);
-  const [days, setDays] = useState<ItineraryDay[]>(pkg?.itinerary?.length ? pkg.itinerary : SAMPLE_DAYS);
-  const [hotels, setHotels] = useState<HotelEntry[]>(pkg?.hotels?.length ? pkg.hotels : SAMPLE_HOTELS);
-  const [flights, setFlights] = useState<FlightEntry[]>(pkg?.flights?.length ? pkg.flights : SAMPLE_FLIGHTS);
-  const [includes, setIncludes] = useState<string[]>(pkg?.includes?.length ? pkg.includes : ["Return economy airfare", "Hotel accommodation", "All ground transport", "Group guide"]);
+  const [tiers, setTiers] = useState<PricingTier[]>(pkg?.tiers ?? []);
+  const [days, setDays] = useState<ItineraryDay[]>(pkg?.itinerary ?? []);
+  const [hotels, setHotels] = useState<HotelEntry[]>(pkg?.hotels ?? []);
+  const [flights, setFlights] = useState<FlightEntry[]>(pkg?.flights ?? []);
+  const [includes, setIncludes] = useState<string[]>(pkg?.includes ?? []);
   const [excludes, setExcludes] = useState<string[]>(pkg?.excludes?.length ? pkg.excludes : ["Visa fee", "Travel insurance", "Personal expenses"]);
   const [departureDates, setDepartureDates] = useState<string[]>(pkg?.departureDates || ["2026-05-12", "2026-05-14"]);
 
@@ -854,7 +829,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
     setDepartureDates(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
 
   return (
-    <div className="p-5 md:p-7">
+    <div>
       <PageBreadcrumb
         items={[{ label: "Packages", onClick: onBack }, { label: isEdit ? `Edit: ${pkg?.name || "Package"}` : "New Package" }]}
         action={
@@ -1101,15 +1076,15 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
                   <div key={imgId} className="relative aspect-video rounded-[10px] overflow-hidden bg-[#F3F4F6] group">
                     <img src={`https://images.unsplash.com/${imgId}?w=400&h=225&fit=crop`} alt="Package image" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#374151] hover:text-[#DC2626] cursor-pointer"><Trash2 size={13} /></button>
+                      <button disabled title="Removing images is not available in this build" className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed"><Trash2 size={13} /></button>
                     </div>
                     {i === 0 && <span className="absolute top-2 left-2 text-[9px] font-black bg-[#F15A24] text-[#1B75BC] px-1.5 py-0.5 rounded-full">COVER</span>}
                   </div>
                 ))}
                 {/* Upload slot */}
-                <button className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 hover:border-[#1B75BC]/50 hover:bg-[#EEF2FF]/50 transition-all cursor-pointer group">
-                  <Upload size={20} className="text-[#D1D5DB] group-hover:text-[#1B75BC] transition-colors" />
-                  <span className="text-[10px] font-medium text-[#9CA3AF] group-hover:text-[#1B75BC] transition-colors">Upload Image</span>
+                <button disabled title="Image upload is not available in this build" className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 opacity-60 cursor-not-allowed">
+                  <Upload size={20} className="text-[#D1D5DB]" />
+                  <span className="text-[10px] font-medium text-[#9CA3AF]">Upload Image</span>
                 </button>
               </div>
               <div className="mt-4 p-3 bg-[#F7F8FA] rounded-[8px] text-[11px] text-[#9CA3AF] flex items-center gap-2">
@@ -1172,7 +1147,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
   const pct = Math.round(((pkg.totalSeats - pkg.availableSeats) / pkg.totalSeats) * 100);
 
   return (
-    <div className="p-5 md:p-7">
+    <div>
       <PageBreadcrumb
         items={[{ label: "Packages", onClick: onBack }, { label: pkg.name }]}
         action={
@@ -1286,7 +1261,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
             <Card className="p-5">
               <h3 className="text-[13px] font-bold text-[#111827] mb-3">Inclusions</h3>
               <div className="space-y-1.5">
-                {SAMPLE_DAYS[0] && pkg.includes?.slice(0, 6).map((item, i) => (
+                {pkg.includes?.slice(0, 6).map((item, i) => (
                   <div key={i} className="flex items-start gap-2 text-[11px] text-[#374151]">
                     <CheckCircle size={12} className="text-[#0E7C66] flex-shrink-0 mt-0.5" /> {item}
                   </div>
@@ -1311,7 +1286,10 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
 
       {tab === "pricing" && (
         <Card className="p-5">
-          <PricingTierEditor tiers={pkg.tiers} onChange={() => {}} />
+          {/* Read-only preview in the detail view — pricing is edited from the package Edit form. */}
+          <fieldset disabled className="border-0 p-0 m-0">
+            <PricingTierEditor tiers={pkg.tiers} onChange={() => undefined} />
+          </fieldset>
         </Card>
       )}
 
@@ -1385,16 +1363,18 @@ export function PackageManagementPage() {
   const goDetail = (id: string) => { setSelectedId(id); setView("detail"); };
 
   return (
-    <div>
-      {view === "list" && <PackageListView onNew={goCreate} onEdit={goEdit} onView={goDetail} />}
-      {view === "form" && (
-        isEdit && selectedId
-          ? <PackageFormLoader id={selectedId} onBack={goList} onSave={goList} />
-          : <PackageFormView pkg={undefined} isEdit={false} onBack={goList} onSave={goList} />
-      )}
-      {view === "detail" && selectedId && (
-        <PackageDetailLoader id={selectedId} onBack={goList} onEdit={() => goEdit(selectedId)} />
-      )}
+    <div className="p-5 md:p-7">
+      <ModulePage title="Package Management" subtitle="Create, price & publish Hajj, Umrah, tour and other packages">
+        {view === "list" && <PackageListView onNew={goCreate} onEdit={goEdit} onView={goDetail} />}
+        {view === "form" && (
+          isEdit && selectedId
+            ? <PackageFormLoader id={selectedId} onBack={goList} onSave={goList} />
+            : <PackageFormView pkg={undefined} isEdit={false} onBack={goList} onSave={goList} />
+        )}
+        {view === "detail" && selectedId && (
+          <PackageDetailLoader id={selectedId} onBack={goList} onEdit={() => goEdit(selectedId)} />
+        )}
+      </ModulePage>
     </div>
   );
 }

@@ -485,21 +485,21 @@ function Topbar({
                 <div className="text-[11px] text-[#9CA3AF]">{user?.email ?? ""}</div>
               </div>
               {[
-                { icon: UserCircle, label: "My Profile" },
-                { icon: Building2,  label: "Branch Settings" },
-                { icon: HelpCircle, label: "Help & Support" },
+                { icon: UserCircle, label: "My Profile", to: "/erp/settings" },
+                { icon: Building2,  label: "Branch Settings", to: "/erp/settings" },
+                { icon: HelpCircle, label: "Help & Support", disabled: true },
                 { icon: Globe,      label: "Public Website", to: "/" },
                 { icon: BarChart3,  label: "Sitemap & Workflow", to: "/sitemap" },
                 { icon: Layers,    label: "Design System", to: "/ds" },
               ].map(item => (
                 item.to ? (
-                  <Link key={item.label} to={item.to}
+                  <Link key={item.label} to={item.to} onClick={() => setUserOpen(false)}
                     className="flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#374151] hover:bg-[#F7F8FA] hover:text-[#1B75BC] transition-colors cursor-pointer">
                     <item.icon size={13} className="text-[#9CA3AF]" /> {item.label}
                   </Link>
                 ) : (
-                  <button key={item.label}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#374151] hover:bg-[#F7F8FA] hover:text-[#1B75BC] transition-colors cursor-pointer">
+                  <button key={item.label} disabled title={`${item.label} is not available in this build`}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] text-[#9CA3AF] opacity-60 cursor-not-allowed">
                     <item.icon size={13} className="text-[#9CA3AF]" /> {item.label}
                   </button>
                 )

@@ -11,14 +11,16 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer, MobileBottomNav, FilterDrawer, FilterSection, ScrollTable } from "../lib/responsive";
+import { EmptyState } from "../lib/ds";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { SampleBadge } from "./SampleBadge";
+import { useAuth } from "../auth/AuthContext";
 import {
   useStaffMe, useStaffDashboard, useStaffTasks, useStaffBookings, useStaffCustomers,
   useStaffDocuments, useStaffAnnouncements, useSetTaskStatus, useCreateTask,
   type StaffTask,
 } from "../hooks/portals";
+import { useMyNotifications, useMarkAllNotificationsRead, relAge } from "../hooks/notifications";
 
 const iso2date = (s: string | null) => (s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "—");
 function PLoad({ q, children }: { q: { isLoading: boolean; isError: boolean; error?: unknown }; children: React.ReactNode }) {
@@ -35,28 +37,15 @@ type StaffView =
 
 const NAV: { id: StaffView; icon: React.ElementType; label: string; badge?: number }[] = [
   { id: "dashboard",     icon: LayoutDashboard, label: "portalCommon:nav.dashboard"      },
-  { id: "tasks",         icon: CheckSquare,     label: "portalStaff:nav.dailyTasks",  badge: 4 },
+  { id: "tasks",         icon: CheckSquare,     label: "portalStaff:nav.dailyTasks" },
   { id: "bookings",      icon: Briefcase,       label: "portalCommon:nav.bookings"       },
   { id: "customers",     icon: Users,           label: "portalCommon:nav.customers"      },
   { id: "reports",       icon: BarChart3,       label: "portalStaff:nav.myReports"       },
   { id: "documents",     icon: FolderOpen,      label: "portalCommon:nav.documents"      },
   { id: "announcements", icon: Megaphone,       label: "portalCommon:nav.announcements"  },
   { id: "support",       icon: LifeBuoy,        label: "portalCommon:nav.support"        },
-  { id: "notifications", icon: Bell,            label: "portalCommon:nav.notifications", badge:3 },
+  { id: "notifications", icon: Bell,            label: "portalCommon:nav.notifications" },
   { id: "profile",       icon: User,            label: "portalCommon:nav.profile"        },
-];
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const NOTIFS_DATA = [
-  { id:1, title:"New booking assigned to you",          body:"BK-0891 (Nasrin Begum — Umrah Standard) has been assigned to your queue.", time:"2h ago",  read:false, color:"#1B75BC" },
-  { id:2, title:"Task overdue: Collect balance payment", body:"Task #5 was due at 10:00am. Please action immediately.",                    time:"3h ago",  read:false, color:"#EF4444" },
-  { id:3, title:"Customer document approved",           body:"Md. Karim Ullah's visa documents have been verified by the visa team.",      time:"Yesterday",read:false,color:"#0E7C66" },
-  { id:4, title:"New announcement from Management",     body:"Ramadan office hours update. Please check the announcements section.",       time:"Jul 15",  read:true,  color:"#F15A24" },
-];
-
-const SUP_TICKETS = [
-  { id:"IT-041", subject:"Cannot access visa processing module", status:"open",     date:"Jul 15", msgs:2 },
-  { id:"IT-038", subject:"Client record merge request — CU-0214",status:"resolved", date:"Jul 5",  msgs:3 },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -336,7 +325,7 @@ function StaffBookings() {
                   <td className="px-4 py-3.5 text-sm font-mono font-bold text-slate-800">{fmtBDT(b.baseAmount)}</td>
                   <td className="px-4 py-3.5"><Chip label={t(`portalCommon:status.${b.status.toLowerCase()}`, { defaultValue: bkCfg(b.status).label })} cls={bkCfg(b.status).cls} /></td>
                   <td className="px-4 py-3.5">
-                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
+                    <button disabled title="Details view is not available in the staff portal" className="p-1.5 rounded-lg text-slate-300 opacity-60 cursor-not-allowed"><Eye size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -393,7 +382,7 @@ function StaffCustomers() {
                   <td className="px-4 py-3.5 text-xs text-slate-500">{iso2date(c.createdAt)}</td>
                   <td className="px-4 py-3.5 text-sm font-bold text-slate-700">{c.bookings}</td>
                   <td className="px-4 py-3.5">
-                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"><Eye size={14} /></button>
+                    <button disabled title="Details view is not available in the staff portal" className="p-1.5 rounded-lg text-slate-300 opacity-60 cursor-not-allowed"><Eye size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -408,69 +397,51 @@ function StaffCustomers() {
 // ─── REPORTS ─────────────────────────────────────────────────────────────────
 function StaffReports() {
   const { t } = useTranslation("portalStaff");
-  const months = ["Feb","Mar","Apr","May","Jun","Jul"];
-  const vals = [3,5,4,6,5,4];
-  const max = Math.max(...vals);
+  const dashQ = useStaffDashboard();
+  const bookingsQ = useStaffBookings();
+  const d = dashQ.data;
+  const bookings = bookingsQ.data ?? [];
+  const completed = bookings.filter(b => b.status === "COMPLETED").length;
+  const doneTasks = d?.tasksByStatus.find(s => s.status === "DONE")?.count ?? 0;
 
   return (
     <div className="space-y-5">
-      <SampleBadge />
       <h2 className="text-xl font-bold text-slate-800">{t("nav.myReports")}</h2>
 
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label:t("reports.kpi.bookings"),  val:"4",    delta:"+1", up:true  },
-          { label:t("reports.kpi.tasksDone"),      val:"7",    delta:"+3", up:true  },
-          { label:t("reports.kpi.customersServed"),val:"12",   delta:"+2", up:true  },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-2xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
-              <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5",
-                s.up ? "text-emerald-600 bg-emerald-50" : "text-red-500 bg-red-50")}>
-                {s.up ? <TrendingUp size={10}/> : <TrendingDown size={10}/>}{s.delta}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500">{s.label}</p>
+      <PLoad q={dashQ}>
+        {d && (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: t("reports.kpi.bookings"), val: String(d.counts.assignedBookings) },
+              { label: t("reports.kpi.tasksDone"), val: String(doneTasks) },
+              { label: t("reports.kpi.customersServed"), val: String(d.counts.branchCustomers) },
+            ].map(s => (
+              <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
+                <p className="text-2xl font-black text-slate-800" style={{ fontFamily:"'JetBrains Mono',monospace" }}>{s.val}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </PLoad>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <p className="font-bold text-slate-800 mb-4">{t("reports.bookingsClosed")}</p>
-        <div className="flex items-end gap-2 h-28">
-          {vals.map((v,i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-t-lg" style={{ height:`${(v/max)*100}%`, background: i===vals.length-1?"#1B75BC":"#1B75BC33" }} />
-              <p className="text-xs text-slate-400">{months[i]}</p>
-            </div>
-          ))}
+      <PLoad q={bookingsQ}>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <p className="font-bold text-slate-800 mb-3">{t("reports.bookingsClosed")}</p>
+          <p className="text-sm text-slate-600">
+            {completed} of {bookings.length} assigned bookings completed.
+          </p>
         </div>
-      </div>
+      </PLoad>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-slate-800">{t("reports.performanceSummary")}</p>
-          <button className="flex items-center gap-1.5 text-xs text-[#1B75BC] font-semibold border border-[#1B75BC]/30 px-3 py-1.5 rounded-lg hover:bg-[#1B75BC]/5 whitespace-nowrap">
-            <Download size={12}/> {t("reports.export")}
-          </button>
+      <div className="flex items-start gap-3 p-5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl">
+        <Info size={18} className="text-[#2563EB] flex-shrink-0 mt-0.5"/>
+        <div>
+          <p className="text-sm font-semibold text-slate-800">Use ERP Reports for full analytics</p>
+          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            Detailed sales, branch, and financial reports are available in the main ERP under Reports. This portal view shows your personal activity summary only.
+          </p>
         </div>
-        {[
-          { label:t("reports.rows.taskCompletion"), val:"78%",   bar:78,  color:"#1B75BC" },
-          { label:t("reports.rows.bookingClose"),   val:"64%",   bar:64,  color:"#0E7C66" },
-          { label:t("reports.rows.customerSatisfaction"),val:"4.7★",  bar:94,  color:"#F15A24" },
-          { label:t("reports.rows.responseTime"),  val:"1.8h",  bar:75,  color:"#7C3AED" },
-        ].map(r => (
-          <div key={r.label} className="mb-3 last:mb-0">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-500">{r.label}</span>
-              <span className="font-bold text-slate-700">{r.val}</span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full" style={{ width:`${r.bar}%`, background:r.color }} />
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -525,7 +496,7 @@ function StaffDocuments() {
                   </td>
                   <td className="px-4 py-3.5 text-xs text-slate-400">{iso2date(d.createdAt)}</td>
                   <td className="px-4 py-3.5">
-                    <button className="flex items-center gap-1 text-xs text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">
+                    <button disabled title="Document download is not available in the staff portal" className="flex items-center gap-1 text-xs text-slate-400 opacity-60 cursor-not-allowed whitespace-nowrap">
                       <Download size={12}/> {t("common:actions.download")}
                     </button>
                   </td>
@@ -581,69 +552,12 @@ function StaffAnnouncements() {
 // ─── SUPPORT ─────────────────────────────────────────────────────────────────
 function StaffSupport() {
   const { t } = useTranslation("portalStaff");
-  const [active, setActive] = useState<string|null>(null);
-  const MSGS = [
-    { from:"Me",         text:"I cannot access the visa processing module. Getting a 403 error.", time:"Jul 15 09:00", mine:true  },
-    { from:"IT Support", text:"Hi Rafiq, I've checked your permissions. A fix has been applied. Please clear your cache and retry.", time:"Jul 15 09:45", mine:false },
-  ];
-
-  if (active) return (
-    <div className="flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => setActive(null)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-500">
-          <ChevronRight size={16} className="rotate-180" />
-        </button>
-        <div>
-          <p className="font-bold text-slate-800">{SUP_TICKETS.find(tk=>tk.id===active)?.subject}</p>
-          <p className="text-xs text-slate-400">{active} · {t("support.status.open")}</p>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-        {MSGS.map((m,i) => (
-          <div key={i} className={cn("flex",m.mine?"justify-end":"justify-start")}>
-            {!m.mine && <div className="w-8 h-8 rounded-full bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold mr-2 self-end flex-shrink-0">IT</div>}
-            <div className={cn("max-w-sm px-4 py-2.5 rounded-2xl text-sm",m.mine?"bg-[#1B75BC] text-white rounded-br-sm":"bg-slate-100 text-slate-700 rounded-bl-sm")}>
-              {m.text}
-              <p className={cn("text-xs mt-1",m.mine?"text-white/60":"text-slate-400")}>{m.time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <input placeholder={t("support.replyPlaceholder")} className="flex-1 px-4 py-2.5 bg-slate-100 rounded-2xl text-sm focus:outline-none" />
-        <button className="p-2.5 bg-[#1B75BC] text-white rounded-xl"><Send size={16} /></button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
-      <SampleBadge />
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">{t("support.title")}</h2>
-        <button className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B75BC] text-white text-sm font-semibold rounded-xl hover:bg-[#14588F] whitespace-nowrap">
-          <Plus size={14}/> {t("support.newTicket")}
-        </button>
+      <h2 className="text-xl font-bold text-slate-800">{t("support.title")}</h2>
+      <div className="bg-white rounded-2xl border border-slate-200">
+        <EmptyState variant="no-data" title="Support" desc="Your support conversations will appear here." />
       </div>
-      {SUP_TICKETS.map(tk => (
-        <div key={tk.id} onClick={() => setActive(tk.id)}
-          className="bg-white rounded-2xl border border-slate-200 p-5 cursor-pointer hover:shadow-sm transition-all">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 pr-3">
-              <p className="text-xs font-mono text-slate-400 mb-1">{tk.id}</p>
-              <p className="font-semibold text-slate-800">{tk.subject}</p>
-            </div>
-            <span className={cn("text-xs px-2.5 py-1 rounded-full font-semibold border flex-shrink-0",
-              tk.status==="open"?"bg-blue-50 text-blue-600 border-blue-200":"bg-emerald-50 text-emerald-600 border-emerald-200")}>
-              {t(`support.status.${tk.status}`, { defaultValue: tk.status })}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1"><MessageSquare size={11}/>{t("support.messagesCount", { count: tk.msgs })}</span>
-            <span>{tk.date}</span>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -651,34 +565,42 @@ function StaffSupport() {
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
 function StaffNotifications() {
   const { t } = useTranslation("portalStaff");
-  const [list, setList] = useState(NOTIFS_DATA);
+  const q = useMyNotifications();
+  const markAll = useMarkAllNotificationsRead();
+  const list = q.data ?? [];
+
   return (
     <div className="space-y-4">
-      <SampleBadge />
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{t("portalCommon:nav.notifications")}</h2>
-        <button onClick={() => setList(n => n.map(x => ({ ...x, read:true })))}
-          className="text-sm text-[#1B75BC] font-semibold hover:underline whitespace-nowrap">{t("notifications.markAllRead")}</button>
+        <button onClick={() => markAll.mutate()} disabled={markAll.isPending || list.every(n => n.read)}
+          className="text-sm text-[#1B75BC] font-semibold hover:underline whitespace-nowrap disabled:opacity-50">{t("notifications.markAllRead")}</button>
       </div>
-      <div className="space-y-2.5">
-        {list.map(n => (
-          <div key={n.id} onClick={() => setList(ls => ls.map(x => x.id===n.id?{...x,read:true}:x))}
-            className={cn("flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all",
-              n.read?"bg-white border-slate-200":"bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:n.color+"18" }}>
-              <div className="w-3 h-3 rounded-full" style={{ background:n.color }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-slate-800">{n.title}</p>
-                {!n.read && <div className="w-2 h-2 rounded-full bg-[#1B75BC] flex-shrink-0" />}
+      <PLoad q={q}>
+        {list.length === 0 && <p className="text-sm text-slate-400 text-center py-8">{t("portalCommon:empty.nothing")}</p>}
+        <div className="space-y-2.5">
+          {list.map(n => {
+            const color = n.color || "#1B75BC";
+            return (
+              <div key={n.id}
+                className={cn("flex items-start gap-3 p-4 rounded-2xl border transition-all",
+                  n.read ? "bg-white border-slate-200" : "bg-[#1B75BC]/3 border-[#1B75BC]/15")}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: color + "18" }}>
+                  <div className="w-3 h-3 rounded-full" style={{ background: color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-slate-800">{n.title}</p>
+                    {!n.read && <div className="w-2 h-2 rounded-full bg-[#1B75BC] flex-shrink-0" />}
+                  </div>
+                  {n.body && <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>}
+                </div>
+                <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap mt-0.5">{relAge(n.createdAt)}</span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
-            </div>
-            <span className="text-xs text-slate-400 flex-shrink-0 whitespace-nowrap mt-0.5">{n.time}</span>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      </PLoad>
     </div>
   );
 }
@@ -686,6 +608,7 @@ function StaffNotifications() {
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 function StaffProfile() {
   const { t } = useTranslation("portalStaff");
+  const { logout } = useAuth();
   const q = useStaffMe();
   const me = q.data;
   const initials = (me?.name ?? "").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -714,7 +637,7 @@ function StaffProfile() {
               </div>
             ))}
           </div>
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
+          <button onClick={() => void logout()} className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 font-semibold text-sm rounded-2xl hover:bg-red-50"><LogOut size={16}/> {t("portalCommon:nav.logout")}</button>
         </>)}
       </PLoad>
     </div>
@@ -722,8 +645,9 @@ function StaffProfile() {
 }
 
 // ─── Sidebar inner component (shared desktop + drawer) ───────────────────────
-function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void }) {
+function StaffSidebar({ view, go, onClose, unreadNotif }: { view: StaffView; go: (v: StaffView) => void; onClose?: () => void; unreadNotif: number }) {
   const { t } = useTranslation("portalStaff");
+  const { logout } = useAuth();
   const { data: me } = useStaffMe();
   const sName = me?.name ?? t("roles.staff");
   const sInit = sName.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -760,14 +684,16 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
             style={{ minHeight: 44 }}>
             <item.icon size={16} />
             <span className="flex-1 text-left">{t(item.label)}</span>
-            {item.badge ? (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">{item.badge}</span>
+            {item.id === "notifications" && unreadNotif > 0 ? (
+              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+                {unreadNotif}
+              </span>
             ) : null}
           </button>
         ))}
       </nav>
       <div className="p-3 border-t border-white/10">
-        <button className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
+        <button onClick={() => void logout()} className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 w-full px-3 py-2 rounded-xl hover:bg-white/5"
           style={{ minHeight: 44 }}>
           <LogOut size={14}/> {t("portalCommon:nav.logout")}
         </button>
@@ -779,9 +705,9 @@ function StaffSidebar({ view, go, onClose }: { view: StaffView; go: (v: StaffVie
 // Mobile bottom nav items
 const STAFF_BOTTOM_NAV = [
   { id: "dashboard"     as StaffView, icon: LayoutDashboard, label: "portalStaff:bottomNav.home" },
-  { id: "tasks"         as StaffView, icon: CheckSquare,     label: "portalCommon:nav.tasks",  badge: 4 },
+  { id: "tasks"         as StaffView, icon: CheckSquare,     label: "portalCommon:nav.tasks" },
   { id: "bookings"      as StaffView, icon: Briefcase,       label: "portalCommon:nav.bookings" },
-  { id: "notifications" as StaffView, icon: Bell,            label: "portalStaff:bottomNav.alerts", badge: 3 },
+  { id: "notifications" as StaffView, icon: Bell,            label: "portalStaff:bottomNav.alerts" },
   { id: "profile"       as StaffView, icon: User,            label: "portalCommon:nav.profile"  },
 ];
 
@@ -791,6 +717,11 @@ export function StaffPortal() {
   const [view, setView] = useState<StaffView>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const go = (v: StaffView) => setView(v);
+  const notifQ = useMyNotifications();
+  const unreadNotif = (notifQ.data ?? []).filter(n => !n.read).length;
+  const { data: meShell } = useStaffMe();
+  const meName = meShell?.name ?? t("roles.staff");
+  const meInit = meName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
   const render = () => {
     switch (view) {
@@ -807,14 +738,13 @@ export function StaffPortal() {
     }
   };
 
-  const unreadNotif = NOTIFS_DATA.filter(n => !n.read).length;
   const currentLabel = t(NAV.find(n => n.id === view)?.label ?? "");
 
   return (
     <div className="min-h-screen bg-[#F0F2F5]">
       {/* ── Desktop layout ── */}
       <div className="hidden md:flex h-screen overflow-hidden">
-        <StaffSidebar view={view} go={go} />
+        <StaffSidebar view={view} go={go} unreadNotif={unreadNotif} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between flex-shrink-0 h-14">
             <p className="text-sm font-semibold text-slate-600">{currentLabel}</p>
@@ -828,7 +758,7 @@ export function StaffPortal() {
                 )}
               </button>
               <button onClick={() => go("profile")} className="w-7 h-7 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
-                RI
+                {meInit}
               </button>
             </div>
           </header>
@@ -842,7 +772,7 @@ export function StaffPortal() {
       <div className="md:hidden flex flex-col min-h-screen">
         {/* Mobile drawer */}
         <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} width="w-56">
-          <StaffSidebar view={view} go={go} onClose={() => setDrawerOpen(false)} />
+          <StaffSidebar view={view} go={go} onClose={() => setDrawerOpen(false)} unreadNotif={unreadNotif} />
         </MobileDrawer>
 
         {/* Mobile top bar */}
@@ -857,7 +787,7 @@ export function StaffPortal() {
             </button>
             <div>
               <p className="text-sm font-bold text-slate-800 leading-tight">{currentLabel}</p>
-              <p className="text-xs text-slate-400">Rafiqul Islam · Staff</p>
+              <p className="text-xs text-slate-400">{meName} · {t("roles.staff")}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -871,7 +801,7 @@ export function StaffPortal() {
             </button>
             <button onClick={() => go("profile")}
               className="w-8 h-8 rounded-full bg-[#1B75BC]/15 flex items-center justify-center text-[#1B75BC] text-xs font-bold">
-              RI
+              {meInit}
             </button>
           </div>
         </div>
@@ -883,7 +813,11 @@ export function StaffPortal() {
 
         {/* Mobile bottom nav */}
         <MobileBottomNav
-          items={STAFF_BOTTOM_NAV.map(i => ({ ...i, label: t(i.label) }))}
+          items={STAFF_BOTTOM_NAV.map(i => ({
+            ...i,
+            label: t(i.label),
+            badge: i.id === "notifications" && unreadNotif > 0 ? unreadNotif : undefined,
+          }))}
           active={view}
           onChange={go}
         />

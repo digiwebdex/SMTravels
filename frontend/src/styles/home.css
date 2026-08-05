@@ -1,0 +1,138 @@
+/* Homepage sacred cinematic — scoped to .home-sacred only */
+
+.home-sacred {
+  --home-navy: #0a2e4d;
+  --home-navy-mid: #17456b;
+  --home-blue: #1b75bc;
+  --home-orange: #f15a24;
+  --home-orange-text: #d64a12;
+  --home-sand: #f4f0e8;
+  --home-ink: #12263a;
+  --home-muted: #5a6b7d;
+  --home-line: rgba(27, 117, 188, 0.18);
+  --home-display: "Cormorant Garamond", "Noto Serif Bengali", Georgia, serif;
+  --home-body: "Manrope", "Noto Sans Bengali", sans-serif;
+  font-family: var(--home-body);
+  color: var(--home-ink);
+  background: #faf9f7;
+}
+
+.home-sacred h1,
+.home-sacred h2,
+.home-sacred .home-display {
+  font-family: var(--home-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Bangla display: prefer Noto Serif Bengali when document is bn */
+html[lang="bn"] .home-sacred h1,
+html[lang="bn"] .home-sacred h2,
+html[lang="bn"] .home-sacred .home-display {
+  font-family: "Noto Serif Bengali", "Cormorant Garamond", Georgia, serif;
+  letter-spacing: 0;
+}
+
+/* Motions */
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes home-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.home-sacred .home-rise {
+  animation: home-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.home-sacred .home-rise-delay-1 {
+  animation-delay: 0.12s;
+}
+.home-sacred .home-rise-delay-2 {
+  animation-delay: 0.24s;
+}
+.home-sacred .home-rise-delay-3 {
+  animation-delay: 0.36s;
+}
+.home-sacred .home-rise-delay-4 {
+  animation-delay: 0.48s;
+}
+
+.home-sacred .home-kenburns img,
+.home-sacred .home-kenburns video {
+  animation: home-kenburns 28s ease-out forwards;
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-sacred .home-rise,
+  .home-sacred .home-kenburns img,
+  .home-sacred .home-kenburns video,
+  .home-sacred .home-marquee-track {
+    animation: none !important;
+  }
+}
+
+.home-sacred .home-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--home-orange-text);
+}
+
+.home-sacred .home-ornament::before,
+.home-sacred .home-ornament::after {
+  content: "";
+  width: 2.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  opacity: 0.55;
+}
+
+.home-sacred .home-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.home-sacred .home-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 2.5rem;
+  animation: home-marquee 40s linear infinite;
+}
+
+.home-sacred .home-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-sacred .home-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -5,14 +5,12 @@ import React, { useState } from "react";
  * fallbacks so the hero always looks intentional regardless of what's present.
  *
  * Layering (bottom → top):
- *   1. <img> poster — the Kaaba still (remote Unsplash today). Always renders,
- *      so even with no video/poster file the hero shows real imagery.
- *   2. <video> — /hero-makkah.mp4 with /hero-makkah-poster.jpg as its poster.
- *      Autoplays muted+looping (required for mobile autoplay). If the file is
- *      absent or fails to decode, onError hides it and the <img> shows through.
+ *   1. <img> poster — always renders for instant first paint.
+ *   2. <video> — /hero-makkah.mp4 (web-optimized H.264 720p@24fps).
+ *      Autoplays muted+looping. If decode fails, onError hides it.
  *
- * Drop the footage at frontend/public/hero-makkah.mp4 (+ optional
- * hero-makkah-poster.jpg). Runtime-fetched — no rebuild needed when it lands.
+ * Playback notes: ken-burns is NOT applied to the <video> (causes jank).
+ * Drop replacements at frontend/public/hero-makkah.mp4 (+ poster jpg).
  */
 export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: string }) {
   const [videoFailed, setVideoFailed] = useState(false);
@@ -20,7 +18,11 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* poster / fallback still — always present beneath the video */}
-      <img src={posterImg} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={posterImg || "/hero-makkah-poster.jpg"}
+        alt={alt}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
 
       {!videoFailed && (
         <video
@@ -29,10 +31,7 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
           muted
           loop
           playsInline
-          // preload="none": don't fetch a byte of video until the browser is
-          // ready to play it, so it never competes with first paint. The poster
-          // <img> below is the instant visual; the clip streams in after.
-          preload="none"
+          preload="metadata"
           poster="/hero-makkah-poster.jpg"
           onError={() => setVideoFailed(true)}
         >
@@ -40,10 +39,10 @@ export function HeroBackground({ posterImg, alt }: { posterImg: string; alt: str
         </video>
       )}
 
-      {/* Cinematic scrim: dark top & bottom for text legibility, lighter middle
-          so the footage stays visible — a subtle brand-blue tint, not a flat wash. */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A2E4D]/80 via-[#0A2E4D]/45 to-[#0A2E4D]/90" />
-      <div className="absolute inset-0 bg-[#1B75BC]/15" />
+      {/* Cinematic scrim: readable text, sacred image still vivid. */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#061828]/75 via-[#0A2E4D]/28 to-[#061828]/88" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#061828]/25 via-transparent to-[#061828]/20" />
+      <div className="absolute inset-0 bg-[#1B75BC]/08" />
     </div>
   );
 }

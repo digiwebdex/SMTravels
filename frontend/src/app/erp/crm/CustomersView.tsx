@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import {
-  Search, Plus, Users, Building2, UserCircle, Trash2, Edit3,
+  Plus, Users, Building2, UserCircle, Edit3,
   Package, Activity, StickyNote, Phone, Mail, MapPin, Shield,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { fmtPrice } from "../../lib/utils";
-import { SkeletonTable, ErrorBanner } from "../../lib/ds";
+import { ErrorBanner, SkeletonTable } from "../../lib/ds";
 import { useCustomers, useCustomer, useBranches, type CustomerProfile } from "../../hooks/crm";
+import type { CustomerListItem } from "@contracts/crm.contract";
 import { Card, StatCards, Pagination, Pill, Drawer, fmtDate, fmtDateTime } from "./ui";
 import { CustomerFormDrawer } from "./forms";
+import { DataTable, type DataColumn, AiInsightCard } from "../../design-system";
 
-function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.FC<{ size?: number; className?: string }> }) {
+function KV({ label, value, icon: Icon }: { label: string; value: React.ReactNode; icon?: React.ElementType }) {
   return (
     <div>
       <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-0.5">{label}</div>
@@ -41,6 +43,57 @@ export function CustomersView() {
   const openNew = () => { setEditCustomer(null); setFormOpen(true); };
   const openEdit = (c: CustomerProfile) => { setEditCustomer(c); setFormOpen(true); setDetailId(null); };
 
+  const columns: DataColumn<CustomerListItem>[] = [
+    {
+      id: "name",
+      header: "Name",
+      mobileLabel: "Name",
+      cell: (c) => (
+        <button
+          type="button"
+          onClick={() => setDetailId(c.id)}
+          className="flex items-center gap-2.5 text-left cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-full bg-[#1B75BC] text-white flex items-center justify-center text-[12px] font-black flex-shrink-0">{c.name[0]}</div>
+          <div>
+            <div className="text-[12px] font-semibold text-[#111827]">{c.name}</div>
+            {c.rating && <div className="text-[9px] text-[#0E7C66] font-bold">{c.rating}</div>}
+          </div>
+        </button>
+      ),
+    },
+    {
+      id: "contact",
+      header: "Contact",
+      cell: (c) => (
+        <div>
+          <div className="text-[11px] text-[#374151]">{c.phone}</div>
+          {c.email && <div className="text-[10px] text-[#9CA3AF]">{c.email}</div>}
+        </div>
+      ),
+    },
+    {
+      id: "type",
+      header: "Type",
+      cell: (c) => c.type === "CORPORATE" ? <Pill label="Corporate" color="#0E7C66" bg="#ECFDF5" icon={Building2} /> : <Pill label="Individual" color="#1D4ED8" bg="#DBEAFE" />,
+    },
+    {
+      id: "location",
+      header: "Location",
+      cell: (c) => <span className="text-[11px] text-[#6B7280]">{[c.district, c.division].filter(Boolean).join(", ") || "—"}</span>,
+    },
+    {
+      id: "bookings",
+      header: "Bookings",
+      cell: (c) => <span className="text-[12px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{c.bookingsCount}</span>,
+    },
+    {
+      id: "created",
+      header: "Created",
+      cell: (c) => <span className="text-[10px] text-[#9CA3AF]">{fmtDate(c.createdAt)}</span>,
+    },
+  ];
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
@@ -57,10 +110,6 @@ export function CustomersView() {
 
       <Card className="mb-4 p-4">
         <div className="flex items-center gap-3">
-          <div className="flex-1 relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-            <input placeholder="Search by name, phone, email…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 h-9 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 placeholder:text-[#D1D5DB]" />
-          </div>
           <select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }} className="h-9 px-3 bg-[#F7F8FA] border border-[#E5E7EB] rounded-[8px] text-[12px] text-[#374151] cursor-pointer">
             <option value="All">All Types</option><option value="INDIVIDUAL">Individual</option><option value="CORPORATE">Corporate</option>
           </select>
@@ -72,36 +121,20 @@ export function CustomersView() {
 
       {isError ? (
         <Card className="p-6"><ErrorBanner message={(error as Error)?.message || "Failed to load customers."} onRetry={() => refetch()} /></Card>
-      ) : isLoading ? (
-        <Card className="p-4"><SkeletonTable rows={8} cols={6} /></Card>
       ) : (
-        <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px]">
-              <thead className="bg-[#F7F8FA] border-b border-[#E5E7EB]"><tr>{["Name", "Contact", "Type", "Location", "Bookings", "Created", ""].map((h) => <th key={h} className="text-left px-4 py-3 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider whitespace-nowrap">{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-[#F3F4F6]">
-                {rows.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#F7F8FA] transition-colors group cursor-pointer" onClick={() => setDetailId(c.id)}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#1B75BC] text-white flex items-center justify-center text-[12px] font-black flex-shrink-0">{c.name[0]}</div>
-                        <div><div className="text-[12px] font-semibold text-[#111827]">{c.name}</div>{c.rating && <div className="text-[9px] text-[#0E7C66] font-bold">{c.rating}</div>}</div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3"><div className="text-[11px] text-[#374151]">{c.phone}</div>{c.email && <div className="text-[10px] text-[#9CA3AF]">{c.email}</div>}</td>
-                    <td className="px-4 py-3">{c.type === "CORPORATE" ? <Pill label="Corporate" color="#0E7C66" bg="#ECFDF5" icon={Building2} /> : <Pill label="Individual" color="#1D4ED8" bg="#DBEAFE" />}</td>
-                    <td className="px-4 py-3"><span className="text-[11px] text-[#6B7280]">{[c.district, c.division].filter(Boolean).join(", ") || "—"}</span></td>
-                    <td className="px-4 py-3"><span className="text-[12px] font-bold text-[#111827]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{c.bookingsCount}</span></td>
-                    <td className="px-4 py-3"><span className="text-[10px] text-[#9CA3AF]">{fmtDate(c.createdAt)}</span></td>
-                    <td className="px-4 py-3"></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={page} totalPages={data?.totalPages ?? 1} total={data?.total ?? 0} pageSize={PER_PAGE} onPage={setPage} />
-          {rows.length === 0 && <div className="py-16 text-center"><Users size={32} className="text-[#E5E7EB] mx-auto mb-3" /><p className="text-[13px] text-[#6B7280] font-medium">No customers found</p></div>}
-        </Card>
+        <DataTable<CustomerListItem>
+          viewKey="crm-customers"
+          columns={columns}
+          rows={rows}
+          rowKey={(c) => c.id}
+          loading={isLoading}
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search by name, phone, email…"
+          emptyTitle="No customers found"
+          emptyDesc="Try adjusting your search or filters."
+          footer={<Pagination page={page} totalPages={data?.totalPages ?? 1} total={data?.total ?? 0} pageSize={PER_PAGE} onPage={setPage} />}
+        />
       )}
 
       {detailId && <CustomerProfileDrawer customerId={detailId} onClose={() => setDetailId(null)} onEdit={openEdit} />}
@@ -131,6 +164,13 @@ function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: st
             <KV label="NID" value={c.nid} icon={Shield} />
             <KV label="Passport" value={c.passportNo} icon={Shield} />
           </div>
+
+          <AiInsightCard title="AI Insights" collapsedByDefault>
+            <ul className="text-xs space-y-1.5 list-disc pl-4">
+              <li>{c.bookings.length} booking{c.bookings.length === 1 ? "" : "s"} on file{c.rating ? ` · rated ${c.rating}` : ""}.</li>
+              <li>Consider a follow-up call if the last activity is older than 30 days.</li>
+            </ul>
+          </AiInsightCard>
 
           <div className="flex items-center gap-1 border-b border-[#E5E7EB]">
             {(["bookings", "notes", "activity"] as const).map((t) => (

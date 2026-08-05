@@ -1,0 +1,188 @@
+/**
+ * SM Travels International — Design System Tokens
+ * Single source of truth for color, type, space, elevation, motion.
+ * Consumed by theme.css (@theme) and design-system wrappers.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 15px;
+
+  /* Surfaces */
+  --color-bg: #F7F8FA;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-border-subtle: #F3F4F6;
+  --color-text: #111827;
+  --color-text-muted: #6B7280;
+  --color-text-faint: #9CA3AF;
+
+  /* Brand */
+  --color-primary: #1B75BC;
+  --color-primary-hover: #14588F;
+  --color-primary-fg: #FFFFFF;
+  --color-primary-tint: #E8F2FA;
+  --color-secondary: #4338CA;
+  --color-secondary-hover: #3730A3;
+  --color-secondary-tint: #EEF2FF;
+  --color-accent: #0E7C66;
+  --color-accent-hover: #0A5C4C;
+  --color-accent-tint: #ECFDF5;
+  --color-brand-mark: #F15A24;
+  --color-brand-mark-hover: #CC3C17;
+  --color-brand-mark-tint: #FDEDE8;
+
+  /* Semantic */
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #1B75BC;
+
+  /* Shell */
+  --color-sidebar: #0B1F33;
+  --color-sidebar-mid: #17456B;
+  --color-sidebar-fg: #FFFFFF;
+  --color-sidebar-muted: rgba(255, 255, 255, 0.65);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.08);
+  --color-sidebar-active: rgba(27, 117, 188, 0.35);
+  --color-sidebar-border: rgba(255, 255, 255, 0.1);
+  --color-topbar: #FFFFFF;
+
+  /* Charts */
+  --chart-1: #1B75BC;
+  --chart-2: #4338CA;
+  --chart-3: #0E7C66;
+  --chart-4: #7EB8E3;
+  --chart-5: #F15A24;
+  --chart-6: #17456B;
+
+  /* Radius (4px grid) */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius: 0.625rem;
+
+  /* Elevation */
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --elevation-2: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --elevation-3: 0 12px 32px rgba(15, 23, 42, 0.1);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 250ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* shadcn / legacy bridge */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-fg);
+  --secondary: #F3F4F6;
+  --secondary-foreground: var(--color-text);
+  --muted: #F3F4F6;
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-brand-mark);
+  --accent-foreground: #FFFFFF;
+  --destructive: var(--color-danger);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--color-border);
+  --input: transparent;
+  --input-background: #F9FAFB;
+  --switch-background: #D1D5DB;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --ring: var(--color-primary);
+  --sidebar: var(--color-sidebar-mid);
+  --sidebar-foreground: var(--color-sidebar-fg);
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: var(--color-sidebar-hover);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: var(--color-sidebar-border);
+  --sidebar-ring: var(--color-primary);
+
+  --brand-blue: var(--color-primary);
+  --brand-blue-hover: var(--color-primary-hover);
+  --brand-navy: var(--color-sidebar-mid);
+  --brand-orange: var(--color-brand-mark);
+  --brand-orange-hover: var(--color-brand-mark-hover);
+  --brand-orange-text: #D64A12;
+  --tint-blue: var(--color-primary-tint);
+  --tint-orange: var(--color-brand-mark-tint);
+}
+
+.dark {
+  --color-bg: #0B1220;
+  --color-surface: #111827;
+  --color-surface-elevated: #1F2937;
+  --color-border: #1F2937;
+  --color-border-subtle: #1A2332;
+  --color-text: #F9FAFB;
+  --color-text-muted: #9CA3AF;
+  --color-text-faint: #6B7280;
+
+  --color-primary: #3B9FE0;
+  --color-primary-hover: #5BB0E8;
+  --color-primary-fg: #0B1220;
+  --color-primary-tint: rgba(59, 159, 224, 0.15);
+  --color-secondary: #818CF8;
+  --color-secondary-hover: #A5B4FC;
+  --color-secondary-tint: rgba(129, 140, 248, 0.15);
+  --color-accent: #34D399;
+  --color-accent-hover: #6EE7B7;
+  --color-accent-tint: rgba(52, 211, 153, 0.12);
+  --color-brand-mark: #FB923C;
+  --color-brand-mark-hover: #FDBA74;
+  --color-brand-mark-tint: rgba(251, 146, 60, 0.12);
+
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-danger: #F87171;
+  --color-info: #3B9FE0;
+
+  --color-sidebar: #060B14;
+  --color-sidebar-mid: #0B1F33;
+  --color-sidebar-fg: #F9FAFB;
+  --color-sidebar-muted: rgba(249, 250, 251, 0.6);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --color-sidebar-active: rgba(59, 159, 224, 0.25);
+  --color-sidebar-border: rgba(255, 255, 255, 0.08);
+  --color-topbar: #111827;
+
+  --chart-1: #3B9FE0;
+  --chart-2: #818CF8;
+  --chart-3: #34D399;
+  --chart-4: #7EB8E3;
+  --chart-5: #FB923C;
+  --chart-6: #94A3B8;
+
+  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --elevation-2: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --elevation-3: 0 16px 40px rgba(0, 0, 0, 0.5);
+
+  --secondary: #1F2937;
+  --secondary-foreground: #F9FAFB;
+  --muted: #1F2937;
+  --muted-foreground: #9CA3AF;
+  --input: #1F2937;
+  --input-background: #0B1220;
+  --switch-background: #374151;
+  --font-weight-medium: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+  }
+}

@@ -28,6 +28,41 @@ export function isGlobalRole(role: UserRole): boolean {
   return GLOBAL_ROLES.includes(role);
 }
 
+/** Global admins often have no pinned home branch. So their writes still land on a
+ *  real branch — instead of surfacing a raw "specify branchId" error — fall back to
+ *  the company HQ branch, or the oldest active branch if none is flagged HQ. Read
+ *  scope is unaffected: global roles see every branch regardless of this value
+ *  (branchWhere / canAccessBranch short-circuit on isGlobalRole). */
+async function defaultBranchForGlobal(): Promise<string | null> {
+  const hq = await prisma.branch.findFirst({
+    where: { deletedAt: null, status: "active", isHq: true },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (hq) return hq.id;
+  const any = await prisma.branch.findFirst({
+    where: { deletedAt: null, status: "active" },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  return any?.id ?? null;
+}
+
+/** Load active user from DB so demotion/disable takes effect before JWT expiry. */
+async function attachAuthFromToken(token: string): Promise<AuthCtx | null> {
+  const claims = verifyAccessToken(token);
+  const user = await prisma.user.findFirst({
+    where: { id: claims.sub, deletedAt: null },
+    select: { id: true, role: true, branchId: true, status: true },
+  });
+  if (!user || user.status !== "active") return null;
+  let branchId = user.branchId;
+  if (!branchId && isGlobalRole(user.role)) {
+    branchId = await defaultBranchForGlobal();
+  }
+  return { userId: user.id, role: user.role, branchId };
+}
+
 /** Verify the Bearer access token and attach req.auth. 401 on missing/invalid/expired. */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
@@ -36,13 +71,38 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     res.status(401).json({ error: "Unauthorized", message: "Missing bearer token", requestId: req.id });
     return;
   }
-  try {
-    const claims = verifyAccessToken(token);
-    req.auth = { userId: claims.sub, role: claims.role, branchId: claims.branchId };
+  void (async () => {
+    try {
+      const auth = await attachAuthFromToken(token);
+      if (!auth) {
+        res.status(401).json({ error: "Unauthorized", message: "Invalid or expired token", requestId: req.id });
+        return;
+      }
+      req.auth = auth;
+      next();
+    } catch {
+      res.status(401).json({ error: "Unauthorized", message: "Invalid or expired token", requestId: req.id });
+    }
+  })();
+}
+
+/** Attach req.auth when a valid Bearer token is present; never 401s. */
+export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+  const header = req.headers.authorization;
+  const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) {
     next();
-  } catch {
-    res.status(401).json({ error: "Unauthorized", message: "Invalid or expired token", requestId: req.id });
+    return;
   }
+  void (async () => {
+    try {
+      const auth = await attachAuthFromToken(token);
+      if (auth) req.auth = auth;
+    } catch {
+      /* treat as anonymous */
+    }
+    next();
+  })();
 }
 
 /** Coarse gate on the token's role hint (fast, no DB). Use for route-family
@@ -69,6 +129,12 @@ export function requireRole(...roles: UserRole[]) {
   };
 }
 
+function hasModuleAccess(grants: { access: string }[], action: "view" | "manage"): boolean {
+  return grants.some((g) =>
+    action === "view" ? g.access === "view" || g.access === "full" : g.access === "full",
+  );
+}
+
 /** Fine-grained gate that reads the RBAC tables (the authorization source of
  *  truth). `action:"view"` passes on access view|full; `action:"manage"` needs full. */
 export function requirePermission(module: string, action: "view" | "manage" = "view") {
@@ -82,10 +148,7 @@ export function requirePermission(module: string, action: "view" | "manage" = "v
         where: { role: { users: { some: { userId: req.auth.userId } } }, permission: { module } },
         select: { access: true },
       });
-      const ok = grants.some((g) =>
-        action === "view" ? g.access === "view" || g.access === "full" : g.access === "full",
-      );
-      if (!ok) {
+      if (!hasModuleAccess(grants, action)) {
         void audit({
           event: "PERMISSION_DENIED",
           userId: req.auth.userId,
@@ -95,6 +158,44 @@ export function requirePermission(module: string, action: "view" | "manage" = "v
           detail: `${module}.${action}`,
         });
         res.status(403).json({ error: "Forbidden", message: `Missing ${module}.${action}`, requestId: req.id });
+        return;
+      }
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+/** Pass if the user has the requested action on ANY of the listed modules. */
+export function requireAnyPermission(modules: string[], action: "view" | "manage" = "view") {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.auth) {
+        res.status(401).json({ error: "Unauthorized", requestId: req.id });
+        return;
+      }
+      const grants = await prisma.rolePermission.findMany({
+        where: {
+          role: { users: { some: { userId: req.auth.userId } } },
+          permission: { module: { in: modules } },
+        },
+        select: { access: true },
+      });
+      if (!hasModuleAccess(grants, action)) {
+        void audit({
+          event: "PERMISSION_DENIED",
+          userId: req.auth.userId,
+          ip: clientIp(req),
+          resource: modules.join("|"),
+          severity: AuditSeverity.WARNING,
+          detail: `need one of [${modules.join(",")}].${action}`,
+        });
+        res.status(403).json({
+          error: "Forbidden",
+          message: `Missing ${modules.join(" or ")}.${action}`,
+          requestId: req.id,
+        });
         return;
       }
       next();

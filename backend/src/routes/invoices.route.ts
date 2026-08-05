@@ -7,6 +7,7 @@ import {
   listPaymentsHandler, recordPaymentHandler, reversePaymentHandler,
   listRefundsHandler, createRefundHandler, updateRefundHandler,
   listPlansHandler, createPlanHandler,
+  listPendingVerifyHandler, verifyPaymentHandler,
 } from "../controllers/invoices.controller";
 
 // Invoices & Payments module — all BRANCH-SCOPED (branchWhere in the services).
@@ -25,7 +26,9 @@ invoicesRouter.delete("/invoices/:id", requireAuth, manage, asyncHandler(deleteI
 
 // payments — immutable: record + reverse only, NO update/delete
 invoicesRouter.get("/payments", requireAuth, view, asyncHandler(listPaymentsHandler));
+invoicesRouter.get("/payments/pending-verify", requireAuth, view, asyncHandler(listPendingVerifyHandler));
 invoicesRouter.post("/payments", requireAuth, manage, asyncHandler(recordPaymentHandler));
+invoicesRouter.post("/payments/:id/verify", requireAuth, manage, asyncHandler(verifyPaymentHandler));
 invoicesRouter.post("/payments/:id/reverse", requireAuth, manage, asyncHandler(reversePaymentHandler));
 
 // refunds

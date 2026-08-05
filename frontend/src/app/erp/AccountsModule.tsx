@@ -1,9 +1,5 @@
 import React, { useState } from "react";
 import {
-  BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer,
-} from "recharts";
-import {
   Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
   Plus, Search, Filter, Download, RefreshCw, ChevronRight,
   ChevronDown, Building2, CreditCard, Banknote, ArrowLeftRight,
@@ -12,12 +8,14 @@ import {
   Eye, Send, Receipt,
 } from "lucide-react";
 import { cn, fmtPrice } from "../lib/utils";
-import { SkeletonTable, ErrorBanner } from "../lib/ds";
+import { SkeletonTable, ErrorBanner, EmptyState } from "../lib/ds";
 import {
   useAccounts, buildCoaTree, useBankAccounts, useIncome, useExpenses,
-  useJournal, useCreateJournal, useReverseJournal,
+  useJournal, useCreateJournal, useReverseJournal, usePostJournal,
+  useInstallmentPlans, usePayments,
 } from "../hooks/finance";
 import { Loader2 } from "lucide-react";
+import { AiInsightCard } from "../design-system";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AccountsView =
@@ -44,149 +42,6 @@ const NAV_ITEMS: { id: AccountsView; label: string; icon: React.ElementType; gro
   { id: "supplier-payments", label: "Supplier Payments", icon: Building2, group: "Payments" },
   { id: "customer-payments", label: "Customer Payments", icon: CreditCard, group: "Payments" },
   { id: "gateways",          label: "Payment Gateways",  icon: Globe, group: "Settings" },
-];
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const COA_TREE = [
-  {
-    code: "1000", name: "Assets", type: "header", balance: 42180000,
-    children: [
-      { code: "1100", name: "Current Assets", type: "header", balance: 18250000,
-        children: [
-          { code: "1110", name: "Cash in Hand", type: "detail", balance: 850000, currency: "BDT" },
-          { code: "1120", name: "Dutch-Bangla Bank – Current", type: "detail", balance: 12400000, currency: "BDT" },
-          { code: "1130", name: "Islami Bank – Savings", type: "detail", balance: 5000000, currency: "BDT" },
-        ],
-      },
-      { code: "1200", name: "Receivables", type: "header", balance: 9430000,
-        children: [
-          { code: "1210", name: "Customer Receivables", type: "detail", balance: 7200000, currency: "BDT" },
-          { code: "1220", name: "Agent Receivables", type: "detail", balance: 2230000, currency: "BDT" },
-        ],
-      },
-      { code: "1300", name: "Fixed Assets", type: "header", balance: 14500000,
-        children: [
-          { code: "1310", name: "Office Equipment", type: "detail", balance: 3200000, currency: "BDT" },
-          { code: "1320", name: "Furniture & Fixtures", type: "detail", balance: 1800000, currency: "BDT" },
-          { code: "1330", name: "Vehicles", type: "detail", balance: 9500000, currency: "BDT" },
-        ],
-      },
-    ],
-  },
-  {
-    code: "2000", name: "Liabilities", type: "header", balance: 15340000,
-    children: [
-      { code: "2100", name: "Current Liabilities", type: "header", balance: 8640000,
-        children: [
-          { code: "2110", name: "Accounts Payable", type: "detail", balance: 4500000, currency: "BDT" },
-          { code: "2120", name: "Advance from Customers", type: "detail", balance: 4140000, currency: "BDT" },
-        ],
-      },
-      { code: "2200", name: "Long-term Liabilities", type: "header", balance: 6700000,
-        children: [
-          { code: "2210", name: "Bank Loan – DBBL", type: "detail", balance: 6700000, currency: "BDT" },
-        ],
-      },
-    ],
-  },
-  {
-    code: "3000", name: "Equity", type: "header", balance: 26840000,
-    children: [
-      { code: "3100", name: "Owner Capital", type: "detail", balance: 20000000, currency: "BDT" },
-      { code: "3200", name: "Retained Earnings", type: "detail", balance: 6840000, currency: "BDT" },
-    ],
-  },
-  {
-    code: "4000", name: "Revenue", type: "header", balance: 42100000,
-    children: [
-      { code: "4100", name: "Hajj Package Revenue", type: "detail", balance: 18500000, currency: "BDT" },
-      { code: "4200", name: "Umrah Package Revenue", type: "detail", balance: 12300000, currency: "BDT" },
-      { code: "4300", name: "Visa Service Revenue", type: "detail", balance: 4800000, currency: "BDT" },
-      { code: "4400", name: "Air Ticket Revenue", type: "detail", balance: 3200000, currency: "BDT" },
-      { code: "4500", name: "Other Revenue", type: "detail", balance: 3300000, currency: "BDT" },
-    ],
-  },
-  {
-    code: "5000", name: "Expenses", type: "header", balance: 28400000,
-    children: [
-      { code: "5100", name: "Cost of Sales", type: "header", balance: 20100000,
-        children: [
-          { code: "5110", name: "Hajj Permit & Maktab", type: "detail", balance: 10500000, currency: "BDT" },
-          { code: "5120", name: "Airline Costs", type: "detail", balance: 6200000, currency: "BDT" },
-          { code: "5130", name: "Hotel Costs", type: "detail", balance: 3400000, currency: "BDT" },
-        ],
-      },
-      { code: "5200", name: "Operating Expenses", type: "header", balance: 8300000,
-        children: [
-          { code: "5210", name: "Salaries & Wages", type: "detail", balance: 4800000, currency: "BDT" },
-          { code: "5220", name: "Office Rent", type: "detail", balance: 1200000, currency: "BDT" },
-          { code: "5230", name: "Marketing", type: "detail", balance: 1400000, currency: "BDT" },
-          { code: "5240", name: "Utilities", type: "detail", balance: 900000, currency: "BDT" },
-        ],
-      },
-    ],
-  },
-];
-
-const INCOME_DATA = [
-  { date: "Jul 01", ref: "INC-0041", category: "Hajj Revenue", description: "Group BDH-2024-07", amount: 3400000, method: "Bank Transfer", status: "confirmed" },
-  { date: "Jul 03", ref: "INC-0042", category: "Umrah Revenue", description: "Ramadan Umrah – 12 pax", amount: 960000, method: "bKash", status: "confirmed" },
-  { date: "Jul 05", ref: "INC-0043", category: "Visa Service", description: "Saudi Visa – 8 applicants", amount: 240000, method: "Cash", status: "confirmed" },
-  { date: "Jul 07", ref: "INC-0044", category: "Air Ticket", description: "CGP-DAC roundtrip × 4", amount: 88000, method: "Nagad", status: "pending" },
-  { date: "Jul 10", ref: "INC-0045", category: "Tour Package", description: "Malaysia 5N – 3 pax", amount: 215000, method: "SSLCommerz", status: "confirmed" },
-  { date: "Jul 12", ref: "INC-0046", category: "Hajj Revenue", description: "Individual – Karim, A.", amount: 520000, method: "Bank Transfer", status: "confirmed" },
-  { date: "Jul 14", ref: "INC-0047", category: "Commission", description: "Agent referral – NMT", amount: 45000, method: "Bank Transfer", status: "pending" },
-];
-
-const EXPENSE_DATA = [
-  { date: "Jul 02", ref: "EXP-0091", category: "Airline Costs", vendor: "Biman Bangladesh", amount: 1240000, method: "Bank Transfer", status: "paid" },
-  { date: "Jul 04", ref: "EXP-0092", category: "Hotel Costs", vendor: "Dar Al-Tawhid Makkah", amount: 840000, method: "Bank Transfer", status: "paid" },
-  { date: "Jul 06", ref: "EXP-0093", category: "Salaries", vendor: "July 2024 Payroll", amount: 480000, method: "Bank Transfer", status: "paid" },
-  { date: "Jul 08", ref: "EXP-0094", category: "Office Rent", vendor: "CDA Building Owner", amount: 120000, method: "Cheque", status: "paid" },
-  { date: "Jul 09", ref: "EXP-0095", category: "Marketing", vendor: "Facebook Ads", amount: 85000, method: "Card", status: "paid" },
-  { date: "Jul 11", ref: "EXP-0096", category: "Utilities", vendor: "DESCO Electricity", amount: 42000, method: "bKash", status: "pending" },
-  { date: "Jul 13", ref: "EXP-0097", category: "Maktab Permit", vendor: "Ministry of Religious Affairs", amount: 2400000, method: "Bank Transfer", status: "pending" },
-];
-
-const BANK_ACCOUNTS = [
-  { id: "dbbl", name: "Dutch-Bangla Bank Ltd.", number: "1021 0110 0000 234", type: "Current", balance: 12400000, currency: "BDT" as Currency, branch: "Agrabad Branch", lastTx: "Today, 11:42 AM" },
-  { id: "ibbl", name: "Islami Bank Bangladesh", number: "2010 0050 0000 891", type: "Savings", balance: 5000000, currency: "BDT" as Currency, branch: "CDA Avenue", lastTx: "Yesterday" },
-  { id: "usd", name: "DBBL – USD Account", number: "1021 0110 0010 456", type: "Current", balance: 48200, currency: "USD" as Currency, branch: "Agrabad Branch", lastTx: "Jul 10" },
-  { id: "sar", name: "Al Rajhi – SAR Account", number: "SA98 8000 0000 6080 1016 7519", type: "Current", balance: 125000, currency: "SAR" as Currency, branch: "Riyadh", lastTx: "Jul 8" },
-  { id: "cash", name: "Cash in Hand", number: "—", type: "Cash", balance: 850000, currency: "BDT" as Currency, branch: "HQ Office", lastTx: "Today" },
-];
-
-const INSTALLMENT_PLANS = [
-  { id: "IP-2401", customer: "Md. Karim Ullah", service: "Hajj 2024 – Economy", total: 520000, paid: 312000, remaining: 208000, installments: 5, paid_n: 3, next_date: "Aug 1", status: "active" },
-  { id: "IP-2402", customer: "Mrs. Fatema Begum", service: "Umrah Ramadan – VIP", total: 185000, paid: 185000, remaining: 0, installments: 3, paid_n: 3, next_date: "—", status: "completed" },
-  { id: "IP-2403", customer: "Ahmed Family × 3", service: "Malaysia 5N Tour", total: 215000, paid: 43000, remaining: 172000, installments: 5, paid_n: 1, next_date: "Jul 20", status: "active" },
-  { id: "IP-2404", customer: "Rahim & Sons Agency", service: "Saudi Visa × 15", total: 450000, paid: 0, remaining: 450000, installments: 3, paid_n: 0, next_date: "Jul 16", status: "overdue" },
-  { id: "IP-2405", customer: "Nazrul Islam", service: "Hajj 2024 – Premium", total: 680000, paid: 204000, remaining: 476000, installments: 4, paid_n: 1, next_date: "Aug 15", status: "active" },
-];
-
-const SUPPLIER_PAYMENTS = [
-  { id: "SP-0141", vendor: "Biman Bangladesh Airlines", invoice: "BG-INV-2024-0891", due: "Jul 20", amount: 2480000, paid: 1240000, remaining: 1240000, status: "partial" },
-  { id: "SP-0142", vendor: "Dar Al-Tawhid Hotel, Makkah", invoice: "DAT-2024-342", due: "Jul 18", amount: 1680000, paid: 1680000, remaining: 0, status: "paid" },
-  { id: "SP-0143", vendor: "Ministry of Religious Affairs", invoice: "MORA-2024-H17", due: "Jul 16", amount: 2400000, paid: 0, remaining: 2400000, status: "overdue" },
-  { id: "SP-0144", vendor: "Madinah Hilton", invoice: "MH-2024-5521", due: "Aug 5", amount: 960000, paid: 0, remaining: 960000, status: "pending" },
-  { id: "SP-0145", vendor: "Saudia Airlines", invoice: "SV-2024-00341", due: "Jul 25", amount: 3200000, paid: 1600000, remaining: 1600000, status: "partial" },
-];
-
-const CUSTOMER_PAYMENTS = [
-  { id: "CP-3201", customer: "Md. Abdullah Al-Mamun", booking: "BK-2024-0892", amount: 520000, received: 520000, method: "Bank Transfer", date: "Jul 14", status: "confirmed" },
-  { id: "CP-3202", customer: "Rabeya Khatun", booking: "BK-2024-0881", amount: 185000, received: 92500, method: "bKash", date: "Jul 12", status: "partial" },
-  { id: "CP-3203", customer: "Karim & Family", booking: "BK-2024-0875", amount: 680000, received: 680000, method: "SSLCommerz", date: "Jul 10", status: "confirmed" },
-  { id: "CP-3204", customer: "NMT Travels Agency", booking: "BK-2024-0867", amount: 1240000, received: 0, method: "—", date: "Jul 8", status: "pending" },
-  { id: "CP-3205", customer: "Hosne Ara Begum", booking: "BK-2024-0860", amount: 215000, received: 43000, method: "Nagad", date: "Jul 6", status: "partial" },
-];
-
-const MONTHLY_CASHFLOW = [
-  { month: "Feb", income: 2850000, expense: 1920000 },
-  { month: "Mar", income: 3600000, expense: 2400000 },
-  { month: "Apr", income: 4100000, expense: 2800000 },
-  { month: "May", income: 5200000, expense: 3200000 },
-  { month: "Jun", income: 7800000, expense: 4900000 },
-  { month: "Jul", income: 4680000, expense: 3200000 },
 ];
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
@@ -216,7 +71,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
   icon: React.ElementType; color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", color)}>
           <Icon size={18} className="text-white" />
@@ -238,7 +93,7 @@ function KpiCard({ label, value, sub, trend, icon: Icon, color }: {
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ title, actions, children }: { title: string; actions?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200">
+    <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <h3 className="font-semibold text-slate-800">{title}</h3>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -293,7 +148,8 @@ function CoaRow({ node, depth = 0, expanded, onToggle }: {
         </td>
         <td className="py-2.5 px-4 text-center">
           {node.type === "detail" && (
-            <button className="p-1 hover:bg-slate-100 rounded"><Edit2 size={13} className="text-slate-400" /></button>
+            <button disabled title="Edit account is not available in this build"
+              className="p-1 rounded opacity-60 cursor-not-allowed"><Edit2 size={13} className="text-[#9CA3AF]" /></button>
           )}
         </td>
       </tr>
@@ -315,18 +171,27 @@ function ChartOfAccountsView() {
       return next;
     });
   };
+  const detailCount = (accounts ?? []).filter((a) => a.role !== "HEADER").length;
   return (
     <div className="space-y-5">
+      <AiInsightCard title="AI Finance Tips" collapsedByDefault>
+        <ul className="text-xs space-y-1.5 list-disc pl-4">
+          <li>{detailCount} active detail account{detailCount === 1 ? "" : "s"} in the chart of accounts.</li>
+          <li>Reconcile bank and cash accounts regularly to keep balances accurate.</li>
+        </ul>
+      </AiInsightCard>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Chart of Accounts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Double-entry bookkeeping structure</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={15} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+          <button disabled title="Add Account is not available in this build"
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
             <Plus size={15} /> Add Account
           </button>
         </div>
@@ -334,12 +199,12 @@ function ChartOfAccountsView() {
       {isError ? (
         <div className="p-2"><ErrorBanner message={(error as Error)?.message || "Failed to load accounts."} onRetry={() => refetch()} /></div>
       ) : isLoading ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={4} /></div>
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={8} cols={4} /></div>
       ) : (
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 w-32">Code</th>
               <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Account Name</th>
               <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 w-24">Type</th>
@@ -353,7 +218,7 @@ function ChartOfAccountsView() {
             ))}
           </tbody>
         </table>
-        {tree.length === 0 && <div className="py-16 text-center text-slate-400"><Layers size={32} className="mx-auto mb-3 text-slate-200" /><p className="text-sm">No accounts yet</p></div>}
+        {tree.length === 0 && <EmptyState variant="no-data" title="No accounts yet" desc="Add accounts to build your chart of accounts." />}
       </div>
       )}
     </div>
@@ -376,28 +241,34 @@ function LedgerTableView({ title, rows, type }: {
           <p className="text-sm text-slate-500 mt-0.5">July 2024</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Filter is not available in this build"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Filter size={14} /> Filter
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
+          <button disabled title="Export is not available in this build"
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
             <Download size={14} /> Export
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+          <button disabled title={`Add ${type === "income" ? "Income" : "Expense"} is not available in this build`}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
             <Plus size={14} /> Add {type === "income" ? "Income" : "Expense"}
           </button>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Confirmed" value={fmtCurrency(total)} trend={8.4}
+        <KpiCard label="Total Confirmed" value={fmtCurrency(total)}
           icon={type === "income" ? TrendingUp : TrendingDown}
           color={type === "income" ? "bg-emerald-500" : "bg-red-500"} />
         <KpiCard label="Pending" value={fmtCurrency(pending)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Transactions" value={String(rows.length)} icon={FileText} color="bg-blue-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      {rows.length === 0 ? (
+        <EmptyState variant="no-data" title={`No ${type === "income" ? "income" : "expense"} entries`} desc={`${type === "income" ? "Income" : "Expense"} entries will appear here once recorded.`} />
+      ) : (
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
               {["Date", "Ref #", "Category", "Description", "Amount", "Method", "Status", ""].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
@@ -418,13 +289,15 @@ function LedgerTableView({ title, rows, type }: {
                 <td className="px-4 py-3 text-sm text-slate-500">{r.method}</td>
                 <td className="px-4 py-3"><StatusChip status={r.status} /></td>
                 <td className="px-4 py-3">
-                  <button className="p-1 hover:bg-slate-100 rounded"><MoreHorizontal size={14} className="text-slate-400" /></button>
+                  <button disabled title="More actions are not available in this build"
+                    className="p-1 rounded opacity-60 cursor-not-allowed"><MoreHorizontal size={14} className="text-[#9CA3AF]" /></button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }
@@ -437,7 +310,7 @@ function JournalEntryView() {
     { account: "", debit: "", credit: "", narration: "" },
   ]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [ref, setRef] = useState("JE-" + String(Math.floor(Math.random() * 900) + 100));
+  const [ref, setRef] = useState("");
 
   const totalDebit = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
   const totalCredit = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
@@ -447,6 +320,7 @@ function JournalEntryView() {
   const detailAccounts = (accounts ?? []).filter(a => a.role === "DETAIL");
   const create = useCreateJournal();
   const reverse = useReverseJournal();
+  const post = usePostJournal();
   const { data: recent } = useJournal({ pageSize: 6 });
 
   const submit = async (status: "DRAFT" | "POSTED") => {
@@ -470,21 +344,21 @@ function JournalEntryView() {
       </div>
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
             <div className="grid grid-cols-3 gap-4 mb-5">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Reference #</label>
-                <input value={ref} onChange={e => setRef(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
+                <input value={ref} onChange={e => setRef(e.target.value)} placeholder="Auto-generated on save"
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Currency</label>
-                <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <select className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option>BDT – Bangladeshi Taka</option>
                   <option>USD – US Dollar</option>
                   <option>SAR – Saudi Riyal</option>
@@ -506,7 +380,7 @@ function JournalEntryView() {
                   <tr key={i} className="border-b border-slate-50">
                     <td className="py-2 pr-3">
                       <select value={line.account} onChange={e => updateLine(i, "account", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none">
                         <option value="">Select account…</option>
                         {detailAccounts.map(a => (
                           <option key={a.id} value={a.id}>{a.code} – {a.name}</option>
@@ -516,17 +390,17 @@ function JournalEntryView() {
                     <td className="py-2 pr-3">
                       <input type="number" placeholder="0.00" value={line.debit}
                         onChange={e => updateLine(i, "debit", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
                     </td>
                     <td className="py-2 pr-3">
                       <input type="number" placeholder="0.00" value={line.credit}
                         onChange={e => updateLine(i, "credit", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm text-right font-mono focus:outline-none" />
                     </td>
                     <td className="py-2 pr-3">
                       <input placeholder="Narration…" value={line.narration}
                         onChange={e => updateLine(i, "narration", e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
+                        className="w-full border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
                     </td>
                     <td className="py-2">
                       {lines.length > 2 && (
@@ -562,7 +436,7 @@ function JournalEntryView() {
             </button>
             <div className="flex justify-end gap-3 mt-5 pt-5 border-t border-slate-100">
               <button onClick={() => submit("DRAFT")} disabled={create.isPending}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">Save Draft</button>
+                className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-50">Save Draft</button>
               <button onClick={() => submit("POSTED")} disabled={!balanced || create.isPending}
                 className={cn("px-5 py-2 text-sm rounded-lg text-white flex items-center gap-2", balanced && !create.isPending ? "bg-[#1B75BC] hover:bg-[#14588F]" : "bg-slate-300 cursor-not-allowed")}>
                 {create.isPending && <Loader2 size={14} className="animate-spin" />} Post Entry
@@ -593,6 +467,10 @@ function JournalEntryView() {
                         <button onClick={() => reverse.mutate(je.id)} disabled={reverse.isPending}
                           className="text-[10px] text-red-500 hover:underline disabled:opacity-50">Reverse</button>
                       )}
+                      {je.status === "DRAFT" && !je.isReversed && (
+                        <button onClick={() => post.mutate(je.id)} disabled={post.isPending}
+                          className="text-[10px] text-[#1B75BC] hover:underline disabled:opacity-50">Post</button>
+                      )}
                     </div>
                   </div>
                 );
@@ -619,7 +497,8 @@ function BankCashView() {
           <h2 className="text-xl font-bold text-slate-800">Bank & Cash Accounts</h2>
           <p className="text-sm text-slate-500 mt-0.5">Manage all bank and cash positions</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
+        <button disabled title="Add Account is not available in this build"
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
           <Plus size={15} /> Add Account
         </button>
       </div>
@@ -627,7 +506,7 @@ function BankCashView() {
       {isLoading && <SkeletonTable rows={3} />}
       {error && <ErrorBanner message={(error as Error).message} />}
       {!isLoading && !error && accounts.length === 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-400">No bank or cash accounts yet.</div>
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-10 text-center text-sm text-slate-400">No bank or cash accounts yet.</div>
       )}
 
       {account && (
@@ -640,7 +519,7 @@ function BankCashView() {
                   className={cn("text-left p-4 rounded-xl border transition-all",
                     account.id === acc.id
                       ? "border-[#1B75BC] bg-[#1B75BC]/5 ring-1 ring-[#1B75BC]/20"
-                      : "border-slate-200 bg-white hover:border-slate-300")}>
+                      : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-slate-300")}>
                   <div className="flex items-center gap-2 mb-2">
                     {isCash ? <Banknote size={16} className="text-emerald-600" /> : <Building2 size={16} className="text-[#1B75BC]" />}
                     <span className="text-xs font-medium text-slate-500 capitalize">{acc.type.toLowerCase()}</span>
@@ -696,86 +575,18 @@ function BankCashView() {
 
 // ─── Money Transfer ───────────────────────────────────────────────────────────
 function TransferView() {
-  const [fromAcc, setFromAcc] = useState("dbbl");
-  const [toAcc, setToAcc] = useState("ibbl");
-  const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState<Currency>("BDT");
-
-  const RECENT_TRANSFERS = [
-    { date: "Jul 12", from: "DBBL Current", to: "IBBL Savings", amount: 1000000, currency: "BDT" as Currency, status: "completed" },
-    { date: "Jul 08", from: "DBBL Current", to: "DBBL USD", amount: 5000, currency: "USD" as Currency, status: "completed" },
-    { date: "Jul 05", from: "IBBL Savings", to: "Al Rajhi SAR", amount: 20000, currency: "SAR" as Currency, status: "pending" },
-  ];
-
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold text-slate-800">Money Transfer</h2>
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
-          <h3 className="font-semibold text-slate-800 mb-5">New Transfer</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">From Account</label>
-              <select value={fromAcc} onChange={e => setFromAcc(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                {BANK_ACCOUNTS.map(a => <option key={a.id} value={a.id}>{a.name} ({fmtCurrency(a.balance, a.currency)})</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">To Account</label>
-              <select value={toAcc} onChange={e => setToAcc(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                {BANK_ACCOUNTS.filter(a => a.id !== fromAcc).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Amount</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-mono">{CURRENCY_SYMBOL[currency]}</span>
-                <input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg pl-8 pr-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Currency</label>
-              <select value={currency} onChange={e => setCurrency(e.target.value as Currency)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                <option value="BDT">BDT – Bangladeshi Taka</option>
-                <option value="USD">USD – US Dollar</option>
-                <option value="SAR">SAR – Saudi Riyal</option>
-              </select>
-            </div>
-          </div>
-          <div className="mb-5">
-            <label className="block text-xs font-medium text-slate-600 mb-1">Narration / Reference</label>
-            <input placeholder="Transfer narration…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Cancel</button>
-            <button className="px-5 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F] flex items-center gap-2">
-              <Send size={14} /> Submit Transfer
-            </button>
-          </div>
-        </div>
-        <Section title="Recent Transfers">
-          <div className="space-y-4">
-            {RECENT_TRANSFERS.map((t, i) => (
-              <div key={i} className="pb-4 border-b border-slate-50 last:border-0 last:pb-0">
-                <div className="flex items-center justify-between mb-1">
-                  <StatusChip status={t.status} />
-                  <span className="text-xs text-slate-400">{t.date}</span>
-                </div>
-                <p className="text-xs text-slate-500">{t.from} → {t.to}</p>
-                <p className="text-sm font-bold text-slate-800 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {fmtCurrency(t.amount, t.currency)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Section>
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">Money Transfer</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Move funds between bank and cash accounts</p>
+      </div>
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+        <EmptyState
+          variant="coming-soon"
+          title="Inter-account transfers"
+          desc="Recording transfers between bank and cash accounts is planned for a later release. Until then, post a manual journal entry to move funds between accounts."
+        />
       </div>
     </div>
   );
@@ -783,6 +594,32 @@ function TransferView() {
 
 // ─── Installments ─────────────────────────────────────────────────────────────
 function InstallmentsView() {
+  const { data, isLoading, isError, error, refetch } = useInstallmentPlans({ pageSize: 100 });
+
+  const plans = (data?.data ?? []).map(p => {
+    const paid = p.installments.reduce((s, i) => s + (i.paidAmount || 0), 0);
+    const paidN = p.installments.filter(i => (i.status || "").toUpperCase() === "PAID" || (i.paidAmount || 0) >= (i.amountDue || 0)).length;
+    const nextDue = p.installments
+      .filter(i => (i.status || "").toUpperCase() !== "PAID" && (i.paidAmount || 0) < (i.amountDue || 0))
+      .sort((a, b) => (a.dueDate || "").localeCompare(b.dueDate || ""))[0];
+    return {
+      id: p.id,
+      customer: p.customerName ?? "—",
+      reference: p.invoiceId ? "Invoice" : p.bookingId ? "Booking" : "—",
+      total: p.total,
+      paid,
+      remaining: Math.max(0, p.total - paid),
+      installments: p.installments.length,
+      paidN,
+      nextDate: nextDue?.dueDate ? nextDue.dueDate.slice(0, 10) : "—",
+      status: (p.status || "").toLowerCase(),
+    };
+  });
+
+  const activeCount = plans.filter(p => p.status !== "completed" && p.status !== "cancelled").length;
+  const totalCollected = plans.reduce((s, p) => s + p.paid, 0);
+  const totalOutstanding = plans.reduce((s, p) => s + p.remaining, 0);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -790,32 +627,36 @@ function InstallmentsView() {
           <h2 className="text-xl font-bold text-slate-800">Installment Plans</h2>
           <p className="text-sm text-slate-500 mt-0.5">Track all active payment schedules</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={15} /> New Plan
-        </button>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Active Plans" value="23" trend={5} icon={Calendar} color="bg-blue-500" />
-        <KpiCard label="Collected This Month" value={fmtCurrency(4180000)} trend={12} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Overdue" value={fmtCurrency(2400000)} trend={-3} icon={AlertTriangle} color="bg-red-500" />
+        <KpiCard label="Active Plans" value={String(activeCount)} icon={Calendar} color="bg-blue-500" />
+        <KpiCard label="Total Collected" value={fmtCurrency(totalCollected)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Outstanding" value={fmtCurrency(totalOutstanding)} icon={AlertTriangle} color="bg-red-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      {isError ? (
+        <ErrorBanner message={(error as Error)?.message || "Failed to load installment plans."} onRetry={() => refetch()} />
+      ) : isLoading ? (
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={6} cols={8} /></div>
+      ) : plans.length === 0 ? (
+        <EmptyState variant="no-data" title="No installment plans" desc="Installment plans will appear here once created for invoices or bookings." />
+      ) : (
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              {["Plan ID", "Customer", "Service", "Progress", "Total", "Paid", "Remaining", "Next Due", "Status", ""].map(h => (
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
+              {["Plan ID", "Customer", "Reference", "Progress", "Total", "Paid", "Remaining", "Next Due", "Status"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {INSTALLMENT_PLANS.map(plan => {
-              const pct = Math.round((plan.paid / plan.total) * 100);
+            {plans.map(plan => {
+              const pct = plan.total > 0 ? Math.round((plan.paid / plan.total) * 100) : 0;
               return (
                 <tr key={plan.id} className="border-b border-slate-50 hover:bg-slate-50">
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{plan.id}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">{plan.id.slice(0, 8)}</td>
                   <td className="px-4 py-3 text-sm font-medium text-slate-700">{plan.customer}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{plan.service}</td>
+                  <td className="px-4 py-3 text-sm text-slate-500">{plan.reference}</td>
                   <td className="px-4 py-3 w-40">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -824,230 +665,117 @@ function InstallmentsView() {
                       </div>
                       <span className="text-xs text-slate-500 font-mono">{pct}%</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{plan.paid_n}/{plan.installments} installments</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{plan.paidN}/{plan.installments} installments</p>
                   </td>
                   <td className="px-4 py-3 text-sm font-mono text-slate-700">{fmtCurrency(plan.total)}</td>
                   <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(plan.paid)}</td>
                   <td className="px-4 py-3 text-sm font-mono text-red-500">{plan.remaining > 0 ? fmtCurrency(plan.remaining) : "—"}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">{plan.next_date}</td>
+                  <td className="px-4 py-3 text-sm text-slate-500">{plan.nextDate}</td>
                   <td className="px-4 py-3"><StatusChip status={plan.status} /></td>
-                  <td className="px-4 py-3">
-                    <button className="text-xs text-[#1B75BC] hover:underline">Collect</button>
-                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }
 
 // ─── Supplier Payments ────────────────────────────────────────────────────────
+// No ERP payables/supplier-payment ledger endpoint exists (only /suppliers CRUD),
+// so there is nothing to wire — honest "coming soon" rather than fabricated data.
 function SupplierPaymentsView() {
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Supplier Payments</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Payables to vendors and partners</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={15} /> Record Payment
-        </button>
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">Supplier Payments</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Payables to vendors and partners</p>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Outstanding" value={fmtCurrency(6200000)} trend={-8} icon={Building2} color="bg-red-500" />
-        <KpiCard label="Paid This Month" value={fmtCurrency(3920000)} icon={CheckCircle} color="bg-emerald-500" />
-        <KpiCard label="Overdue Invoices" value="2" icon={AlertTriangle} color="bg-amber-500" />
-      </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
-        <table className="w-full min-w-[680px] md:min-w-0">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              {["Ref", "Vendor", "Invoice #", "Due Date", "Total", "Paid", "Outstanding", "Status", ""].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {SUPPLIER_PAYMENTS.map(sp => (
-              <tr key={sp.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{sp.id}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-700">{sp.vendor}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{sp.invoice}</td>
-                <td className={cn("px-4 py-3 text-sm", sp.status === "overdue" ? "text-red-600 font-medium" : "text-slate-500")}>{sp.due}</td>
-                <td className="px-4 py-3 text-sm font-mono text-slate-700">{fmtCurrency(sp.amount)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(sp.paid)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-red-500">{sp.remaining > 0 ? fmtCurrency(sp.remaining) : "—"}</td>
-                <td className="px-4 py-3"><StatusChip status={sp.status} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <button className="text-xs text-[#1B75BC] hover:underline">Pay</button>
-                    <span className="text-slate-300">·</span>
-                    <button className="text-xs text-slate-400 hover:underline">View</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <EmptyState
+        variant="coming-soon"
+        title="Supplier payments"
+        desc="A payables ledger for vendors and partners is planned for a later release. Supplier records are available under the Suppliers module."
+      />
     </div>
   );
 }
 
 // ─── Customer Payments ────────────────────────────────────────────────────────
 function CustomerPaymentsView() {
+  const { data, isLoading, isError, error, refetch } = usePayments({ direction: "IN", pageSize: 100 });
+
+  const rows = (data?.data ?? []).map(p => ({
+    id: p.id,
+    ref: p.paymentNo ?? p.receiptNo ?? p.id.slice(0, 8),
+    customer: p.customerName ?? "—",
+    invoice: p.invoiceNo ?? "—",
+    amount: p.amount,
+    method: p.method || "—",
+    date: (p.paidAt || p.createdAt || "").slice(0, 10),
+    status: p.isReversed ? "reversed" : (p.status || "").toLowerCase(),
+  }));
+
+  const totalReceived = data?.stats?.totalIn ?? rows.reduce((s, r) => s + r.amount, 0);
+  const reversedCount = (data?.data ?? []).filter(p => p.isReversed).length;
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Customer Payments</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Receivables from customers and agencies</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">
-          <Plus size={15} /> Collect Payment
-        </button>
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">Customer Payments</h2>
+        <p className="text-sm text-slate-500 mt-0.5">Receivables from customers and agencies</p>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <KpiCard label="Total Received" value={fmtCurrency(1440000)} trend={14} icon={TrendingUp} color="bg-emerald-500" />
-        <KpiCard label="Outstanding" value={fmtCurrency(1283000)} trend={-5} icon={Clock} color="bg-amber-500" />
-        <KpiCard label="Transactions" value={String(CUSTOMER_PAYMENTS.length)} icon={Receipt} color="bg-blue-500" />
+        <KpiCard label="Total Received" value={fmtCurrency(totalReceived)} icon={TrendingUp} color="bg-emerald-500" />
+        <KpiCard label="Transactions" value={String(data?.total ?? rows.length)} icon={Receipt} color="bg-blue-500" />
+        <KpiCard label="Reversed" value={String(reversedCount)} icon={Clock} color="bg-amber-500" />
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      {isError ? (
+        <ErrorBanner message={(error as Error)?.message || "Failed to load customer payments."} onRetry={() => refetch()} />
+      ) : isLoading ? (
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={6} cols={7} /></div>
+      ) : rows.length === 0 ? (
+        <EmptyState variant="no-data" title="No customer payments" desc="Incoming payments recorded against invoices will appear here." />
+      ) : (
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              {["Ref", "Customer", "Booking", "Total", "Received", "Method", "Date", "Status", ""].map(h => (
+            <tr className="bg-slate-50 border-b border-[var(--color-border)]">
+              {["Ref", "Customer", "Invoice", "Amount", "Method", "Date", "Status"].map(h => (
                 <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {CUSTOMER_PAYMENTS.map(cp => (
+            {rows.map(cp => (
               <tr key={cp.id} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.id}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.ref}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-700">{cp.customer}</td>
-                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.booking}</td>
-                <td className="px-4 py-3 text-sm font-mono text-slate-700">{fmtCurrency(cp.amount)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(cp.received)}</td>
+                <td className="px-4 py-3 text-xs font-mono text-slate-400">{cp.invoice}</td>
+                <td className="px-4 py-3 text-sm font-mono text-emerald-600">{fmtCurrency(cp.amount)}</td>
                 <td className="px-4 py-3 text-sm text-slate-500">{cp.method}</td>
                 <td className="px-4 py-3 text-sm text-slate-500">{cp.date}</td>
                 <td className="px-4 py-3"><StatusChip status={cp.status} /></td>
-                <td className="px-4 py-3">
-                  <button className="p-1 hover:bg-slate-100 rounded"><Eye size={13} className="text-slate-400" /></button>
-                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }
 
 // ─── Payment Gateways ─────────────────────────────────────────────────────────
-type GatewayStatus = "active" | "sandbox" | "inactive";
-type GatewayCfg = { id: string; name: string; logo: string; status: GatewayStatus; txFee: string; settlement: string; monthlyVol: number; txCount: number; color: string };
-const GATEWAYS: GatewayCfg[] = [
-  { id: "bkash", name: "bKash", logo: "bK", status: "active", txFee: "1.5%", settlement: "T+1", monthlyVol: 3200000, txCount: 148, color: "#E2136E" },
-  { id: "nagad", name: "Nagad", logo: "Na", status: "active", txFee: "1.0%", settlement: "T+0", monthlyVol: 1850000, txCount: 97, color: "#F05A28" },
-  { id: "ssl", name: "SSLCommerz", logo: "SSL", status: "active", txFee: "2.5%", settlement: "T+3", monthlyVol: 2100000, txCount: 62, color: "#0065BD" },
-  { id: "card", name: "Visa / Mastercard", logo: "V|M", status: "sandbox", txFee: "2.0% + ৳10", settlement: "T+3", monthlyVol: 0, txCount: 0, color: "#1A1F71" },
-];
-
-const GATEWAY_STATUS_COLOR: Record<GatewayStatus, string> = {
-  active: "bg-emerald-50 text-emerald-700",
-  sandbox: "bg-amber-50 text-amber-700",
-  inactive: "bg-slate-100 text-slate-500",
-};
-
 function PaymentGatewaysView() {
-  const [selected, setSelected] = useState("bkash");
-  const gw = GATEWAYS.find(g => g.id === selected)!;
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Payment Gateways</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Manage MFS and card gateway integrations</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">
-          <Plus size={14} /> Add Gateway
-        </button>
-      </div>
-      <div className="grid grid-cols-4 gap-4">
-        {GATEWAYS.map(g => (
-          <button key={g.id} onClick={() => setSelected(g.id)}
-            className={cn("text-left p-5 rounded-xl border transition-all bg-white",
-              selected === g.id ? "border-[#1B75BC] ring-1 ring-[#1B75BC]/20" : "border-slate-200 hover:border-slate-300")}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: g.color }}>{g.logo}</div>
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", GATEWAY_STATUS_COLOR[g.status])}>{g.status}</span>
-            </div>
-            <p className="font-semibold text-slate-800">{g.name}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Fee: {g.txFee}</p>
-            <p className="text-sm font-bold text-slate-800 mt-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {fmtCurrency(g.monthlyVol)}
-            </p>
-            <p className="text-xs text-slate-400">{g.txCount} transactions this month</p>
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2 bg-white rounded-xl border border-slate-200 p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: gw.color }}>{gw.logo}</div>
-            <div>
-              <h3 className="font-semibold text-slate-800">{gw.name} Configuration</h3>
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", GATEWAY_STATUS_COLOR[gw.status])}>{gw.status}</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              ["Merchant ID", "BDH-MCHT-00421"],
-              ["API Key", "sk_live_••••••••••••••••"],
-              ["Webhook URL", "https://api.bdh-travels.com/webhook/payment"],
-              ["Settlement Account", "DBBL Current – 1021...234"],
-              ["Transaction Fee", gw.txFee],
-              ["Settlement Cycle", gw.settlement],
-            ].map(([label, val]) => (
-              <div key={label}>
-                <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
-                <input defaultValue={val} readOnly
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-700 font-mono focus:outline-none" />
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-3 mt-5 pt-4 border-t border-slate-100">
-            <button className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">Save Changes</button>
-            <button className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-600">Test Connection</button>
-            {gw.status === "sandbox" && (
-              <button className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 ml-auto">Go Live</button>
-            )}
-          </div>
-        </div>
-        <Section title="Quick Stats">
-          <div className="space-y-4">
-            {[
-              ["Monthly Volume", fmtCurrency(gw.monthlyVol)],
-              ["Transactions", String(gw.txCount)],
-              ["Success Rate", "98.4%"],
-              ["Avg. Settlement", gw.settlement],
-              ["Disputes", "0"],
-            ].map(([label, val]) => (
-              <div key={label} className="flex justify-between text-sm">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-medium text-slate-800 font-mono">{val}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
+      <EmptyState
+        variant="coming-soon"
+        title="Online payment gateways"
+        desc="Payments are recorded manually with a reference number in the Finance module. Live gateway integration (bKash/Nagad/SSLCommerz) is planned for a later release."
+      />
     </div>
   );
 }
@@ -1065,27 +793,7 @@ function AccountsOverview() {
       <div className="grid grid-cols-3 gap-5">
         <div className="col-span-2">
           <Section title="Cash Flow – Last 6 Months">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={MONTHLY_CASHFLOW} margin={{ top: 5, right: 5, bottom: 0, left: 10 }}>
-                <defs>
-                  <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0E7C66" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#0E7C66" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false}
-                  tickFormatter={v => `৳${(v / 1000000).toFixed(1)}M`} />
-                <Tooltip formatter={(v: number) => [fmtCurrency(v), ""]} />
-                <Area type="monotone" dataKey="income" name="Income" stroke="#0E7C66" strokeWidth={2} fill="url(#incomeGrad)" />
-                <Area type="monotone" dataKey="expense" name="Expense" stroke="#EF4444" strokeWidth={2} fill="url(#expenseGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <EmptyState variant="no-data" title="No cash flow data" desc="Cash flow trends will appear here once income and expense entries are recorded." />
           </Section>
         </div>
         <Section title="Quick Ledger">
@@ -1117,14 +825,14 @@ function AccountsOverview() {
 function IncomeLedgerView() {
   const { data, isLoading, isError, error, refetch } = useIncome({ pageSize: 100 });
   if (isError) return <ErrorBanner message={(error as Error)?.message || "Failed to load income."} onRetry={() => refetch()} />;
-  if (isLoading) return <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={6} /></div>;
+  if (isLoading) return <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={8} cols={6} /></div>;
   const rows = (data?.data ?? []).map(r => ({ date: (r.date || "").slice(0, 10), ref: r.ref ?? "—", category: r.category, description: r.description ?? r.party ?? "", amount: r.amount, method: r.method ?? "—", status: (r.status || "").toLowerCase() }));
   return <LedgerTableView title="Income Ledger" rows={rows} type="income" />;
 }
 function ExpenseLedgerView() {
   const { data, isLoading, isError, error, refetch } = useExpenses({ pageSize: 100 });
   if (isError) return <ErrorBanner message={(error as Error)?.message || "Failed to load expenses."} onRetry={() => refetch()} />;
-  if (isLoading) return <div className="bg-white rounded-xl border border-slate-200 p-4"><SkeletonTable rows={8} cols={6} /></div>;
+  if (isLoading) return <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4"><SkeletonTable rows={8} cols={6} /></div>;
   const rows = (data?.data ?? []).map(r => ({ date: (r.date || "").slice(0, 10), ref: r.ref ?? "—", category: r.category, description: r.description ?? "", vendor: r.party ?? "", amount: r.amount, method: r.method ?? "—", status: (r.status || "").toLowerCase() }));
   return <LedgerTableView title="Expense Ledger" rows={rows} type="expense" />;
 }
@@ -1152,7 +860,7 @@ export function AccountsModule() {
   return (
     <div className="flex h-full min-h-screen bg-[#F0F2F5]">
       {/* Sub-nav sidebar */}
-      <div className="w-56 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] flex flex-col">
         <div className="px-4 py-4 border-b border-slate-100">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accounts</h2>
         </div>

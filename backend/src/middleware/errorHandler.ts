@@ -14,9 +14,25 @@ export class HttpError extends Error {
   }
 }
 
+/** Canonical API error body: { error, message?, details?, requestId }. */
+export function sendApiError(
+  res: Response,
+  status: number,
+  error: string,
+  opts?: { message?: string; details?: unknown; requestId?: unknown; path?: string },
+): void {
+  res.status(status).json({
+    error,
+    ...(opts?.message ? { message: opts.message } : {}),
+    ...(opts?.details !== undefined ? { details: opts.details } : {}),
+    ...(opts?.path ? { path: opts.path } : {}),
+    ...(opts?.requestId != null ? { requestId: String(opts.requestId) } : {}),
+  });
+}
+
 /** 404 for anything not matched by a router. */
 export function notFoundHandler(req: Request, res: Response): void {
-  res.status(404).json({ error: "NotFound", path: req.originalUrl, requestId: req.id });
+  sendApiError(res, 404, "NotFound", { path: req.originalUrl, requestId: req.id, message: "Route not found" });
 }
 
 /** Centralized error handler — must be registered LAST (4 args). */
@@ -24,21 +40,30 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   const requestId = (req as Request).id;
 
   if (err instanceof ZodError) {
-    res.status(400).json({ error: "ValidationError", issues: err.flatten(), requestId });
+    sendApiError(res, 400, "ValidationError", {
+      message: "Request validation failed",
+      details: { issues: err.flatten() },
+      requestId,
+    });
     return;
   }
 
   if (err instanceof HttpError) {
     if (err.statusCode >= 500) logger.error({ err, requestId }, err.message);
-    res.status(err.statusCode).json({ error: err.message, details: err.details, requestId });
+    sendApiError(res, err.statusCode, err.message, {
+      details: err.details,
+      requestId,
+      message: typeof err.details === "object" && err.details && "detail" in (err.details as object)
+        ? String((err.details as { detail?: unknown }).detail ?? undefined)
+        : undefined,
+    });
     return;
   }
 
   logger.error({ err, requestId }, "Unhandled error");
   const isProd = process.env.NODE_ENV === "production";
-  res.status(500).json({
-    error: "InternalServerError",
-    message: isProd ? undefined : (err as Error | undefined)?.message,
+  sendApiError(res, 500, "InternalServerError", {
+    message: isProd ? "An unexpected error occurred" : (err as Error | undefined)?.message,
     requestId,
   });
 };

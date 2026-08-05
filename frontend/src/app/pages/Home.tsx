@@ -3,94 +3,63 @@ import { Link } from "react-router";
 import { useTranslation, Trans } from "react-i18next";
 import {
   Star, MapPin, Shield, Plane, Briefcase, Hotel, Globe,
-  ChevronRight, ArrowRight, CheckCircle, Users, Award, Calendar,
-  Phone, Quote, Clock, TrendingUp, Heart, Headphones,
+  ArrowRight, CheckCircle, Phone, Quote, Clock, Heart, Headphones, TrendingUp,
 } from "lucide-react";
-import { cn, img, fmtPrice } from "../lib/utils";
-import { PACKAGES, TESTIMONIALS, SERVICES, BLOGS } from "../lib/data";
+import { img, fmtPrice } from "../lib/utils";
+import { whatsappUrl } from "../lib/contact";
 import { HeroBackground } from "../components/HeroBackground";
+import { usePublicPackages, usePublicBlogPosts, usePublicTestimonials, contentLinkKey } from "../hooks/publicContent";
 
-// ─── Hero Booking Widget ──────────────────────────────────────────────────────
-// `id` is the stable value; the display label comes from t(labelKey).
-const SERVICE_TYPES = [
-  { id: "Hajj",         labelKey: "booking.tabs.hajj" },
-  { id: "Umrah",        labelKey: "booking.tabs.umrah" },
-  { id: "Visa",         labelKey: "booking.tabs.visa" },
-  { id: "Air Ticket",   labelKey: "booking.tabs.airTicket" },
-  { id: "Tour Package", labelKey: "booking.tabs.tour" },
-  { id: "Hotel",        labelKey: "booking.tabs.hotel" },
-];
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          el.classList.add("is-visible");
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
 
-const TRAVELER_OPTIONS = [
-  { id: "1 Traveler",   labelKey: "booking.travelerOptions.one" },
-  { id: "2 Travelers",  labelKey: "booking.travelerOptions.two" },
-  { id: "3 Travelers",  labelKey: "booking.travelerOptions.three" },
-  { id: "4+ Travelers", labelKey: "booking.travelerOptions.fourPlus" },
-];
-
-function BookingWidget() {
+/** Hero CTA group — Book / Contact / WhatsApp only (no search widget). */
+function HeroCtas() {
   const { t } = useTranslation("home");
-  const [service, setService] = useState(SERVICE_TYPES[0].id);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [date, setDate] = useState("");
-  const [pax, setPax] = useState(TRAVELER_OPTIONS[0].id);
-
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-full max-w-3xl mx-auto">
-      {/* Service Tabs — horizontally scrollable on mobile */}
-      <div className="flex gap-1 mb-4 md:mb-5 bg-[#F3F4F6] rounded-[10px] p-1 overflow-x-auto no-scrollbar -mx-1 px-1">
-        {SERVICE_TYPES.map(opt => (
-          <button key={opt.id} onClick={() => setService(opt.id)}
-            className={cn("flex-shrink-0 px-3 md:px-4 py-2 rounded-[8px] text-[11px] md:text-[12px] font-semibold transition-all cursor-pointer min-h-[36px]",
-              service === opt.id ? "bg-[#1B75BC] text-white shadow" : "text-[#6B7280] hover:text-[#374151]"
-            )}>
-            {t(opt.labelKey)}
-          </button>
-        ))}
-      </div>
-
-      {/* Fields — 1 col on mobile, 2 on sm, 4 on md */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.from")}</label>
-          <input value={from} onChange={e => setFrom(e.target.value)}
-            placeholder={t("booking.fromPlaceholder")}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.to")}</label>
-          <input value={to} onChange={e => setTo(e.target.value)}
-            placeholder={t("booking.toPlaceholder")}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.departure")}</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all min-h-[48px]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider">{t("booking.travelers")}</label>
-          <select value={pax} onChange={e => setPax(e.target.value)}
-            className="px-3 py-3 md:py-2.5 border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all bg-white cursor-pointer min-h-[48px]">
-            {TRAVELER_OPTIONS.map(o => <option key={o.id} value={o.id}>{t(o.labelKey)}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="flex gap-3 mt-4">
-        <Link to="/book" className="flex-1 py-3.5 md:py-3 bg-[#1B75BC] hover:bg-[#14588F] text-white font-bold rounded-[10px] text-[14px] transition-colors text-center min-h-[48px] flex items-center justify-center">
-          {t("booking.searchBook")}
-        </Link>
-        <Link to="/contact" className="px-4 md:px-5 py-3.5 md:py-3 border-2 border-[#F15A24] text-[#D64A12] font-bold rounded-[10px] text-[13px] hover:bg-[#F15A24]/5 transition-colors flex items-center min-h-[48px]">
-          {t("common:actions.getQuote")}
-        </Link>
-      </div>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full max-w-lg mx-auto">
+      <Link
+        to="/book"
+        className="flex-1 py-3.5 px-6 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center shadow-[0_12px_32px_rgba(241,90,36,0.35)] hover:shadow-[0_16px_40px_rgba(241,90,36,0.45)] hover:-translate-y-0.5"
+      >
+        {t("hero.cta.book")}
+      </Link>
+      <Link
+        to="/contact"
+        className="flex-1 py-3.5 px-6 bg-white/95 hover:bg-white text-[#17456B] font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center hover:-translate-y-0.5"
+      >
+        {t("hero.cta.contact")}
+      </Link>
+      <a
+        href={whatsappUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 py-3.5 px-6 border border-white/45 hover:border-white hover:bg-white/10 text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center gap-2 hover:-translate-y-0.5"
+      >
+        <Phone size={16} />
+        {t("hero.cta.whatsapp")}
+      </a>
     </div>
   );
 }
 
-// ─── Counter ──────────────────────────────────────────────────────────────────
 function Counter({ end, suffix = "", label }: { end: number; suffix?: string; label: string }) {
   const [val, setVal] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -103,7 +72,10 @@ function Counter({ end, suffix = "", label }: { end: number; suffix?: string; la
         let start = 0;
         const step = () => {
           start += Math.ceil(end / 60);
-          if (start >= end) { setVal(end); return; }
+          if (start >= end) {
+            setVal(end);
+            return;
+          }
           setVal(start);
           requestAnimationFrame(step);
         };
@@ -115,234 +87,312 @@ function Counter({ end, suffix = "", label }: { end: number; suffix?: string; la
   }, [end]);
 
   return (
-    <div ref={ref} className="text-center">
-      <div className="text-4xl md:text-5xl font-black text-white mb-1">
+    <div ref={ref} className="text-center px-2">
+      <div className="home-display text-4xl md:text-5xl lg:text-6xl text-white mb-2 tracking-tight">
         {val.toLocaleString()}{suffix}
       </div>
-      <div className="text-sm text-white/60 font-medium">{label}</div>
+      <div className="text-[12px] md:text-sm text-white/55 font-medium tracking-wide uppercase">{label}</div>
     </div>
   );
 }
 
-// ─── HOME PAGE ───────────────────────────────────────────────────────────────
 export function Home() {
   const { t } = useTranslation("home");
+  const { packages: allPackages, fromApi: packagesFromApi } = usePublicPackages({ limit: 20 });
+  const { posts: allBlogs, fromApi: blogsFromApi } = usePublicBlogPosts({ limit: 10 });
+  const { testimonials: allTestimonials } = usePublicTestimonials();
+  const featuredPackages = allPackages.slice(0, 4);
+  const featuredBlogs = allBlogs.slice(0, 3);
+  const featuredTestimonials = allTestimonials.slice(0, 3);
+
+  const servicesRef = useReveal<HTMLElement>();
+  const packagesRef = useReveal<HTMLElement>();
+  const whyRef = useReveal<HTMLElement>();
+  const testimonialsRef = useReveal<HTMLElement>();
+  const blogRef = useReveal<HTMLElement>();
+
   const services = [
-    { id: "hajj", i18n: "hajj", icon: Star, color: "#F15A24", bg: "#FFF9E6" },
-    { id: "umrah", i18n: "umrah", icon: MapPin, color: "#1B75BC", bg: "#EEF2FF" },
-    { id: "visa", i18n: "visa", icon: Shield, color: "#0E7C66", bg: "#ECFDF5" },
-    { id: "air-ticket", i18n: "airTicket", icon: Plane, color: "#2563EB", bg: "#EFF6FF" },
-    { id: "manpower", i18n: "manpower", icon: Briefcase, color: "#7C3AED", bg: "#F5F3FF" },
-    { id: "tour-packages", i18n: "tour", icon: Globe, color: "#EA580C", bg: "#FFF7ED" },
-    { id: "hotel-booking", i18n: "hotel", icon: Hotel, color: "#0891B2", bg: "#F0F9FF" },
+    { id: "hajj", i18n: "hajj", icon: Star },
+    { id: "umrah", i18n: "umrah", icon: MapPin },
+    { id: "visa", i18n: "visa", icon: Shield },
+    { id: "air-ticket", i18n: "airTicket", icon: Plane },
+    { id: "manpower", i18n: "manpower", icon: Briefcase },
+    { id: "tour-packages", i18n: "tour", icon: Globe },
+    { id: "hotel-booking", i18n: "hotel", icon: Hotel },
   ];
 
   const partners = [
-    "Biman Bangladesh", "Saudi Airlines", "Qatar Airways", "Emirates", "Turkish Airlines",
-    "Etihad Airways", "Air Arabia", "FlyDubai",
+    { name: "Biman Bangladesh", src: "/partners/biman.svg" },
+    { name: "Saudi Airlines", src: "/partners/saudia.svg" },
+    { name: "Qatar Airways", src: "/partners/qatar.svg" },
+    { name: "Emirates", src: "/partners/emirates.svg" },
+    { name: "Turkish Airlines", src: "/partners/turkish.svg" },
+    { name: "Etihad Airways", src: "/partners/etihad.svg" },
+    { name: "Air Arabia", src: "/partners/airarabia.svg" },
+    { name: "FlyDubai", src: "/partners/flydubai.svg" },
   ];
 
   return (
-    <>
-      {/* ── HERO ── */}
-      <section className="relative min-h-[85vh] md:min-h-[92vh] flex items-center justify-center overflow-hidden">
-        <HeroBackground posterImg={img("photo-1770786106021-52580470e31e", 1920, 1080)} alt="Masjid al-Haram, Makkah" />
+    <div className="home-sacred">
+      {/* ── HERO — brand + headline + subtitle + CTAs only ── */}
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
+        <HeroBackground posterImg="/hero-makkah-poster.jpg" alt="Masjid al-Haram, Makkah" />
 
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 md:px-6 flex flex-col items-center text-center gap-6 md:gap-8 py-12 md:py-16">
-          <div className="inline-flex items-center gap-2 bg-white/95 border border-white rounded-full px-4 py-1.5 text-[#D64A12] text-[12px] font-bold shadow-sm">
-            <Star size={13} fill="currentColor" className="text-[#F15A24]" />
-            {t("hero.badge")}
-          </div>
+        <div className="relative z-10 w-full max-w-[1100px] mx-auto px-5 md:px-8 flex flex-col items-center text-center gap-4 md:gap-5 py-20 md:py-24">
+          <h1 className="home-rise text-[2.15rem] sm:text-4xl md:text-5xl lg:text-[3.75rem] text-white leading-[1.12] max-w-3xl drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
+            <Trans
+              t={t}
+              i18nKey="hero.title"
+              components={{ hl: <span className="text-[#F15A24] italic" />, br: <br /> }}
+            />
+          </h1>
 
-          <div className="max-w-3xl">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-3 md:mb-4">
-              <Trans
-                t={t}
-                i18nKey="hero.title"
-                components={{ hl: <span className="text-[#D64A12]" />, br: <br /> }}
-              />
-            </h1>
-            <p className="text-base md:text-lg text-white/70 max-w-xl mx-auto">
-              {t("hero.subtitle")}
-            </p>
-          </div>
-
-          {/* Trust Badges — 2×2 on mobile, row on larger */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 md:gap-3 w-full max-w-lg sm:max-w-none mx-auto">
-            {[
-              { icon: Award, text: t("hero.badges.atab") },
-              { icon: CheckCircle, text: t("hero.badges.govt") },
-              { icon: Users, text: t("hero.badges.pilgrims") },
-              { icon: Calendar, text: t("hero.badges.years") },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3 md:px-4 py-2 text-white text-[11px] md:text-[12px] font-medium">
-                <Icon size={12} className="text-[#D64A12]" />
-                {text}
-              </div>
-            ))}
-          </div>
-
-          <BookingWidget />
-
-          <p className="text-white/40 text-[11px]">
-            {t("hero.reassurance")}
+          <p className="home-rise home-rise-delay-1 text-[15px] md:text-lg text-white/80 max-w-lg mx-auto leading-relaxed font-medium drop-shadow-sm">
+            {t("hero.subtitle")}
           </p>
+
+          <div className="home-rise home-rise-delay-2 w-full pt-1">
+            <HeroCtas />
+          </div>
         </div>
+
+        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#faf9f7] to-transparent pointer-events-none z-[5]" />
       </section>
 
-      {/* ── TRUST STRIP ── */}
-      <section className="bg-[#1B75BC] py-4">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap items-center justify-center gap-6">
-          {[
-            t("trustStrip.license"),
-            t("trustStrip.aviation"),
-            t("trustStrip.ministry"),
-            t("trustStrip.years"),
-            t("trustStrip.pilgrims"),
-          ].map(item => (
-            <span key={item} className="text-white/70 text-[12px] font-medium">{item}</span>
-          ))}
+      {/* ── TRUST RIBBON ── */}
+      <section className="relative z-10 -mt-6 md:-mt-8">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-8">
+          <div className="bg-[#0A2E4D] text-white px-5 md:px-8 py-4 md:py-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 md:gap-x-10 shadow-[0_20px_50px_rgba(10,46,77,0.25)]">
+            {[
+              t("trustStrip.license"),
+              t("trustStrip.aviation"),
+              t("trustStrip.ministry"),
+              t("trustStrip.years"),
+              t("trustStrip.pilgrims"),
+            ].map((item) => (
+              <span key={item} className="text-[11px] md:text-[12px] font-semibold tracking-wide text-white/75 whitespace-nowrap">
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── SERVICES ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("services.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827] mb-3">{t("services.heading")}</h2>
-            <p className="text-[#6B7280] max-w-xl mx-auto text-sm">{t("services.subheading")}</p>
+      <section ref={servicesRef} className="home-reveal py-16 md:py-24">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-8">
+          <div className="text-center mb-10 md:mb-14">
+            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
+              {t("services.eyebrow")}
+            </div>
+            <h2 className="text-3xl md:text-5xl text-[#0A2E4D] mb-3">{t("services.heading")}</h2>
+            <p className="text-[var(--home-muted)] max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+              {t("services.subheading")}
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 md:gap-4">
-            {services.map(s => (
-              <Link key={s.id} to={`/${s.id}`}
-                className="bg-white rounded-2xl p-5 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-200 border border-[#E5E7EB] group cursor-pointer">
-                <div className="w-12 h-12 rounded-[12px] flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: s.bg }}>
-                  <s.icon size={22} style={{ color: s.color }} />
+          <div className="flex md:grid md:grid-cols-7 gap-0 overflow-x-auto no-scrollbar border-y border-[var(--home-line)] divide-x divide-[var(--home-line)]">
+            {services.map((s) => (
+              <Link
+                key={s.id}
+                to={`/${s.id}`}
+                className="min-w-[140px] md:min-w-0 flex-shrink-0 px-5 py-8 md:py-10 text-center group hover:bg-[#1B75BC]/[0.04] transition-colors"
+              >
+                <s.icon size={26} className="mx-auto mb-4 text-[#1B75BC] group-hover:text-[#F15A24] transition-colors" strokeWidth={1.5} />
+                <div className="text-[13px] font-bold text-[#0A2E4D] group-hover:text-[#1B75BC] transition-colors mb-1.5 leading-snug">
+                  {t(`services.items.${s.i18n}.label`)}
                 </div>
-                <div className="text-[13px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors mb-1">{t(`services.items.${s.i18n}.label`)}</div>
-                <div className="text-[10px] text-[#9CA3AF] leading-snug">{t(`services.items.${s.i18n}.desc`)}</div>
+                <div className="text-[11px] text-[var(--home-muted)] leading-snug hidden sm:block">
+                  {t(`services.items.${s.i18n}.desc`)}
+                </div>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── FEATURED PACKAGES ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("packages.eyebrow")}</div>
-              <h2 className="text-3xl font-black text-[#111827]">{t("packages.heading")}</h2>
+      {/* ── FEATURED PACKAGES — editorial sacred layout ── */}
+      <section ref={packagesRef} className="home-reveal py-16 md:py-24 bg-[#faf9f7] relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse at 10% 0%, rgba(27,117,188,0.12), transparent 45%), radial-gradient(ellipse at 90% 100%, rgba(241,90,36,0.08), transparent 40%)",
+          }}
+        />
+        <div className="relative max-w-[1200px] mx-auto px-5 md:px-8">
+          <div className="text-center mb-12 md:mb-14">
+            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
+              {t("packages.eyebrow")}
             </div>
-            <Link to="/packages" className="hidden md:flex items-center gap-1.5 text-[#1B75BC] text-[13px] font-semibold hover:gap-3 transition-all">
-              {t("common:actions.viewAll")} <ArrowRight size={14} />
-            </Link>
+            <h2 className="text-3xl md:text-5xl text-[#0A2E4D] mb-3">{t("packages.heading")}</h2>
+            <p className="text-[var(--home-muted)] text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+              {t("packages.subheading")}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {PACKAGES.slice(0, 4).map(pkg => (
-              <Link key={pkg.id} to={`/packages/${pkg.id}`}
-                className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={img(pkg.image, 600, 400)} alt={pkg.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  {pkg.badge && (
-                    <div className="absolute top-3 left-3 bg-[#F15A24] text-[#1B75BC] text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wide">
-                      {pkg.badge}
+          {featuredPackages.length > 0 && (() => {
+            const [lead, ...rest] = featuredPackages;
+            const leadHref = `/packages/${contentLinkKey(lead, packagesFromApi)}`;
+            return (
+              <>
+                {/* Lead package — split composition */}
+                <Link
+                  to={leadHref}
+                  className="group grid grid-cols-1 lg:grid-cols-12 mb-8 md:mb-10 overflow-hidden bg-[#0A2E4D] shadow-[0_24px_60px_rgba(10,46,77,0.18)]"
+                >
+                  <div className="relative lg:col-span-7 min-h-[280px] md:min-h-[380px] overflow-hidden">
+                    <img
+                      src={img(lead.image, 1100, 800)}
+                      alt={lead.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#061828]/50 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-[#0A2E4D]/40" />
+                    {lead.badge && (
+                      <span className="absolute top-5 left-5 text-[10px] font-bold uppercase tracking-[0.2em] bg-[#F15A24] text-white px-3 py-1.5">
+                        {lead.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="lg:col-span-5 flex flex-col justify-center px-6 py-8 md:px-10 md:py-12 text-white">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#F15A24] mb-3">
+                      {lead.type}
                     </div>
-                  )}
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1">
-                    <Star size={11} fill="#F59E0B" className="text-[#F59E0B]" />
-                    <span className="text-[11px] font-bold text-[#374151]">{pkg.rating}</span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">{pkg.type}</div>
-                  <h3 className="text-[14px] font-bold text-[#111827] mb-2 group-hover:text-[#1B75BC] transition-colors leading-snug">{pkg.title}</h3>
-                  <div className="flex items-center gap-2 text-[11px] text-[#6B7280] mb-3">
-                    <Clock size={11} /> {pkg.duration}
-                    <span className="mx-1 text-[#E5E7EB]">·</span>
-                    <MapPin size={11} /> {t("packages.departing", { val: pkg.departure })}
-                  </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-[#F3F4F6]">
-                    <div>
-                      <div className="text-[10px] text-[#9CA3AF]">{t("packages.startingFrom")}</div>
-                      <div className="text-[18px] font-black text-[#1B75BC]">{fmtPrice(pkg.price)}</div>
+                    <h3 className="home-display text-3xl md:text-4xl leading-[1.15] mb-4 group-hover:text-[#F15A24] transition-colors">
+                      {lead.title}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-white/65 mb-6">
+                      <span className="inline-flex items-center gap-1.5"><Clock size={13} /> {lead.duration}</span>
+                      {lead.departure && (
+                        <span className="inline-flex items-center gap-1.5"><MapPin size={13} /> {t("packages.departing", { val: lead.departure })}</span>
+                      )}
                     </div>
-                    <div className="text-[11px] text-[#9CA3AF]">{t("packages.seatsLeft", { count: pkg.seats })}</div>
+                    <div className="flex items-end justify-between gap-4 pt-5 border-t border-white/15">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-white/45 mb-1">{t("packages.startingFrom")}</div>
+                        <div className="text-2xl md:text-3xl font-bold text-[#F15A24]">{fmtPrice(lead.price)}</div>
+                      </div>
+                      <span className="inline-flex items-center gap-2 text-sm font-semibold text-white group-hover:gap-3 transition-all">
+                        {t("packages.explore")} <ArrowRight size={15} />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
 
-          <div className="text-center mt-8 md:hidden">
-            <Link to="/packages" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#1B75BC]/5 transition-colors">
+                {/* Remaining packages — image + meta below (readable, not overlay-heavy) */}
+                {rest.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
+                    {rest.map((pkg) => (
+                      <Link
+                        key={pkg.slug || pkg.id}
+                        to={`/packages/${contentLinkKey(pkg, packagesFromApi)}`}
+                        className="group block"
+                      >
+                        <div className="relative aspect-[16/11] overflow-hidden mb-4 bg-[#0A2E4D]/10">
+                          <img
+                            src={img(pkg.image, 700, 480)}
+                            alt={pkg.title}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                          <div className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-[0.18em] bg-white/95 text-[#0A2E4D] px-2.5 py-1">
+                            {pkg.type}
+                          </div>
+                        </div>
+                        <h3 className="home-display text-2xl text-[#0A2E4D] leading-snug mb-2 group-hover:text-[#1B75BC] transition-colors">
+                          {pkg.title}
+                        </h3>
+                        <div className="flex items-center gap-3 text-[12px] text-[var(--home-muted)] mb-3">
+                          <span className="inline-flex items-center gap-1"><Clock size={12} /> {pkg.duration}</span>
+                          {pkg.seats != null && (
+                            <span>{t("packages.seatsLeft", { count: pkg.seats })}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between pt-3 border-t border-[var(--home-line)]">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-wider text-[var(--home-muted)]">{t("packages.startingFrom")}</div>
+                            <div className="text-lg font-bold text-[#F15A24]">{fmtPrice(pkg.price)}</div>
+                          </div>
+                          <span className="w-9 h-9 rounded-full border border-[#1B75BC]/25 text-[#1B75BC] flex items-center justify-center group-hover:bg-[#1B75BC] group-hover:text-white transition-colors">
+                            <ArrowRight size={14} />
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          <div className="text-center mt-12">
+            <Link
+              to="/packages"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-bold text-sm transition-colors"
+            >
               {t("packages.viewAllPackages")} <ArrowRight size={14} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── WHY CHOOSE US ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("why.eyebrow")}</div>
-              <h2 className="text-3xl font-black text-[#111827] mb-5">
+      {/* ── WHY — image-led, no floating stickers ── */}
+      <section ref={whyRef} className="home-reveal relative">
+        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
+          <div className="relative min-h-[320px] lg:min-h-full overflow-hidden">
+            <img
+              src={img("photo-1720549973451-018d3623b55a", 1200, 900)}
+              alt="Hajj pilgrims at Kaaba"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#faf9f7]/30 lg:to-transparent" />
+          </div>
+          <div className="flex items-center bg-[#faf9f7] px-6 md:px-12 lg:px-16 py-14 md:py-20">
+            <div className="max-w-lg">
+              <div className="home-ornament justify-start text-[11px] font-bold uppercase tracking-[0.22em] mb-4">
+                {t("why.eyebrow")}
+              </div>
+              <h2 className="text-3xl md:text-5xl text-[#0A2E4D] leading-[1.12] mb-5">
                 {t("why.headingLine1")}<br />{t("why.headingLine2")}
               </h2>
-              <p className="text-[#6B7280] text-sm leading-relaxed mb-8">
+              <p className="text-[var(--home-muted)] text-sm md:text-[15px] leading-relaxed mb-8">
                 {t("why.body")}
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <div className="space-y-5 mb-9">
                 {[
-                  { icon: CheckCircle, title: t("why.features.govt.title"), desc: t("why.features.govt.desc"), color: "#0E7C66" },
-                  { icon: Headphones, title: t("why.features.support.title"), desc: t("why.features.support.desc"), color: "#1B75BC" },
-                  { icon: Heart, title: t("why.features.trusted.title"), desc: t("why.features.trusted.desc"), color: "#DC2626" },
-                  { icon: TrendingUp, title: t("why.features.value.title"), desc: t("why.features.value.desc"), color: "#F15A24" },
-                ].map(i => (
-                  <div key={i.title} className="bg-white rounded-[12px] p-4 border border-[#E5E7EB]">
-                    <div className="w-9 h-9 rounded-[8px] flex items-center justify-center mb-3" style={{ backgroundColor: `${i.color}15` }}>
-                      <i.icon size={17} style={{ color: i.color }} />
+                  { icon: CheckCircle, title: t("why.features.govt.title"), desc: t("why.features.govt.desc") },
+                  { icon: Headphones, title: t("why.features.support.title"), desc: t("why.features.support.desc") },
+                  { icon: Heart, title: t("why.features.trusted.title"), desc: t("why.features.trusted.desc") },
+                  { icon: TrendingUp, title: t("why.features.value.title"), desc: t("why.features.value.desc") },
+                ].map((i) => (
+                  <div key={i.title} className="flex gap-4">
+                    <i.icon size={18} className="text-[#F15A24] mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+                    <div>
+                      <div className="text-[14px] font-bold text-[#0A2E4D] mb-0.5">{i.title}</div>
+                      <div className="text-[12px] text-[var(--home-muted)] leading-snug">{i.desc}</div>
                     </div>
-                    <div className="text-[13px] font-bold text-[#111827] mb-1">{i.title}</div>
-                    <div className="text-[11px] text-[#6B7280] leading-snug">{i.desc}</div>
                   </div>
                 ))}
               </div>
 
-              <Link to="/about" className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-[#1B75BC] text-white font-bold rounded-[10px] text-sm hover:bg-[#14588F] transition-colors">
+              <Link
+                to="/about"
+                className="inline-flex items-center gap-2 px-6 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-bold text-sm transition-colors"
+              >
                 {t("why.learnStory")} <ArrowRight size={14} />
               </Link>
-            </div>
-
-            <div className="relative hidden lg:block">
-              <div className="rounded-2xl overflow-hidden shadow-2xl">
-                <img src={img("photo-1720549973451-018d3623b55a", 700, 500)} alt="Hajj pilgrims at Kaaba" className="w-full object-cover h-[440px]" />
-              </div>
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-5 border border-[#E5E7EB]">
-                <div className="text-3xl font-black text-[#1B75BC] mb-1">25+</div>
-                <div className="text-[12px] text-[#6B7280]">{t("why.badge.excellence")}</div>
-              </div>
-              <div className="absolute -top-4 -right-4 bg-[#F15A24] text-[#1B75BC] rounded-2xl px-4 py-3 shadow-xl">
-                <div className="text-2xl font-black mb-0.5">10K+</div>
-                <div className="text-[11px] font-bold">{t("why.badge.pilgrims")}</div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── STATS ── */}
-      <section className="py-12 md:py-20 bg-[#1B75BC]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
+      <section className="py-16 md:py-20 bg-[#061828] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle at 20% 50%, #1B75BC 0%, transparent 45%), radial-gradient(circle at 80% 30%, #F15A24 0%, transparent 40%)" }}
+        />
+        <div className="relative max-w-[1100px] mx-auto px-5 md:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
             <Counter end={10000} suffix="+" label={t("stats.pilgrims")} />
             <Counter end={25} suffix="+" label={t("stats.years")} />
             <Counter end={50} suffix="+" label={t("stats.countries")} />
@@ -351,130 +401,153 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("testimonials.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827]">{t("testimonials.heading")}</h2>
+      {/* ── TESTIMONIALS — quote-led ── */}
+      <section ref={testimonialsRef} className="home-reveal py-16 md:py-24 bg-[#faf9f7]">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-8">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
+              {t("testimonials.eyebrow")}
+            </div>
+            <h2 className="text-3xl md:text-5xl text-[#0A2E4D]">{t("testimonials.heading")}</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {TESTIMONIALS.slice(0, 3).map((t, idx) => (
-              <div key={idx} className="bg-[#F7F8FA] rounded-2xl p-6 border border-[#E5E7EB] relative">
-                <Quote size={28} className="text-[#D64A12]/30 mb-3" />
-                <p className="text-[13px] text-[#374151] leading-relaxed mb-5 italic">"{t.text}"</p>
-                <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+            {featuredTestimonials.map((item, idx) => (
+              <blockquote key={idx} className="relative pt-2">
+                <Quote size={28} className="text-[#F15A24]/35 mb-4" strokeWidth={1.5} />
+                <p className="home-display text-xl md:text-2xl text-[#0A2E4D] leading-snug mb-6 italic">
+                  “{item.text}”
+                </p>
+                <footer className="flex items-center gap-3 border-t border-[var(--home-line)] pt-4">
                   <div className="w-10 h-10 rounded-full bg-[#1B75BC]/10 flex items-center justify-center font-bold text-[#1B75BC] text-sm flex-shrink-0">
-                    {t.initial ?? t.name[0]}
+                    {item.initial ?? item.name[0]}
                   </div>
-                  <div>
-                    <div className="text-[13px] font-bold text-[#111827]">{t.name}</div>
-                    <div className="text-[11px] text-[#9CA3AF]">{t.city} · {t.package}</div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-bold text-[#0A2E4D]">{item.name}</div>
+                    <div className="text-[11px] text-[var(--home-muted)] truncate">{item.city} · {item.package}</div>
                   </div>
-                  <div className="ml-auto flex gap-0.5">
+                  <div className="ml-auto flex gap-0.5 flex-shrink-0">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={11} className={i < t.stars ? "text-[#F59E0B] fill-[#F59E0B]" : "text-[#E5E7EB]"} />
+                      <Star key={i} size={11} className={i < item.stars ? "text-[#F15A24] fill-[#F15A24]" : "text-[#D6D3CD]"} />
                     ))}
                   </div>
-                </div>
-              </div>
+                </footer>
+              </blockquote>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── BLOG PREVIEW ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="flex items-end justify-between mb-10">
+      {/* ── BLOG ── */}
+      <section ref={blogRef} className="home-reveal py-16 md:py-24 bg-white">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-8">
+          <div className="flex items-end justify-between mb-10 md:mb-12 gap-4">
             <div>
-              <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("blog.eyebrow")}</div>
-              <h2 className="text-3xl font-black text-[#111827]">{t("blog.heading")}</h2>
+              <div className="home-ornament justify-start text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
+                {t("blog.eyebrow")}
+              </div>
+              <h2 className="text-3xl md:text-5xl text-[#0A2E4D]">{t("blog.heading")}</h2>
             </div>
-            <Link to="/blog" className="hidden md:flex items-center gap-1.5 text-[#1B75BC] text-[13px] font-semibold hover:gap-3 transition-all">
+            <Link to="/blog" className="hidden md:inline-flex items-center gap-2 text-[#1B75BC] text-sm font-semibold hover:gap-3 transition-all">
               {t("blog.allArticles")} <ArrowRight size={14} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {BLOGS.slice(0, 3).map(b => (
-              <Link key={b.id} to={`/blog/${b.id}`}
-                className="bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group">
-                <div className="relative h-48 overflow-hidden">
-                  <img src={img(b.image, 600, 300)} alt={b.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute top-3 left-3 bg-[#1B75BC] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    {b.category}
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+            {featuredBlogs.map((b) => (
+              <Link key={b.slug || b.id} to={`/blog/${contentLinkKey(b, blogsFromApi)}`} className="group block">
+                <div className="relative aspect-[16/10] overflow-hidden mb-4">
+                  <img
+                    src={img(b.image, 700, 440)}
+                    alt={b.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
                 </div>
-                <div className="p-4">
-                  <div className="text-[10px] text-[#9CA3AF] mb-1.5">{b.date} · {t("blog.readTime", { time: b.readTime })}</div>
-                  <h3 className="text-[14px] font-bold text-[#111827] group-hover:text-[#1B75BC] transition-colors leading-snug mb-2">{b.title}</h3>
-                  <p className="text-[12px] text-[#6B7280] leading-relaxed line-clamp-2">{b.excerpt}</p>
+                <div className="text-[11px] text-[var(--home-muted)] mb-2 tracking-wide">
+                  {b.date} · {t("blog.readTime", { time: b.readTime })}
                 </div>
+                <h3 className="home-display text-2xl text-[#0A2E4D] leading-snug mb-2 group-hover:text-[#1B75BC] transition-colors">
+                  {b.title}
+                </h3>
+                <p className="text-[13px] text-[var(--home-muted)] leading-relaxed line-clamp-2">{b.excerpt}</p>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── AIRLINE PARTNERS ── */}
-      <section className="py-12 bg-white border-t border-[#E5E7EB]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-6">
-            <div className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-widest">{t("partners.heading")}</div>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {partners.map(p => (
-              <div key={p} className="bg-[#F7F8FA] border border-[#E5E7EB] rounded-[10px] px-6 py-3 text-[12px] font-semibold text-[#6B7280] hover:border-[#1B75BC]/30 hover:text-[#1B75BC] transition-all">
-                ✈ {p}
+      {/* ── PARTNERS MARQUEE ── */}
+      <section className="py-12 md:py-14 border-y border-[var(--home-line)] bg-[#faf9f7]">
+        <div className="text-center mb-8">
+          <div className="text-[11px] font-bold text-[var(--home-muted)] uppercase tracking-[0.22em]">{t("partners.heading")}</div>
+        </div>
+        <div className="home-marquee">
+          <div className="home-marquee-track items-center px-8 gap-10 md:gap-14">
+            {[...partners, ...partners].map((p, i) => (
+              <div
+                key={`${p.name}-${i}`}
+                className="flex-shrink-0 h-10 md:h-12 w-[120px] md:w-[150px] flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                title={p.name}
+              >
+                <img
+                  src={p.src}
+                  alt={p.name}
+                  className="max-h-full max-w-full w-auto object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── NEWSLETTER ── */}
-      <section className="py-10 md:py-16 bg-[#1B75BC]">
-        <div className="max-w-[700px] mx-auto px-6 text-center">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("newsletter.eyebrow")}</div>
-          <h2 className="text-2xl font-black text-white mb-2">{t("newsletter.heading")}</h2>
-          <p className="text-white/60 text-sm mb-7">{t("newsletter.subheading")}</p>
-          <form className="flex flex-col sm:flex-row gap-3" onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder={t("newsletter.placeholder")}
-              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-[10px] text-white text-[13px] placeholder-white/40 outline-none focus:border-[#F15A24] focus:ring-1 focus:ring-[#F15A24] transition-all" />
-            <button type="submit"
-              className="px-6 py-3 bg-[#F15A24] hover:bg-[#CC3C17] text-[#1B75BC] font-bold rounded-[10px] text-[13px] transition-colors cursor-pointer flex-shrink-0">
-              {t("newsletter.subscribe")}
-            </button>
-          </form>
-          <p className="text-white/30 text-[10px] mt-3">{t("newsletter.disclaimer")}</p>
+      {/* ── CLOSING CTA — hotline + book (quiet newsletter secondary) ── */}
+      <section className="relative py-16 md:py-24 overflow-hidden bg-[#0A2E4D]">
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `url(${img("photo-1770786106021-52580470e31e", 1600, 900)})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="absolute inset-0 bg-[#0A2E4D]/85" />
+        <div className="relative max-w-[800px] mx-auto px-5 md:px-8 text-center">
+          <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] text-[#F15A24] mb-4">
+            {t("contact.hotline")}
+          </div>
+          <h2 className="text-3xl md:text-5xl text-white mb-3 leading-tight">
+            {t("ctaClose.heading")}
+          </h2>
+          <p className="text-white/60 text-sm md:text-base mb-8 max-w-md mx-auto">
+            {t("ctaClose.subheading")}
+          </p>
+          <a
+            href="tel:+88029553421"
+            className="home-display inline-block text-3xl md:text-4xl text-white hover:text-[#F15A24] transition-colors mb-8"
+          >
+            +880 2 9553421
+          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
+            <Link
+              to="/book"
+              className="w-full sm:w-auto px-8 py-3.5 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] text-white font-bold text-sm transition-colors min-h-[48px] flex items-center justify-center"
+            >
+              {t("hero.cta.book")}
+            </Link>
+            <Link
+              to="/contact"
+              className="w-full sm:w-auto px-8 py-3.5 border border-white/35 hover:bg-white/10 text-white font-bold text-sm transition-colors min-h-[48px] flex items-center justify-center gap-2"
+            >
+              <MapPin size={14} /> {t("contact.branches")}
+            </Link>
+          </div>
+          <p className="text-white/40 text-[12px]">
+            <span className="font-semibold text-white/55">{t("contact.officeHours")}</span> {t("contact.hoursValue")}
+          </p>
         </div>
       </section>
-
-      {/* ── QUICK CONTACT ── */}
-      <section className="py-12 bg-[#F7F8FA] border-t border-[#E5E7EB]">
-        <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap items-center justify-center gap-8">
-          <div className="flex items-center gap-3 text-sm">
-            <div className="w-10 h-10 bg-[#1B75BC]/10 rounded-full flex items-center justify-center">
-              <Phone size={17} className="text-[#1B75BC]" />
-            </div>
-            <div>
-              <div className="text-[10px] text-[#9CA3AF] font-bold uppercase tracking-wider">{t("contact.hotline")}</div>
-              <a href="tel:+88029553421" className="font-bold text-[#1B75BC] hover:underline">+880 2 9553421</a>
-            </div>
-          </div>
-          <div className="text-[#E5E7EB] text-2xl hidden md:block">|</div>
-          <div className="text-sm text-[#6B7280]">
-            <span className="font-semibold text-[#374151]">{t("contact.officeHours")}</span> {t("contact.hoursValue")}
-          </div>
-          <div className="text-[#E5E7EB] text-2xl hidden md:block">|</div>
-          <Link to="/contact" className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#1B75BC] text-[#1B75BC] font-bold rounded-[10px] text-[13px] hover:bg-[#1B75BC]/5 transition-colors">
-            <MapPin size={14} /> {t("contact.branches")}
-          </Link>
-        </div>
-      </section>
-    </>
+    </div>
   );
 }

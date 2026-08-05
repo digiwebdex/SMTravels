@@ -9,6 +9,7 @@ import {
   type LeadDetail, type CustomerProfile, type CorporateProfile,
 } from "../../hooks/crm";
 import type { ServiceTypeDto } from "@contracts/booking.contract";
+import { OcrInFlow } from "../../design-system";
 
 const SERVICE_OPTS = Object.entries(SERVICE_LABEL) as [ServiceTypeDto, string][];
 
@@ -133,6 +134,18 @@ export function CustomerFormDrawer({ open, onClose, customer }: { open: boolean;
           <Field label="NID"><input className={inputCls} value={f.nid} onChange={(e) => set("nid", e.target.value)} /></Field>
           <Field label="Passport No."><input className={inputCls} value={f.passportNo} onChange={(e) => set("passportNo", e.target.value)} /></Field>
         </div>
+        <OcrInFlow
+          title="Scan passport / NID"
+          previewFields={{ "Full Name": f.name, "NID": f.nid, "Passport No.": f.passportNo }}
+          onApply={(fields) => {
+            setF((s) => ({
+              ...s,
+              name: fields["Full Name"] || s.name,
+              nid: fields["NID"] || s.nid,
+              passportNo: fields["Passport No."] || s.passportNo,
+            }));
+          }}
+        />
         {!editing && (
           <Field label="Branch">
             <select className={selectCls} value={f.branchId} onChange={(e) => set("branchId", e.target.value)}>

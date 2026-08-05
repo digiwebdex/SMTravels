@@ -1,0 +1,2 @@
+Hero video: smooth Kaaba/tawaf clip (web-optimized H.264 1280x726 @24fps, ~5s muted loop).
+Replaced previous Wikimedia timelapse for cleaner playback.

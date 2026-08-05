@@ -26,7 +26,10 @@
     "tasks": "কার্যতালিকা",
     "requests": "অনুরোধ",
     "services": "সেবাসমূহ",
-    "voucher": "ভাউচার ডাউনলোড"
+    "voucher": "ভাউচার ডাউনলোড",
+    "visaStatus": "ভিসা স্ট্যাটাস",
+    "downloads": "ডাউনলোড",
+    "aiAssistant": "এআই সহায়ক"
   },
   "status": {
     "confirmed": "নিশ্চিত",

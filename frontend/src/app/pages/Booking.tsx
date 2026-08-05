@@ -75,10 +75,25 @@ export function BookingPage() {
 
   const selectedService = SERVICES.find(s => s.id === service);
 
+  const canAdvance =
+    step === 0 ? !!service
+    : step === 1 ? !!(trip.from.trim() && trip.to.trim() && trip.depart)
+    : step === 2 ? !!(traveler.name.trim() && traveler.phone.trim())
+    : true;
+
   const submit = async () => {
     if (submitting) return;
     if (!traveler.name.trim() || !traveler.phone.trim()) {
       setSubmitError(t("errors.leadRequired"));
+      return;
+    }
+    const phoneOk = /^(\+?880|0)?1[3-9]\d{8}$/.test(traveler.phone.replace(/[\s-]/g, ""));
+    if (!phoneOk) {
+      setSubmitError("Enter a valid Bangladesh mobile number.");
+      return;
+    }
+    if (traveler.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(traveler.email.trim())) {
+      setSubmitError("Enter a valid email address.");
       return;
     }
     setSubmitting(true);
@@ -304,11 +319,12 @@ export function BookingPage() {
 
               {step < 3 ? (
                 <button
-                  onClick={() => setStep(s => s + 1)}
-                  disabled={step === 0 && !service}
+                  type="button"
+                  onClick={() => { if (canAdvance) setStep(s => s + 1); }}
+                  disabled={!canAdvance}
                   className={cn(
                     "flex items-center gap-2 px-6 py-2.5 font-bold rounded-[10px] text-[13px] transition-all cursor-pointer",
-                    step === 0 && !service
+                    !canAdvance
                       ? "bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
                       : "bg-[#1B75BC] hover:bg-[#14588F] text-white"
                   )}>

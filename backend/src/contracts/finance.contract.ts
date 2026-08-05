@@ -20,6 +20,14 @@ export const journalStatusSchema = z.enum(["DRAFT", "POSTED"]);
 export const invoiceStatusSchema = z.enum(["DRAFT", "SENT", "PARTIAL", "PAID", "OVERDUE", "CANCELLED"]);
 export const paymentMethodSchema = z.enum(["CASH", "BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "CHEQUE", "CARD", "SSLCOMMERZ"]);
 export const paymentDirectionSchema = z.enum(["IN", "OUT"]);
+/**
+ * PaymentStatus lifecycle:
+ *  - PENDING — customer-submitted NPSB bank-transfer proof awaiting staff verification (no receipt yet)
+ *  - CONFIRMED — verified payment or staff-recorded payment (receipt issued, invoice paidAmount updated)
+ *  - FAILED — rejected proof or gateway failure
+ *  - REVERSED — original payment reversed via a mirror entry
+ */
+export const paymentStatusSchema = z.enum(["PENDING", "CONFIRMED", "FAILED", "REVERSED"]);
 export const refundStatusSchema = z.enum(["PENDING", "APPROVED", "PROCESSED", "REJECTED"]);
 
 const optStr = z.string().trim().optional();
@@ -144,6 +152,23 @@ export const paymentRecordSchema = z.object({
 });
 export type PaymentRecordInput = z.infer<typeof paymentRecordSchema>;
 
+/** Customer portal: submit NPSB bank-transfer proof (multipart or JSON with documentId). */
+export const paymentProofSubmitSchema = z.object({
+  amount: z.coerce.number().positive(),
+  currency: currencySchema.optional(),
+  reference: z.string().trim().min(1),
+  invoiceId: optStr,
+  bookingId: optStr,
+  documentId: optStr,
+});
+export type PaymentProofSubmitInput = z.infer<typeof paymentProofSubmitSchema>;
+
+export const paymentVerifySchema = z.object({
+  approve: z.boolean(),
+  note: optStr,
+});
+export type PaymentVerifyInput = z.infer<typeof paymentVerifySchema>;
+
 export const paymentListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(200).default(15),
@@ -220,6 +245,11 @@ export interface BankAccountDto {
   id: string; name: string; bankName: string | null; type: string; accountNumber: string | null;
   iban: string | null; branchName: string | null; currency: CurrencyDto; balance: number; coaAccountId: string | null; active: boolean;
 }
+/** Public NPSB display — omits balance and internal ids beyond the row id. */
+export interface PublicBankAccountDto {
+  id: string; name: string; bankName: string | null; accountNumber: string | null;
+  iban: string | null; branchName: string | null; currency: CurrencyDto;
+}
 
 export interface JournalLineDto { id: string; accountId: string; accountCode: string; accountName: string; debit: number; credit: number; narration: string | null }
 export interface JournalListItem {
@@ -251,6 +281,12 @@ export interface PaymentDto {
   customerName: string | null; amount: number; currency: CurrencyDto; baseAmount: number; method: string; gateway: string | null;
   reference: string | null; status: string; isReversed: boolean; reversalOfId: string | null; receiptNo: string | null; paidAt: string; createdAt: string;
 }
+export interface PendingPaymentDto extends PaymentDto {
+  customerId: string | null;
+  proofDocumentId: string | null;
+  proofDocumentName: string | null;
+}
+export interface PendingPaymentListResponse { data: PendingPaymentDto[]; total: number }
 export interface PaymentListResponse { data: PaymentDto[]; page: number; pageSize: number; total: number; totalPages: number; stats: { total: number; totalIn: number; totalOut: number } }
 
 export interface ReceiptDto { id: string; receiptNo: string; paymentId: string; amount: number; currency: CurrencyDto; issuedAt: string }

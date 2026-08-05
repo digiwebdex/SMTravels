@@ -23,28 +23,34 @@
     "searchBook": "Search & Book Now"
   },
   "hero": {
+    "brandLine": "SM Travels International",
     "badge": "Bangladesh's Most Trusted Hajj & Travel Partner",
-    "title": "Your Journey to the<br/><hl>Holy Land</hl> Starts Here",
-    "subtitle": "Government-approved Hajj & Umrah packages, visa services, air tickets, and world tours — all under one trusted roof since 1998.",
+    "title": "Your Journey to the<br/><hl>Holy Land</hl> Begins Here",
+    "subtitle": "Government-approved Hajj & Umrah, visas, and flights — trusted since 1998.",
     "badges": {
       "atab": "ATAB Member",
       "govt": "Govt. Approved",
       "pilgrims": "10,000+ Pilgrims",
       "years": "25+ Years"
     },
-    "reassurance": "No hidden fees · 24/7 WhatsApp support · Easy cancellation · Trusted by 10,000+ families"
+    "reassurance": "No hidden fees · 24/7 WhatsApp support · Easy cancellation · Trusted by 10,000+ families",
+    "cta": {
+      "book": "Book Now",
+      "contact": "Contact Us",
+      "whatsapp": "WhatsApp"
+    }
   },
   "trustStrip": {
-    "license": "📋 ATAB License: 0123",
-    "aviation": "✈️ Civil Aviation Auth. Approved",
-    "ministry": "🕌 Ministry of Religious Affairs Enrolled",
-    "years": "🏆 25+ Years of Excellence",
-    "pilgrims": "👥 10,000+ Happy Pilgrims"
+    "license": "ATAB Licensed",
+    "aviation": "Civil Aviation Approved",
+    "ministry": "Ministry of Religious Affairs",
+    "years": "25+ Years of Excellence",
+    "pilgrims": "10,000+ Pilgrims Served"
   },
   "services": {
-    "eyebrow": "What We Offer",
-    "heading": "Comprehensive Travel Services",
-    "subheading": "From sacred Hajj journeys to international tours, we handle every detail with expertise and care.",
+    "eyebrow": "Our Services",
+    "heading": "Every Sacred Mile, Guided",
+    "subheading": "From Hajj and Umrah to visas, flights, and world tours — care in every detail.",
     "items": {
       "hajj":      { "label": "Hajj Management", "desc": "Govt-approved packages, 25+ years experience" },
       "umrah":     { "label": "Umrah Packages", "desc": "Year-round, fully inclusive packages" },
@@ -56,18 +62,20 @@
     }
   },
   "packages": {
-    "eyebrow": "Popular Packages",
-    "heading": "Featured Travel Packages",
+    "eyebrow": "Featured Journeys",
+    "heading": "Packages Crafted with Care",
+    "subheading": "Hajj, Umrah, and curated journeys — priced clearly, guided with devotion.",
     "startingFrom": "Starting from",
     "seatsLeft": "{{count}} seats left",
     "departing": "Departing {{val}}",
+    "explore": "Explore package",
     "viewAllPackages": "View All Packages"
   },
   "why": {
-    "eyebrow": "Why Choose Us",
-    "headingLine1": "25 Years of Trust,",
-    "headingLine2": "10,000+ Happy Families",
-    "body": "SMTravel International is Bangladesh's premier travel management company, specializing in Hajj, Umrah, and international travel. Government-approved, ATAB-licensed, and ISO-certified, we have helped tens of thousands of pilgrims fulfill their dreams since 1998.",
+    "eyebrow": "Why SM Travels",
+    "headingLine1": "Twenty-five years of trust.",
+    "headingLine2": "Ten thousand families guided.",
+    "body": "SM Travels International is Bangladesh’s premier pilgrimage and travel partner — government-approved, ATAB-licensed, and devoted to every journey since 1998.",
     "features": {
       "govt":    { "title": "Govt. Approved", "desc": "Ministry of Religious Affairs & Civil Aviation licensed" },
       "support": { "title": "24/7 Support", "desc": "Round-the-clock assistance in Bangla & English" },
@@ -84,17 +92,21 @@
     "branches": "Branch Offices"
   },
   "testimonials": {
-    "eyebrow": "Testimonials",
-    "heading": "What Our Pilgrims Say"
+    "eyebrow": "Pilgrim Voices",
+    "heading": "Stories from the Journey"
   },
   "blog": {
-    "eyebrow": "Latest Articles",
-    "heading": "Travel Insights & Guides",
+    "eyebrow": "Guides & Insights",
+    "heading": "Wisdom for the Road",
     "allArticles": "All Articles",
     "readTime": "{{time}} read"
   },
   "partners": {
-    "heading": "Our Airline Partners"
+    "heading": "Airline Partners"
+  },
+  "ctaClose": {
+    "heading": "Begin Your Sacred Journey",
+    "subheading": "Speak with our team — Bangla and English support, every step of the way."
   },
   "newsletter": {
     "eyebrow": "Stay Updated",

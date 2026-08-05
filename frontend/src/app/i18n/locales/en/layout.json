@@ -23,6 +23,18 @@
   "mobile": {
     "customerLogin": "Customer Login"
   },
+  "mobileCta": {
+    "aria": "Quick actions",
+    "call": "Call",
+    "callAria": "Call {{phone}}",
+    "book": "Book"
+  },
+  "pwa": {
+    "title": "Install SM Travels",
+    "body": "Open faster from your home screen — offline shell ready.",
+    "install": "Install",
+    "dismiss": "Dismiss"
+  },
   "drawer": {
     "hotline": "Hotline",
     "hours": "Sun–Thu 9AM–6PM"

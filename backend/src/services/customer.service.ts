@@ -18,7 +18,13 @@ function toDate(s?: string | null): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-type CustomerRow = Prisma.CustomerGetPayload<{ include: { branch: true; corporate: true; _count: { select: { bookings: true } } } }>;
+type CustomerRow = Prisma.CustomerGetPayload<{
+  include: {
+    branch: { select: { name: true } };
+    corporate: { select: { id: true } };
+    _count: { select: { bookings: true } };
+  };
+}>;
 
 function toListItem(c: CustomerRow): CustomerListItem {
   return {
@@ -44,8 +50,14 @@ export async function listCustomers(auth: AuthCtx, q: CustomerListQuery): Promis
   }
   const orderBy: Prisma.CustomerOrderByWithRelationInput = q.sort === "name" ? { name: q.dir } : { createdAt: q.dir };
 
+  const listInclude = {
+    branch: { select: { name: true } },
+    corporate: { select: { id: true } },
+    _count: { select: { bookings: true } },
+  } as const;
+
   const [rows, total, corporate] = await Promise.all([
-    prisma.customer.findMany({ where, include: { branch: true, corporate: true, _count: { select: { bookings: true } } }, orderBy, skip: (q.page - 1) * q.pageSize, take: q.pageSize }),
+    prisma.customer.findMany({ where, include: listInclude, orderBy, skip: (q.page - 1) * q.pageSize, take: q.pageSize }),
     prisma.customer.count({ where }),
     prisma.customer.count({ where: { ...where, corporate: { isNot: null } } }),
   ]);

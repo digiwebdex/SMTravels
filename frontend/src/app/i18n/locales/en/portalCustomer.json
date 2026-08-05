@@ -108,6 +108,35 @@
   "notifications": {
     "markAllRead": "Mark all read"
   },
+  "visas": {
+    "subtitle": "Track your visa applications and processing status",
+    "visaApplication": "Visa application",
+    "depart": "Travel {{date}}",
+    "stage": {
+      "pending": "Pending",
+      "inProgress": "In progress",
+      "done": "Approved",
+      "notApplicable": "N/A"
+    }
+  },
+  "downloads": {
+    "subtitle": "Tickets, visas, vouchers and invoices in one place",
+    "all": "All",
+    "failed": "Download failed",
+    "categories": {
+      "ticket": "Ticket",
+      "visa": "Visa",
+      "voucher": "Voucher",
+      "invoice": "Invoice"
+    }
+  },
+  "ai": {
+    "subtitle": "Ask about your bookings, documents, or travel plans",
+    "greeting": "Salam! How can I help with your travel today?",
+    "placeholder": "Ask a question…",
+    "typing": "Thinking…",
+    "error": "Sorry, I couldn't respond right now. Please try again."
+  },
   "profile": {
     "customer": "Customer",
     "since": "Since {{year}}",

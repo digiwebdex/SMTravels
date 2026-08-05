@@ -38,6 +38,15 @@ export function ContactPage() {
       setError(t("form.errorRequired"));
       return;
     }
+    const phoneOk = /^(\+?880|0)?1[3-9]\d{8}$/.test(form.phone.replace(/[\s-]/g, ""));
+    if (!phoneOk) {
+      setError("Enter a valid Bangladesh mobile number.");
+      return;
+    }
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError("Enter a valid email address.");
+      return;
+    }
     setSending(true);
     setError("");
     try {
@@ -214,9 +223,9 @@ export function ContactPage() {
                   <div className="text-[11px] text-white/40 mb-2">{t("quick.social")}</div>
                   <div className="flex gap-3">
                     {[Facebook, Instagram].map((Icon, i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F15A24] transition-colors">
+                      <span key={i} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-white/70">
                         <Icon size={14} />
-                      </a>
+                      </span>
                     ))}
                   </div>
                 </div>

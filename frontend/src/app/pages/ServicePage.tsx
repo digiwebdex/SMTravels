@@ -8,7 +8,7 @@ import {
 import { SERVICES } from "../lib/data";
 import { img, fmtPrice, cn } from "../lib/utils";
 
-const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
+const ICON_MAP: Record<string, React.ElementType> = {
   star: Star, "map-pin": MapPin, shield: Shield, plane: Plane, hotel: Hotel,
   briefcase: Briefcase, globe: Globe, heart: Heart, users: Star, "clock": Clock,
 };

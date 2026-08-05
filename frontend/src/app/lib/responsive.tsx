@@ -91,7 +91,7 @@ export function MobileBottomNav<T extends string>({
 
 // ─── MobileTopBar ─────────────────────────────────────────────────────────────
 export function MobileTopBar({
-  title, subtitle, onMenuOpen, rightSlot, logoLabel = "BDH",
+  title, subtitle, onMenuOpen, rightSlot, logoLabel = "SM",
 }: {
   title: string; subtitle?: string;
   onMenuOpen?: () => void;
