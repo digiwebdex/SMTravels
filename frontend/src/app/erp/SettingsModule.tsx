@@ -145,7 +145,7 @@ function SecretInp({ dv="" }: { dv?:string }) {
 
 // Honest state: there is no settings-persistence API (integration credentials
 // are managed via the server environment; company settings have no endpoint).
-// Rather than a fake "Saved!" toast, the control is disabled with an explanation.
+// Rather than a misleading "Saved!" toast, the control is disabled with an explanation.
 function SaveBtn() {
   return (
     <div className="flex justify-end items-center gap-3 mt-5">

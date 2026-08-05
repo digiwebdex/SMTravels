@@ -310,7 +310,7 @@ function JournalEntryView() {
     { account: "", debit: "", credit: "", narration: "" },
   ]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [ref, setRef] = useState("JE-" + String(Math.floor(Math.random() * 900) + 100));
+  const [ref, setRef] = useState("");
 
   const totalDebit = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
   const totalCredit = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
@@ -353,7 +353,7 @@ function JournalEntryView() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Reference #</label>
-                <input value={ref} onChange={e => setRef(e.target.value)}
+                <input value={ref} onChange={e => setRef(e.target.value)} placeholder="Auto-generated on save"
                   className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
               </div>
               <div>

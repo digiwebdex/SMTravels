@@ -211,7 +211,7 @@ function LoadingSkeleton() {
             <div className="h-4 bg-slate-100 rounded w-1/3 mb-4" />
             <div className="flex items-end gap-3 h-40">
               {[...Array(7)].map((_, j) => (
-                <div key={j} className="flex-1 bg-slate-100 rounded-t" style={{ height: `${40 + Math.random() * 60}%` }} />
+                <div key={j} className="flex-1 bg-slate-100 rounded-t" style={{ height: `${40 + ((j * 23) % 60)}%` }} />
               ))}
             </div>
           </div>

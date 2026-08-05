@@ -68,33 +68,6 @@ const STATUS_CFG: Record<PkgStatus, { color: string; bg: string; dot: string }> 
   Suspended: { color: "#991B1B", bg: "#FEE2E2", dot: "#DC2626" },
 };
 
-const SAMPLE_DAYS: ItineraryDay[] = [
-  { id: "d1", day: 1, title: "Arrival in Jeddah (JED)", desc: "Arrive at King Abdulaziz International Airport. Transfer to Makkah hotel. Check-in, rest and orientation briefing.", activities: ["Airport transfer", "Hotel check-in", "Group orientation"], hotel: "Hilton Makkah Convention, Makkah", meals: { breakfast: false, lunch: false, dinner: true }, transport: "Private AC Bus", expanded: true },
-  { id: "d2", day: 2, title: "Makkah — Tawaf & Sa'i", desc: "Perform Tawaf Al-Qudum (arrival circumambulation) around the Kaaba followed by Sa'i between Safa and Marwa. Evening: Quran recitation.", activities: ["Tawaf Al-Qudum", "Sa'i Safa-Marwa", "Zamzam water", "Ziyarat Haram"], hotel: "Hilton Makkah Convention, Makkah", meals: { breakfast: true, lunch: true, dinner: true }, transport: "Walking / Shuttle", expanded: false },
-  { id: "d3", day: 3, title: "Arafat — Day of Hajj", desc: "The most sacred day. Stand on the plain of Arafat from noon to sunset. Supplication, dhikr, and listening to the Hajj sermon.", activities: ["Wuquf Arafat", "Khutbah Al-Hajj", "Maghrib prayer", "Move to Muzdalifah"], hotel: "Camp Mina, Arafat", meals: { breakfast: true, lunch: true, dinner: false }, transport: "Hajj bus convoy", expanded: false },
-  { id: "d4", day: 4, title: "Mina — Stoning & Eid Al-Adha", desc: "Rami Al-Jamarat (stoning of the pillars). Perform Eid sacrifice. Halq (shaving) or Taqsir. Return to Makkah for Ifadah Tawaf.", activities: ["Rami Aqabah", "Eid sacrifice", "Halq/Taqsir", "Tawaf Al-Ifadah", "Sa'i"], hotel: "Camp Mina", meals: { breakfast: true, lunch: true, dinner: true }, transport: "Hajj bus convoy", expanded: false },
-  { id: "d5", day: 5, title: "Madinah — Ziyarat", desc: "Travel to the Prophet's City. Visit Masjid An-Nabawi, Al-Baqi cemetery, Masjid Quba. Evening free for additional worship.", activities: ["Masjid An-Nabawi", "Riyad ul-Jannah", "Al-Baqi", "Masjid Quba", "Masjid Al-Qiblatayn"], hotel: "Al Madinah Millennium, Madinah", meals: { breakfast: true, lunch: false, dinner: true }, transport: "Private AC Bus", expanded: false },
-];
-
-const SAMPLE_TIERS: PricingTier[] = [
-  { id: "t1", label: "Economy",  price: 580000,  originalPrice: 650000,  seats: 20, occupied: 17 },
-  { id: "t2", label: "Standard", price: 720000,  originalPrice: 800000,  seats: 15, occupied: 8  },
-  { id: "t3", label: "Premium",  price: 950000,  originalPrice: undefined, seats: 10, occupied: 2  },
-  { id: "t4", label: "VIP",      price: 1200000, originalPrice: undefined, seats: 5,  occupied: 0  },
-];
-
-const SAMPLE_HOTELS: HotelEntry[] = [
-  { id: "h1", city: "Makkah",  name: "Hilton Makkah Convention Hotel",  stars: 5, roomType: "Deluxe Double",  nights: 7 },
-  { id: "h2", city: "Madinah", name: "Al Madinah Millennium Hotel",     stars: 5, roomType: "Superior Twin",  nights: 4 },
-  { id: "h3", city: "Jeddah",  name: "Jeddah Hilton Hotel",             stars: 4, roomType: "Standard Twin", nights: 1 },
-];
-
-const SAMPLE_FLIGHTS: FlightEntry[] = [
-  { id: "f1", carrier: "Biman Bangladesh Airlines", flightNo: "BG-043", from: "DAC", to: "JED", cabin: "Economy", dep: "09:30", arr: "14:15" },
-  { id: "f2", carrier: "Biman Bangladesh Airlines", flightNo: "BG-044", from: "MED", to: "DAC", cabin: "Economy", dep: "16:00", arr: "01:45+1" },
-];
-
-
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={cn("bg-white border border-[#E5E7EB] rounded-[14px]", className)}>{children}</div>;
@@ -815,11 +788,11 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
   const [shortDesc, setShortDesc] = useState(pkg?.shortDesc || "");
   const [longDesc, setLongDesc] = useState("");
   const [featured, setFeatured] = useState(pkg?.featured || false);
-  const [tiers, setTiers] = useState<PricingTier[]>(pkg?.tiers?.length ? pkg.tiers : SAMPLE_TIERS);
-  const [days, setDays] = useState<ItineraryDay[]>(pkg?.itinerary?.length ? pkg.itinerary : SAMPLE_DAYS);
-  const [hotels, setHotels] = useState<HotelEntry[]>(pkg?.hotels?.length ? pkg.hotels : SAMPLE_HOTELS);
-  const [flights, setFlights] = useState<FlightEntry[]>(pkg?.flights?.length ? pkg.flights : SAMPLE_FLIGHTS);
-  const [includes, setIncludes] = useState<string[]>(pkg?.includes?.length ? pkg.includes : ["Return economy airfare", "Hotel accommodation", "All ground transport", "Group guide"]);
+  const [tiers, setTiers] = useState<PricingTier[]>(pkg?.tiers ?? []);
+  const [days, setDays] = useState<ItineraryDay[]>(pkg?.itinerary ?? []);
+  const [hotels, setHotels] = useState<HotelEntry[]>(pkg?.hotels ?? []);
+  const [flights, setFlights] = useState<FlightEntry[]>(pkg?.flights ?? []);
+  const [includes, setIncludes] = useState<string[]>(pkg?.includes ?? []);
   const [excludes, setExcludes] = useState<string[]>(pkg?.excludes?.length ? pkg.excludes : ["Visa fee", "Travel insurance", "Personal expenses"]);
   const [departureDates, setDepartureDates] = useState<string[]>(pkg?.departureDates || ["2026-05-12", "2026-05-14"]);
 
@@ -1288,7 +1261,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
             <Card className="p-5">
               <h3 className="text-[13px] font-bold text-[#111827] mb-3">Inclusions</h3>
               <div className="space-y-1.5">
-                {SAMPLE_DAYS[0] && pkg.includes?.slice(0, 6).map((item, i) => (
+                {pkg.includes?.slice(0, 6).map((item, i) => (
                   <div key={i} className="flex items-start gap-2 text-[11px] text-[#374151]">
                     <CheckCircle size={12} className="text-[#0E7C66] flex-shrink-0 mt-0.5" /> {item}
                   </div>
