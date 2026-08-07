@@ -10,6 +10,7 @@ import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { About } from "./pages/About";
 import { ServicePage } from "./pages/ServicePage";
+import { KnowledgePage, KnowledgeDetailPage } from "./pages/Knowledge";
 import { ContactPage } from "./pages/Contact";
 import { NotFoundPage } from "./pages/NotFound";
 
@@ -70,8 +71,7 @@ const RefundPage = lazyNamed(() => import("./pages/CmsPages"), "RefundPage");
 const CareerPage = lazyNamed(() => import("./pages/CmsPages"), "CareerPage");
 const BranchesPage = lazyNamed(() => import("./pages/CmsPages"), "BranchesPage");
 const TestimonialsPage = lazyNamed(() => import("./pages/CmsPages"), "TestimonialsPage");
-const HotelsInfoPage = lazyNamed(() => import("./pages/CmsPages"), "HotelsInfoPage");
-const TransportPage = lazyNamed(() => import("./pages/CmsPages"), "TransportPage");
+const VideosPage = lazyNamed(() => import("./pages/CmsPages"), "VideosPage");
 
 
 // Suspense wrapper using the app's EXISTING full-page skeleton (no new spinner)
@@ -93,6 +93,7 @@ function AirTicketPage() { return <ServicePage serviceId="air-ticket" />; }
 function ManpowerPage() { return <ServicePage serviceId="manpower" />; }
 function TourPackagesPage() { return <ServicePage serviceId="tour-packages" />; }
 function HotelBookingPage() { return <ServicePage serviceId="hotel-booking" />; }
+function TransportPage() { return <ServicePage serviceId="transport" />; }
 
 export const router = createBrowserRouter([
   {
@@ -158,6 +159,9 @@ export const router = createBrowserRouter([
       { path: "blog", element: withSuspense(<BlogPage />) },
       { path: "blog/:id", element: withSuspense(<BlogDetailPage />) },
       { path: "gallery", element: withSuspense(<GalleryPage />) },
+      { path: "videos", element: withSuspense(<VideosPage />) },
+      { path: "knowledge", Component: KnowledgePage },
+      { path: "knowledge/:slug", Component: KnowledgeDetailPage },
       { path: "faq", element: withSuspense(<FAQPage />) },
       { path: "contact", Component: ContactPage },
       { path: "privacy", element: withSuspense(<PrivacyPage />) },
@@ -166,8 +170,8 @@ export const router = createBrowserRouter([
       { path: "career", element: withSuspense(<CareerPage />) },
       { path: "branches", element: withSuspense(<BranchesPage />) },
       { path: "testimonials", element: withSuspense(<TestimonialsPage />) },
-      { path: "hotels", element: withSuspense(<HotelsInfoPage />) },
-      { path: "transport", element: withSuspense(<TransportPage />) },
+      { path: "hotels", Component: HotelBookingPage },
+      { path: "transport", Component: TransportPage },
       { path: "book", element: withSuspense(<BookingPage />) },
       { path: "login", element: withSuspense(<LoginPage />) },
       { path: "register", element: withSuspense(<RegisterPage />) },

@@ -1,8 +1,10 @@
 import React from "react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, Award, Users, Globe, Shield, Target, Heart, ArrowRight, Star } from "lucide-react";
-import { img } from "../lib/utils";
+import { CheckCircle, Globe, Target, Heart, Star } from "lucide-react";
+import { img, SITE_IMAGES } from "../lib/utils";
+import {
+  PageHero, Breadcrumbs, Section, SectionHeader, Reveal, CtaBand,
+} from "../website/primitives";
 
 const MILESTONES = [
   { year: "1998", event: "Founded in Dhaka's Motijheel commercial area" },
@@ -32,195 +34,133 @@ const CERTS = [
 ];
 
 export function About() {
-  const { t } = useTranslation("about");
+  const { t, i18n } = useTranslation("about");
+  const bn = i18n.language?.startsWith("bn");
+
   return (
-    <>
-      {/* ── HERO ── */}
-      <section className="relative py-16 md:py-24 overflow-hidden">
-        <img src={img("photo-1693590614566-1d3ea9ef32f7", 1920, 600)} alt="Umrah pilgrims"
-          className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/95 to-[#1B75BC]/70" />
-        <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="max-w-xl">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("hero.eyebrow")}</div>
-            <h1 className="text-4xl font-black text-white mb-4">{t("hero.heading")}</h1>
-            <p className="text-white/70 leading-relaxed text-sm">
-              {t("hero.subtitle")}
-            </p>
-          </div>
-        </div>
-      </section>
+    <div>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: bn ? "আমাদের সম্পর্কে" : "About" },
+        ]} />
+      </PageHero>
 
-      {/* ── STORY ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          <div>
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-3">{t("story.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827] mb-5">{t("story.heading")}</h2>
-            <div className="flex flex-col gap-4 text-[13px] text-[#374151] leading-relaxed">
-              <p>
-                SMTravel International was founded in 1998 in Dhaka's Motijheel commercial district with a single mission: to make the sacred Hajj pilgrimage accessible, affordable, and stress-free for every Bangladeshi Muslim.
-              </p>
-              <p>
-                Over 25 years, we have grown from a single-room office to a multi-branch, full-service travel management company — trusted by over 10,000 pilgrims, families, and corporate clients across Bangladesh.
-              </p>
-              <p>
-                Today, SMTravel International offers Hajj packages, Umrah year-round, visa services for 50+ countries, air ticket booking, manpower deployment, world tour packages, and hotel reservations — all under one roof, with the same dedication to quality and care.
-              </p>
+      <Section tone="sky">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <Reveal>
+            <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.2em] mb-3">{t("story.eyebrow")}</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#002D62] mb-5" style={{ fontFamily: "var(--font-display)" }}>{t("story.heading")}</h2>
+            <div className="space-y-4 text-[#374151] leading-relaxed">
+              <p>SMTravel International was founded in 1998 in Dhaka&apos;s Motijheel commercial district with a single mission: to make the sacred Hajj pilgrimage accessible, affordable, and stress-free for every Bangladeshi Muslim.</p>
+              <p>Over 25 years, we have grown from a single-room office to a multi-branch, full-service travel management company — trusted by over 10,000 pilgrims, families, and corporate clients across Bangladesh.</p>
+              <p>Today we offer Hajj, Umrah, visa, air tickets, manpower, tours, and hotels — under one roof.</p>
             </div>
-
             <div className="flex gap-6 mt-8">
               {[
                 { n: "25+", l: t("stats.years") },
                 { n: "10K+", l: t("stats.pilgrims") },
                 { n: "50+", l: t("stats.countries") },
                 { n: "4", l: t("stats.branches") },
-              ].map(i => (
+              ].map((i) => (
                 <div key={i.l} className="text-center">
-                  <div className="text-2xl font-black text-[#1B75BC]">{i.n}</div>
-                  <div className="text-[11px] text-[#9CA3AF]">{i.l}</div>
+                  <div className="text-2xl font-semibold text-[#1B75BC]" style={{ fontFamily: "var(--font-display)" }}>{i.n}</div>
+                  <div className="text-xs text-[#9CA3AF]">{i.l}</div>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            <img src={img("photo-1720549973451-018d3623b55a", 500, 350)} alt="Kaaba aerial" className="rounded-2xl object-cover h-[220px] w-full shadow-lg" />
-            <img src={img("photo-1693590614566-1d3ea9ef32f7", 500, 350)} alt="Pilgrims" className="rounded-2xl object-cover h-[220px] w-full shadow-lg mt-8" />
-          </div>
-        </div>
-      </section>
-
-      {/* ── MISSION / VISION / VALUES ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("foundation.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827]">{t("foundation.heading")}</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            {[
-              {
-                icon: Target,
-                title: t("mission.title"),
-                color: "#1B75BC",
-                bg: "#EEF2FF",
-                text: "To provide the highest quality Hajj, Umrah and travel services that honor the sacred trust our clients place in us — with transparency, professionalism, and genuine care for every pilgrim's journey.",
-              },
-              {
-                icon: Globe,
-                title: t("vision.title"),
-                color: "#0E7C66",
-                bg: "#ECFDF5",
-                text: "To be South Asia's most respected Islamic travel management company — setting the benchmark for pilgrimage services, traveler safety, and community trust by 2030.",
-              },
-              {
-                icon: Heart,
-                title: t("values.title"),
-                color: "#DC2626",
-                bg: "#FEF2F2",
-                text: "Integrity, Compassion, Excellence, Accountability. We treat every pilgrim as family, every journey as sacred, and every promise as a covenant.",
-              },
-            ].map(v => (
-              <div key={v.title} className="bg-white rounded-2xl p-7 border border-[#E5E7EB] shadow-sm">
-                <div className="w-12 h-12 rounded-[12px] flex items-center justify-center mb-4" style={{ backgroundColor: v.bg }}>
-                  <v.icon size={22} style={{ color: v.color }} />
-                </div>
-                <h3 className="text-[17px] font-black text-[#111827] mb-3">{v.title}</h3>
-                <p className="text-[13px] text-[#6B7280] leading-relaxed">{v.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── MILESTONES ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[900px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-12">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("milestones.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827]">{t("milestones.heading")}</h2>
-          </div>
-          <div className="relative">
-            <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-[#E5E7EB] -translate-x-1/2" />
-            <div className="flex flex-col gap-8">
-              {MILESTONES.map((m, i) => (
-                <div key={m.year} className={cn("flex gap-6 items-start", i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse")}>
-                  <div className={cn("flex-1 hidden md:block", i % 2 === 0 ? "text-right" : "text-left")} />
-                  <div className="relative z-10 flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-[#1B75BC] text-white text-[11px] font-black flex items-center justify-center border-4 border-white shadow">
-                      {m.year.slice(2)}
-                    </div>
-                  </div>
-                  <div className="flex-1 bg-[#F7F8FA] rounded-[12px] p-4 border border-[#E5E7EB]">
-                    <div className="text-[12px] font-black text-[#D64A12] mb-0.5">{m.year}</div>
-                    <div className="text-[13px] text-[#374151]">{m.event}</div>
-                  </div>
-                </div>
-              ))}
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="grid grid-cols-2 gap-4">
+              <img src="/hero-approve.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
+              <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg mt-8" />
             </div>
-          </div>
+          </Reveal>
         </div>
-      </section>
+      </Section>
 
-      {/* ── CERTIFICATIONS ── */}
-      <section className="py-12 md:py-20 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("certs.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827]">{t("certs.heading")}</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {CERTS.map(c => (
-              <div key={c} className="flex items-center gap-3 bg-white rounded-[12px] p-4 border border-[#E5E7EB]">
-                <CheckCircle size={18} className="text-[#0E7C66] flex-shrink-0" />
-                <span className="text-[13px] text-[#374151] font-medium">{c}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TEAM ── */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-10">
-            <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("team.eyebrow")}</div>
-            <h2 className="text-3xl font-black text-[#111827]">{t("team.heading")}</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {TEAM.map(t => (
-              <div key={t.name} className="bg-[#F7F8FA] rounded-2xl p-6 text-center border border-[#E5E7EB]">
-                <div className="w-16 h-16 bg-[#1B75BC]/10 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-black text-[#1B75BC]">
-                  {t.name[0]}
+      <Section tone="mint">
+        <SectionHeader eyebrow={t("foundation.eyebrow")} title={t("foundation.heading")} />
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            { icon: Target, title: t("mission.title"), color: "#1B75BC", text: "To provide the highest quality Hajj, Umrah and travel services that honor the sacred trust our clients place in us." },
+            { icon: Globe, title: t("vision.title"), color: "#16A34A", text: "To be South Asia's most respected Islamic travel management company by 2030." },
+            { icon: Heart, title: t("values.title"), color: "#F37021", text: "Integrity, Compassion, Excellence, Accountability — every pilgrim as family." },
+          ].map((v, i) => (
+            <Reveal key={v.title} delay={i * 0.06}>
+              <div className="bg-white rounded-lg p-7 border border-[#E5E7EB] h-full">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${v.color}18`, color: v.color }}>
+                  <v.icon size={22} />
                 </div>
-                <h3 className="text-[14px] font-bold text-[#111827] mb-1">{t.name}</h3>
-                <div className="text-[12px] font-semibold text-[#1B75BC] mb-1">{t.role}</div>
-                <div className="text-[11px] text-[#9CA3AF]">{t.exp}</div>
+                <h3 className="text-lg font-semibold text-[#062D63] mb-3">{v.title}</h3>
+                <p className="text-sm text-[#6B7280] leading-relaxed">{v.text}</p>
               </div>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <Section tone="soft">
+        <SectionHeader eyebrow={t("milestones.eyebrow")} title={t("milestones.heading")} />
+        <div className="max-w-3xl mx-auto relative">
+          <div className="absolute left-6 top-0 bottom-0 w-px bg-[#E5E7EB]" />
+          <div className="space-y-6">
+            {MILESTONES.map((m, i) => (
+              <Reveal key={m.year} delay={i * 0.03}>
+                <div className="flex gap-5 items-start">
+                  <div className="w-12 h-12 rounded-full bg-[#062D63] text-white text-[11px] font-bold flex items-center justify-center border-4 border-white shadow z-10 flex-shrink-0">
+                    {m.year.slice(2)}
+                  </div>
+                  <div className="flex-1 bg-[#EEF3F8] rounded-2xl p-4 border border-[#E5E7EB]">
+                    <div className="text-xs font-bold text-[#F37021] mb-0.5">{m.year}</div>
+                    <div className="text-sm text-[#374151]">{m.event}</div>
+                  </div>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* ── CTA ── */}
-      <section className="py-10 md:py-16 bg-[#1B75BC] text-white text-center">
-        <div className="max-w-xl mx-auto px-4 md:px-6">
-          <Star size={32} className="text-[#D64A12] mx-auto mb-4" fill="currentColor" />
-          <h2 className="text-2xl font-black mb-3">{t("cta.heading")}</h2>
-          <p className="text-white/60 text-sm mb-7">{t("cta.subtitle")}</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link to="/contact" className="px-6 py-3 bg-[#F15A24] text-[#1B75BC] font-bold rounded-[10px] text-sm hover:bg-[#CC3C17] transition-colors">
-              {t("cta.contact")}
-            </Link>
-            <Link to="/packages" className="px-6 py-3 border-2 border-white/30 text-white font-bold rounded-[10px] text-sm hover:border-white/50 transition-colors">
-              {t("cta.viewPackages")} <ArrowRight size={14} className="inline ml-1" />
-            </Link>
-          </div>
+      <Section tone="warm">
+        <SectionHeader eyebrow={t("certs.eyebrow")} title={t("certs.heading")} />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {CERTS.map((c) => (
+            <div key={c} className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-[#E5E7EB]">
+              <CheckCircle size={18} className="text-[#16A34A] flex-shrink-0" />
+              <span className="text-sm text-[#374151] font-medium">{c}</span>
+            </div>
+          ))}
         </div>
-      </section>
-    </>
+      </Section>
+
+      <Section tone="sky">
+        <SectionHeader eyebrow={t("team.eyebrow")} title={t("team.heading")} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {TEAM.map((member) => (
+            <div key={member.name} className="bg-white rounded-xl p-6 text-center border border-[#E5E7EB] shadow-sm">
+              <div className="w-16 h-16 bg-[#EAF5FF] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-semibold text-[#1B75BC]">
+                {member.name[0]}
+              </div>
+              <h3 className="text-sm font-bold text-[#002D62] mb-1">{member.name}</h3>
+              <div className="text-xs font-semibold text-[#1B75BC] mb-1">{member.role}</div>
+              <div className="text-[11px] text-[#9CA3AF]">{member.exp}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section tone="warm">
+        <CtaBand
+          title={t("cta.heading")}
+          subtitle={t("cta.subtitle")}
+          primary={{ label: t("cta.contact"), to: "/contact" }}
+          secondary={{ label: t("cta.viewPackages"), to: "/packages" }}
+        />
+        <div className="text-center mt-6">
+          <Star size={20} className="text-[#C89B3C] inline" fill="currentColor" />
+        </div>
+      </Section>
+    </div>
   );
 }
-
-function cn(...c: (string | boolean | undefined)[]) { return c.filter(Boolean).join(" "); }

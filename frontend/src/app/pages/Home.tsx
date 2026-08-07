@@ -1,553 +1,778 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import {
-  Star, MapPin, Shield, Plane, Briefcase, Hotel, Globe,
-  ArrowRight, CheckCircle, Phone, Quote, Clock, Heart, Headphones, TrendingUp,
+  Star, MapPin, Shield, Plane, Hotel, Globe, Car, Umbrella,
+  Play, ArrowRight, ChevronLeft, ChevronRight, Check, X,
+  Clock, Headphones, Users, BadgeCheck, BookOpen,
 } from "lucide-react";
-import { img, fmtPrice } from "../lib/utils";
-import { whatsappUrl } from "../lib/contact";
-import { HeroBackground } from "../components/HeroBackground";
-import { usePublicPackages, usePublicBlogPosts, usePublicTestimonials, contentLinkKey } from "../hooks/publicContent";
+import { Reveal, SkeletonBlock, EmptyState, StatCounter } from "../website/primitives";
+import { usePublicPackages } from "../hooks/publicContent";
+import { GUIDES } from "../website/knowledge/guides";
+import { SITE_VIDEOS, videoThumb, type SiteVideo } from "../website/videos";
+import { VideoPlayerModal } from "../website/VideoPlayerModal";
+import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn, PACKAGE_IMAGE_FALLBACK } from "../lib/utils";
+import type { PublicPackageItem } from "../hooks/publicContent";
 
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          el.classList.add("is-visible");
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return ref;
+const SERVICES = [
+  { to: "/hajj", icon: Star, titleBn: "হজ্ব প্যাকেজ", titleEn: "Hajj Package", color: "#1B75BC" },
+  { to: "/umrah", icon: MapPin, titleBn: "উমরাহ প্যাকেজ", titleEn: "Umrah Package", color: "#F37021" },
+  { to: "/visa", icon: Shield, titleBn: "ভিসা সার্ভিস", titleEn: "Visa Service", color: "#002D62" },
+  { to: "/air-ticket", icon: Plane, titleBn: "এয়ার টিকেট", titleEn: "Air Ticket", color: "#1B75BC" },
+  { to: "/tour-packages", icon: Globe, titleBn: "ট্যুর প্যাকেজ", titleEn: "Tour Package", color: "#16A34A" },
+  { to: "/hotel-booking", icon: Hotel, titleBn: "হোটেল বুকিং", titleEn: "Hotel Booking", color: "#C89B3C" },
+  { to: "/transport", icon: Car, titleBn: "পরিবহন সেবা", titleEn: "Transport Service", color: "#1B75BC" },
+  { to: "/faq", icon: Umbrella, titleBn: "ট্রাভেল ইন্স্যুরেন্স", titleEn: "Travel Insurance", color: "#F37021" },
+];
+
+const HAJJ_SLUGS = ["mina", "arafat", "muzdalifah", "ramy", "qurbani", "hair-cutting", "farewell-tawaf", "womens-rules"];
+const UMRAH_SLUGS = ["what-is-ihram", "how-to-wear-ihram", "intention-niyyah", "talbiyah", "tawaf", "sai", "farewell-tawaf", "things-that-break-ihram"];
+
+const SUNNAH = [
+  { bn: "তাওয়াফের সময় দোয়া পড়া", en: "Recite dua during Tawaf" },
+  { bn: "যথাসম্ভব হাজরে আসওয়াদ চুম্বন", en: "Kiss the Black Stone if possible" },
+  { bn: "সাফা–মারওয়ায় দ্রুত হাঁটা (পুরুষ)", en: "Brisk pace at Safa–Marwah (men)" },
+  { bn: "আরাফাতে বেশি দোয়া ও জিকির", en: "Abundant dua & dhikr at Arafat" },
+  { bn: "মক্কায় নফল নামাজ বাড়ানো", en: "Increase nafl prayer in Makkah" },
+];
+
+const PROHIBITIONS = [
+  { bn: "ইহরামে সুগন্ধি ব্যবহার", en: "Using perfume in Ihram" },
+  { bn: "পুরুষের মাথা ঢাকা", en: "Covering the head (men)" },
+  { bn: "শিকার করা বা গাছ কাটা", en: "Hunting or cutting plants" },
+  { bn: "ঝগড়া ও অশালীন কথা", en: "Quarreling or indecent speech" },
+  { bn: "নারীদের জন্য নিষিদ্ধ নিয়ম ভাঙা", en: "Breaking women’s Ihram rules" },
+];
+
+const TRUST = [
+  { icon: Shield, bn: "বিশ্বস্ত সেবা", en: "Trusted Service" },
+  { icon: Headphones, bn: "২৪/৭ সহায়তা", en: "24/7 Support" },
+  { icon: Users, bn: "৫,০০০+ সন্তুষ্ট হাজী", en: "5,000+ Happy Pilgrims" },
+  { icon: BadgeCheck, bn: "ATOL ও IATA সার্টিফাইড", en: "ATOL & IATA Certified" },
+];
+
+function PackageSlideCard({ pkg, bn }: { pkg: PublicPackageItem; bn: boolean }) {
+  return (
+    <motion.div
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+      className="snap-start shrink-0 w-[260px] sm:w-[280px] lg:w-[300px]"
+    >
+      <Link
+        to={`/packages/${pkg.slug || pkg.id}`}
+        className="block bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:border-[#1B75BC]/35 transition-all group h-full"
+      >
+        <div className="relative aspect-[16/11] overflow-hidden bg-[#EAF5FF]">
+          <img
+            src={mediaUrl(pkg.image, 640, 420)}
+            alt={pkg.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            loading="lazy"
+            onError={(e) => {
+              const el = e.currentTarget;
+              if (el.dataset.fallback === "1") return;
+              el.dataset.fallback = "1";
+              el.src = PACKAGE_IMAGE_FALLBACK;
+            }}
+          />
+          {pkg.badge && (
+            <span className="absolute top-3 left-3 bg-[#F37021] text-white text-[10px] font-bold px-3 py-1 rounded-sm uppercase tracking-wide shadow">
+              {pkg.badge}
+            </span>
+          )}
+        </div>
+        <div className="p-4 flex flex-col">
+          <h3 className="font-bold text-[#002D62] text-[15px] leading-snug line-clamp-2 mb-3 min-h-[2.5rem] group-hover:text-[#1B75BC] transition-colors">
+            {pkg.title}
+          </h3>
+          <ul className="space-y-1.5 text-[12px] text-[#6B7280] mb-4">
+            <li className="flex items-center gap-2">
+              <Clock size={13} className="text-[#1B75BC] flex-shrink-0" />
+              <span className="truncate">{pkg.duration}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Plane size={13} className="text-[#1B75BC] flex-shrink-0" />
+              <span className="truncate">{pkg.flight || "—"}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Hotel size={13} className="text-[#1B75BC] flex-shrink-0" />
+              <span className="truncate">{pkg.hotel || "—"}</span>
+            </li>
+          </ul>
+          <div className="mt-auto flex items-end justify-between gap-2 pt-3 border-t border-[#F3F4F6]">
+            <p className="text-xl font-bold text-[#F37021] leading-none">
+              {fmtPrice(pkg.price)}
+              <span className="block mt-1 text-[10px] font-semibold text-[#9CA3AF]">{bn ? "থেকে" : "from"}</span>
+            </p>
+            <span className="inline-flex items-center gap-1 px-3 py-2 rounded-md bg-[#002D62] text-white text-xs font-bold group-hover:bg-[#1B75BC] transition-colors">
+              {bn ? "বিস্তারিত দেখুন" : "View Details"} <ArrowRight size={12} />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
 }
 
-/** Hero CTA group — Book / Contact / WhatsApp only (no search widget). */
-function HeroCtas() {
-  const { t } = useTranslation("home");
+function PackageCarousel({
+  title, seeAllLabel, seeAllTo, packages, loading, bn,
+}: {
+  title: string;
+  seeAllLabel: string;
+  seeAllTo: string;
+  packages: PublicPackageItem[];
+  loading?: boolean;
+  bn: boolean;
+}) {
+  const reduce = useReducedMotion();
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(true);
+
+  const updateNav = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setCanPrev(el.scrollLeft > 8);
+    setCanNext(el.scrollLeft < max - 8);
+  };
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateNav();
+    el.addEventListener("scroll", updateNav, { passive: true });
+    window.addEventListener("resize", updateNav);
+    return () => {
+      el.removeEventListener("scroll", updateNav);
+      window.removeEventListener("resize", updateNav);
+    };
+  }, [packages.length]);
+
+  const scrollBy = (dir: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (reduce || paused || packages.length < 2) return;
+    const id = window.setInterval(() => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 24;
+      if (atEnd) el.scrollTo({ left: 0, behavior: "smooth" });
+      else el.scrollBy({ left: 320, behavior: "smooth" });
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [reduce, paused, packages.length]);
+
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full max-w-lg mx-auto">
-      <Link
-        to="/book"
-        className="flex-1 py-3.5 px-6 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center shadow-[0_12px_32px_rgba(241,90,36,0.35)] hover:shadow-[0_16px_40px_rgba(241,90,36,0.45)] hover:-translate-y-0.5"
+    <div>
+      <div className="flex items-end justify-between gap-4 mb-7">
+        <div>
+          <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.16em] mb-1.5">
+            {bn ? "প্যাকেজ" : "Packages"}
+          </p>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">{title}</h2>
+          <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-[#002D62] to-[#F37021]" />
+        </div>
+        <Link
+          to={seeAllTo}
+          className="text-sm font-semibold text-[#1B75BC] hover:text-[#002D62] whitespace-nowrap inline-flex items-center gap-1 group"
+        >
+          {seeAllLabel}
+          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+
+      <div
+        className="relative"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
       >
-        {t("hero.cta.book")}
-      </Link>
-      <Link
-        to="/contact"
-        className="flex-1 py-3.5 px-6 bg-white/95 hover:bg-white text-[#17456B] font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center hover:-translate-y-0.5"
-      >
-        {t("hero.cta.contact")}
-      </Link>
-      <a
-        href={whatsappUrl()}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex-1 py-3.5 px-6 border border-white/45 hover:border-white hover:bg-white/10 text-white font-bold rounded-sm text-[15px] transition-all text-center min-h-[48px] flex items-center justify-center gap-2 hover:-translate-y-0.5"
-      >
-        <Phone size={16} />
-        {t("hero.cta.whatsapp")}
-      </a>
+        <button
+          type="button"
+          onClick={() => scrollBy(-1)}
+          disabled={!canPrev}
+          className={cn(
+            "hidden md:flex absolute -left-3 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[#002D62] text-white items-center justify-center shadow-lg transition-all",
+            canPrev ? "hover:bg-[#1B75BC]" : "opacity-35 cursor-not-allowed",
+          )}
+          aria-label="Previous packages"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollBy(1)}
+          disabled={!canNext}
+          className={cn(
+            "hidden md:flex absolute -right-3 top-[42%] -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[#002D62] text-white items-center justify-center shadow-lg transition-all",
+            canNext ? "hover:bg-[#1B75BC]" : "opacity-35 cursor-not-allowed",
+          )}
+          aria-label="Next packages"
+        >
+          <ChevronRight size={20} />
+        </button>
+
+        {loading && (
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={i} className="h-80 w-[280px] shrink-0 rounded-xl" />)}
+          </div>
+        )}
+
+        {!loading && packages.length === 0 && (
+          <EmptyState message={bn ? "প্যাকেজ এখনো নেই।" : "No packages yet."} />
+        )}
+
+        {!loading && packages.length > 0 && (
+          <div
+            ref={scrollerRef}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 no-scrollbar scroll-smooth touch-pan-x"
+          >
+            {packages.map((pkg, i) => (
+              <Reveal key={pkg.id} delay={Math.min(i, 4) * 0.05}>
+                <PackageSlideCard pkg={pkg} bn={bn} />
+              </Reveal>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function Counter({ end, suffix = "", label }: { end: number; suffix?: string; label: string }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true;
-        let start = 0;
-        const step = () => {
-          start += Math.ceil(end / 60);
-          if (start >= end) {
-            setVal(end);
-            return;
-          }
-          setVal(start);
-          requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      }
-    }, { threshold: 0.3 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [end]);
-
+function ApproveHeroBackground() {
+  const reduce = useReducedMotion();
   return (
-    <div ref={ref} className="text-center px-2">
-      <div className="home-display text-4xl md:text-5xl lg:text-6xl text-white mb-2 tracking-tight">
-        {val.toLocaleString()}{suffix}
-      </div>
-      <div className="text-[12px] md:text-sm text-white/55 font-medium tracking-wide uppercase">{label}</div>
+    <div className="absolute inset-0 overflow-hidden bg-[#001F45]">
+      <motion.img
+        src={SITE_IMAGES.kaabaHero}
+        alt="কাবা শরীফ — Masjid al-Haram, Makkah"
+        className="absolute inset-0 w-full h-full object-cover object-[center_45%]"
+        loading="eager"
+        initial={reduce ? false : { scale: 1.04 }}
+        animate={reduce ? undefined : { scale: [1.04, 1.0, 1.04] }}
+        transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
+        onError={(e) => {
+          const el = e.target as HTMLImageElement;
+          if (!el.src.endsWith("hero-approve.png")) el.src = "/hero-approve.png";
+          else el.src = img(SITE_IMAGES.kaabaNight, 1920, 1080);
+        }}
+      />
+      {/* Soft left wash so Bangla headline stays readable over golden sky */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(0,20,48,0.55) 0%, rgba(0,20,48,0.28) 42%, rgba(0,20,48,0.08) 68%, transparent 82%)",
+        }}
+        aria-hidden
+      />
     </div>
   );
 }
 
 export function Home() {
-  const { t } = useTranslation("home");
-  const { packages: allPackages, fromApi: packagesFromApi } = usePublicPackages({ limit: 20 });
-  const { posts: allBlogs, fromApi: blogsFromApi } = usePublicBlogPosts({ limit: 10 });
-  const { testimonials: allTestimonials } = usePublicTestimonials();
-  const featuredPackages = allPackages.slice(0, 4);
-  const featuredBlogs = allBlogs.slice(0, 3);
-  const featuredTestimonials = allTestimonials.slice(0, 3);
+  const { i18n } = useTranslation("home");
+  const bn = i18n.language?.startsWith("bn");
+  const reduce = useReducedMotion();
+  const [ruleTab, setRuleTab] = useState<"hajj" | "umrah">("hajj");
+  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
 
-  const servicesRef = useReveal<HTMLElement>();
-  const packagesRef = useReveal<HTMLElement>();
-  const whyRef = useReveal<HTMLElement>();
-  const testimonialsRef = useReveal<HTMLElement>();
-  const blogRef = useReveal<HTMLElement>();
+  const hajjQ = usePublicPackages({ type: "Hajj", limit: 12 });
+  const umrahQ = usePublicPackages({ type: "Umrah", limit: 12 });
+  const allPackages = useMemo(
+    () => [...(hajjQ.data?.data ?? []), ...(umrahQ.data?.data ?? [])],
+    [hajjQ.data, umrahQ.data],
+  );
+  const packagesLoading = hajjQ.isLoading || umrahQ.isLoading;
 
-  const services = [
-    { id: "hajj", i18n: "hajj", icon: Star },
-    { id: "umrah", i18n: "umrah", icon: MapPin },
-    { id: "visa", i18n: "visa", icon: Shield },
-    { id: "air-ticket", i18n: "airTicket", icon: Plane },
-    { id: "manpower", i18n: "manpower", icon: Briefcase },
-    { id: "tour-packages", i18n: "tour", icon: Globe },
-    { id: "hotel-booking", i18n: "hotel", icon: Hotel },
-  ];
-
-  const partners = [
-    { name: "Biman Bangladesh", src: "/partners/biman.svg" },
-    { name: "Saudi Airlines", src: "/partners/saudia.svg" },
-    { name: "Qatar Airways", src: "/partners/qatar.svg" },
-    { name: "Emirates", src: "/partners/emirates.svg" },
-    { name: "Turkish Airlines", src: "/partners/turkish.svg" },
-    { name: "Etihad Airways", src: "/partners/etihad.svg" },
-    { name: "Air Arabia", src: "/partners/airarabia.svg" },
-    { name: "FlyDubai", src: "/partners/flydubai.svg" },
-  ];
+  const ruleGuides = useMemo(() => {
+    const slugs = ruleTab === "hajj" ? HAJJ_SLUGS : UMRAH_SLUGS;
+    return slugs.map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean).slice(0, 8) as typeof GUIDES;
+  }, [ruleTab]);
 
   return (
-    <div className="home-sacred">
-      {/* ── HERO — brand + headline + subtitle + CTAs only ── */}
-      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
-        <HeroBackground posterImg="/hero-makkah-poster.jpg" alt="Masjid al-Haram, Makkah" />
+    <div className="overflow-x-hidden font-[family-name:var(--font-body)]">
+      {/* ── Hero (Approve design) ── */}
+      <section className="relative min-h-[78vh] md:min-h-[86vh] flex items-center overflow-hidden pb-16 md:pb-20">
+        <ApproveHeroBackground />
 
-        <div className="relative z-10 w-full max-w-[1100px] mx-auto px-5 md:px-8 flex flex-col items-center text-center gap-4 md:gap-5 py-20 md:py-24">
-          <h1 className="home-rise text-[2.15rem] sm:text-4xl md:text-5xl lg:text-[3.75rem] text-white leading-[1.12] max-w-3xl drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
-            <Trans
-              t={t}
-              i18nKey="hero.title"
-              components={{ hl: <span className="text-[#F15A24] italic" />, br: <br /> }}
-            />
-          </h1>
+        <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 md:py-24">
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-[38rem]"
+          >
+            <h1 className="text-[1.75rem] sm:text-4xl md:text-[2.75rem] lg:text-[3.15rem] font-bold leading-[1.25] tracking-tight text-white drop-shadow-sm">
+              {bn ? (
+                <>
+                  বিশ্বস্ততায় আমরাই আপনার{" "}
+                  <span className="text-[#F37021]">হজ্ব ও ওমরাহ</span>{" "}
+                  যাত্রার সেরা সাথী
+                </>
+              ) : (
+                <>
+                  Your trusted partner for{" "}
+                  <span className="text-[#F37021]">Hajj & Umrah</span>{" "}
+                  journeys
+                </>
+              )}
+            </h1>
 
-          <p className="home-rise home-rise-delay-1 text-[15px] md:text-lg text-white/80 max-w-lg mx-auto leading-relaxed font-medium drop-shadow-sm">
-            {t("hero.subtitle")}
-          </p>
-
-          <div className="home-rise home-rise-delay-2 w-full pt-1">
-            <HeroCtas />
-          </div>
-        </div>
-
-        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#faf9f7] to-transparent pointer-events-none z-[5]" />
-      </section>
-
-      {/* ── TRUST RIBBON ── */}
-      <section className="relative z-10 -mt-6 md:-mt-8">
-        <div className="max-w-[1100px] mx-auto px-5 md:px-8">
-          <div className="bg-[#0A2E4D] text-white px-5 md:px-8 py-4 md:py-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 md:gap-x-10 shadow-[0_20px_50px_rgba(10,46,77,0.25)]">
-            {[
-              t("trustStrip.license"),
-              t("trustStrip.aviation"),
-              t("trustStrip.ministry"),
-              t("trustStrip.years"),
-              t("trustStrip.pilgrims"),
-            ].map((item) => (
-              <span key={item} className="text-[11px] md:text-[12px] font-semibold tracking-wide text-white/75 whitespace-nowrap">
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SERVICES ── */}
-      <section ref={servicesRef} className="home-reveal py-16 md:py-24">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-8">
-          <div className="text-center mb-10 md:mb-14">
-            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
-              {t("services.eyebrow")}
-            </div>
-            <h2 className="text-3xl md:text-5xl text-[#0A2E4D] mb-3">{t("services.heading")}</h2>
-            <p className="text-[var(--home-muted)] max-w-xl mx-auto text-sm md:text-base leading-relaxed">
-              {t("services.subheading")}
+            <p className="mt-4 text-[14px] md:text-[16px] text-white/90 max-w-lg leading-relaxed font-medium">
+              {bn
+                ? "সরকার অনুমোদিত এজেন্সি — নিরাপদ ফ্লাইট, মানসম্মত হোটেল এবং অভিজ্ঞ গাইডের সাথে আপনার ইবাদতের যাত্রা হোক নিশ্চিন্ত।"
+                : "Government-approved agency — safe flights, quality hotels and experienced guides for a peaceful pilgrimage."}
             </p>
-          </div>
 
-          <div className="flex md:grid md:grid-cols-7 gap-0 overflow-x-auto no-scrollbar border-y border-[var(--home-line)] divide-x divide-[var(--home-line)]">
-            {services.map((s) => (
-              <Link
-                key={s.id}
-                to={`/${s.id}`}
-                className="min-w-[140px] md:min-w-0 flex-shrink-0 px-5 py-8 md:py-10 text-center group hover:bg-[#1B75BC]/[0.04] transition-colors"
+            {/* Trust badges — four light boxes like Approve mock */}
+            <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-2.5 max-w-xl">
+              {TRUST.map((item, i) => (
+                <motion.div
+                  key={item.en}
+                  initial={reduce ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12 + i * 0.05 }}
+                  className="flex flex-col items-start gap-2 rounded-lg bg-[#EAF5FF]/95 border border-white/40 px-3 py-3 shadow-sm backdrop-blur-sm"
+                >
+                  <span className="w-8 h-8 rounded-md bg-white text-[#1B75BC] flex items-center justify-center shadow-sm">
+                    <item.icon size={16} />
+                  </span>
+                  <span className="text-[11px] md:text-[12px] font-bold text-[#002D62] leading-snug">
+                    {bn ? item.bn : item.en}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <motion.div whileHover={reduce ? undefined : { scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/packages"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#002D62] text-white font-bold text-sm rounded-md hover:bg-[#001F45] transition-colors shadow-lg shadow-black/25"
+                >
+                  {bn ? "হজ্ব ও ওমরাহ প্যাকেজ দেখুন" : "View Hajj & Umrah Packages"}
+                  <ArrowRight size={16} />
+                </Link>
+              </motion.div>
+              <motion.button
+                type="button"
+                onClick={() => setActiveVideo(SITE_VIDEOS[0])}
+                whileHover={reduce ? undefined : { scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center gap-2.5 px-5 py-3.5 bg-transparent border-2 border-[#F37021] text-[#F37021] font-bold text-sm rounded-md hover:bg-[#F37021] hover:text-white transition-colors"
               >
-                <s.icon size={26} className="mx-auto mb-4 text-[#1B75BC] group-hover:text-[#F15A24] transition-colors" strokeWidth={1.5} />
-                <div className="text-[13px] font-bold text-[#0A2E4D] group-hover:text-[#1B75BC] transition-colors mb-1.5 leading-snug">
-                  {t(`services.items.${s.i18n}.label`)}
-                </div>
-                <div className="text-[11px] text-[var(--home-muted)] leading-snug hidden sm:block">
-                  {t(`services.items.${s.i18n}.desc`)}
-                </div>
-              </Link>
+                <span className="w-7 h-7 rounded-full border-2 border-current flex items-center justify-center">
+                  <Play size={12} className="ml-0.5 fill-current" />
+                </span>
+                {bn ? "আমাদের ভিডিও দেখুন" : "Watch Our Video"}
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {activeVideo && (
+        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
+      )}
+
+      {/* ── Service icon grid — floating over soft blue wash ── */}
+      <section className="relative z-20 -mt-10 md:-mt-14 mb-2 px-4 md:px-5">
+        <div
+          className="max-w-[1240px] mx-auto rounded-2xl border border-[#B8D4ED] shadow-[0_16px_48px_rgba(0,45,98,0.14)] px-3 py-4 md:px-5 md:py-5 overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(135deg, #FFFFFF 0%, #EAF5FF 45%, #FFF4ED 100%)",
+          }}
+        >
+          <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 md:gap-3">
+            {SERVICES.map((s, i) => (
+              <Reveal key={s.to} delay={i * 0.03}>
+                <motion.div whileHover={reduce ? undefined : { y: -4 }} whileTap={{ scale: 0.98 }}>
+                  <Link
+                    to={s.to}
+                    className="flex flex-col items-center justify-center text-center gap-2.5 p-2.5 md:p-3 min-h-[100px] md:min-h-[112px] rounded-xl bg-white/80 border border-white hover:border-[#1B75BC]/40 hover:shadow-lg transition-all"
+                  >
+                    <span
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+                      style={{ background: `${s.color}18`, color: s.color }}
+                    >
+                      <s.icon size={22} strokeWidth={1.75} />
+                    </span>
+                    <span className="text-[11px] md:text-[12px] font-semibold text-[#002D62] leading-snug">
+                      {bn ? s.titleBn : s.titleEn}
+                    </span>
+                  </Link>
+                </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── FEATURED PACKAGES — editorial sacred layout ── */}
-      <section ref={packagesRef} className="home-reveal py-16 md:py-24 bg-[#faf9f7] relative overflow-hidden">
+      {/* ── Rules & Guidelines — navy atmosphere ── */}
+      <section className="relative py-16 md:py-20 overflow-hidden">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(160deg, #001F45 0%, #002D62 42%, #0A4A8A 100%)",
+          }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 opacity-[0.12]"
           style={{
             backgroundImage:
-              "radial-gradient(ellipse at 10% 0%, rgba(27,117,188,0.12), transparent 45%), radial-gradient(ellipse at 90% 100%, rgba(241,90,36,0.08), transparent 40%)",
+              "radial-gradient(circle at 20% 20%, #F37021 0, transparent 28%), radial-gradient(circle at 85% 70%, #7EB8E3 0, transparent 32%)",
           }}
+          aria-hidden
         />
-        <div className="relative max-w-[1200px] mx-auto px-5 md:px-8">
-          <div className="text-center mb-12 md:mb-14">
-            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
-              {t("packages.eyebrow")}
-            </div>
-            <h2 className="text-3xl md:text-5xl text-[#0A2E4D] mb-3">{t("packages.heading")}</h2>
-            <p className="text-[var(--home-muted)] text-sm md:text-base max-w-lg mx-auto leading-relaxed">
-              {t("packages.subheading")}
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <div className="text-center mb-9">
+            <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+              {bn ? "জ্ঞান কেন্দ্র" : "Knowledge Hub"}
             </p>
-          </div>
-
-          {featuredPackages.length > 0 && (() => {
-            const [lead, ...rest] = featuredPackages;
-            const leadHref = `/packages/${contentLinkKey(lead, packagesFromApi)}`;
-            return (
-              <>
-                {/* Lead package — split composition */}
-                <Link
-                  to={leadHref}
-                  className="group grid grid-cols-1 lg:grid-cols-12 mb-8 md:mb-10 overflow-hidden bg-[#0A2E4D] shadow-[0_24px_60px_rgba(10,46,77,0.18)]"
+            <h2 className="text-2xl md:text-3xl font-bold text-white">
+              {bn ? "হজ্ব ও ওমরাহ এর নিয়ম ও করণীয়" : "Rules and Duties of Hajj & Umrah"}
+            </h2>
+            <div className="mt-5 flex justify-center gap-2">
+              {(["hajj", "umrah"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setRuleTab(tab)}
+                  className={cn(
+                    "px-6 py-2.5 rounded-full text-sm font-bold transition-colors border",
+                    ruleTab === tab
+                      ? "bg-[#F37021] text-white border-[#F37021] shadow-md"
+                      : "bg-white/10 text-white border-white/25 hover:bg-white/20",
+                  )}
                 >
-                  <div className="relative lg:col-span-7 min-h-[280px] md:min-h-[380px] overflow-hidden">
-                    <img
-                      src={img(lead.image, 1100, 800)}
-                      alt={lead.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#061828]/50 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-[#0A2E4D]/40" />
-                    {lead.badge && (
-                      <span className="absolute top-5 left-5 text-[10px] font-bold uppercase tracking-[0.2em] bg-[#F15A24] text-white px-3 py-1.5">
-                        {lead.badge}
-                      </span>
-                    )}
-                  </div>
-                  <div className="lg:col-span-5 flex flex-col justify-center px-6 py-8 md:px-10 md:py-12 text-white">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#F15A24] mb-3">
-                      {lead.type}
-                    </div>
-                    <h3 className="home-display text-3xl md:text-4xl leading-[1.15] mb-4 group-hover:text-[#F15A24] transition-colors">
-                      {lead.title}
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-white/65 mb-6">
-                      <span className="inline-flex items-center gap-1.5"><Clock size={13} /> {lead.duration}</span>
-                      {lead.departure && (
-                        <span className="inline-flex items-center gap-1.5"><MapPin size={13} /> {t("packages.departing", { val: lead.departure })}</span>
-                      )}
-                    </div>
-                    <div className="flex items-end justify-between gap-4 pt-5 border-t border-white/15">
-                      <div>
-                        <div className="text-[10px] uppercase tracking-wider text-white/45 mb-1">{t("packages.startingFrom")}</div>
-                        <div className="text-2xl md:text-3xl font-bold text-[#F15A24]">{fmtPrice(lead.price)}</div>
-                      </div>
-                      <span className="inline-flex items-center gap-2 text-sm font-semibold text-white group-hover:gap-3 transition-all">
-                        {t("packages.explore")} <ArrowRight size={15} />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                  {tab === "hajj" ? (bn ? "হজ্ব নিয়ম" : "Hajj Rules") : (bn ? "উমরাহ নিয়ম" : "Umrah Rules")}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                {/* Remaining packages — image + meta below (readable, not overlay-heavy) */}
-                {rest.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
-                    {rest.map((pkg) => (
-                      <Link
-                        key={pkg.slug || pkg.id}
-                        to={`/packages/${contentLinkKey(pkg, packagesFromApi)}`}
-                        className="group block"
-                      >
-                        <div className="relative aspect-[16/11] overflow-hidden mb-4 bg-[#0A2E4D]/10">
-                          <img
-                            src={img(pkg.image, 700, 480)}
-                            alt={pkg.title}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          />
-                          <div className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-[0.18em] bg-white/95 text-[#0A2E4D] px-2.5 py-1">
-                            {pkg.type}
-                          </div>
-                        </div>
-                        <h3 className="home-display text-2xl text-[#0A2E4D] leading-snug mb-2 group-hover:text-[#1B75BC] transition-colors">
-                          {pkg.title}
-                        </h3>
-                        <div className="flex items-center gap-3 text-[12px] text-[var(--home-muted)] mb-3">
-                          <span className="inline-flex items-center gap-1"><Clock size={12} /> {pkg.duration}</span>
-                          {pkg.seats != null && (
-                            <span>{t("packages.seatsLeft", { count: pkg.seats })}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between pt-3 border-t border-[var(--home-line)]">
-                          <div>
-                            <div className="text-[10px] uppercase tracking-wider text-[var(--home-muted)]">{t("packages.startingFrom")}</div>
-                            <div className="text-lg font-bold text-[#F15A24]">{fmtPrice(pkg.price)}</div>
-                          </div>
-                          <span className="w-9 h-9 rounded-full border border-[#1B75BC]/25 text-[#1B75BC] flex items-center justify-center group-hover:bg-[#1B75BC] group-hover:text-white transition-colors">
-                            <ArrowRight size={14} />
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </>
-            );
-          })()}
-
-          <div className="text-center mt-12">
-            <Link
-              to="/packages"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-bold text-sm transition-colors"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={ruleTab}
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.28 }}
+              className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
             >
-              {t("packages.viewAllPackages")} <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── WHY — image-led, no floating stickers ── */}
-      <section ref={whyRef} className="home-reveal relative">
-        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
-          <div className="relative min-h-[320px] lg:min-h-full overflow-hidden">
-            <img
-              src={img("photo-1720549973451-018d3623b55a", 1200, 900)}
-              alt="Hajj pilgrims at Kaaba"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#faf9f7]/30 lg:to-transparent" />
-          </div>
-          <div className="flex items-center bg-[#faf9f7] px-6 md:px-12 lg:px-16 py-14 md:py-20">
-            <div className="max-w-lg">
-              <div className="home-ornament justify-start text-[11px] font-bold uppercase tracking-[0.22em] mb-4">
-                {t("why.eyebrow")}
-              </div>
-              <h2 className="text-3xl md:text-5xl text-[#0A2E4D] leading-[1.12] mb-5">
-                {t("why.headingLine1")}<br />{t("why.headingLine2")}
-              </h2>
-              <p className="text-[var(--home-muted)] text-sm md:text-[15px] leading-relaxed mb-8">
-                {t("why.body")}
-              </p>
-
-              <div className="space-y-5 mb-9">
-                {[
-                  { icon: CheckCircle, title: t("why.features.govt.title"), desc: t("why.features.govt.desc") },
-                  { icon: Headphones, title: t("why.features.support.title"), desc: t("why.features.support.desc") },
-                  { icon: Heart, title: t("why.features.trusted.title"), desc: t("why.features.trusted.desc") },
-                  { icon: TrendingUp, title: t("why.features.value.title"), desc: t("why.features.value.desc") },
-                ].map((i) => (
-                  <div key={i.title} className="flex gap-4">
-                    <i.icon size={18} className="text-[#F15A24] mt-0.5 flex-shrink-0" strokeWidth={1.75} />
-                    <div>
-                      <div className="text-[14px] font-bold text-[#0A2E4D] mb-0.5">{i.title}</div>
-                      <div className="text-[12px] text-[var(--home-muted)] leading-snug">{i.desc}</div>
+              {ruleGuides.map((g, i) => (
+                <motion.div key={g.slug} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                  <Link
+                    to={`/knowledge/${g.slug}`}
+                    className="flex flex-col p-5 bg-white/95 border border-white/20 rounded-xl hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all h-full"
+                  >
+                    <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-[#EAF5FF] to-[#D6EBFA] text-[#1B75BC] flex items-center justify-center mb-3">
+                      <BookOpen size={20} />
                     </div>
-                  </div>
-                ))}
-              </div>
+                    <h3 className="font-bold text-[#002D62] mb-1.5 text-[15px]">{bn ? g.titleBn : g.titleEn}</h3>
+                    <p className="text-sm text-[#6B7280] leading-relaxed line-clamp-2 flex-1 mb-3">
+                      {bn ? g.summaryBn : g.summaryEn}
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#F37021]">
+                      {bn ? "বিস্তারিত দেখুন" : "View Details"} <ArrowRight size={14} />
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
 
-              <Link
-                to="/about"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-bold text-sm transition-colors"
-              >
-                {t("why.learnStory")} <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS ── */}
-      <section className="py-16 md:py-20 bg-[#061828] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.07] pointer-events-none"
-          style={{ backgroundImage: "radial-gradient(circle at 20% 50%, #1B75BC 0%, transparent 45%), radial-gradient(circle at 80% 30%, #F15A24 0%, transparent 40%)" }}
-        />
-        <div className="relative max-w-[1100px] mx-auto px-5 md:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
-            <Counter end={10000} suffix="+" label={t("stats.pilgrims")} />
-            <Counter end={25} suffix="+" label={t("stats.years")} />
-            <Counter end={50} suffix="+" label={t("stats.countries")} />
-            <Counter end={4} suffix="" label={t("stats.branches")} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS — quote-led ── */}
-      <section ref={testimonialsRef} className="home-reveal py-16 md:py-24 bg-[#faf9f7]">
-        <div className="max-w-[1100px] mx-auto px-5 md:px-8">
-          <div className="text-center mb-12 md:mb-16">
-            <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
-              {t("testimonials.eyebrow")}
-            </div>
-            <h2 className="text-3xl md:text-5xl text-[#0A2E4D]">{t("testimonials.heading")}</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
-            {featuredTestimonials.map((item, idx) => (
-              <blockquote key={idx} className="relative pt-2">
-                <Quote size={28} className="text-[#F15A24]/35 mb-4" strokeWidth={1.5} />
-                <p className="home-display text-xl md:text-2xl text-[#0A2E4D] leading-snug mb-6 italic">
-                  “{item.text}”
-                </p>
-                <footer className="flex items-center gap-3 border-t border-[var(--home-line)] pt-4">
-                  <div className="w-10 h-10 rounded-full bg-[#1B75BC]/10 flex items-center justify-center font-bold text-[#1B75BC] text-sm flex-shrink-0">
-                    {item.initial ?? item.name[0]}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-[#0A2E4D]">{item.name}</div>
-                    <div className="text-[11px] text-[var(--home-muted)] truncate">{item.city} · {item.package}</div>
-                  </div>
-                  <div className="ml-auto flex gap-0.5 flex-shrink-0">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={11} className={i < item.stars ? "text-[#F15A24] fill-[#F15A24]" : "text-[#D6D3CD]"} />
-                    ))}
-                  </div>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── BLOG ── */}
-      <section ref={blogRef} className="home-reveal py-16 md:py-24 bg-white">
-        <div className="max-w-[1100px] mx-auto px-5 md:px-8">
-          <div className="flex items-end justify-between mb-10 md:mb-12 gap-4">
-            <div>
-              <div className="home-ornament justify-start text-[11px] font-bold uppercase tracking-[0.22em] mb-3">
-                {t("blog.eyebrow")}
-              </div>
-              <h2 className="text-3xl md:text-5xl text-[#0A2E4D]">{t("blog.heading")}</h2>
-            </div>
-            <Link to="/blog" className="hidden md:inline-flex items-center gap-2 text-[#1B75BC] text-sm font-semibold hover:gap-3 transition-all">
-              {t("blog.allArticles")} <ArrowRight size={14} />
+          <div className="mt-10 text-center">
+            <Link
+              to="/knowledge"
+              className="inline-flex items-center gap-2 px-10 py-3.5 bg-white text-[#002D62] font-bold text-sm rounded-md hover:bg-[#FFF4ED] transition-colors shadow-lg"
+            >
+              {bn ? "হজ্বের সব ধাপ বিস্তারিত দেখুন" : "View All Steps for Hajj in Detail"}
+              <ArrowRight size={16} />
             </Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-            {featuredBlogs.map((b) => (
-              <Link key={b.slug || b.id} to={`/blog/${contentLinkKey(b, blogsFromApi)}`} className="group block">
-                <div className="relative aspect-[16/10] overflow-hidden mb-4">
-                  <img
-                    src={img(b.image, 700, 440)}
-                    alt={b.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <div className="text-[11px] text-[var(--home-muted)] mb-2 tracking-wide">
-                  {b.date} · {t("blog.readTime", { time: b.readTime })}
-                </div>
-                <h3 className="home-display text-2xl text-[#0A2E4D] leading-snug mb-2 group-hover:text-[#1B75BC] transition-colors">
-                  {b.title}
-                </h3>
-                <p className="text-[13px] text-[var(--home-muted)] leading-relaxed line-clamp-2">{b.excerpt}</p>
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* ── PARTNERS MARQUEE ── */}
-      <section className="py-12 md:py-14 border-y border-[var(--home-line)] bg-[#faf9f7]">
-        <div className="text-center mb-8">
-          <div className="text-[11px] font-bold text-[var(--home-muted)] uppercase tracking-[0.22em]">{t("partners.heading")}</div>
-        </div>
-        <div className="home-marquee">
-          <div className="home-marquee-track items-center px-8 gap-10 md:gap-14">
-            {[...partners, ...partners].map((p, i) => (
-              <div
-                key={`${p.name}-${i}`}
-                className="flex-shrink-0 h-10 md:h-12 w-[120px] md:w-[150px] flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
-                title={p.name}
-              >
-                <img
-                  src={p.src}
-                  alt={p.name}
-                  className="max-h-full max-w-full w-auto object-contain"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CLOSING CTA — hotline + book (quiet newsletter secondary) ── */}
-      <section className="relative py-16 md:py-24 overflow-hidden bg-[#0A2E4D]">
+      {/* ── Popular Packages — soft sky band ── */}
+      <section
+        className="relative py-14 md:py-16 overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(180deg, #E8F3FC 0%, #F5F8FC 40%, #FFF6F0 100%)",
+        }}
+      >
         <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `url(${img("photo-1770786106021-52580470e31e", 1600, 900)})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
+          className="absolute -right-20 top-10 w-72 h-72 rounded-full blur-3xl opacity-40 pointer-events-none"
+          style={{ background: "#7EB8E3" }}
+          aria-hidden
         />
-        <div className="absolute inset-0 bg-[#0A2E4D]/85" />
-        <div className="relative max-w-[800px] mx-auto px-5 md:px-8 text-center">
-          <div className="home-ornament text-[11px] font-bold uppercase tracking-[0.22em] text-[#F15A24] mb-4">
-            {t("contact.hotline")}
+        <div
+          className="absolute -left-16 bottom-0 w-64 h-64 rounded-full blur-3xl opacity-30 pointer-events-none"
+          style={{ background: "#F37021" }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <PackageCarousel
+            bn={!!bn}
+            title={bn ? "জনপ্রিয় হজ্ব ও ওমরাহ প্যাকেজ" : "Popular Hajj & Umrah Packages"}
+            seeAllLabel={bn ? "সব প্যাকেজ দেখুন" : "View All Packages"}
+            seeAllTo="/packages"
+            packages={allPackages}
+            loading={packagesLoading}
+          />
+        </div>
+      </section>
+
+      {/* ── Sunnah & Prohibitions — light mint band ── */}
+      <section
+        className="relative py-14 md:py-20 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #E8F8F1 0%, #F3FAF7 55%, #EEF6FF 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-[0.35] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 12% 20%, rgba(22,163,74,0.18) 0, transparent 40%), radial-gradient(circle at 88% 70%, rgba(243,112,33,0.12) 0, transparent 36%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <div className="text-center mb-8">
+            <p className="text-[#16A34A] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+              {bn ? "ইবাদতের দিকনির্দেশনা" : "Guidance for Worship"}
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
+              {bn ? "সুন্নাহ ও নিষিদ্ধ কাজসমূহ" : "Sunnah & Prohibited Acts"}
+            </h2>
+            <div className="mt-3 mx-auto h-1 w-16 rounded-full bg-gradient-to-r from-emerald-500 to-[#F37021]" />
           </div>
-          <h2 className="text-3xl md:text-5xl text-white mb-3 leading-tight">
-            {t("ctaClose.heading")}
-          </h2>
-          <p className="text-white/60 text-sm md:text-base mb-8 max-w-md mx-auto">
-            {t("ctaClose.subheading")}
-          </p>
-          <a
-            href="tel:+88029553421"
-            className="home-display inline-block text-3xl md:text-4xl text-white hover:text-[#F15A24] transition-colors mb-8"
-          >
-            +880 2 9553421
-          </a>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
-            <Link
-              to="/book"
-              className="w-full sm:w-auto px-8 py-3.5 bg-[var(--color-brand-mark)] hover:bg-[var(--color-brand-mark-hover)] text-white font-bold text-sm transition-colors min-h-[48px] flex items-center justify-center"
-            >
-              {t("hero.cta.book")}
-            </Link>
-            <Link
-              to="/contact"
-              className="w-full sm:w-auto px-8 py-3.5 border border-white/35 hover:bg-white/10 text-white font-bold text-sm transition-colors min-h-[48px] flex items-center justify-center gap-2"
-            >
-              <MapPin size={14} /> {t("contact.branches")}
+          <div className="grid md:grid-cols-2 gap-5 lg:gap-6">
+            <Reveal>
+              <div className="relative rounded-xl overflow-hidden border border-emerald-200 shadow-md min-h-[320px] flex flex-col bg-white">
+                <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-emerald-300" />
+                <div className="p-6 md:p-7 flex flex-col flex-1">
+                  <h3 className="text-lg font-bold text-emerald-700 mb-4 inline-flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Check size={16} /></span>
+                    {bn ? "সুন্নাহ কাজসমূহ" : "Sunnah Acts"}
+                  </h3>
+                  <ul className="space-y-2.5 mb-6 flex-1">
+                    {SUNNAH.map((item) => (
+                      <li key={item.en} className="flex gap-2 text-sm text-[#374151]">
+                        <Check size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                        {bn ? item.bn : item.en}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/knowledge/what-is-ihram"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors w-fit">
+                    {bn ? "সব সুন্নাহ দেখুন" : "See All Sunnah"} <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.08}>
+              <div className="relative rounded-xl overflow-hidden border border-red-200 shadow-md min-h-[320px] flex flex-col bg-white">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#F37021] to-red-500" />
+                <div className="p-6 md:p-7 flex flex-col flex-1">
+                  <h3 className="text-lg font-bold text-red-600 mb-4 inline-flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><X size={16} /></span>
+                    {bn ? "নিষিদ্ধ কাজসমূহ" : "Prohibited Acts"}
+                  </h3>
+                  <ul className="space-y-2.5 mb-6 flex-1">
+                    {PROHIBITIONS.map((item) => (
+                      <li key={item.en} className="flex gap-2 text-sm text-[#374151]">
+                        <X size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                        {bn ? item.bn : item.en}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/knowledge/things-that-break-ihram"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-md bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors w-fit">
+                    {bn ? "সব নিষেধ দেখুন" : "See All Prohibitions"} <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Video tutorials — soft sky (contrast after mint) ── */}
+      <section
+        className="relative py-14 md:py-20 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #EAF5FF 0%, #F7FBFF 50%, #FFFFFF 100%)",
+        }}
+      >
+        <div
+          className="absolute -left-24 top-0 w-80 h-80 rounded-full blur-3xl opacity-40 pointer-events-none"
+          style={{ background: "#7EB8E3" }}
+          aria-hidden
+        />
+        <div
+          className="absolute -right-20 bottom-0 w-72 h-72 rounded-full blur-3xl opacity-30 pointer-events-none"
+          style={{ background: "#F37021" }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <div className="flex items-end justify-between gap-4 mb-8">
+            <div>
+              <p className="text-[#1B75BC] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+                {bn ? "ভিডিও গাইড" : "Video Guides"}
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
+                {bn ? "ভিডিও টিউটোরিয়াল ও গাইড" : "Video Tutorials & Guides"}
+              </h2>
+              <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-[#1B75BC] to-[#F37021]" />
+            </div>
+            <Link to="/videos" className="text-sm font-semibold text-[#1B75BC] hover:text-[#002D62] whitespace-nowrap inline-flex items-center gap-1">
+              {bn ? "সব ভিডিও দেখুন" : "View All Videos"} <ArrowRight size={14} />
             </Link>
           </div>
-          <p className="text-white/40 text-[12px]">
-            <span className="font-semibold text-white/55">{t("contact.officeHours")}</span> {t("contact.hoursValue")}
-          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+            {SITE_VIDEOS.slice(0, 5).map((v, i) => (
+              <Reveal key={v.id} delay={i * 0.04}>
+                <motion.button
+                  type="button"
+                  onClick={() => setActiveVideo(v)}
+                  className="group block w-full text-left"
+                  whileHover={reduce ? undefined : { y: -4 }}
+                >
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-[#002D62] shadow-md ring-1 ring-[#C5D8EC]">
+                    <img
+                      src={videoThumb(v)}
+                      alt={bn ? v.titleBn : v.titleEn}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#001F45]/75 via-black/15 to-transparent" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="w-11 h-11 rounded-full bg-[#F37021] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <Play size={18} className="ml-0.5 fill-current" />
+                      </span>
+                    </div>
+                    <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 text-white text-[10px] font-medium">
+                      {v.duration}
+                    </span>
+                  </div>
+                  <p className="mt-2.5 text-xs md:text-sm font-semibold text-[#002D62] leading-snug line-clamp-2">
+                    {bn ? v.titleBn : v.titleEn}
+                  </p>
+                </motion.button>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Stats — brand orange band (clear break) ── */}
+      <section
+        className="relative py-12 md:py-14 overflow-hidden"
+        style={{
+          background: "linear-gradient(105deg, #F37021 0%, #E85A12 45%, #CC3C17 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.35) 0, transparent 40%), radial-gradient(circle at 80% 30%, rgba(0,45,98,0.25) 0, transparent 35%)",
+          }}
+          aria-hidden
+        />
+        <Plane size={88} className="absolute right-8 top-1/2 -translate-y-1/2 text-white/15 -rotate-12 hidden md:block" aria-hidden />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5 grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-3">
+          {[
+            { Icon: Users, end: 100, suffix: "K+", label: bn ? "সন্তুষ্ট যাত্রী" : "Satisfied Travelers" },
+            { Icon: BadgeCheck, end: 12, suffix: "+", label: bn ? "বছরের অভিজ্ঞতা" : "Years Experience" },
+            { Icon: MapPin, end: 25, suffix: "+", label: bn ? "দেশে সেবা" : "Countries Served" },
+            { Icon: Star, end: 500, suffix: "+", label: bn ? "হজ্ব গ্রুপ" : "Hajj Groups" },
+            { Icon: Shield, end: 98, suffix: "%", label: bn ? "ভিসা সফলতা" : "Visa Success Rate" },
+          ].map(({ Icon, end, suffix, label }) => (
+            <div key={label} className="text-center flex flex-col items-center rounded-xl bg-white/15 border border-white/25 px-3 py-4 backdrop-blur-sm">
+              <Icon size={22} className="text-white mb-2" />
+              <StatCounter end={end} suffix={suffix} label={label} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Newsletter — warm light band before dark footer ── */}
+      <section
+        className="relative py-14 md:py-16 overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #FFF4ED 0%, #FFE8D9 50%, #FFF7F2 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 10% 60%, rgba(243,112,33,0.2) 0, transparent 35%), radial-gradient(circle at 90% 30%, rgba(27,117,188,0.15) 0, transparent 35%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10 rounded-2xl border border-[#F5C9A8] bg-white shadow-[0_12px_40px_rgba(243,112,33,0.12)] px-5 py-6 md:px-8 md:py-7">
+            <div className="flex items-start gap-4 flex-1">
+              <span className="hidden sm:flex w-12 h-12 rounded-xl bg-[#FFF1E8] text-[#F37021] items-center justify-center flex-shrink-0">
+                <Plane size={22} />
+              </span>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-[#002D62]">
+                  {bn ? "সর্বশেষ অফার ও আপডেট পেতে সাবস্ক্রাইব করুন" : "Subscribe for latest offers & updates"}
+                </h2>
+                <p className="text-[#6B7280] text-sm mt-1">
+                  {bn ? "নতুন প্যাকেজ ও গাইড সরাসরি আপনার ইনবক্সে।" : "New packages and guides delivered to your inbox."}
+                </p>
+              </div>
+            </div>
+            {subscribed ? (
+              <p className="text-[#16A34A] font-semibold bg-emerald-50 border border-emerald-200 px-5 py-3 rounded-md">
+                {bn ? "ধন্যবাদ! সাবস্ক্রিপশন সম্পন্ন।" : "Thank you! You’re subscribed."}
+              </p>
+            ) : (
+              <form
+                className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:min-w-[420px]"
+                onSubmit={(e) => { e.preventDefault(); setEmail(""); setSubscribed(true); }}
+              >
+                <label className="sr-only" htmlFor="home-newsletter">Email</label>
+                <input
+                  id="home-newsletter"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={bn ? "আপনার ইমেইল" : "Your email"}
+                  className="flex-1 px-4 py-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#002D62] text-sm outline-none focus:ring-2 focus:ring-[#F37021] focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-[#F37021] hover:bg-[#D85A12] text-white font-bold text-sm rounded-md transition-colors whitespace-nowrap"
+                >
+                  {bn ? "সাবস্ক্রাইব করুন" : "Subscribe"}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </section>
     </div>
   );
 }
+
+export default Home;

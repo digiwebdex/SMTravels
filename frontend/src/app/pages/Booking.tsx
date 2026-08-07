@@ -75,25 +75,10 @@ export function BookingPage() {
 
   const selectedService = SERVICES.find(s => s.id === service);
 
-  const canAdvance =
-    step === 0 ? !!service
-    : step === 1 ? !!(trip.from.trim() && trip.to.trim() && trip.depart)
-    : step === 2 ? !!(traveler.name.trim() && traveler.phone.trim())
-    : true;
-
   const submit = async () => {
     if (submitting) return;
     if (!traveler.name.trim() || !traveler.phone.trim()) {
       setSubmitError(t("errors.leadRequired"));
-      return;
-    }
-    const phoneOk = /^(\+?880|0)?1[3-9]\d{8}$/.test(traveler.phone.replace(/[\s-]/g, ""));
-    if (!phoneOk) {
-      setSubmitError("Enter a valid Bangladesh mobile number.");
-      return;
-    }
-    if (traveler.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(traveler.email.trim())) {
-      setSubmitError("Enter a valid email address.");
       return;
     }
     setSubmitting(true);
@@ -166,19 +151,21 @@ export function BookingPage() {
 
   return (
     <>
-      <section className="bg-[#1B75BC] py-12 text-white text-center">
-        <div className="max-w-[700px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
-          <h1 className="text-2xl font-black mb-1">{t("hero.title")}</h1>
-          <p className="text-white/50 text-sm">{t("hero.subtitle")}</p>
+      <section className="relative overflow-hidden min-h-[36vh] flex items-center">
+        <img src="/hero-journey.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/80 to-[#062D63]/50" />
+        <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 text-center md:text-left">
+          <div className="text-[#C89B3C] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">{t("hero.title")}</h1>
+          <p className="text-white/70 text-sm max-w-xl">{t("hero.subtitle")}</p>
         </div>
       </section>
 
       <section className="py-12 bg-[#F7F8FA] min-h-[70vh]">
-        <div className="max-w-[700px] mx-auto px-4 md:px-6">
+        <div className="max-w-[700px] mx-auto px-4 md:px-5">
           <StepIndicator current={step} />
 
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5 md:p-7">
+          <div className="bg-white rounded-lg border border-[#E5E7EB] shadow-sm p-5 md:p-7">
 
             {/* Step 0: Select Service */}
             {step === 0 && (
@@ -319,12 +306,11 @@ export function BookingPage() {
 
               {step < 3 ? (
                 <button
-                  type="button"
-                  onClick={() => { if (canAdvance) setStep(s => s + 1); }}
-                  disabled={!canAdvance}
+                  onClick={() => setStep(s => s + 1)}
+                  disabled={step === 0 && !service}
                   className={cn(
                     "flex items-center gap-2 px-6 py-2.5 font-bold rounded-[10px] text-[13px] transition-all cursor-pointer",
-                    !canAdvance
+                    step === 0 && !service
                       ? "bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
                       : "bg-[#1B75BC] hover:bg-[#14588F] text-white"
                   )}>

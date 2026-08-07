@@ -1,32 +1,29 @@
 import React from "react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Plane, Home, ArrowLeft } from "lucide-react";
+import { Home, MessageCircle } from "lucide-react";
+import { PageHero, Section, Btn } from "../website/primitives";
 
 export function NotFoundPage() {
   const { t } = useTranslation("errors");
+
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[#F7F8FA] px-6">
-      <div className="text-center max-w-md">
-        <div className="w-20 h-20 bg-[#1B75BC]/8 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Plane size={36} className="text-[#1B75BC] -rotate-45" />
+    <div>
+      <PageHero
+        eyebrow="404"
+        title={t("notFound.title")}
+        subtitle={t("notFound.message")}
+        image="/hero-approve.jpg"
+        compact
+      />
+      <Section>
+        <div className="text-center max-w-md mx-auto">
+          <p className="text-7xl font-semibold text-[#1B75BC]/20 mb-6" style={{ fontFamily: "var(--font-display)" }}>404</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Btn to="/"><Home size={15} />{t("notFound.backHome")}</Btn>
+            <Btn to="/contact" variant="outline"><MessageCircle size={15} />{t("notFound.contactSupport")}</Btn>
+          </div>
         </div>
-        <div className="text-7xl font-black text-[#1B75BC]/15 mb-2">404</div>
-        <h1 className="text-2xl font-bold text-[#111827] mb-3">{t("notFound.title")}</h1>
-        <p className="text-[#6B7280] mb-8 text-sm leading-relaxed">
-          {t("notFound.message")}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#1B75BC] text-white font-semibold rounded-[10px] hover:bg-[#14588F] transition-colors text-sm">
-            <Home size={15} />
-            {t("notFound.backHome")}
-          </Link>
-          <Link to="/contact" className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-[#1B75BC] text-[#1B75BC] font-semibold rounded-[10px] hover:bg-[#1B75BC]/5 transition-colors text-sm">
-            <ArrowLeft size={15} />
-            {t("notFound.contactSupport")}
-          </Link>
-        </div>
-      </div>
+      </Section>
     </div>
   );
 }

@@ -1,141 +1,270 @@
-import React from "react";
-import { Link } from "react-router";
-import { Star, MapPin, ArrowRight } from "lucide-react";
-import { usePublicCmsPage, usePublicTestimonials } from "../hooks/publicContent";
+import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { usePublicPage, usePublicTestimonials } from "../hooks/publicContent";
+import {
+  PageHero, Breadcrumbs, Section, SectionHeader, SkeletonBlock, EmptyState, ErrorState,
+  TestimonialCard, VideoCard, Reveal, Btn, CtaBand,
+} from "../website/primitives";
+import { SITE_VIDEOS, type SiteVideo } from "../website/videos";
+import { VideoPlayerModal } from "../website/VideoPlayerModal";
+import { cn } from "../lib/utils";
 import { BRANCHES } from "../lib/data";
 
-/** Thin CMS page — loads published CmsPage by slug and renders body. */
-export function CmsContentPage({ slug, fallbackTitle }: { slug: string; fallbackTitle?: string }) {
-  const { page, isLoading, isError } = usePublicCmsPage(slug);
+function CmsBodyPage({
+  slug, fallbackTitle, fallbackBody, image = "/hero-approve.jpg",
+}: {
+  slug: string; fallbackTitle: string; fallbackBody: string; image?: string;
+}) {
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  const { data, isLoading, isError } = usePublicPage(slug);
+  const title = data?.title || fallbackTitle;
+  const body = data?.body || fallbackBody;
 
   return (
-    <>
-      <section className="bg-[#1B75BC] py-14 text-white">
-        <div className="max-w-[900px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">SM Travels</div>
-          <h1 className="text-3xl font-black mb-2">
-            {page?.title ?? fallbackTitle ?? (isLoading ? "Loading…" : "Page")}
-          </h1>
-          {page?.metaDesc && <p className="text-white/60 text-sm max-w-2xl">{page.metaDesc}</p>}
-        </div>
-      </section>
-
-      <section className="py-12 md:py-16 bg-[#F7F8FA]">
-        <div className="max-w-[900px] mx-auto px-6">
-          {isLoading && <p className="text-sm text-slate-400">Loading content…</p>}
-          {isError && !page && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
-              <p className="text-sm text-slate-600 mb-4">This page is not available yet.</p>
-              <Link to="/" className="text-sm text-[#1B75BC] font-semibold hover:underline">Back to home</Link>
-            </div>
-          )}
-          {page?.body && (
-            <article className="bg-white border border-slate-200 rounded-2xl p-6 md:p-10 prose prose-slate max-w-none">
-              <div className="text-[14px] text-[#374151] leading-relaxed whitespace-pre-wrap">{page.body}</div>
-            </article>
-          )}
-        </div>
-      </section>
-    </>
+    <div>
+      <PageHero title={title} subtitle={data?.metaDesc || undefined} image={image} compact>
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: title },
+        ]} />
+      </PageHero>
+      <Section>
+        {isLoading && <SkeletonBlock className="h-48" />}
+        {isError && !data && (
+          <div className="prose prose-sm max-w-none text-[#374151] leading-relaxed whitespace-pre-wrap">{fallbackBody}</div>
+        )}
+        {!isLoading && (
+          body.includes("<") ? (
+            <div
+              className="prose prose-sm max-w-none text-[#374151] leading-relaxed [&_h2]:text-[#062D63] [&_h3]:text-[#062D63] [&_a]:text-[#1B75BC]"
+              dangerouslySetInnerHTML={{ __html: body }}
+            />
+          ) : (
+            <div className="prose prose-sm max-w-none text-[#374151] leading-relaxed whitespace-pre-wrap">{body}</div>
+          )
+        )}
+      </Section>
+    </div>
   );
 }
 
-export function PrivacyPage() { return <CmsContentPage slug="privacy" fallbackTitle="Privacy Policy" />; }
-export function TermsPage() { return <CmsContentPage slug="terms" fallbackTitle="Terms of Use" />; }
-export function RefundPage() { return <CmsContentPage slug="refund" fallbackTitle="Refund Policy" />; }
-export function CareerPage() { return <CmsContentPage slug="career" fallbackTitle="Careers" />; }
-export function HotelsInfoPage() { return <CmsContentPage slug="hotels" fallbackTitle="Hotel Booking" />; }
-export function TransportPage() { return <CmsContentPage slug="transport" fallbackTitle="Transport Services" />; }
+export function PrivacyPage() {
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  return (
+    <CmsBodyPage
+      slug="privacy"
+      image="/hero-approve.jpg"
+      fallbackTitle={bn ? "গোপনীয়তা নীতি" : "Privacy Policy"}
+      fallbackBody={bn
+        ? "এসএম ট্রাভেলস আপনার ব্যক্তিগত তথ্য সুরক্ষিত রাখে। আমরা শুধুমাত্র সেবা প্রদানের জন্য প্রয়োজনীয় তথ্য সংগ্রহ করি এবং তৃতীয় পক্ষের সাথে অননুমোদিতভাবে শেয়ার করি না।"
+        : "SM Travels protects your personal information. We collect only what is needed to deliver services and do not share data with third parties without authorization."}
+    />
+  );
+}
+
+export function TermsPage() {
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  return (
+    <CmsBodyPage
+      slug="terms"
+      image="/hero-approve.jpg"
+      fallbackTitle={bn ? "সেবার শর্তাবলি" : "Terms of Service"}
+      fallbackBody={bn
+        ? "আমাদের সেবা ব্যবহারের অর্থ আপনি এসএম ট্রাভেলসের বুকিং, বাতিলকরণ এবং পেমেন্ট নীতিমালা মেনে নিয়েছেন। প্যাকেজ-নির্দিষ্ট শর্ত প্রযোজ্য।"
+        : "By using our services you agree to SM Travels booking, cancellation, and payment policies. Package-specific terms apply."}
+    />
+  );
+}
+
+export function RefundPage() {
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  return (
+    <CmsBodyPage
+      slug="refund"
+      image="/hero-approve.jpg"
+      fallbackTitle={bn ? "রিফান্ড নীতি" : "Refund Policy"}
+      fallbackBody={bn
+        ? "রিফান্ড এয়ারলাইন, হোটেল এবং ভিসা নিয়ম অনুযায়ী নির্ধারিত হয়। বাতিলের সময়সীমা প্যাকেজ নিশ্চিতকরণে উল্লেখ থাকে। বিস্তারিত জানতে আমাদের সাথে যোগাযোগ করুন।"
+        : "Refunds follow airline, hotel, and visa rules. Cancellation windows are stated on package confirmation. Contact us for details."}
+    />
+  );
+}
+
+export function CareerPage() {
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  return (
+    <div>
+      <CmsBodyPage
+        slug="career"
+        image="/hero-approve.jpg"
+        fallbackTitle={bn ? "ক্যারিয়ার" : "Careers"}
+        fallbackBody={bn
+          ? "এসএম ট্রাভেলসে যোগ দিন — হজ্ব, উমরাহ, ভিসা ও কস্টমার সার্ভিস টিমে প্রতিভাবান মানুষ খুঁজছি। সিভি পাঠান: hr@smtravel.com.bd"
+          : "Join SM Travels — we hire for Hajj, Umrah, visa, and customer service teams. Send your CV to hr@smtravel.com.bd"}
+      />
+      <Section tone="tint" className="!pt-0">
+        <CtaBand
+          title={bn ? "আগ্রহী?" : "Interested?"}
+          subtitle={bn ? "আমাদের টিমে আপনার জায়গা হতে পারে।" : "There may be a place for you on our team."}
+          primary={{ label: bn ? "যোগাযোগ" : "Contact", to: "/contact" }}
+        />
+      </Section>
+    </div>
+  );
+}
 
 export function BranchesPage() {
-  const { page, isLoading } = usePublicCmsPage("branches");
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  const { data } = usePublicPage("branches");
 
   return (
-    <>
-      <section className="bg-[#1B75BC] py-14 text-white">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">SM Travels</div>
-          <h1 className="text-3xl font-black mb-2">{page?.title ?? "Our Branches"}</h1>
-          <p className="text-white/60 text-sm">{page?.metaDesc ?? "Visit us across Bangladesh"}</p>
-        </div>
-      </section>
-
-      <section className="py-12 md:py-16 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-          {BRANCHES.map((b) => (
-            <div key={b.city} className="bg-white border border-slate-200 rounded-2xl p-6">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[#1B75BC]/10 flex items-center justify-center">
-                  <MapPin size={18} className="text-[#1B75BC]" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800">{b.name}</h2>
-                  <p className="text-sm text-slate-500">{b.city}</p>
-                </div>
+    <div>
+      <PageHero
+        eyebrow={bn ? "যোগাযোগ" : "Visit us"}
+        title={data?.title || (bn ? "আমাদের শাখা" : "Our Branches")}
+        subtitle={data?.metaDesc || (bn ? "সারা বাংলাদেশে সেবা।" : "Serving pilgrims across Bangladesh.")}
+        image="/hero-approve.jpg"
+      >
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: bn ? "শাখা" : "Branches" },
+        ]} />
+      </PageHero>
+      <Section tone="sky">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {BRANCHES.map((branch, i) => (
+            <Reveal key={branch.city} delay={i * 0.05}>
+              <div className={cn(
+                "bg-white rounded-xl border p-6 h-full shadow-sm hover:shadow-lg transition-shadow",
+                i === 0 ? "border-[#F37021]" : "border-[#E5E7EB]",
+              )}>
+                {i === 0 && <p className="text-[10px] font-bold text-[#F37021] uppercase tracking-widest mb-2">{bn ? "প্রধান কার্যালয়" : "Head Office"}</p>}
+                <h3 className="text-lg font-bold text-[#002D62] mb-3" style={{ fontFamily: "var(--font-display)" }}>{branch.city}</h3>
+                <ul className="space-y-2.5 text-sm text-[#6B7280]">
+                  <li className="flex gap-2"><MapPin size={14} className="text-[#F37021] mt-0.5 flex-shrink-0" />{branch.address}</li>
+                  <li><a href={`tel:${branch.phone}`} className="flex gap-2 hover:text-[#1B75BC]"><Phone size={14} className="text-[#F37021]" />{branch.phone}</a></li>
+                  <li><a href={`mailto:${branch.email}`} className="flex gap-2 hover:text-[#1B75BC]"><Mail size={14} className="text-[#F37021]" />{branch.email}</a></li>
+                  <li className="flex gap-2"><Clock size={14} className="text-[#F37021]" />{branch.hours}</li>
+                </ul>
               </div>
-              <p className="text-sm text-slate-600 mb-2">{b.address}</p>
-              <p className="text-sm text-slate-600">{b.phone} · {b.mobile}</p>
-              <p className="text-sm text-slate-500 mt-1">{b.email}</p>
-              <p className="text-xs text-slate-400 mt-2">{b.hours}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
-        {page?.body && !isLoading && (
-          <div className="max-w-[900px] mx-auto px-6 mt-10">
-            <article className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
-              <div className="text-[14px] text-[#374151] leading-relaxed whitespace-pre-wrap">{page.body}</div>
-            </article>
-          </div>
+        {data?.body && (
+          data.body.includes("<") ? (
+            <div className="mt-10 prose prose-sm max-w-none text-[#374151]" dangerouslySetInnerHTML={{ __html: data.body }} />
+          ) : (
+            <div className="mt-10 prose prose-sm max-w-none text-[#374151] whitespace-pre-wrap">{data.body}</div>
+          )
         )}
-      </section>
-    </>
+      </Section>
+    </div>
   );
 }
 
 export function TestimonialsPage() {
-  const { testimonials, isLoading } = usePublicTestimonials();
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  const { data, isLoading, isError } = usePublicTestimonials();
+  const items = data ?? [];
 
   return (
-    <>
-      <section className="bg-[#1B75BC] py-14 text-white">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="text-[#D64A12] text-[12px] font-bold uppercase tracking-widest mb-2">Reviews</div>
-          <h1 className="text-3xl font-black mb-2">Customer Testimonials</h1>
-          <p className="text-white/60 text-sm">What pilgrims and travellers say about SM Travels</p>
+    <div>
+      <PageHero
+        eyebrow={bn ? "আস্থা" : "Trust"}
+        title={bn ? "হাজিরদের মতামত" : "Pilgrim Testimonials"}
+        subtitle={bn ? "যারা আমাদের সাথে হজ্ব ও উমরাহ করেছেন।" : "From those who travelled with us."}
+        image="/hero-approve.jpg"
+      >
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: bn ? "প্রশংসাপত্র" : "Testimonials" },
+        ]} />
+      </PageHero>
+      <Section tone="mint">
+        {isLoading && <div className="grid md:grid-cols-3 gap-6">{Array.from({ length: 6 }).map((_, i) => <SkeletonBlock key={i} className="h-48" />)}</div>}
+        {isError && <ErrorState message={bn ? "লোড হয়নি।" : "Could not load testimonials."} />}
+        {!isLoading && !isError && items.length === 0 && <EmptyState message={bn ? "এখনো কোনো মতামত নেই।" : "No testimonials yet."} />}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((item, i) => (
+            <Reveal key={item.id} delay={i * 0.04}>
+              <TestimonialCard t={item} />
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
+      <Section tone="warm">
+        <CtaBand
+          title={bn ? "আপনার যাত্রা শুরু করুন" : "Start your journey"}
+          primary={{ label: bn ? "বুকিং" : "Book", to: "/book" }}
+          secondary={{ label: bn ? "যোগাযোগ" : "Contact", to: "/contact" }}
+        />
+      </Section>
+    </div>
+  );
+}
 
-      <section className="py-12 md:py-16 bg-[#F7F8FA]">
-        <div className="max-w-[1400px] mx-auto px-6">
-          {isLoading && <p className="text-sm text-slate-400 mb-4">Loading…</p>}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {testimonials.map((t, i) => (
-              <div key={`${t.name}-${i}`} className="bg-white border border-slate-200 rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-[#1B75BC] text-white flex items-center justify-center font-bold">
-                    {t.initial}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{t.name}</p>
-                    <p className="text-xs text-slate-400">{t.city}{t.package ? ` · ${t.package}` : ""}</p>
-                  </div>
-                </div>
-                <div className="flex gap-0.5 mb-2">
-                  {[...Array(5)].map((_, s) => (
-                    <Star key={s} size={12} className={s < t.stars ? "text-amber-400 fill-amber-400" : "text-slate-200"} />
-                  ))}
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed">"{t.text}"</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link to="/contact" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1B75BC] hover:underline">
-              Share your experience <ArrowRight size={14} />
-            </Link>
-          </div>
+export function VideosPage() {
+  const { i18n } = useTranslation();
+  const bn = i18n.language?.startsWith("bn");
+  const [cat, setCat] = useState("All");
+  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(SITE_VIDEOS.map((v) => v.category)))],
+    [],
+  );
+  const filtered = cat === "All" ? SITE_VIDEOS : SITE_VIDEOS.filter((v) => v.category === cat);
+
+  return (
+    <div>
+      <PageHero
+        eyebrow={bn ? "শেখা" : "Learn"}
+        title={bn ? "ভিডিও গ্যালারি" : "Video Gallery"}
+        subtitle={bn ? "হজ্ব, উমরাহ ও ভ্রমণ গাইড — সাইটেই দেখুন।" : "Hajj, Umrah & travel guides — play on site."}
+        image="/hero-approve.jpg"
+      >
+        <Breadcrumbs items={[
+          { label: bn ? "হোম" : "Home", to: "/" },
+          { label: bn ? "ভিডিও" : "Videos" },
+        ]} />
+      </PageHero>
+      <Section tone="sky">
+        <SectionHeader title={bn ? "সব ভিডিও" : "All videos"} subtitle={`${filtered.length} ${bn ? "টি" : ""}`} />
+        <div className="flex flex-wrap gap-2 mb-8">
+          {categories.map((c) => (
+            <button key={c} type="button" onClick={() => setCat(c)}
+              className={cn("px-4 py-2 rounded-full text-xs font-bold", cat === c ? "bg-[#1B75BC] text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]")}>
+              {c === "All" ? (bn ? "সব" : "All") : c}
+            </button>
+          ))}
         </div>
-      </section>
-    </>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((v, i) => (
+            <Reveal key={v.id} delay={i * 0.04}>
+              <VideoCard
+                title={bn ? v.titleBn : v.titleEn}
+                src={v.src}
+                poster={v.poster}
+                youtubeId={v.youtubeId}
+                duration={v.duration}
+                views={v.views}
+                category={v.category}
+                onPlay={() => setActiveVideo(v)}
+              />
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+      {activeVideo && (
+        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
+      )}
+    </div>
   );
 }
