@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { SERVICES } from "../lib/data";
 import { cn } from "../lib/utils";
+import { usePageMeta } from "../lib/usePageMeta";
 import { usePublicPackages } from "../hooks/publicContent";
 import {
   PageHero, Breadcrumbs, Section, SectionHeader, PackageCard, AccordionFAQ,
@@ -17,16 +18,20 @@ const ICON_MAP: Record<string, React.ElementType> = {
   "dollar-sign": Shield, calendar: Clock, phone: Phone, "check-circle": CheckCircle,
 };
 
+// Canonical stored casing is title-case (e.g. "Hajj"); the API tolerates any
+// case today, but matching the stored value avoids a demo-fallback trap if the
+// backend ever becomes case-sensitive.
 const TYPE_BY_SERVICE: Record<string, string | undefined> = {
-  hajj: "HAJJ",
-  umrah: "UMRAH",
-  "tour-packages": "TOUR",
+  hajj: "Hajj",
+  umrah: "Umrah",
+  "tour-packages": "Tour",
 };
 
 export function ServicePage({ serviceId }: { serviceId: string }) {
   const { t, i18n } = useTranslation("servicesPage");
   const bn = i18n.language?.startsWith("bn");
   const service = SERVICES.find((s) => s.id === serviceId);
+  usePageMeta(service?.label, service?.shortDesc);
   const apiType = TYPE_BY_SERVICE[serviceId];
   const { data: pkgData, isLoading: pkgLoading } = usePublicPackages({
     type: apiType,

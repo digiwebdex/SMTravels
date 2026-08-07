@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle, Globe, Target, Heart, Star } from "lucide-react";
 import { img, SITE_IMAGES } from "../lib/utils";
+import { usePageMeta } from "../lib/usePageMeta";
 import {
   PageHero, Breadcrumbs, Section, SectionHeader, Reveal, CtaBand,
 } from "../website/primitives";
@@ -36,10 +37,11 @@ const CERTS = [
 export function About() {
   const { t, i18n } = useTranslation("about");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "আমাদের সম্পর্কে" : "About Us", "Trusted Hajj, Umrah, visa and travel services since 1998 — government-approved and ATAB licensed.");
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.heading")} subtitle={t("hero.subtitle")} image="/hero-makkah-poster.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "আমাদের সম্পর্কে" : "About" },
@@ -72,8 +74,8 @@ export function About() {
           </Reveal>
           <Reveal delay={0.1}>
             <div className="grid grid-cols-2 gap-4">
-              <img src="/hero-approve.jpg" alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
-              <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="" className="rounded-lg object-cover h-[220px] w-full shadow-lg mt-8" />
+              <img src="/hero-makkah-poster.jpg" alt="Masjid al-Haram, Makkah" className="rounded-lg object-cover h-[220px] w-full shadow-lg" />
+              <img src={img(SITE_IMAGES.pilgrims, 500, 350)} alt="Pilgrims on the journey of Hajj" className="rounded-lg object-cover h-[220px] w-full shadow-lg mt-8" />
             </div>
           </Reveal>
         </div>

@@ -9,7 +9,7 @@ export const img = (id: string, w = 1280, h = 720) =>
   `https://images.unsplash.com/${id}?w=${w}&h=${h}&fit=crop&auto=format&q=85`;
 
 /** Local fallback when remote/CMS package images fail to load. */
-export const PACKAGE_IMAGE_FALLBACK = "/packages/umrah-gold.jpg";
+export const PACKAGE_IMAGE_FALLBACK = "/hero-makkah-poster.jpg";
 
 /** Resolve CMS/API image fields: full URL, /uploads path, or Unsplash photo id. */
 export function mediaUrl(src: string | null | undefined, w = 1280, h = 720): string {
@@ -26,7 +26,7 @@ export const fmtPrice = (n: number) =>
 /** Curated premium Unsplash photo ids + local hero asset for Website V2. */
 export const SITE_IMAGES = {
   /** Approve-design full-bleed Kaaba night hero. */
-  kaabaHero: "/hero-approve.jpg",
+  kaabaHero: "/hero-makkah-poster.jpg",
   kaaba: "photo-1564769625905-50e93615e769",
   kaabaNight: "photo-1591604129939-f1efa4d9f7fa",
   madinah: "photo-1542816417-0983c9c9ad84",

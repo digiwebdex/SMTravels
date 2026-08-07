@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
+import { usePageMeta } from "../lib/usePageMeta";
 import {
   Star, Clock, MapPin, CheckCircle, XCircle, Users, Hotel, Plane, Phone, Search,
 } from "lucide-react";
@@ -22,6 +23,7 @@ function normalizeTypeParam(raw: string | null): (typeof TYPES)[number] {
 export function PackagesPage() {
   const { t, i18n } = useTranslation("packages");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "হজ্ব ও উমরাহ প্যাকেজ" : "Hajj & Umrah Packages", "Browse Hajj, Umrah and tour packages from SM Travels International.");
   const [searchParams, setSearchParams] = useSearchParams();
   const [type, setType] = useState<(typeof TYPES)[number]>(() => normalizeTypeParam(searchParams.get("type")));
   const [search, setSearch] = useState("");
@@ -43,7 +45,7 @@ export function PackagesPage() {
         eyebrow={t("hero.eyebrow")}
         title={t("hero.heading")}
         subtitle={t("hero.subtitle")}
-        image="/hero-approve.jpg"
+        image="/hero-makkah-poster.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -59,6 +61,7 @@ export function PackagesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("list.searchPlaceholder")}
+              aria-label={t("list.searchPlaceholder")}
               className="w-full pl-11 pr-4 py-3.5 rounded-full border border-[#E5E7EB] bg-white text-sm text-[#062D63] outline-none focus:ring-2 focus:ring-[#1B75BC]/30 focus:border-[#1B75BC]"
             />
           </div>
@@ -128,7 +131,7 @@ export function PackageDetailPage() {
   if (isError || !pkg) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image="/hero-approve.jpg" compact>
+        <PageHero title={t("detail.notFound")} image="/hero-makkah-poster.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "প্যাকেজ" : "Packages", to: "/packages" },

@@ -117,14 +117,19 @@ export function Header() {
                 {bn ? item.labelBn : item.labelEn}
               </Link>
             ))}
-            <div className="relative" onMouseEnter={() => setOthersOpen(true)} onMouseLeave={() => setOthersOpen(false)}>
+            <div className="relative"
+              onMouseEnter={() => setOthersOpen(true)}
+              onMouseLeave={() => setOthersOpen(false)}
+              onFocus={() => setOthersOpen(true)}
+              onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOthersOpen(false); }}>
               <button type="button"
+                onClick={() => setOthersOpen((o) => !o)}
                 className="px-2.5 py-2 text-[13px] font-semibold text-[#002D62] hover:text-[#1B75BC] inline-flex items-center gap-0.5"
-                aria-expanded={othersOpen}>
+                aria-haspopup="true" aria-controls="others-menu" aria-expanded={othersOpen}>
                 {bn ? "অন্যান্য" : "Others"} <ChevronDown size={14} className={cn("transition-transform", othersOpen && "rotate-180")} />
               </button>
               {othersOpen && (
-                <div className="absolute top-full left-0 pt-2 w-52 z-50">
+                <div id="others-menu" className="absolute top-full left-0 pt-2 w-52 z-50">
                   <div className="bg-white rounded-md shadow-xl border border-[#E5E7EB] py-1">
                     {OTHERS_NAV.map((s) => (
                       <Link key={s.path + s.labelEn} to={s.path}
@@ -215,9 +220,9 @@ export function Footer() {
                 : "Trusted Hajj, Umrah, visa and travel services since 2011 — with transparency and Islamic elegance."}
             </p>
             <div className="flex gap-2">
-              {[Facebook, Instagram, Youtube, Twitter, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F37021] hover:border-[#F37021] flex items-center justify-center transition-colors" aria-label="Social">
-                  <Icon size={15} />
+              {[{ Icon: Facebook, label: "Facebook" }, { Icon: Instagram, label: "Instagram" }, { Icon: Youtube, label: "YouTube" }, { Icon: Twitter, label: "Twitter / X" }, { Icon: Linkedin, label: "LinkedIn" }].map(({ Icon, label }) => (
+                <a key={label} href="#" aria-label={label} title={label} className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F37021] hover:border-[#F37021] flex items-center justify-center transition-colors">
+                  <Icon size={15} aria-hidden />
                 </a>
               ))}
             </div>

@@ -108,7 +108,7 @@ export function PageHero({
 }) {
   const src = image
     ? (image.startsWith("/") || image.startsWith("http") ? image : mediaUrl(image, 1920, 1080))
-    : "/hero-journey.jpg";
+    : "/hero-makkah-poster.jpg";
   return (
     <div className={cn("relative overflow-hidden bg-[#001F45]", compact ? "min-h-[36vh]" : "min-h-[48vh]")}>
       <img
@@ -269,8 +269,8 @@ export function PackageCard({ pkg }: { pkg: PublicPackageItem }) {
         )}
         <div className="mt-auto flex items-center justify-between pt-3 border-t border-[#F3F4F6]">
           <span className="inline-flex items-center gap-1 text-xs text-[#6B7280]">
-            <Star size={12} className="text-[#C89B3C] fill-[#C89B3C]" /> {pkg.rating.toFixed(1)}
-            <span className="text-[#9CA3AF]">({pkg.reviews})</span>
+            <Star size={12} className="text-[#C89B3C] fill-[#C89B3C]" /> {(pkg.rating ?? 0).toFixed(1)}
+            <span className="text-[#9CA3AF]">({pkg.reviews ?? 0})</span>
           </span>
           <span className="text-sm font-semibold text-[#F37021] inline-flex items-center gap-1">
             বিস্তারিত <ArrowRight size={14} />
@@ -316,13 +316,19 @@ export function VideoCard({
   onPlay?: () => void;
 }) {
   const thumb = poster
-    || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : "/hero-journey.jpg");
+    || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : "/hero-makkah-poster.jpg");
   const playable = !!(src || youtubeId);
 
   const inner = (
     <>
       <div className="relative aspect-video overflow-hidden">
-        <img src={thumb} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+        <img src={thumb} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy"
+          onError={(e) => {
+            const el = e.currentTarget;
+            if (el.dataset.fallback === "1") return;
+            el.dataset.fallback = "1";
+            el.src = PACKAGE_IMAGE_FALLBACK;
+          }} />
         <div className="absolute inset-0 bg-black/25 group-hover:bg-black/40 transition-colors" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-14 h-14 rounded-full bg-[#F37021] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">

@@ -6,10 +6,12 @@ import {
   PageHero, Breadcrumbs, Section, AccordionFAQ, SkeletonBlock, EmptyState, ErrorState, Btn,
 } from "../website/primitives";
 import { cn } from "../lib/utils";
+import { usePageMeta } from "../lib/usePageMeta";
 
 export function FAQPage() {
   const { t, i18n } = useTranslation("faq");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "সাধারণ জিজ্ঞাসা" : "Frequently Asked Questions", "Answers about Hajj, Umrah, visa, air tickets and travel bookings with SM Travels International.");
   const [search, setSearch] = useState("");
   const [activeCat, setActiveCat] = useState("All");
   const { data, isLoading, isError } = usePublicFaqs();
@@ -34,7 +36,7 @@ export function FAQPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-makkah-poster.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: "FAQ" },
@@ -46,6 +48,7 @@ export function FAQPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("hero.searchPlaceholder")}
+            aria-label={t("hero.searchPlaceholder")}
             className="w-full pl-11 pr-4 py-3.5 bg-white rounded-full text-sm text-[#062D63] outline-none focus:ring-2 focus:ring-[#C89B3C]"
           />
         </div>

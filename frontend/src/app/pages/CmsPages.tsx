@@ -1,18 +1,17 @@
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Video } from "lucide-react";
 import { usePublicPage, usePublicTestimonials } from "../hooks/publicContent";
 import {
-  PageHero, Breadcrumbs, Section, SectionHeader, SkeletonBlock, EmptyState, ErrorState,
-  TestimonialCard, VideoCard, Reveal, Btn, CtaBand,
+  PageHero, Breadcrumbs, Section, SkeletonBlock, EmptyState, ErrorState,
+  TestimonialCard, Reveal, Btn, CtaBand,
 } from "../website/primitives";
-import { SITE_VIDEOS, type SiteVideo } from "../website/videos";
-import { VideoPlayerModal } from "../website/VideoPlayerModal";
 import { cn } from "../lib/utils";
 import { BRANCHES } from "../lib/data";
+import { usePageMeta } from "../lib/usePageMeta";
 
 function CmsBodyPage({
-  slug, fallbackTitle, fallbackBody, image = "/hero-approve.jpg",
+  slug, fallbackTitle, fallbackBody, image = "/hero-makkah-poster.jpg",
 }: {
   slug: string; fallbackTitle: string; fallbackBody: string; image?: string;
 }) {
@@ -35,7 +34,7 @@ function CmsBodyPage({
         {isError && !data && (
           <div className="prose prose-sm max-w-none text-[#374151] leading-relaxed whitespace-pre-wrap">{fallbackBody}</div>
         )}
-        {!isLoading && (
+        {!isLoading && !isError && (
           body.includes("<") ? (
             <div
               className="prose prose-sm max-w-none text-[#374151] leading-relaxed [&_h2]:text-[#062D63] [&_h3]:text-[#062D63] [&_a]:text-[#1B75BC]"
@@ -56,7 +55,7 @@ export function PrivacyPage() {
   return (
     <CmsBodyPage
       slug="privacy"
-      image="/hero-approve.jpg"
+      image="/hero-makkah-poster.jpg"
       fallbackTitle={bn ? "গোপনীয়তা নীতি" : "Privacy Policy"}
       fallbackBody={bn
         ? "এসএম ট্রাভেলস আপনার ব্যক্তিগত তথ্য সুরক্ষিত রাখে। আমরা শুধুমাত্র সেবা প্রদানের জন্য প্রয়োজনীয় তথ্য সংগ্রহ করি এবং তৃতীয় পক্ষের সাথে অননুমোদিতভাবে শেয়ার করি না।"
@@ -71,7 +70,7 @@ export function TermsPage() {
   return (
     <CmsBodyPage
       slug="terms"
-      image="/hero-approve.jpg"
+      image="/hero-makkah-poster.jpg"
       fallbackTitle={bn ? "সেবার শর্তাবলি" : "Terms of Service"}
       fallbackBody={bn
         ? "আমাদের সেবা ব্যবহারের অর্থ আপনি এসএম ট্রাভেলসের বুকিং, বাতিলকরণ এবং পেমেন্ট নীতিমালা মেনে নিয়েছেন। প্যাকেজ-নির্দিষ্ট শর্ত প্রযোজ্য।"
@@ -86,7 +85,7 @@ export function RefundPage() {
   return (
     <CmsBodyPage
       slug="refund"
-      image="/hero-approve.jpg"
+      image="/hero-makkah-poster.jpg"
       fallbackTitle={bn ? "রিফান্ড নীতি" : "Refund Policy"}
       fallbackBody={bn
         ? "রিফান্ড এয়ারলাইন, হোটেল এবং ভিসা নিয়ম অনুযায়ী নির্ধারিত হয়। বাতিলের সময়সীমা প্যাকেজ নিশ্চিতকরণে উল্লেখ থাকে। বিস্তারিত জানতে আমাদের সাথে যোগাযোগ করুন।"
@@ -102,7 +101,7 @@ export function CareerPage() {
     <div>
       <CmsBodyPage
         slug="career"
-        image="/hero-approve.jpg"
+        image="/hero-makkah-poster.jpg"
         fallbackTitle={bn ? "ক্যারিয়ার" : "Careers"}
         fallbackBody={bn
           ? "এসএম ট্রাভেলসে যোগ দিন — হজ্ব, উমরাহ, ভিসা ও কস্টমার সার্ভিস টিমে প্রতিভাবান মানুষ খুঁজছি। সিভি পাঠান: hr@smtravel.com.bd"
@@ -130,7 +129,7 @@ export function BranchesPage() {
         eyebrow={bn ? "যোগাযোগ" : "Visit us"}
         title={data?.title || (bn ? "আমাদের শাখা" : "Our Branches")}
         subtitle={data?.metaDesc || (bn ? "সারা বাংলাদেশে সেবা।" : "Serving pilgrims across Bangladesh.")}
-        image="/hero-approve.jpg"
+        image="/hero-makkah-poster.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -181,7 +180,7 @@ export function TestimonialsPage() {
         eyebrow={bn ? "আস্থা" : "Trust"}
         title={bn ? "হাজিরদের মতামত" : "Pilgrim Testimonials"}
         subtitle={bn ? "যারা আমাদের সাথে হজ্ব ও উমরাহ করেছেন।" : "From those who travelled with us."}
-        image="/hero-approve.jpg"
+        image="/hero-makkah-poster.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -214,21 +213,15 @@ export function TestimonialsPage() {
 export function VideosPage() {
   const { i18n } = useTranslation();
   const bn = i18n.language?.startsWith("bn");
-  const [cat, setCat] = useState("All");
-  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
-  const categories = useMemo(
-    () => ["All", ...Array.from(new Set(SITE_VIDEOS.map((v) => v.category)))],
-    [],
-  );
-  const filtered = cat === "All" ? SITE_VIDEOS : SITE_VIDEOS.filter((v) => v.category === cat);
+  usePageMeta(bn ? "ভিডিও গ্যালারি" : "Video Gallery", "Hajj and Umrah video guides from SM Travels International — coming soon.");
 
   return (
     <div>
       <PageHero
         eyebrow={bn ? "শেখা" : "Learn"}
         title={bn ? "ভিডিও গ্যালারি" : "Video Gallery"}
-        subtitle={bn ? "হজ্ব, উমরাহ ও ভ্রমণ গাইড — সাইটেই দেখুন।" : "Hajj, Umrah & travel guides — play on site."}
-        image="/hero-approve.jpg"
+        subtitle={bn ? "হজ্ব, উমরাহ ও ভ্রমণ গাইড ভিডিও শীঘ্রই আসছে।" : "Hajj, Umrah & travel guide videos are coming soon."}
+        image="/hero-makkah-poster.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -236,35 +229,23 @@ export function VideosPage() {
         ]} />
       </PageHero>
       <Section tone="sky">
-        <SectionHeader title={bn ? "সব ভিডিও" : "All videos"} subtitle={`${filtered.length} ${bn ? "টি" : ""}`} />
-        <div className="flex flex-wrap gap-2 mb-8">
-          {categories.map((c) => (
-            <button key={c} type="button" onClick={() => setCat(c)}
-              className={cn("px-4 py-2 rounded-full text-xs font-bold", cat === c ? "bg-[#1B75BC] text-white" : "bg-white border border-[#E5E7EB] text-[#6B7280]")}>
-              {c === "All" ? (bn ? "সব" : "All") : c}
-            </button>
-          ))}
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((v, i) => (
-            <Reveal key={v.id} delay={i * 0.04}>
-              <VideoCard
-                title={bn ? v.titleBn : v.titleEn}
-                src={v.src}
-                poster={v.poster}
-                youtubeId={v.youtubeId}
-                duration={v.duration}
-                views={v.views}
-                category={v.category}
-                onPlay={() => setActiveVideo(v)}
-              />
-            </Reveal>
-          ))}
+        <div className="max-w-xl mx-auto text-center py-10">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-[#EAF5FF] text-[#1B75BC] flex items-center justify-center">
+            <Video size={28} />
+          </div>
+          <h2 className="text-xl md:text-2xl font-bold text-[#002D62] mb-2">
+            {bn ? "ভিডিও শীঘ্রই আসছে" : "Videos coming soon"}
+          </h2>
+          <p className="text-[#6B7280] leading-relaxed">
+            {bn
+              ? "আমরা হজ্ব ও উমরাহ গাইড ভিডিও তৈরি করছি। ততক্ষণে আমাদের জ্ঞান কেন্দ্র দেখুন।"
+              : "We’re producing our Hajj & Umrah guide videos. In the meantime, explore our Knowledge Hub."}
+          </p>
+          <div className="mt-6">
+            <Btn to="/knowledge" variant="primary">{bn ? "জ্ঞান কেন্দ্র দেখুন" : "Visit Knowledge Hub"}</Btn>
+          </div>
         </div>
       </Section>
-      {activeVideo && (
-        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
-      )}
     </div>
   );
 }

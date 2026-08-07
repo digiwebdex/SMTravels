@@ -152,7 +152,7 @@ export function BookingPage() {
   return (
     <>
       <section className="relative overflow-hidden min-h-[36vh] flex items-center">
-        <img src="/hero-journey.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <img src="/hero-makkah-poster.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#041E42]/95 via-[#062D63]/80 to-[#062D63]/50" />
         <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 text-center md:text-left">
           <div className="text-[#C89B3C] text-[12px] font-bold uppercase tracking-widest mb-2">{t("hero.eyebrow")}</div>

@@ -1,20 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
+import { usePageMeta } from "../lib/usePageMeta";
 import {
   BookOpen, Check, X, Download, PlayCircle, ArrowRight,
 } from "lucide-react";
 import {
   PageHero, Breadcrumbs, Section, SectionHeader, Reveal, GuideCard, Btn,
-  AccordionFAQ, VideoCard, EmptyState,
+  AccordionFAQ, EmptyState,
 } from "../website/primitives";
 import { GUIDES, getGuide, getRelatedGuides } from "../website/knowledge/guides";
-import { SITE_VIDEOS, type SiteVideo } from "../website/videos";
-import { VideoPlayerModal } from "../website/VideoPlayerModal";
 
 export function KnowledgePage() {
   const { i18n } = useTranslation();
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "হজ্ব ও উমরাহ জ্ঞান কেন্দ্র" : "Hajj & Umrah Knowledge Hub", "Step-by-step Hajj and Umrah rules, duas and guides from SM Travels International.");
   const cats = [
     { id: "ritual", label: bn ? "আমল" : "Rituals" },
     { id: "rules", label: bn ? "নিয়ম" : "Rules" },
@@ -28,7 +28,7 @@ export function KnowledgePage() {
         eyebrow={bn ? "ইসলামী গাইডেন্স সেন্টার" : "Islamic Guidance Center"}
         title={bn ? "হজ্ব ও উমরাহ জ্ঞান কেন্দ্র" : "Hajj & Umrah Knowledge Center"}
         subtitle={bn ? "বিশ্বস্ত গাইড — ইহরাম থেকে বিদায়ী তাওয়াফ পর্যন্ত।" : "Trusted guides — from Ihram to farewell Tawaf."}
-        image="/hero-approve.jpg"
+        image="/hero-makkah-poster.jpg"
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -67,13 +67,12 @@ export function KnowledgeDetailPage() {
   const { slug } = useParams();
   const { i18n } = useTranslation();
   const bn = i18n.language?.startsWith("bn");
-  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
   const guide = slug ? getGuide(slug) : undefined;
 
   if (!guide) {
     return (
       <div>
-        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-approve.jpg" compact>
+        <PageHero title={bn ? "গাইড পাওয়া যায়নি" : "Guide not found"} image="/hero-makkah-poster.jpg" compact>
           <Breadcrumbs items={[
             { label: bn ? "হোম" : "Home", to: "/" },
             { label: bn ? "জ্ঞান কেন্দ্র" : "Knowledge", to: "/knowledge" },
@@ -88,7 +87,6 @@ export function KnowledgeDetailPage() {
   }
 
   const related = getRelatedGuides(guide.slug, 4);
-  const videos = SITE_VIDEOS.filter((v) => guide.relatedVideos?.includes(v.id)).slice(0, 2);
   const next = guide.nextSlug ? getGuide(guide.nextSlug) : undefined;
   const faqs = guide.faqs.map((f, i) => ({ id: `${guide.slug}-faq-${i}`, question: f.q, answer: f.a }));
 
@@ -98,7 +96,7 @@ export function KnowledgeDetailPage() {
         eyebrow={bn ? "জ্ঞান কেন্দ্র" : "Knowledge Center"}
         title={bn ? guide.titleBn : guide.titleEn}
         subtitle={bn ? guide.summaryBn : guide.summaryEn}
-        image={guide.image || "/hero-approve.jpg"}
+        image={guide.image || "/hero-makkah-poster.jpg"}
       >
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
@@ -183,35 +181,13 @@ export function KnowledgeDetailPage() {
               </Reveal>
             )}
 
-            {videos.length > 0 && (
-              <Reveal>
-                <h2 className="text-2xl font-semibold text-[#062D63] mb-4" style={{ fontFamily: "var(--font-display)" }}>
-                  {bn ? "সম্পর্কিত ভিডিও" : "Related videos"}
-                </h2>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {videos.map((v) => (
-                    <VideoCard
-                      key={v.id}
-                      title={bn ? v.titleBn : v.titleEn}
-                      src={v.src}
-                      poster={v.poster}
-                      youtubeId={v.youtubeId}
-                      duration={v.duration}
-                      views={v.views}
-                      category={v.category}
-                      onPlay={() => setActiveVideo(v)}
-                    />
-                  ))}
-                </div>
-              </Reveal>
-            )}
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-28 self-start">
             <div className="rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-sm">
               <h3 className="font-semibold text-[#062D63] mb-3">{bn ? "ডাউনলোড" : "Download"}</h3>
               <p className="text-sm text-[#6B7280] mb-4">{bn ? "এই গাইডের সংক্ষিপ্ত PDF (শীঘ্রই)।" : "Short PDF of this guide (coming soon)."}</p>
-              <Btn variant="outline" className="w-full" href="#" onClick={() => undefined}>
+              <Btn variant="outline" className="w-full" disabled>
                 <Download size={16} /> PDF
               </Btn>
             </div>
@@ -239,9 +215,6 @@ export function KnowledgeDetailPage() {
           ))}
         </div>
       </Section>
-      {activeVideo && (
-        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
-      )}
     </div>
   );
 }

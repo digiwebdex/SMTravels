@@ -6,6 +6,7 @@ import { cn } from "../lib/utils";
 import { apiFetch } from "../lib/api";
 import type { ServiceTypeDto } from "@contracts/booking.contract";
 import { PageHero, Breadcrumbs, Btn } from "../website/primitives";
+import { usePageMeta } from "../lib/usePageMeta";
 
 const SERVICE_ENUM: Record<string, ServiceTypeDto> = {
   "Hajj Package": "HAJJ", "Umrah Package": "UMRAH", "Visa Services": "VISA", "Air Ticket": "AIR_TICKET",
@@ -27,6 +28,7 @@ const SERVICE_LABEL_KEY: Record<string, string> = {
 export function ContactPage() {
   const { t, i18n } = useTranslation("contact");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "যোগাযোগ" : "Contact Us", "Contact SM Travels International — hotline, WhatsApp, email and office hours for Hajj, Umrah, visa and travel bookings.");
   const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", message: "" });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
@@ -69,7 +71,7 @@ export function ContactPage() {
 
   return (
     <>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg" compact>
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-makkah-poster.jpg" compact>
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "যোগাযোগ" : "Contact" },
@@ -149,16 +151,16 @@ export function ContactPage() {
                         { key: "phone", label: t("form.phone"), placeholder: t("form.phonePlaceholder"), type: "tel" },
                       ].map(f => (
                         <div key={f.key} className="flex flex-col gap-1.5">
-                          <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{f.label}</label>
-                          <input type={f.type} placeholder={f.placeholder}
+                          <label htmlFor={`contact-${f.key}`} className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{f.label}</label>
+                          <input id={`contact-${f.key}`} type={f.type} placeholder={f.placeholder}
                             value={form[f.key as keyof typeof form]}
                             onChange={e => set(f.key as keyof typeof form)(e.target.value)}
                             className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all" />
                         </div>
                       ))}
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{t("form.serviceNeeded")}</label>
-                        <select value={form.service} onChange={e => set("service")(e.target.value)}
+                        <label htmlFor="contact-service" className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{t("form.serviceNeeded")}</label>
+                        <select id="contact-service" value={form.service} onChange={e => set("service")(e.target.value)}
                           className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] bg-white cursor-pointer">
                           <option value="">{t("form.selectService")}</option>
                           {SERVICES.map(s => <option key={s} value={s}>{t(SERVICE_LABEL_KEY[s])}</option>)}
@@ -166,8 +168,8 @@ export function ContactPage() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{t("form.message")}</label>
-                      <textarea rows={5} placeholder={t("form.messagePlaceholder")}
+                      <label htmlFor="contact-message" className="text-[11px] font-bold text-[#374151] uppercase tracking-wider">{t("form.message")}</label>
+                      <textarea id="contact-message" rows={5} placeholder={t("form.messagePlaceholder")}
                         value={form.message} onChange={e => set("message")(e.target.value)}
                         className="px-3 py-2.5 border border-[#E5E7EB] rounded-[10px] text-[13px] outline-none focus:border-[#1B75BC] focus:ring-2 focus:ring-[#1B75BC]/10 transition-all resize-none" />
                     </div>
@@ -212,9 +214,9 @@ export function ContactPage() {
                 <div className="mt-5 pt-5 border-t border-white/10">
                   <div className="text-[11px] text-white/40 mb-2">{t("quick.social")}</div>
                   <div className="flex gap-3">
-                    {[Facebook, Instagram].map((Icon, i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F37021] transition-colors">
-                        <Icon size={14} />
+                    {[{ Icon: Facebook, label: "Facebook" }, { Icon: Instagram, label: "Instagram" }].map(({ Icon, label }) => (
+                      <a key={label} href="#" aria-label={label} title={label} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F37021] transition-colors">
+                        <Icon size={14} aria-hidden />
                       </a>
                     ))}
                   </div>

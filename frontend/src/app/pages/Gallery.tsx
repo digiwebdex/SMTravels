@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import { usePublicGallery } from "../hooks/publicContent";
@@ -6,10 +6,12 @@ import {
   PageHero, Breadcrumbs, Section, SkeletonBlock, EmptyState, ErrorState, Reveal,
 } from "../website/primitives";
 import { mediaUrl, cn } from "../lib/utils";
+import { usePageMeta } from "../lib/usePageMeta";
 
 export function GalleryPage() {
   const { t, i18n } = useTranslation("gallery");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "গ্যালারি" : "Photo Gallery", "Photos from SM Travels Hajj, Umrah and tour groups.");
   const [active, setActive] = useState("All");
   const [lightbox, setLightbox] = useState<number | null>(null);
   const { data, isLoading, isError } = usePublicGallery();
@@ -23,9 +25,21 @@ export function GalleryPage() {
   const prev = () => { if (lightbox !== null) setLightbox((i) => (i! - 1 + filtered.length) % filtered.length); };
   const next = () => { if (lightbox !== null) setLightbox((i) => (i! + 1) % filtered.length); };
 
+  // Keyboard: Escape closes the lightbox; arrows navigate.
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      else if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, filtered.length]);
+
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-makkah-poster.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "গ্যালারি" : "Gallery" },

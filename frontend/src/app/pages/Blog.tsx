@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
+import { usePageMeta } from "../lib/usePageMeta";
 import { Search, Clock, User, Tag, Calendar } from "lucide-react";
 import { usePublicBlog, usePublicBlogPost } from "../hooks/publicContent";
 import {
@@ -11,6 +12,7 @@ import { mediaUrl, cn } from "../lib/utils";
 export function BlogPage() {
   const { t, i18n } = useTranslation("blog");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(bn ? "ব্লগ ও গাইড" : "Travel Blog & Guides", "Hajj, Umrah and travel guides, tips and news from SM Travels International.");
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -25,7 +27,7 @@ export function BlogPage() {
 
   return (
     <div>
-      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-approve.jpg">
+      <PageHero eyebrow={t("hero.eyebrow")} title={t("hero.title")} subtitle={t("hero.subtitle")} image="/hero-makkah-poster.jpg">
         <Breadcrumbs items={[
           { label: bn ? "হোম" : "Home", to: "/" },
           { label: bn ? "ব্লগ" : "Blog" },
@@ -63,6 +65,7 @@ export function BlogPage() {
           <div className="relative flex-1 min-w-[180px] max-w-xs">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("filters.searchPlaceholder")}
+              aria-label={t("filters.searchPlaceholder")}
               className="w-full pl-9 pr-4 py-2.5 border border-[#E5E7EB] rounded-full text-sm bg-white outline-none focus:ring-2 focus:ring-[#1B75BC]/20" />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -116,7 +119,7 @@ export function BlogDetailPage() {
   if (isError || !blog) {
     return (
       <div>
-        <PageHero title={t("detail.notFound")} image="/hero-approve.jpg" compact>
+        <PageHero title={t("detail.notFound")} image="/hero-makkah-poster.jpg" compact>
           <Breadcrumbs items={[{ label: bn ? "হোম" : "Home", to: "/" }, { label: "Blog", to: "/blog" }, { label: "404" }]} />
         </PageHero>
         <Section>

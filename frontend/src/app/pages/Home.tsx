@@ -4,15 +4,14 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import {
   Star, MapPin, Shield, Plane, Hotel, Globe, Car, Umbrella,
-  Play, ArrowRight, ChevronLeft, ChevronRight, Check, X,
+  ArrowRight, ChevronLeft, ChevronRight, Check, X,
   Clock, Headphones, Users, BadgeCheck, BookOpen,
 } from "lucide-react";
 import { Reveal, SkeletonBlock, EmptyState, StatCounter } from "../website/primitives";
 import { usePublicPackages } from "../hooks/publicContent";
 import { GUIDES } from "../website/knowledge/guides";
-import { SITE_VIDEOS, videoThumb, type SiteVideo } from "../website/videos";
-import { VideoPlayerModal } from "../website/VideoPlayerModal";
 import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn, PACKAGE_IMAGE_FALLBACK } from "../lib/utils";
+import { usePageMeta } from "../lib/usePageMeta";
 import type { PublicPackageItem } from "../hooks/publicContent";
 
 const SERVICES = [
@@ -256,9 +255,11 @@ function ApproveHeroBackground() {
         animate={reduce ? undefined : { scale: [1.04, 1.0, 1.04] }}
         transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
         onError={(e) => {
+          // Run-once guard: swap to the remote still exactly once, never loop.
           const el = e.target as HTMLImageElement;
-          if (!el.src.endsWith("hero-approve.png")) el.src = "/hero-approve.png";
-          else el.src = img(SITE_IMAGES.kaabaNight, 1920, 1080);
+          if (el.dataset.fallback === "1") return;
+          el.dataset.fallback = "1";
+          el.src = img(SITE_IMAGES.kaabaNight, 1920, 1080);
         }}
       />
       {/* Soft left wash so Bangla headline stays readable over golden sky */}
@@ -277,9 +278,12 @@ function ApproveHeroBackground() {
 export function Home() {
   const { i18n } = useTranslation("home");
   const bn = i18n.language?.startsWith("bn");
+  usePageMeta(
+    bn ? "হজ্ব, উমরাহ, ভিসা ও এয়ার টিকেট সেবা" : "Hajj, Umrah, Visa & Air Ticket Services in Bangladesh",
+    "Government-approved, ATAB-licensed Hajj, Umrah, visa, air ticket, manpower and tour services in Bangladesh.",
+  );
   const reduce = useReducedMotion();
   const [ruleTab, setRuleTab] = useState<"hajj" | "umrah">("hajj");
-  const [activeVideo, setActiveVideo] = useState<SiteVideo | null>(null);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -361,26 +365,10 @@ export function Home() {
                   <ArrowRight size={16} />
                 </Link>
               </motion.div>
-              <motion.button
-                type="button"
-                onClick={() => setActiveVideo(SITE_VIDEOS[0])}
-                whileHover={reduce ? undefined : { scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center gap-2.5 px-5 py-3.5 bg-transparent border-2 border-[#F37021] text-[#F37021] font-bold text-sm rounded-md hover:bg-[#F37021] hover:text-white transition-colors"
-              >
-                <span className="w-7 h-7 rounded-full border-2 border-current flex items-center justify-center">
-                  <Play size={12} className="ml-0.5 fill-current" />
-                </span>
-                {bn ? "আমাদের ভিডিও দেখুন" : "Watch Our Video"}
-              </motion.button>
             </div>
           </motion.div>
         </div>
       </section>
-
-      {activeVideo && (
-        <VideoPlayerModal video={activeVideo} bn={!!bn} onClose={() => setActiveVideo(null)} />
-      )}
 
       {/* ── Service icon grid — floating over soft blue wash ── */}
       <section className="relative z-20 -mt-10 md:-mt-14 mb-2 px-4 md:px-5">
@@ -611,73 +599,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* ── Video tutorials — soft sky (contrast after mint) ── */}
-      <section
-        className="relative py-14 md:py-20 overflow-hidden"
-        style={{
-          background: "linear-gradient(180deg, #EAF5FF 0%, #F7FBFF 50%, #FFFFFF 100%)",
-        }}
-      >
-        <div
-          className="absolute -left-24 top-0 w-80 h-80 rounded-full blur-3xl opacity-40 pointer-events-none"
-          style={{ background: "#7EB8E3" }}
-          aria-hidden
-        />
-        <div
-          className="absolute -right-20 bottom-0 w-72 h-72 rounded-full blur-3xl opacity-30 pointer-events-none"
-          style={{ background: "#F37021" }}
-          aria-hidden
-        />
-        <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
-          <div className="flex items-end justify-between gap-4 mb-8">
-            <div>
-              <p className="text-[#1B75BC] text-xs font-bold uppercase tracking-[0.18em] mb-2">
-                {bn ? "ভিডিও গাইড" : "Video Guides"}
-              </p>
-              <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
-                {bn ? "ভিডিও টিউটোরিয়াল ও গাইড" : "Video Tutorials & Guides"}
-              </h2>
-              <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-[#1B75BC] to-[#F37021]" />
-            </div>
-            <Link to="/videos" className="text-sm font-semibold text-[#1B75BC] hover:text-[#002D62] whitespace-nowrap inline-flex items-center gap-1">
-              {bn ? "সব ভিডিও দেখুন" : "View All Videos"} <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-            {SITE_VIDEOS.slice(0, 5).map((v, i) => (
-              <Reveal key={v.id} delay={i * 0.04}>
-                <motion.button
-                  type="button"
-                  onClick={() => setActiveVideo(v)}
-                  className="group block w-full text-left"
-                  whileHover={reduce ? undefined : { y: -4 }}
-                >
-                  <div className="relative aspect-video rounded-xl overflow-hidden bg-[#002D62] shadow-md ring-1 ring-[#C5D8EC]">
-                    <img
-                      src={videoThumb(v)}
-                      alt={bn ? v.titleBn : v.titleEn}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#001F45]/75 via-black/15 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="w-11 h-11 rounded-full bg-[#F37021] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                        <Play size={18} className="ml-0.5 fill-current" />
-                      </span>
-                    </div>
-                    <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 text-white text-[10px] font-medium">
-                      {v.duration}
-                    </span>
-                  </div>
-                  <p className="mt-2.5 text-xs md:text-sm font-semibold text-[#002D62] leading-snug line-clamp-2">
-                    {bn ? v.titleBn : v.titleEn}
-                  </p>
-                </motion.button>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Stats — brand orange band (clear break) ── */}
       <section

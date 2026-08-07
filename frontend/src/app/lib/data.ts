@@ -26,7 +26,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Government-approved Hajj packages with full hotel, transport & guided support.",
     tagline: "Answer the Call of Allah",
     description: "SMTravel International is one of Bangladesh's most trusted Hajj management agencies, holding full government approval from the Ministry of Religious Affairs. We offer comprehensive Hajj packages designed to make your pilgrimage spiritually fulfilling and logistically seamless — from application through your safe return home.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "star",
     color: "#F37021",
     features: [
@@ -109,7 +109,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Year-round Umrah packages with flexible dates, premium hotels & expert guidance.",
     tagline: "A Journey of the Heart",
     description: "Perform the blessed Umrah at any time of the year with SMTravel International's carefully curated packages. From Ramadan specials to off-season economy options, we offer flexible, affordable, and spiritually enriching Umrah journeys tailored to every pilgrim's needs and budget.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "map-pin",
     color: "#1B75BC",
     features: [
@@ -188,7 +188,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Fast, reliable visa processing for Saudi Arabia, UAE, Malaysia, and 50+ countries.",
     tagline: "Your Visa. Our Expertise.",
     description: "SMTravel International's visa processing division has a 98% approval record across 50+ countries. Our experienced visa consultants handle everything from document preparation to embassy submission, ensuring fast and stress-free processing for individuals, families, and corporate clients.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "shield",
     color: "#16A34A",
     features: [
@@ -241,7 +241,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Best-fare domestic & international air tickets across all major airlines — no airline API, fully manual.",
     tagline: "Best Fares. Every Flight.",
     description: "SMTravel International's air ticketing division offers the best available fares on all domestic and international routes. Our experienced ticketing team has direct relationships with all major airlines and Global Distribution Systems, ensuring you always get the best available rate with flexible booking terms.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "plane",
     color: "#1B75BC",
     features: [
@@ -264,7 +264,7 @@ export const SERVICES: ServiceData[] = [
     excludes: ["Checked baggage (if not included by airline)", "Airport taxes in some countries", "Visa fees", "Travel insurance"],
     packages: [
       { title: "Economy Class Dhaka–Riyadh", price: 45000, duration: "Per person", hotel: "N/A", badge: "Best Seller", highlights: ["Saudia / Biman", "Direct & connecting", "23kg baggage", "Meal included"] },
-      { title: "Economy Class Dhaka–Dubai", price: 35000, duration: "Per person", highlights: ["Emirates / flydubai", "Regular departures", "23kg baggage"] },
+      { title: "Economy Class Dhaka–Dubai", price: 35000, duration: "Per person", hotel: "N/A", highlights: ["Emirates / flydubai", "Regular departures", "23kg baggage"] },
       { title: "Business Class International", price: 150000, duration: "Per person", hotel: "N/A", highlights: ["All premium airlines", "Lie-flat seats", "Lounge access", "Priority boarding"] },
     ],
     faqs: [
@@ -281,7 +281,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Trusted international manpower recruitment for Saudi Arabia, UAE, Malaysia, and beyond.",
     tagline: "Connecting Talent with Opportunity",
     description: "SMTravel International holds a valid BOESL (Bangladesh Overseas Employment Services Ltd.) license for international manpower recruitment. We have successfully placed thousands of Bangladeshi workers in reputable companies across Saudi Arabia, UAE, Malaysia, Qatar, and other GCC countries.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "briefcase",
     color: "#002D62",
     features: [
@@ -321,7 +321,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Curated domestic & international tour packages for individuals, families, and groups.",
     tagline: "Explore the World with Us",
     description: "From the golden sands of Dubai to the rainforests of Malaysia and the historical wonders of Turkey, SMTravel International crafts memorable tour experiences for every type of traveler. Our expert tour coordinators design itineraries that balance sightseeing, culture, leisure, and relaxation.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "globe",
     color: "#F37021",
     features: [
@@ -361,7 +361,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Exclusive rates on 5000+ hotels in Saudi Arabia, UAE, Malaysia, and worldwide.",
     tagline: "Rest Well. Travel Better.",
     description: "SMTravel International partners with thousands of hotels worldwide to bring you the best available rates with flexible booking terms. Whether you need accommodation for Hajj, Umrah, business travel, or leisure, our hotel team finds the perfect property at the best price.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "hotel",
     color: "#1B75BC",
     features: [
@@ -401,7 +401,7 @@ export const SERVICES: ServiceData[] = [
     shortDesc: "Airport transfers, Haram shuttles, and Ziyarah transport across Makkah & Madinah.",
     tagline: "Safe Journeys. Seamless Transfers.",
     description: "SMTravel International arranges reliable ground transport for pilgrims and travelers — from Dhaka airport pickups to Saudi Haram shuttles and guided Ziyarah trips. Our fleet partners prioritize safety, punctuality, and comfort for families and groups.",
-    heroImage: "/hero-approve.jpg",
+    heroImage: "/hero-makkah-poster.jpg",
     iconName: "map-pin",
     color: "#C89B3C",
     features: [
@@ -509,7 +509,7 @@ export const PACKAGES: Package[] = [
     duration: "14 Days", departure: "Any Month",
     hotel: "5-Star Haram-View Makkah", flight: "Emirates / Qatar Airways",
     rating: 4.8, reviews: 214, seats: 20, badge: "Most Popular",
-    image: "/packages/umrah-gold.jpg",
+    image: "/hero-makkah-poster.jpg",
     highlights: ["5-star Haram-view hotel", "Premium airline", "Makkah + Madinah", "All Ziyarah", "Visa included"],
     includes: ["Return air ticket", "Umrah e-visa", "5-star Makkah hotel (7 nights)", "5-star Madinah hotel (4 nights)", "Ziyarah tours both cities", "Airport transfers", "Makkah–Madinah transport", "Umrah guide"],
     excludes: ["Meals (breakfast only if selected)", "Personal shopping", "Qurbani", "SIM card"],
