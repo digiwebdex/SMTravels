@@ -45,3 +45,25 @@ export async function getPublicMenuHandler(req: Request, res: Response): Promise
 export async function listPublicBannersHandler(req: Request, res: Response): Promise<void> {
   res.json(await cmsPublic.listPublicBanners(publicBannerListQuerySchema.parse(req.query)));
 }
+
+export async function listPublicSettingsHandler(req: Request, res: Response): Promise<void> {
+  const group = typeof req.query.group === "string" ? req.query.group : undefined;
+  res.json(await cmsPublic.listPublicSettings(group));
+}
+
+export async function listPublicStatisticsHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cmsPublic.listPublicStatistics());
+}
+
+export async function listPublicServicesHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cmsPublic.listPublicServices());
+}
+
+export async function getPublicHeroHandler(req: Request, res: Response): Promise<void> {
+  const key = typeof req.query.key === "string" ? req.query.key : undefined;
+  res.json(await cmsPublic.getPublicHero(key));
+}
+
+export async function listPublicHomeSectionsHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cmsPublic.listPublicHomeSections());
+}

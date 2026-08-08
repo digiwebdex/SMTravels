@@ -126,7 +126,7 @@ export function KnowledgeDetailPage() {
               <p className="text-[#374151] leading-relaxed text-lg">{bn ? guide.explanationBn : guide.explanationEn}</p>
             </Reveal>
 
-            {(guide.quran?.length || guide.hadith?.length) && (
+            {((guide.quran?.length ?? 0) > 0 || (guide.hadith?.length ?? 0) > 0) && (
               <Reveal>
                 <div className="space-y-4">
                   {guide.quran?.map((q) => (
@@ -211,7 +211,7 @@ export function KnowledgeDetailPage() {
             <div className="rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-sm">
               <h3 className="font-semibold text-[#062D63] mb-3">{bn ? "ডাউনলোড" : "Download"}</h3>
               <p className="text-sm text-[#6B7280] mb-4">{bn ? "এই গাইডের সংক্ষিপ্ত PDF (শীঘ্রই)।" : "Short PDF of this guide (coming soon)."}</p>
-              <Btn variant="outline" className="w-full" href="#" onClick={() => undefined}>
+              <Btn variant="outline" className="w-full" disabled>
                 <Download size={16} /> PDF
               </Btn>
             </div>

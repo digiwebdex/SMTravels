@@ -641,8 +641,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <span className="text-[12px] text-[#6B7280]">
                       <Trans t={t} i18nKey="registerCustomer.terms"
                         components={{
-                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
-                          privacy: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="/terms" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          privacy: <a href="/privacy" className="text-[#1B75BC] font-semibold hover:underline" />,
                         }} />
                     </span>
                   </label>
@@ -710,8 +710,8 @@ function AuthScreen({ initialView = "login" }: { initialView?: AuthView }) {
                     <span className="text-[12px] text-[#6B7280]">
                       <Trans t={t} i18nKey="registerAgent.terms"
                         components={{
-                          agreement: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
-                          terms: <a href="#" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          agreement: <a href="/terms" className="text-[#1B75BC] font-semibold hover:underline" />,
+                          terms: <a href="/terms" className="text-[#1B75BC] font-semibold hover:underline" />,
                         }} />
                     </span>
                   </label>

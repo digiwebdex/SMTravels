@@ -14,9 +14,14 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
+    "seed:nav": "tsx prisma/seed-nav-footer.ts",
+    "seed:home": "tsx prisma/seed-home.ts",
     "seed:demo-catalog": "tsx scripts/seed-demo-catalog.ts",
     "test:e2e-workflow": "tsx scripts/e2e-full-workflow.ts",
-    "test:money-smoke": "tsx src/services/milestone-b-money-smoke.ts"
+    "test:money-smoke": "tsx src/services/milestone-b-money-smoke.ts",
+    "test:demo": "node tests/api/demo-workflow.mjs",
+    "test:api": "node tests/api/smoke.mjs",
+    "test:all": "npm run test:demo && npm run test:api && npm run test:money-smoke"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

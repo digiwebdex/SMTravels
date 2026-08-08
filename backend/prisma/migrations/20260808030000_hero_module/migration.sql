@@ -1,0 +1,31 @@
+-- Phase 2.2C — Homepage Hero CMS module. ADDITIVE (CREATE TABLE only), non-destructive.
+CREATE TABLE IF NOT EXISTS "Hero" (
+  "id"               TEXT PRIMARY KEY,
+  "key"              TEXT NOT NULL,
+  "eyebrow"          TEXT,
+  "eyebrowBn"        TEXT,
+  "title"            TEXT NOT NULL,
+  "titleBn"          TEXT,
+  "highlight"        TEXT,
+  "highlightBn"      TEXT,
+  "subtitle"         TEXT,
+  "subtitleBn"       TEXT,
+  "primaryLabel"     TEXT,
+  "primaryLabelBn"   TEXT,
+  "primaryUrl"       TEXT,
+  "secondaryLabel"   TEXT,
+  "secondaryLabelBn" TEXT,
+  "secondaryUrl"     TEXT,
+  "backgroundImage"  TEXT,
+  "mobileImage"      TEXT,
+  "backgroundVideo"  TEXT,
+  "overlay"          TEXT,
+  "badges"           JSONB,
+  "sortOrder"        INTEGER NOT NULL DEFAULT 0,
+  "visible"          BOOLEAN NOT NULL DEFAULT true,
+  "published"        BOOLEAN NOT NULL DEFAULT true,
+  "createdAt"        TIMESTAMPTZ(6) NOT NULL DEFAULT now(),
+  "updatedAt"        TIMESTAMPTZ(6) NOT NULL DEFAULT now(),
+  "deletedAt"        TIMESTAMPTZ(6)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "Hero_key_key" ON "Hero"("key");

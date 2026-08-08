@@ -88,6 +88,19 @@ export async function recordPayment(auth: AuthCtx, input: PaymentRecordInput): P
 
   const { paymentId, invoiceStatus } = await prisma.$transaction(async (tx) => {
     const pseq = await allocateSequence(tx, "PAYMENT", branchId, year);
+    // Re-assert the overpayment guard INSIDE the tx with a row lock — the pre-tx `due` (above)
+    // can be stale under concurrent/back-to-back payments, letting paidAmount drift past total.
+    if (input.invoiceId) {
+      const locked = await tx.$queryRaw<{ total: unknown; paidAmount: unknown }[]>`
+        SELECT "total", "paidAmount" FROM "Invoice" WHERE "id" = ${input.invoiceId} FOR UPDATE`;
+      const row = locked[0];
+      if (row) {
+        const dueNow = round4(num(row.total as never) - num(row.paidAmount as never));
+        if (m.amount > dueNow + EPS) {
+          throw new HttpError(400, "PaymentExceedsDue", { detail: `Payment ${m.amount} exceeds the amount due ${dueNow}.` });
+        }
+      }
+    }
     const payment = await tx.payment.create({
       data: {
         paymentNo: formatDocNo("PAY", branch.code, year, pseq), direction: "IN", branchId, invoiceId: input.invoiceId || null,

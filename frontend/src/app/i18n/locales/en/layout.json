@@ -30,8 +30,77 @@
     "hours": "Sun–Thu 9AM–6PM"
   },
   "whatsapp": {
-    "tooltip": "💬 Chat on WhatsApp",
+    "tooltip": "Chat on WhatsApp",
     "label": "WhatsApp"
+  },
+  "smartCta": {
+    "aria": "Quick contact actions",
+    "call": "Call",
+    "callAria": "Call {{phone}}",
+    "dismiss": "Dismiss",
+    "contexts": {
+      "default": {
+        "title": "Need help planning your trip?",
+        "body": "Talk to our team on WhatsApp or start a booking — we reply quickly.",
+        "book": "Book"
+      },
+      "hajj": {
+        "title": "Planning Hajj?",
+        "body": "Get package details, seats and payment guidance from our Hajj desk.",
+        "book": "Book Hajj"
+      },
+      "umrah": {
+        "title": "Ready for Umrah?",
+        "body": "Ask about dates, hotels near Haram, and current Umrah offers.",
+        "book": "Book Umrah"
+      },
+      "visa": {
+        "title": "Need a visa?",
+        "body": "Share your destination — we will guide documents and processing time.",
+        "book": "Visa help"
+      },
+      "air": {
+        "title": "Looking for tickets?",
+        "body": "Send your route and dates for a quick fare quote.",
+        "book": "Get quote"
+      },
+      "packages": {
+        "title": "Found a package you like?",
+        "body": "We can confirm availability and customize for your group.",
+        "book": "Book now"
+      },
+      "manpower": {
+        "title": "Overseas job guidance",
+        "body": "Ask about legal recruitment, BMET steps and destination options.",
+        "book": "Enquire"
+      },
+      "hotel": {
+        "title": "Need a hotel?",
+        "body": "Tell us city, dates and budget — we will shortlist options.",
+        "book": "Book hotel"
+      },
+      "transport": {
+        "title": "Need a transfer?",
+        "body": "Airport pickup, Ziyarah and group transport available.",
+        "book": "Book ride"
+      },
+      "book": {
+        "title": "Stuck on the booking form?",
+        "body": "Message us on WhatsApp — we will complete it with you.",
+        "book": "Book"
+      },
+      "contact": {
+        "title": "Prefer a quick chat?",
+        "body": "WhatsApp is fastest — or call our 24/7 support line.",
+        "book": "Book"
+      }
+    }
+  },
+  "pwa": {
+    "title": "Install SM Travels",
+    "body": "Add to your home screen for faster booking and offline access.",
+    "install": "Install",
+    "dismiss": "Not now"
   },
   "footer": {
     "tagline": "Your Trusted Travel Partner Since 1998",

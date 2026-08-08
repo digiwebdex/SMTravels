@@ -3,7 +3,7 @@ import { apiFetch } from "../lib/api";
 import type {
   PublicPackageItem, PublicPackageDetail, PublicBlogPostItem, PublicBlogPostDetail,
   PublicFaqItem, PublicTestimonialItem, PublicGalleryItem, PublicCmsPageDto,
-  PublicMenuDto, PublicBannerDto,
+  PublicMenuDto, PublicBannerDto, PublicStatisticDto, PublicServiceDto, PublicHeroDto, PublicHomeSectionDto,
 } from "@contracts/cms.contract";
 import { getDemoPackage, listDemoPackages } from "../website/demoPackages";
 
@@ -117,11 +117,72 @@ export function usePublicPage(slug: string | undefined) {
   });
 }
 
-export function usePublicMenu(location: "MAIN_NAV" | "FOOTER_NAV" | "MOBILE_NAV") {
+export type MenuLocation =
+  | "MAIN_NAV" | "FOOTER_NAV" | "MOBILE_NAV" | "TOP_NAV" | "QUICK_LINKS" | "LEGAL_NAV";
+
+export function usePublicMenu(location: MenuLocation) {
   return useQuery({
     queryKey: publicKeys.menu(location),
-    queryFn: () => pub<PublicMenuDto>(`/public/menus/${location}`),
+    queryFn: () => pub<PublicMenuDto>(`/public/menus/${location}`).catch(() => null),
     staleTime: 300_000,
+    retry: false,
+  });
+}
+
+/** Public homepage statistics (visible + homepage), ordered. */
+export function usePublicStatistics() {
+  return useQuery({
+    queryKey: ["public", "statistics"] as const,
+    queryFn: () =>
+      pub<{ data: PublicStatisticDto[] }>("/public/statistics").then((r) => r.data).catch(() => [] as PublicStatisticDto[]),
+    staleTime: 300_000,
+    retry: false,
+  });
+}
+
+/** Public homepage sections (Section Manager + JSON renderer foundation). */
+export function usePublicHomeSections() {
+  return useQuery({
+    queryKey: ["public", "home-sections"] as const,
+    queryFn: () =>
+      pub<{ data: PublicHomeSectionDto[] }>("/public/home-sections").then((r) => r.data).catch(() => [] as PublicHomeSectionDto[]),
+    staleTime: 300_000,
+    retry: false,
+  });
+}
+
+/** Public hero for a page (default "home"); null if none published. */
+export function usePublicHero(key = "home") {
+  return useQuery({
+    queryKey: ["public", "hero", key] as const,
+    queryFn: () =>
+      pub<PublicHeroDto | null>(`/public/hero?key=${key}`).catch(() => null),
+    staleTime: 300_000,
+    retry: false,
+  });
+}
+
+/** Public homepage service cards (visible + homepage + published), ordered. */
+export function usePublicServices() {
+  return useQuery({
+    queryKey: ["public", "services"] as const,
+    queryFn: () =>
+      pub<{ data: PublicServiceDto[] }>("/public/services").then((r) => r.data).catch(() => [] as PublicServiceDto[]),
+    staleTime: 300_000,
+    retry: false,
+  });
+}
+
+/** Public site settings (company info, socials, copyright, etc.) as key→value. */
+export function usePublicSettings(group?: string) {
+  return useQuery({
+    queryKey: ["public", "settings", group ?? ""] as const,
+    queryFn: () =>
+      pub<{ settings: Record<string, string> }>(`/public/settings${group ? `?group=${group}` : ""}`)
+        .then((r) => r.settings)
+        .catch(() => ({} as Record<string, string>)),
+    staleTime: 300_000,
+    retry: false,
   });
 }
 

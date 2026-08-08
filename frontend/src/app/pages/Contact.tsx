@@ -6,6 +6,7 @@ import { cn } from "../lib/utils";
 import { apiFetch } from "../lib/api";
 import type { ServiceTypeDto } from "@contracts/booking.contract";
 import { PageHero, Breadcrumbs, Btn } from "../website/primitives";
+import { usePublicSettings } from "../hooks/publicContent";
 
 const SERVICE_ENUM: Record<string, ServiceTypeDto> = {
   "Hajj Package": "HAJJ", "Umrah Package": "UMRAH", "Visa Services": "VISA", "Air Ticket": "AIR_TICKET",
@@ -27,6 +28,7 @@ const SERVICE_LABEL_KEY: Record<string, string> = {
 export function ContactPage() {
   const { t, i18n } = useTranslation("contact");
   const bn = i18n.language?.startsWith("bn");
+  const social = usePublicSettings("social").data ?? {};
   const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", message: "" });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
@@ -212,11 +214,15 @@ export function ContactPage() {
                 <div className="mt-5 pt-5 border-t border-white/10">
                   <div className="text-[11px] text-white/40 mb-2">{t("quick.social")}</div>
                   <div className="flex gap-3">
-                    {[Facebook, Instagram].map((Icon, i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F37021] transition-colors">
-                        <Icon size={14} />
-                      </a>
-                    ))}
+                    {[{ Icon: Facebook, key: "social.facebook", label: "Facebook" }, { Icon: Instagram, key: "social.instagram", label: "Instagram" }].map(({ Icon, key, label }) => {
+                      const href = social[key] || "#";
+                      return (
+                        <a key={key} href={href} target={href !== "#" ? "_blank" : undefined} rel="noreferrer" aria-label={label} title={label}
+                          className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#F37021] transition-colors">
+                          <Icon size={14} aria-hidden />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

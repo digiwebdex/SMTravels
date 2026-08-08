@@ -10,6 +10,16 @@ function tooManyHandler(_req: Request, res: Response): void {
   });
 }
 
+/** Local harness (npm run test:demo / test:api) hits 127.0.0.1:4030 directly.
+ *  Real clients go through nginx with trust-proxy, so their IP is never loopback.
+ *  Skipping loopback avoids burning the global 300/15m bucket during back-to-back suites. */
+function isLoopback(req: Request): boolean {
+  const ip = String(req.ip || "").replace(/^::ffff:/, "");
+  return ip === "127.0.0.1" || ip === "::1" || ip === "localhost";
+}
+
+const skipLoopback = (req: Request) => isLoopback(req);
+
 /** Coarse per-IP limiter for the whole /api surface. Tighten per-route later. */
 export const apiRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -17,12 +27,14 @@ export const apiRateLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   handler: tooManyHandler,
+  skip: skipLoopback,
 });
 
 const strict = {
   standardHeaders: "draft-7" as const,
   legacyHeaders: false,
   handler: tooManyHandler,
+  skip: skipLoopback,
 };
 
 /** Login is brute-force bait — tighter than the global limiter, but this is the
