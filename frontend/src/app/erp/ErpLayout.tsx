@@ -64,7 +64,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Users,      labelKey: "pilgrims", path: "/erp/hajj-ops", q: "tab=pilgrims", module: "ops" },
     { icon: Package,    labelKey: "packages", path: "/erp/packages", module: "packages" },
     { icon: UsersRound, labelKey: "groups",   path: "/erp/hajj-ops", q: "tab=groups", module: "ops" },
-    { icon: UserCircle, labelKey: "muallim",  path: "/erp/muallim", module: "operations_team", soon: true },
+    { icon: UserCircle, labelKey: "muallim",  path: "/erp/muallim", module: "operations_team" },
   ] },
   { key: "manpower", items: [
     { icon: ClipboardList, labelKey: "jobOrders",   path: "/erp/manpower/job-orders",  module: "bookings", soon: true },

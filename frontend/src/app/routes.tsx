@@ -40,6 +40,7 @@ const HajjOpsModule        = lazyNamed(() => import("./erp/HajjOpsModule"), "Haj
 const PartnersModule       = lazyNamed(() => import("./erp/PartnersModule"), "PartnersModule");
 const SuppliersModule      = lazyNamed(() => import("./erp/SuppliersModule"), "SuppliersModule");
 const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"), "OperationsTeamModule");
+const MuallimModule = lazyNamed(() => import("./erp/MuallimModule"), "MuallimModule");
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
 const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
@@ -131,7 +132,7 @@ export const router = createBrowserRouter([
       { path: "integrations", element: <ComingSoon k="integrations" group="admin" /> },
       { path: "ai", element: <ComingSoon k="ai" group="admin" /> },
       // Phase 2 final-menu placeholders — nav home + RBAC only, functionality lands in later phases.
-      { path: "muallim", element: <ComingSoon k="muallim" group="hajjUmrah" /> },
+      { path: "muallim", element: withSuspense(<MuallimModule />) },
       { path: "manpower/job-orders", element: <ComingSoon k="jobOrders" group="manpower" /> },
       { path: "manpower/candidates", element: <ComingSoon k="candidates" group="manpower" /> },
       { path: "manpower/employers", element: <ComingSoon k="employers" group="manpower" /> },

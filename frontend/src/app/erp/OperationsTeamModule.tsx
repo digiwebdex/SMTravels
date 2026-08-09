@@ -47,12 +47,12 @@ function ScopeBadge({ isGlobal, branchName }: { isGlobal: boolean; branchName: s
 }
 
 // ─── LIST ──────────────────────────────────────────────────────────────────────
-function MemberList({ onOpen, onNew }: { onOpen: (id: string) => void; onNew: () => void }) {
+function MemberList({ onOpen, onNew, defaultRole }: { onOpen: (id: string) => void; onNew: () => void; defaultRole?: string }) {
   const { t } = useTranslation("erpOperations");
   const { can } = useAuth();
   const canManage = can("operations_team", "manage");
   const [q, setQ] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState(defaultRole ?? "");
   const [status, setStatus] = useState("");
   const filters: OpsFilters = useMemo(() => ({ q: q.trim() || undefined, roleType: role || undefined, status: status || undefined }), [q, role, status]);
   const { data, isLoading, isError, refetch } = useOpsMembers(filters);
@@ -315,7 +315,7 @@ function MemberFormDrawer({ member, onClose, onSaved }: { member: OpsMemberDetai
 }
 
 // ─── entry ───────────────────────────────────────────────────────────────────
-export function OperationsTeamModule() {
+export function OperationsTeamModule({ defaultRole }: { defaultRole?: string } = {}) {
   const [selected, setSelected] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editMember, setEditMember] = useState<OpsMemberDetail | null>(null);
@@ -326,7 +326,7 @@ export function OperationsTeamModule() {
     <>
       {selected
         ? <MemberDetailView id={selected} onBack={() => setSelected(null)} onEdit={openEdit} />
-        : <MemberList onOpen={setSelected} onNew={openNew} />}
+        : <MemberList onOpen={setSelected} onNew={openNew} defaultRole={defaultRole} />}
       {formOpen && (
         <MemberFormDrawer
           member={editMember}
