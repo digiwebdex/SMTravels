@@ -8,11 +8,37 @@ import {
   Clock, Headphones, Users, BadgeCheck, BookOpen,
 } from "lucide-react";
 import { Reveal, SkeletonBlock, EmptyState, StatCounter } from "../website/primitives";
-import { usePublicPackages } from "../hooks/publicContent";
+import { usePublicPackages, usePublicStatistics, usePublicServices, usePublicSettings, usePublicHero, usePublicHomeSections } from "../hooks/publicContent";
 import { GUIDES } from "../website/knowledge/guides";
 import { SITE_IMAGES, mediaUrl, img, fmtPrice, cn, PACKAGE_IMAGE_FALLBACK } from "../lib/utils";
 import { usePageMeta } from "../lib/usePageMeta";
 import type { PublicPackageItem } from "../hooks/publicContent";
+
+// Statistics: CMS drives the numbers; icons/bn-labels resolved locally so the UI is unchanged.
+const STAT_ICONS: Record<string, typeof Star> = { Users, BadgeCheck, MapPin, Star, Shield };
+const STAT_BN: Record<string, string> = {
+  "Satisfied Travelers": "সন্তুষ্ট যাত্রী", "Years Experience": "বছরের অভিজ্ঞতা",
+  "Countries Served": "দেশে সেবা", "Hajj Groups": "হজ্ব গ্রুপ", "Visa Success Rate": "ভিসা সফলতা",
+};
+// Service cards: CMS drives structure; icons/bn-labels resolved locally so the UI is unchanged.
+const SERVICE_ICONS: Record<string, typeof Star> = { Star, MapPin, Shield, Plane, Globe, Hotel, Car, Umbrella };
+const SERVICE_BN: Record<string, string> = {
+  "/hajj": "হজ্ব প্যাকেজ", "/umrah": "উমরাহ প্যাকেজ", "/visa": "ভিসা সার্ভিস", "/air-ticket": "এয়ার টিকেট",
+  "/tour-packages": "ট্যুর প্যাকেজ", "/hotel-booking": "হোটেল বুকিং", "/transport": "পরিবহন সেবা", "/faq": "ট্রাভেল ইন্স্যুরেন্স",
+};
+// Hero: CMS drives all text/badges/bg; the orange highlight substring is wrapped locally to keep the exact design.
+const HERO_BADGE_ICONS: Record<string, typeof Star> = { Shield, Headphones, Users, BadgeCheck };
+function renderHeroTitle(text: string, highlight?: string | null): React.ReactNode {
+  if (!highlight || !text.includes(highlight)) return text;
+  const idx = text.indexOf(highlight);
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="text-[#F37021]">{highlight}</span>
+      {text.slice(idx + highlight.length)}
+    </>
+  );
+}
 
 const SERVICES = [
   { to: "/hajj", icon: Star, titleBn: "হজ্ব প্যাকেজ", titleEn: "Hajj Package", color: "#1B75BC" },
@@ -242,12 +268,14 @@ function PackageCarousel({
   );
 }
 
-function ApproveHeroBackground() {
+const HERO_OVERLAY_FALLBACK =
+  "linear-gradient(90deg, rgba(0,20,48,0.55) 0%, rgba(0,20,48,0.28) 42%, rgba(0,20,48,0.08) 68%, transparent 82%)";
+function ApproveHeroBackground({ image, overlay }: { image?: string | null; overlay?: string | null }) {
   const reduce = useReducedMotion();
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#001F45]">
       <motion.img
-        src={SITE_IMAGES.kaabaHero}
+        src={image || SITE_IMAGES.kaabaHero}
         alt="কাবা শরীফ — Masjid al-Haram, Makkah"
         className="absolute inset-0 w-full h-full object-cover object-[center_45%]"
         loading="eager"
@@ -265,10 +293,7 @@ function ApproveHeroBackground() {
       {/* Soft left wash so Bangla headline stays readable over golden sky */}
       <div
         className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(0,20,48,0.55) 0%, rgba(0,20,48,0.28) 42%, rgba(0,20,48,0.08) 68%, transparent 82%)",
-        }}
+        style={{ background: overlay || HERO_OVERLAY_FALLBACK }}
         aria-hidden
       />
     </div>
@@ -289,6 +314,55 @@ export function Home() {
 
   const hajjQ = usePublicPackages({ type: "Hajj", limit: 12 });
   const umrahQ = usePublicPackages({ type: "Umrah", limit: 12 });
+  // Homepage statistics from CMS (falls back to the built-in counters — no visual change).
+  const statsQ = usePublicStatistics();
+  const cmsStats = statsQ.data ?? [];
+  const stats = cmsStats.length
+    ? cmsStats.map((s) => ({
+        Icon: STAT_ICONS[s.icon ?? ""] ?? Star,
+        end: s.value,
+        suffix: s.suffix ?? "",
+        label: bn ? STAT_BN[s.title] ?? s.title : s.title,
+      }))
+    : [
+        { Icon: Users, end: 100, suffix: "K+", label: bn ? "সন্তুষ্ট যাত্রী" : "Satisfied Travelers" },
+        { Icon: BadgeCheck, end: 12, suffix: "+", label: bn ? "বছরের অভিজ্ঞতা" : "Years Experience" },
+        { Icon: MapPin, end: 25, suffix: "+", label: bn ? "দেশে সেবা" : "Countries Served" },
+        { Icon: Star, end: 500, suffix: "+", label: bn ? "হজ্ব গ্রুপ" : "Hajj Groups" },
+        { Icon: Shield, end: 98, suffix: "%", label: bn ? "ভিসা সফলতা" : "Visa Success Rate" },
+      ];
+  // Service cards + newsletter/announcement text from CMS (fallback-first — no visual change).
+  const servicesQ = usePublicServices();
+  const cmsServices = servicesQ.data ?? [];
+  const serviceCards = cmsServices.length
+    ? cmsServices.map((sv) => ({
+        to: sv.buttonUrl,
+        icon: SERVICE_ICONS[sv.icon ?? ""] ?? Star,
+        titleEn: sv.title,
+        titleBn: SERVICE_BN[sv.buttonUrl] ?? sv.title,
+        color: sv.color ?? "#1B75BC",
+      }))
+    : SERVICES;
+  const settings = usePublicSettings().data ?? {};
+  const nl = (k: string, fb: string) => settings[`newsletter.${k}_${bn ? "bn" : "en"}`] || fb;
+  const annOn = settings["announcement.enabled"] === "true";
+  const [annClosed, setAnnClosed] = useState(false);
+  // Hero from CMS (fallback-first — no visual change). bn picks *Bn field, else English.
+  const hero = usePublicHero().data;
+  const hpick = (en?: string | null, bnv?: string | null) => (bn ? bnv || en : en) || "";
+  const heroBadges = hero?.badges?.length
+    ? hero.badges.map((b) => ({ Icon: HERO_BADGE_ICONS[b.icon ?? ""] ?? Shield, label: bn ? b.labelBn || b.label : b.label }))
+    : TRUST.map((t) => ({ Icon: t.icon, label: bn ? t.bn : t.en }));
+  // Homepage Section Manager + JSON foundation (fallback-first). A section renders unless CMS hides it.
+  const homeSections = usePublicHomeSections().data ?? [];
+  const secMap = Object.fromEntries(homeSections.map((s) => [s.key, s]));
+  const show = (k: string) => (secMap[k] ? secMap[k].visible : true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cfg = (k: string): Record<string, any> => (secMap[k]?.config as Record<string, any>) ?? {};
+  const secEyebrow = (k: string, fbEn: string, fbBn: string) => { const s = secMap[k]; return s ? (bn ? s.eyebrowBn || fbBn : s.eyebrow || fbEn) : bn ? fbBn : fbEn; };
+  const secTitle = (k: string, fbEn: string, fbBn: string) => { const s = secMap[k]; return s ? (bn ? s.titleBn || fbBn : s.title || fbEn) : bn ? fbBn : fbEn; };
+  const sunnahItems: { en: string; bn: string }[] = cfg("sunnah").sunnah?.length ? cfg("sunnah").sunnah : SUNNAH;
+  const prohibitionItems: { en: string; bn: string }[] = cfg("sunnah").prohibitions?.length ? cfg("sunnah").prohibitions : PROHIBITIONS;
   const allPackages = useMemo(
     () => [...(hajjQ.data?.data ?? []), ...(umrahQ.data?.data ?? [])],
     [hajjQ.data, umrahQ.data],
@@ -302,9 +376,25 @@ export function Home() {
 
   return (
     <div className="overflow-x-hidden font-[family-name:var(--font-body)]">
+      {/* ── Announcement bar (CMS; hidden unless enabled in Settings) ── */}
+      {annOn && !annClosed && (
+        <div
+          className="w-full text-center text-[13px] py-2 px-4 flex items-center justify-center gap-3"
+          style={{ background: settings["announcement.bg"] || "#002D62", color: settings["announcement.color"] || "#FFFFFF" }}
+        >
+          <Link to={settings["announcement.link"] || "#"} className="hover:underline font-medium">
+            {settings[`announcement.text_${bn ? "bn" : "en"}`] || ""}
+          </Link>
+          {settings["announcement.dismissible"] !== "false" && (
+            <button type="button" aria-label="Dismiss" onClick={() => setAnnClosed(true)} className="opacity-70 hover:opacity-100">
+              <X size={16} />
+            </button>
+          )}
+        </div>
+      )}
       {/* ── Hero (Approve design) ── */}
       <section className="relative min-h-[78vh] md:min-h-[86vh] flex items-center overflow-hidden pb-16 md:pb-20">
-        <ApproveHeroBackground />
+        <ApproveHeroBackground image={hero?.backgroundImage} overlay={hero?.overlay} />
 
         <div className="relative max-w-[1240px] w-full mx-auto px-4 md:px-5 py-16 md:py-24">
           <motion.div
@@ -314,7 +404,9 @@ export function Home() {
             className="max-w-[38rem]"
           >
             <h1 className="text-[1.75rem] sm:text-4xl md:text-[2.75rem] lg:text-[3.15rem] font-bold leading-[1.25] tracking-tight text-white drop-shadow-sm">
-              {bn ? (
+              {hero ? (
+                renderHeroTitle(hpick(hero.title, hero.titleBn), hpick(hero.highlight, hero.highlightBn))
+              ) : bn ? (
                 <>
                   বিশ্বস্ততায় আমরাই আপনার{" "}
                   <span className="text-[#F37021]">হজ্ব ও ওমরাহ</span>{" "}
@@ -330,26 +422,28 @@ export function Home() {
             </h1>
 
             <p className="mt-4 text-[14px] md:text-[16px] text-white/90 max-w-lg leading-relaxed font-medium">
-              {bn
+              {hero
+                ? hpick(hero.subtitle, hero.subtitleBn)
+                : bn
                 ? "সরকার অনুমোদিত এজেন্সি — নিরাপদ ফ্লাইট, মানসম্মত হোটেল এবং অভিজ্ঞ গাইডের সাথে আপনার ইবাদতের যাত্রা হোক নিশ্চিন্ত।"
                 : "Government-approved agency — safe flights, quality hotels and experienced guides for a peaceful pilgrimage."}
             </p>
 
             {/* Trust badges — four light boxes like Approve mock */}
             <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-2.5 max-w-xl">
-              {TRUST.map((item, i) => (
+              {heroBadges.map(({ Icon, label }, i) => (
                 <motion.div
-                  key={item.en}
+                  key={label}
                   initial={reduce ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.12 + i * 0.05 }}
                   className="flex flex-col items-start gap-2 rounded-lg bg-[#EAF5FF]/95 border border-white/40 px-3 py-3 shadow-sm backdrop-blur-sm"
                 >
                   <span className="w-8 h-8 rounded-md bg-white text-[#1B75BC] flex items-center justify-center shadow-sm">
-                    <item.icon size={16} />
+                    <Icon size={16} />
                   </span>
                   <span className="text-[11px] md:text-[12px] font-bold text-[#002D62] leading-snug">
-                    {bn ? item.bn : item.en}
+                    {label}
                   </span>
                 </motion.div>
               ))}
@@ -358,10 +452,10 @@ export function Home() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <motion.div whileHover={reduce ? undefined : { scale: 1.03 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  to="/packages"
+                  to={hero?.primaryUrl || "/packages"}
                   className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#002D62] text-white font-bold text-sm rounded-md hover:bg-[#001F45] transition-colors shadow-lg shadow-black/25"
                 >
-                  {bn ? "হজ্ব ও ওমরাহ প্যাকেজ দেখুন" : "View Hajj & Umrah Packages"}
+                  {hero ? hpick(hero.primaryLabel, hero.primaryLabelBn) : bn ? "হজ্ব ও ওমরাহ প্যাকেজ দেখুন" : "View Hajj & Umrah Packages"}
                   <ArrowRight size={16} />
                 </Link>
               </motion.div>
@@ -380,7 +474,7 @@ export function Home() {
           }}
         >
           <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 md:gap-3">
-            {SERVICES.map((s, i) => (
+            {serviceCards.map((s, i) => (
               <Reveal key={s.to} delay={i * 0.03}>
                 <motion.div whileHover={reduce ? undefined : { y: -4 }} whileTap={{ scale: 0.98 }}>
                   <Link
@@ -405,6 +499,7 @@ export function Home() {
       </section>
 
       {/* ── Rules & Guidelines — navy atmosphere ── */}
+      {show("rules") && (
       <section className="relative py-16 md:py-20 overflow-hidden">
         <div
           className="absolute inset-0"
@@ -425,10 +520,10 @@ export function Home() {
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
           <div className="text-center mb-9">
             <p className="text-[#F37021] text-xs font-bold uppercase tracking-[0.18em] mb-2">
-              {bn ? "জ্ঞান কেন্দ্র" : "Knowledge Hub"}
+              {secEyebrow("rules", "Knowledge Hub", "জ্ঞান কেন্দ্র")}
             </p>
             <h2 className="text-2xl md:text-3xl font-bold text-white">
-              {bn ? "হজ্ব ও ওমরাহ এর নিয়ম ও করণীয়" : "Rules and Duties of Hajj & Umrah"}
+              {secTitle("rules", "Rules and Duties of Hajj & Umrah", "হজ্ব ও ওমরাহ এর নিয়ম ও করণীয়")}
             </h2>
             <div className="mt-5 flex justify-center gap-2">
               {(["hajj", "umrah"] as const).map((tab) => (
@@ -491,6 +586,7 @@ export function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Popular Packages — soft sky band ── */}
       <section
@@ -523,6 +619,7 @@ export function Home() {
       </section>
 
       {/* ── Sunnah & Prohibitions — light mint band ── */}
+      {show("sunnah") && (
       <section
         className="relative py-14 md:py-20 overflow-hidden"
         style={{
@@ -540,10 +637,10 @@ export function Home() {
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5">
           <div className="text-center mb-8">
             <p className="text-[#16A34A] text-xs font-bold uppercase tracking-[0.18em] mb-2">
-              {bn ? "ইবাদতের দিকনির্দেশনা" : "Guidance for Worship"}
+              {secEyebrow("sunnah", "Guidance for Worship", "ইবাদতের দিকনির্দেশনা")}
             </p>
             <h2 className="text-2xl md:text-3xl font-bold text-[#002D62]">
-              {bn ? "সুন্নাহ ও নিষিদ্ধ কাজসমূহ" : "Sunnah & Prohibited Acts"}
+              {secTitle("sunnah", "Sunnah & Prohibited Acts", "সুন্নাহ ও নিষিদ্ধ কাজসমূহ")}
             </h2>
             <div className="mt-3 mx-auto h-1 w-16 rounded-full bg-gradient-to-r from-emerald-500 to-[#F37021]" />
           </div>
@@ -557,7 +654,7 @@ export function Home() {
                     {bn ? "সুন্নাহ কাজসমূহ" : "Sunnah Acts"}
                   </h3>
                   <ul className="space-y-2.5 mb-6 flex-1">
-                    {SUNNAH.map((item) => (
+                    {sunnahItems.map((item) => (
                       <li key={item.en} className="flex gap-2 text-sm text-[#374151]">
                         <Check size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
                         {bn ? item.bn : item.en}
@@ -581,7 +678,7 @@ export function Home() {
                     {bn ? "নিষিদ্ধ কাজসমূহ" : "Prohibited Acts"}
                   </h3>
                   <ul className="space-y-2.5 mb-6 flex-1">
-                    {PROHIBITIONS.map((item) => (
+                    {prohibitionItems.map((item) => (
                       <li key={item.en} className="flex gap-2 text-sm text-[#374151]">
                         <X size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
                         {bn ? item.bn : item.en}
@@ -598,6 +695,7 @@ export function Home() {
           </div>
         </div>
       </section>
+      )}
 
 
       {/* ── Stats — brand orange band (clear break) ── */}
@@ -617,13 +715,7 @@ export function Home() {
         />
         <Plane size={88} className="absolute right-8 top-1/2 -translate-y-1/2 text-white/15 -rotate-12 hidden md:block" aria-hidden />
         <div className="relative max-w-[1240px] mx-auto px-4 md:px-5 grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-3">
-          {[
-            { Icon: Users, end: 100, suffix: "K+", label: bn ? "সন্তুষ্ট যাত্রী" : "Satisfied Travelers" },
-            { Icon: BadgeCheck, end: 12, suffix: "+", label: bn ? "বছরের অভিজ্ঞতা" : "Years Experience" },
-            { Icon: MapPin, end: 25, suffix: "+", label: bn ? "দেশে সেবা" : "Countries Served" },
-            { Icon: Star, end: 500, suffix: "+", label: bn ? "হজ্ব গ্রুপ" : "Hajj Groups" },
-            { Icon: Shield, end: 98, suffix: "%", label: bn ? "ভিসা সফলতা" : "Visa Success Rate" },
-          ].map(({ Icon, end, suffix, label }) => (
+          {stats.map(({ Icon, end, suffix, label }) => (
             <div key={label} className="text-center flex flex-col items-center rounded-xl bg-white/15 border border-white/25 px-3 py-4 backdrop-blur-sm">
               <Icon size={22} className="text-white mb-2" />
               <StatCounter end={end} suffix={suffix} label={label} />
@@ -655,10 +747,10 @@ export function Home() {
               </span>
               <div>
                 <h2 className="text-xl md:text-2xl font-bold text-[#002D62]">
-                  {bn ? "সর্বশেষ অফার ও আপডেট পেতে সাবস্ক্রাইব করুন" : "Subscribe for latest offers & updates"}
+                  {nl("heading", bn ? "সর্বশেষ অফার ও আপডেট পেতে সাবস্ক্রাইব করুন" : "Subscribe for latest offers & updates")}
                 </h2>
                 <p className="text-[#6B7280] text-sm mt-1">
-                  {bn ? "নতুন প্যাকেজ ও গাইড সরাসরি আপনার ইনবক্সে।" : "New packages and guides delivered to your inbox."}
+                  {nl("desc", bn ? "নতুন প্যাকেজ ও গাইড সরাসরি আপনার ইনবক্সে।" : "New packages and guides delivered to your inbox.")}
                 </p>
               </div>
             </div>
@@ -678,14 +770,14 @@ export function Home() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={bn ? "আপনার ইমেইল" : "Your email"}
+                  placeholder={nl("placeholder", bn ? "আপনার ইমেইল" : "Your email")}
                   className="flex-1 px-4 py-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#002D62] text-sm outline-none focus:ring-2 focus:ring-[#F37021] focus:border-transparent"
                 />
                 <button
                   type="submit"
                   className="px-6 py-3 bg-[#F37021] hover:bg-[#D85A12] text-white font-bold text-sm rounded-md transition-colors whitespace-nowrap"
                 >
-                  {bn ? "সাবস্ক্রাইব করুন" : "Subscribe"}
+                  {nl("button", bn ? "সাবস্ক্রাইব করুন" : "Subscribe")}
                 </button>
               </form>
             )}

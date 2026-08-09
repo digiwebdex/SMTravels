@@ -13,7 +13,9 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:migrate": "prisma migrate deploy",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "seed:nav": "tsx prisma/seed-nav-footer.ts",
+    "seed:home": "tsx prisma/seed-home.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

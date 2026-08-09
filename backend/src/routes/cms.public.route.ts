@@ -12,6 +12,11 @@ import {
   getPublicCmsPageHandler,
   getPublicMenuHandler,
   listPublicBannersHandler,
+  listPublicSettingsHandler,
+  listPublicStatisticsHandler,
+  listPublicServicesHandler,
+  getPublicHeroHandler,
+  listPublicHomeSectionsHandler,
 } from "../controllers/cmsPublic.controller";
 
 /** Short CDN-friendly cache for anonymous marketing content. */
@@ -36,3 +41,8 @@ cmsPublicRouter.get("/public/gallery", asyncHandler(listPublicGalleryHandler));
 cmsPublicRouter.get("/public/pages/:slug", asyncHandler(getPublicCmsPageHandler));
 cmsPublicRouter.get("/public/menus/:location", asyncHandler(getPublicMenuHandler));
 cmsPublicRouter.get("/public/banners", asyncHandler(listPublicBannersHandler));
+cmsPublicRouter.get("/public/settings", asyncHandler(listPublicSettingsHandler));
+cmsPublicRouter.get("/public/statistics", asyncHandler(listPublicStatisticsHandler));
+cmsPublicRouter.get("/public/services", asyncHandler(listPublicServicesHandler));
+cmsPublicRouter.get("/public/hero", asyncHandler(getPublicHeroHandler));
+cmsPublicRouter.get("/public/home-sections", asyncHandler(listPublicHomeSectionsHandler));

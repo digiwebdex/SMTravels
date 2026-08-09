@@ -338,6 +338,9 @@ enum MenuLocation {
   MAIN_NAV
   FOOTER_NAV
   MOBILE_NAV
+  TOP_NAV
+  QUICK_LINKS
+  LEGAL_NAV
 }
 
 enum MediaType {
@@ -1923,12 +1926,17 @@ model Menu {
 }
 
 model MenuItem {
-  id        String  @id @default(cuid())
-  menuId    String
-  parentId  String?
-  label     String
-  url       String
-  sortOrder Int     @default(0)
+  id         String  @id @default(cuid())
+  menuId     String
+  parentId   String?
+  label      String
+  url        String
+  sortOrder  Int     @default(0)
+  icon       String?
+  openNewTab Boolean @default(false)
+  visible    Boolean @default(true)
+  published  Boolean @default(true)
+  megaMenu   Boolean @default(false)
 
   menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
   parent   MenuItem?  @relation("MenuTree", fields: [parentId], references: [id], onDelete: Cascade)
@@ -2802,4 +2810,88 @@ model HrAttendanceCorrection {
   @@index([employeeId])
   @@index([status])
   @@index([deletedAt])
+}
+
+// ─── HOMEPAGE / MARKETING CMS (Phase 2.2) ────────────────────────────────────
+model Statistic {
+  id        String    @id @default(cuid())
+  title     String
+  value     Int
+  suffix    String?
+  icon      String?
+  color     String?
+  sortOrder Int       @default(0)
+  visible   Boolean   @default(true)
+  homepage  Boolean   @default(true)
+  animation Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model HomeService {
+  id         String    @id @default(cuid())
+  title      String
+  shortDesc  String?
+  icon       String?
+  image      String?
+  buttonText String?
+  buttonUrl  String
+  color      String?
+  sortOrder  Int       @default(0)
+  homepage   Boolean   @default(true)
+  visible    Boolean   @default(true)
+  published  Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+}
+
+model Hero {
+  id               String    @id @default(cuid())
+  key              String    @unique
+  eyebrow          String?
+  eyebrowBn        String?
+  title            String
+  titleBn          String?
+  highlight        String?
+  highlightBn      String?
+  subtitle         String?
+  subtitleBn       String?
+  primaryLabel     String?
+  primaryLabelBn   String?
+  primaryUrl       String?
+  secondaryLabel   String?
+  secondaryLabelBn String?
+  secondaryUrl     String?
+  backgroundImage  String?
+  mobileImage      String?
+  backgroundVideo  String?
+  overlay          String?
+  badges           Json?
+  sortOrder        Int       @default(0)
+  visible          Boolean   @default(true)
+  published        Boolean   @default(true)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime? @db.Timestamptz(6)
+}
+
+model HomeSection {
+  id         String    @id @default(cuid())
+  key        String    @unique
+  type       String
+  eyebrow    String?
+  eyebrowBn  String?
+  title      String?
+  titleBn    String?
+  subtitle   String?
+  subtitleBn String?
+  config     Json?
+  sortOrder  Int       @default(0)
+  visible    Boolean   @default(true)
+  published  Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
 }

@@ -13,7 +13,7 @@ export const BANNER_TYPES = ["PROMO", "HERO", "SIDEBAR", "CTA"] as const;
 export const bannerTypeSchema = z.enum(BANNER_TYPES);
 export type BannerTypeDto = z.infer<typeof bannerTypeSchema>;
 
-export const MENU_LOCATIONS = ["MAIN_NAV", "FOOTER_NAV", "MOBILE_NAV"] as const;
+export const MENU_LOCATIONS = ["MAIN_NAV", "FOOTER_NAV", "MOBILE_NAV", "TOP_NAV", "QUICK_LINKS", "LEGAL_NAV"] as const;
 export const menuLocationSchema = z.enum(MENU_LOCATIONS);
 export type MenuLocationDto = z.infer<typeof menuLocationSchema>;
 
@@ -292,6 +292,9 @@ export interface PublicMenuItemDto {
   label: string;
   url: string;
   sortOrder: number;
+  icon: string | null;
+  openNewTab: boolean;
+  megaMenu: boolean;
   children: PublicMenuItemDto[];
 }
 
@@ -300,6 +303,81 @@ export interface PublicMenuDto {
   location: MenuLocationDto;
   name: string;
   items: PublicMenuItemDto[];
+}
+
+/** Public site settings (company info, socials, copyright, etc.) as a flat key→value map. */
+export interface PublicSettingsDto {
+  settings: Record<string, string>;
+}
+
+/** Public homepage statistic (animated counter). */
+export interface PublicStatisticDto {
+  id: string;
+  title: string;
+  value: number;
+  suffix: string | null;
+  icon: string | null;
+  color: string | null;
+  animation: boolean;
+}
+
+/** Public homepage service card. */
+export interface PublicServiceDto {
+  id: string;
+  title: string;
+  shortDesc: string | null;
+  icon: string | null;
+  image: string | null;
+  buttonText: string | null;
+  buttonUrl: string;
+  color: string | null;
+}
+
+/** Public homepage section (Section Manager + JSON renderer foundation). */
+export interface PublicHomeSectionDto {
+  key: string;
+  type: string;
+  eyebrow: string | null;
+  eyebrowBn: string | null;
+  title: string | null;
+  titleBn: string | null;
+  subtitle: string | null;
+  subtitleBn: string | null;
+  config: unknown;
+  sortOrder: number;
+  visible: boolean;
+}
+
+/** Public hero trust badge. */
+export interface PublicHeroBadgeDto {
+  icon: string | null;
+  label: string;
+  labelBn: string | null;
+}
+
+/** Public homepage hero (bilingual, reusable across pages via `key`). */
+export interface PublicHeroDto {
+  id: string;
+  key: string;
+  eyebrow: string | null;
+  eyebrowBn: string | null;
+  title: string;
+  titleBn: string | null;
+  highlight: string | null;
+  highlightBn: string | null;
+  subtitle: string | null;
+  subtitleBn: string | null;
+  primaryLabel: string | null;
+  primaryLabelBn: string | null;
+  primaryUrl: string | null;
+  secondaryLabel: string | null;
+  secondaryLabelBn: string | null;
+  secondaryUrl: string | null;
+  backgroundImage: string | null;
+  mobileImage: string | null;
+  backgroundVideo: string | null;
+  overlay: string | null;
+  badges: PublicHeroBadgeDto[];
 }
 
 export interface PublicBannerDto {

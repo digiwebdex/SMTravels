@@ -9,15 +9,8 @@ import { cn } from "../lib/utils";
 import { BrandLogo } from "./BrandLogo";
 import { PaymentLogos } from "../website/PaymentLogos";
 import { useLang } from "../i18n/useLang";
-
-function WhatsAppIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.556 4.116 1.524 5.847L0 24l6.335-1.501A11.938 11.938 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.032-1.387l-.36-.214-3.754.888.938-3.658-.235-.374A9.818 9.818 0 012.182 12c0-5.413 4.405-9.818 9.818-9.818 5.413 0 9.818 4.405 9.818 9.818 0 5.413-4.405 9.818-9.818 9.818z" />
-    </svg>
-  );
-}
+import { PwaInstallBanner } from "./PwaInstallBanner";
+import { usePublicMenu, usePublicSettings } from "../hooks/publicContent";
 
 const PRIMARY_NAV = [
   { labelBn: "হজ্ব ও উমরাহ", labelEn: "Hajj & Umrah", path: "/hajj" },
@@ -37,6 +30,41 @@ const OTHERS_NAV = [
   { labelBn: "বীমা", labelEn: "Insurance", path: "/faq" },
 ];
 
+// bn labels for known routes so CMS-driven nav/footer stay bilingual (structure & order come from CMS).
+const BN_LABELS: Record<string, string> = {
+  "/hajj": "হজ্ব ও উমরাহ", "/umrah": "উমরাহ", "/visa": "ভিসা সার্ভিস", "/air-ticket": "এয়ার টিকেট",
+  "/tour-packages": "ট্যুর প্যাকেজ", "/hotel-booking": "হোটেল", "/transport": "পরিবহন", "/manpower": "ম্যানপাওয়ার",
+  "/knowledge": "জ্ঞান কেন্দ্র", "/gallery": "গ্যালারি", "/faq": "জিজ্ঞাসা", "/packages": "প্যাকেজ",
+  "/blog": "ব্লগ", "/contact": "যোগাযোগ", "/about": "আমাদের সম্পর্কে", "/branches": "শাখা",
+  "/career": "ক্যারিয়ার", "/privacy": "গোপনীয়তা", "/terms": "শর্তাবলি", "/refund": "রিফান্ড", "/": "হোম",
+};
+type NavLink = { labelEn: string; labelBn: string; path: string };
+type CmsMenuItem = { label: string; url: string; megaMenu?: boolean; children?: CmsMenuItem[] };
+/** CMS drives structure/order; bn label falls back to a known-route map to keep the UI bilingual. */
+function toNav(items: CmsMenuItem[]): NavLink[] {
+  return items.map((i) => ({ labelEn: i.label, labelBn: BN_LABELS[i.url] ?? i.label, path: i.url }));
+}
+
+const FOOTER_QUICK_FALLBACK: NavLink[] = [
+  { labelEn: "About", labelBn: "আমাদের সম্পর্কে", path: "/about" },
+  { labelEn: "Packages", labelBn: "প্যাকেজ", path: "/packages" },
+  { labelEn: "Blog", labelBn: "ব্লগ", path: "/blog" },
+  { labelEn: "Branches", labelBn: "শাখা", path: "/branches" },
+  { labelEn: "Career", labelBn: "ক্যারিয়ার", path: "/career" },
+];
+const FOOTER_SERVICES_FALLBACK: NavLink[] = [
+  { labelEn: "Hajj", labelBn: "হজ্ব", path: "/hajj" },
+  { labelEn: "Umrah", labelBn: "উমরাহ", path: "/umrah" },
+  { labelEn: "Visa", labelBn: "ভিসা", path: "/visa" },
+  { labelEn: "Air Ticket", labelBn: "এয়ার টিকেট", path: "/air-ticket" },
+  { labelEn: "Hotel", labelBn: "হোটেল", path: "/hotel-booking" },
+  { labelEn: "Transport", labelBn: "পরিবহন", path: "/transport" },
+];
+const FOOTER_SOCIAL = [
+  { Icon: Facebook, key: "social.facebook" }, { Icon: Instagram, key: "social.instagram" },
+  { Icon: Youtube, key: "social.youtube" }, { Icon: Twitter, key: "social.twitter" }, { Icon: Linkedin, key: "social.linkedin" },
+];
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [othersOpen, setOthersOpen] = useState(false);
@@ -45,6 +73,13 @@ export function Header() {
   const { lang, toggle } = useLang();
   const bn = lang === "bn";
   const location = useLocation();
+
+  // CMS-driven navigation (falls back to the built-in nav if the API is unavailable — no layout change).
+  const mainMenu = usePublicMenu("MAIN_NAV");
+  const cmsMain = (mainMenu.data?.items ?? []) as CmsMenuItem[];
+  const cmsOthers = cmsMain.find((i) => i.megaMenu);
+  const primaryNav: NavLink[] = cmsMain.length ? toNav(cmsMain.filter((i) => !i.megaMenu)) : PRIMARY_NAV;
+  const othersNav: NavLink[] = cmsOthers?.children?.length ? toNav(cmsOthers.children) : OTHERS_NAV;
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 12);
@@ -105,7 +140,7 @@ export function Header() {
           </Link>
 
           <nav className="hidden xl:flex items-center gap-0.5 flex-1 justify-center">
-            {PRIMARY_NAV.map((item) => (
+            {primaryNav.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -117,21 +152,16 @@ export function Header() {
                 {bn ? item.labelBn : item.labelEn}
               </Link>
             ))}
-            <div className="relative"
-              onMouseEnter={() => setOthersOpen(true)}
-              onMouseLeave={() => setOthersOpen(false)}
-              onFocus={() => setOthersOpen(true)}
-              onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOthersOpen(false); }}>
+            <div className="relative" onMouseEnter={() => setOthersOpen(true)} onMouseLeave={() => setOthersOpen(false)}>
               <button type="button"
-                onClick={() => setOthersOpen((o) => !o)}
                 className="px-2.5 py-2 text-[13px] font-semibold text-[#002D62] hover:text-[#1B75BC] inline-flex items-center gap-0.5"
-                aria-haspopup="true" aria-controls="others-menu" aria-expanded={othersOpen}>
+                aria-expanded={othersOpen}>
                 {bn ? "অন্যান্য" : "Others"} <ChevronDown size={14} className={cn("transition-transform", othersOpen && "rotate-180")} />
               </button>
               {othersOpen && (
-                <div id="others-menu" className="absolute top-full left-0 pt-2 w-52 z-50">
+                <div className="absolute top-full left-0 pt-2 w-52 z-50">
                   <div className="bg-white rounded-md shadow-xl border border-[#E5E7EB] py-1">
-                    {OTHERS_NAV.map((s) => (
+                    {othersNav.map((s) => (
                       <Link key={s.path + s.labelEn} to={s.path}
                         className="block px-4 py-2.5 text-sm text-[#002D62] hover:bg-[#EAF5FF] hover:text-[#1B75BC]">
                         {bn ? s.labelBn : s.labelEn}
@@ -179,7 +209,7 @@ export function Header() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
-            {[...PRIMARY_NAV, ...OTHERS_NAV].map((item) => (
+            {[...primaryNav, ...othersNav].map((item) => (
               <Link key={item.path + item.labelEn} to={item.path}
                 className={cn("block px-4 py-3 rounded-md text-sm font-semibold", isActive(item.path) ? "bg-[#EAF5FF] text-[#1B75BC]" : "text-[#002D62] hover:bg-[#F7F8FA]")}>
                 {bn ? item.labelBn : item.labelEn}
@@ -205,6 +235,13 @@ export function Footer() {
   const { t, i18n } = useTranslation("layout");
   const bn = i18n.language?.startsWith("bn");
 
+  // CMS-driven footer (falls back to built-in values if the API is unavailable — no layout change).
+  const quickMenu = usePublicMenu("QUICK_LINKS");
+  const servicesMenu = usePublicMenu("FOOTER_NAV");
+  const s = usePublicSettings().data ?? {};
+  const quickLinks: NavLink[] = quickMenu.data?.items?.length ? toNav(quickMenu.data.items as CmsMenuItem[]) : FOOTER_QUICK_FALLBACK;
+  const services: NavLink[] = servicesMenu.data?.items?.length ? toNav(servicesMenu.data.items as CmsMenuItem[]) : FOOTER_SERVICES_FALLBACK;
+
   return (
     <footer className="bg-[#001F45] text-white relative">
       <div className="h-1.5 w-full bg-gradient-to-r from-[#1B75BC] via-[#F37021] to-[#C89B3C]" aria-hidden />
@@ -215,39 +252,40 @@ export function Footer() {
               <img src="/logo.png" alt="SM Travels International" className="h-12 w-auto object-contain" />
             </Link>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs mb-5">
-              {bn
+              {s["footer.description"] || (bn
                 ? "২০১১ সাল থেকে বিশ্বস্ত হজ্ব, উমরাহ, ভিসা ও ভ্রমণ সেবা — স্বচ্ছতা ও ইসলামী শিষ্টাচারের সাথে।"
-                : "Trusted Hajj, Umrah, visa and travel services since 2011 — with transparency and Islamic elegance."}
+                : "Trusted Hajj, Umrah, visa and travel services since 2011 — with transparency and Islamic elegance.")}
             </p>
             <div className="flex gap-2">
-              {[{ Icon: Facebook, label: "Facebook" }, { Icon: Instagram, label: "Instagram" }, { Icon: Youtube, label: "YouTube" }, { Icon: Twitter, label: "Twitter / X" }, { Icon: Linkedin, label: "LinkedIn" }].map(({ Icon, label }) => (
-                <a key={label} href="#" aria-label={label} title={label} className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F37021] hover:border-[#F37021] flex items-center justify-center transition-colors">
-                  <Icon size={15} aria-hidden />
-                </a>
-              ))}
+              {FOOTER_SOCIAL.map(({ Icon, key }) => {
+                const href = s[key] || "#";
+                const name = key.split(".")[1];
+                return (
+                  <a key={key} href={href} target={href !== "#" ? "_blank" : undefined} rel="noreferrer"
+                    aria-label={name} title={name}
+                    className="w-9 h-9 rounded-full border border-white/20 hover:bg-[#F37021] hover:border-[#F37021] flex items-center justify-center transition-colors">
+                    <Icon size={15} aria-hidden />
+                  </a>
+                );
+              })}
             </div>
           </div>
 
           <div>
             <h4 className="text-sm font-bold text-white mb-4">{bn ? "দ্রুত লিংক" : "Quick Links"}</h4>
             <ul className="space-y-2.5 text-sm text-white/70">
-              <li><Link to="/about" className="hover:text-white">About</Link></li>
-              <li><Link to="/packages" className="hover:text-white">{bn ? "প্যাকেজ" : "Packages"}</Link></li>
-              <li><Link to="/blog" className="hover:text-white">Blog</Link></li>
-              <li><Link to="/branches" className="hover:text-white">{bn ? "শাখা" : "Branches"}</Link></li>
-              <li><Link to="/career" className="hover:text-white">{bn ? "ক্যারিয়ার" : "Career"}</Link></li>
+              {quickLinks.map((l) => (
+                <li key={l.path}><Link to={l.path} className="hover:text-white">{bn ? l.labelBn : l.labelEn}</Link></li>
+              ))}
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-bold text-white mb-4">{bn ? "আমাদের সেবা" : "Our Services"}</h4>
             <ul className="space-y-2.5 text-sm text-white/70">
-              <li><Link to="/hajj" className="hover:text-white">{bn ? "হজ্ব" : "Hajj"}</Link></li>
-              <li><Link to="/umrah" className="hover:text-white">{bn ? "উমরাহ" : "Umrah"}</Link></li>
-              <li><Link to="/visa" className="hover:text-white">{bn ? "ভিসা" : "Visa"}</Link></li>
-              <li><Link to="/air-ticket" className="hover:text-white">{bn ? "এয়ার টিকেট" : "Air Ticket"}</Link></li>
-              <li><Link to="/hotel-booking" className="hover:text-white">{bn ? "হোটেল" : "Hotel"}</Link></li>
-              <li><Link to="/transport" className="hover:text-white">{bn ? "পরিবহন" : "Transport"}</Link></li>
+              {services.map((l) => (
+                <li key={l.path}><Link to={l.path} className="hover:text-white">{bn ? l.labelBn : l.labelEn}</Link></li>
+              ))}
             </ul>
           </div>
 
@@ -266,9 +304,9 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-white mb-4">{bn ? "যোগাযোগ" : "Contact"}</h4>
             <ul className="space-y-3 text-sm text-white/70">
-              <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> +880 1211 190 022</li>
-              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> support@smtravels.com</li>
-              <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> {bn ? "ঢাকা ও চট্টগ্রাম, বাংলাদেশ" : "Dhaka & Chittagong, Bangladesh"}</li>
+              <li className="flex gap-2"><Phone size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> {s["company.phone"] || "+880 1211 190 022"}</li>
+              <li className="flex gap-2"><Mail size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> {s["company.email"] || "support@smtravels.com"}</li>
+              <li className="flex gap-2"><MapPin size={14} className="mt-0.5 text-[#F37021] flex-shrink-0" /> {s["company.address"] || (bn ? "ঢাকা ও চট্টগ্রাম, বাংলাদেশ" : "Dhaka & Chittagong, Bangladesh")}</li>
             </ul>
           </div>
         </div>
@@ -276,41 +314,11 @@ export function Footer() {
 
       <div className="border-t border-white/10 bg-[#031632]">
         <div className="max-w-[1240px] mx-auto px-4 md:px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-white/45">{t("footer.copyright")}</p>
+          <p className="text-xs text-white/45">{s["footer.copyright"] || t("footer.copyright")}</p>
           <PaymentLogos />
         </div>
       </div>
     </footer>
-  );
-}
-
-function WhatsAppFloat() {
-  return (
-    <a href="https://wa.me/8801712345678?text=Assalamu%20Alaikum%20SM%20Travels"
-      target="_blank" rel="noopener noreferrer"
-      className="hidden md:flex fixed bottom-6 right-5 z-40 w-14 h-14 bg-[#25D366] text-white rounded-full items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-      aria-label="WhatsApp">
-      <WhatsAppIcon size={26} />
-    </a>
-  );
-}
-
-function MobileBottomBar() {
-  const { i18n } = useTranslation("layout");
-  const bn = i18n.language?.startsWith("bn");
-  return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-[#E5E7EB] px-4 py-3">
-      <div className="flex gap-3">
-        <a href="https://wa.me/8801712345678" target="_blank" rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#25D366] text-white font-bold rounded-md text-sm">
-          <WhatsAppIcon size={18} /> WhatsApp
-        </a>
-        <Link to="/book"
-          className="flex-1 flex items-center justify-center gap-2 min-h-[48px] bg-[#F37021] text-white font-bold rounded-md text-sm">
-          {bn ? "যাত্রা শুরু করুন" : "Start Journey"}
-        </Link>
-      </div>
-    </div>
   );
 }
 
@@ -322,10 +330,9 @@ export function Layout() {
     <div className="min-h-screen flex flex-col bg-[#EEF3F8] text-[#111827]" style={{ fontFamily: "var(--font-body)" }}>
       <Header />
       <main className="flex-1"><Outlet /></main>
-      <div className="md:hidden h-[72px]" />
+      <div className="md:hidden h-[84px]" aria-hidden />
       <Footer />
-      <WhatsAppFloat />
-      <MobileBottomBar />
+      <PwaInstallBanner />
     </div>
   );
 }

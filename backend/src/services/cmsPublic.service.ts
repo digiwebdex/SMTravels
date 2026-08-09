@@ -20,6 +20,11 @@ import type {
   PublicBannerListQuery,
   PublicBannerListResponse,
   MenuLocationDto,
+  PublicStatisticDto,
+  PublicServiceDto,
+  PublicHeroDto,
+  PublicHeroBadgeDto,
+  PublicHomeSectionDto,
 } from "../contracts/cms.contract";
 
 const num = (v: Prisma.Decimal | number | null | undefined): number =>
@@ -222,6 +227,7 @@ export async function listPublicFaqs(): Promise<PublicFaqListResponse> {
   const rows = await prisma.faq.findMany({
     where: { deletedAt: null, published: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    take: 300,
   });
 
   return {
@@ -239,6 +245,7 @@ export async function listPublicTestimonials(): Promise<PublicTestimonialListRes
   const rows = await prisma.testimonial.findMany({
     where: { deletedAt: null, approved: true },
     orderBy: { createdAt: "desc" },
+    take: 100,
   });
 
   return {
@@ -258,6 +265,7 @@ export async function listPublicGallery(): Promise<PublicGalleryListResponse> {
   const rows = await prisma.mediaAsset.findMany({
     where: { deletedAt: null, type: "IMAGE" },
     orderBy: { createdAt: "desc" },
+    take: 200,
   });
 
   return {
@@ -298,29 +306,35 @@ export async function getPublishedCmsPage(slug: string): Promise<PublicCmsPageDt
   };
 }
 
-function buildPublicMenuTree(
-  items: { id: string; parentId: string | null; label: string; url: string; sortOrder: number }[],
-  parentId: string | null = null,
-): PublicMenuItemDto[] {
+type MenuItemRow = {
+  id: string; parentId: string | null; label: string; url: string; sortOrder: number;
+  icon: string | null; openNewTab: boolean; megaMenu: boolean; visible: boolean; published: boolean;
+};
+
+function buildPublicMenuTree(items: MenuItemRow[], parentId: string | null = null): PublicMenuItemDto[] {
   return items
-    .filter((i) => i.parentId === parentId)
+    .filter((i) => i.parentId === parentId && i.visible && i.published)
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((i) => ({
       id: i.id,
       label: i.label,
       url: i.url,
       sortOrder: i.sortOrder,
+      icon: i.icon,
+      openNewTab: i.openNewTab,
+      megaMenu: i.megaMenu,
       children: buildPublicMenuTree(items, i.id),
     }));
 }
 
+const MENU_LOCATIONS = ["MAIN_NAV", "FOOTER_NAV", "MOBILE_NAV", "TOP_NAV", "QUICK_LINKS", "LEGAL_NAV"] as const;
+
 export async function getPublicMenu(location: string): Promise<PublicMenuDto> {
   const loc = location.toUpperCase().replace(/-/g, "_");
-  const allowed = ["MAIN_NAV", "FOOTER_NAV", "MOBILE_NAV"] as const;
-  if (!(allowed as readonly string[]).includes(loc)) throw new HttpError(404, "NotFound");
+  if (!(MENU_LOCATIONS as readonly string[]).includes(loc)) throw new HttpError(404, "NotFound");
 
   const m = await prisma.menu.findUnique({
-    where: { location: loc as (typeof allowed)[number] },
+    where: { location: loc as (typeof MENU_LOCATIONS)[number] },
     include: { items: true },
   });
   if (!m) throw new HttpError(404, "NotFound");
@@ -329,7 +343,98 @@ export async function getPublicMenu(location: string): Promise<PublicMenuDto> {
     id: m.id,
     location: m.location as MenuLocationDto,
     name: m.name,
-    items: buildPublicMenuTree(m.items),
+    items: buildPublicMenuTree(m.items as MenuItemRow[]),
+  };
+}
+
+/** Only these Setting groups may be read anonymously — never expose the whole key/value table. */
+const PUBLIC_SETTING_GROUPS = ["company", "footer", "social", "newsletter", "announcement", "stats"];
+
+/** Public site settings for an allow-listed group (company/footer/social/…) as a key→value map. */
+export async function listPublicSettings(group?: string): Promise<{ settings: Record<string, string> }> {
+  const groups = group
+    ? (PUBLIC_SETTING_GROUPS.includes(group) ? [group] : [])
+    : PUBLIC_SETTING_GROUPS;
+  if (groups.length === 0) return { settings: {} };
+  const rows = await prisma.setting.findMany({
+    where: { group: { in: groups } },
+    select: { key: true, value: true },
+    take: 500,
+  });
+  const settings: Record<string, string> = {};
+  for (const r of rows) if (r.value != null) settings[r.key] = r.value;
+  return { settings };
+}
+
+/** Public homepage statistics (visible + homepage), ordered. */
+export async function listPublicStatistics(): Promise<{ data: PublicStatisticDto[] }> {
+  const rows = await prisma.statistic.findMany({
+    where: { deletedAt: null, visible: true, homepage: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    take: 100,
+  });
+  return {
+    data: rows.map((s) => ({
+      id: s.id, title: s.title, value: s.value, suffix: s.suffix,
+      icon: s.icon, color: s.color, animation: s.animation,
+    })),
+  };
+}
+
+/** Public homepage service cards (visible + homepage + published), ordered. */
+export async function listPublicServices(): Promise<{ data: PublicServiceDto[] }> {
+  const rows = await prisma.homeService.findMany({
+    where: { deletedAt: null, visible: true, homepage: true, published: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    take: 100,
+  });
+  return {
+    data: rows.map((s) => ({
+      id: s.id, title: s.title, shortDesc: s.shortDesc, icon: s.icon,
+      image: s.image, buttonText: s.buttonText, buttonUrl: s.buttonUrl, color: s.color,
+    })),
+  };
+}
+
+/** Public homepage sections (published), ordered — Section Manager + JSON renderer foundation. */
+export async function listPublicHomeSections(): Promise<{ data: PublicHomeSectionDto[] }> {
+  const rows = await prisma.homeSection.findMany({
+    where: { deletedAt: null, published: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    take: 50,
+  });
+  return {
+    data: rows.map((s) => ({
+      key: s.key, type: s.type,
+      eyebrow: s.eyebrow, eyebrowBn: s.eyebrowBn,
+      title: s.title, titleBn: s.titleBn,
+      subtitle: s.subtitle, subtitleBn: s.subtitleBn,
+      config: s.config, sortOrder: s.sortOrder, visible: s.visible,
+    })),
+  };
+}
+
+/** Public hero for a page (default "home"); null if none is published. */
+export async function getPublicHero(key = "home"): Promise<PublicHeroDto | null> {
+  const h = await prisma.hero.findFirst({
+    where: { deletedAt: null, visible: true, published: true, key },
+    orderBy: { sortOrder: "asc" },
+  });
+  if (!h) return null;
+  const badges: PublicHeroBadgeDto[] = Array.isArray(h.badges)
+    ? (h.badges as unknown as PublicHeroBadgeDto[])
+    : [];
+  return {
+    id: h.id, key: h.key,
+    eyebrow: h.eyebrow, eyebrowBn: h.eyebrowBn,
+    title: h.title, titleBn: h.titleBn,
+    highlight: h.highlight, highlightBn: h.highlightBn,
+    subtitle: h.subtitle, subtitleBn: h.subtitleBn,
+    primaryLabel: h.primaryLabel, primaryLabelBn: h.primaryLabelBn, primaryUrl: h.primaryUrl,
+    secondaryLabel: h.secondaryLabel, secondaryLabelBn: h.secondaryLabelBn, secondaryUrl: h.secondaryUrl,
+    backgroundImage: h.backgroundImage, mobileImage: h.mobileImage,
+    backgroundVideo: h.backgroundVideo, overlay: h.overlay,
+    badges,
   };
 }
 
