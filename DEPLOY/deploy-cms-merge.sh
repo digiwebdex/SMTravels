@@ -26,10 +26,25 @@ say "GUARD 0 — host must be 200.141.8.183"
 hostname -I | grep -qw 200.141.8.183 || die "not on 200.141.8.183 (this host: $(hostname -I)). Refusing."
 ok "on $(hostname) / 200.141.8.183"
 
-say "GUARD 1 — working tree must be clean (no tracked local changes)"
-DIRTY=$(git status --porcelain)
-[ -z "$DIRTY" ] || { echo "$DIRTY" | sed 's/^/    /'; die "tracked local changes present — resolve/stash first (owner rule)."; }
-ok "working tree clean"
+say "GUARD 1 — no tracked local changes (known prod-only untracked paths allowed)"
+# (1) tracked unstaged changes  (2) tracked staged changes → hard STOP
+git diff --quiet --exit-code        || die "tracked UNSTAGED changes present — resolve/review first (owner rule)."
+git diff --cached --quiet --exit-code || die "tracked STAGED changes present — resolve/review first (owner rule)."
+# (3)+(4) untracked: allow ONLY the known production-only paths; STOP on anything else.
+#         (never git clean / stash / delete — untracked data is preserved as-is)
+UNEXPECTED=""
+while IFS= read -r u; do
+  [ -z "$u" ] && continue
+  case "$u" in
+    .backup-passphrase | api/ | api/* | backend/tests/ | backend/tests/* | backups/ | backups/* | uploads/ | uploads/* ) : ;;
+    *) UNEXPECTED="${UNEXPECTED}${u}"$'\n' ;;
+  esac
+done < <(git status --porcelain | sed -n 's/^?? //p')
+if [ -n "$UNEXPECTED" ]; then
+  printf '%s' "$UNEXPECTED" | sed 's/^/    unexpected untracked: /'
+  die "unexpected untracked path(s) present — review manually (owner rule: preserve only the known prod data)."
+fi
+ok "tracked tree clean; only known production-only untracked paths present (preserved, not touched)"
 
 say "STEP 1 — BACKUP (DB + env + current HEAD)"
 STAMP=$(date +%Y%m%d-%H%M); BK=/root/smtravels-pre-cms-$STAMP; mkdir -p "$BK"
