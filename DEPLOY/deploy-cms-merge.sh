@@ -46,11 +46,32 @@ if [ -n "$UNEXPECTED" ]; then
 fi
 ok "tracked tree clean; only known production-only untracked paths present (preserved, not touched)"
 
+# pg_dump/libpq reject Prisma's ?schema= URI param. Strip ONLY that one param,
+# preserving host/port/user/password/db/sslmode and every other libpq parameter.
+# Param-aware (split query on &), not a fragile whole-string regex. DATABASE_URL
+# itself and .env.production are never modified — this only derives a dump URL.
+pg_url_for_dump() {
+  local url="$1" base query newq kv; local -a parts
+  base="${url%%\?*}"
+  [ "$base" = "$url" ] && { printf '%s' "$url"; return; }   # no query string at all
+  query="${url#*\?}"; newq=""
+  local IFS='&'; read -ra parts <<< "$query"                # split without globbing
+  for kv in "${parts[@]}"; do
+    case "$kv" in
+      schema=* | "" ) ;;                                     # drop Prisma-only 'schema'
+      *) newq="${newq:+$newq&}$kv" ;;                        # keep sslmode, connect_timeout, ...
+    esac
+  done
+  [ -n "$newq" ] && printf '%s?%s' "$base" "$newq" || printf '%s' "$base"
+}
+
 say "STEP 1 — BACKUP (DB + env + current HEAD)"
 STAMP=$(date +%Y%m%d-%H%M); BK=/root/smtravels-pre-cms-$STAMP; mkdir -p "$BK"
 set -a; . "$BE/.env.production" 2>/dev/null || . "$APP/.env.production"; set +a
 [ -n "${DATABASE_URL:-}" ] || die "DATABASE_URL not loaded from env — cannot back up safely."
-pg_dump "$DATABASE_URL" > "$BK/db.sql" || die "pg_dump failed"; ok "DB dump -> $BK/db.sql ($(du -h "$BK/db.sql"|cut -f1))"
+PG_URL="$(pg_url_for_dump "$DATABASE_URL")"
+pg_dump --dbname="$PG_URL" > "$BK/db.sql" || die "pg_dump failed"; ok "DB dump -> $BK/db.sql ($(du -h "$BK/db.sql"|cut -f1))"
+[ -s "$BK/db.sql" ] || die "pg_dump produced an EMPTY file — aborting before any change."
 cp -a "$BE/.env.production" "$BK/env.bak" 2>/dev/null && chmod 600 "$BK/env.bak"
 PRE_HEAD=$(git rev-parse HEAD); echo "$PRE_HEAD" > "$BK/PRE_DEPLOY_HEAD.txt"; ok "pre-deploy HEAD $PRE_HEAD saved"
 
