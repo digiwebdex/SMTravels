@@ -27,7 +27,8 @@ set -euo pipefail
 APP=/var/www/SMTravels
 BE=$APP/backend
 FE=$APP/frontend
-TARGET_COMMIT=127ada8
+TARGET_BRANCH=feature/website-v2-redesign
+TARGET_COMMIT=127ada8   # known-good CODE baseline (branch tip also carries this runbook)
 EXPECT_IP=200.141.8.183
 DOMAIN=smtravelsinternational.com
 APIPORT=4030
@@ -85,14 +86,16 @@ cp -a "$APP/.env.production" "$BK/env.production.bak" 2>/dev/null && chmod 600 "
 git -C "$APP" rev-parse HEAD > "$BK/PRE_MIGRATION_HEAD.txt" 2>/dev/null || true
 
 ###############################################################################
-say "PHASE 2 — FETCH VERIFIED CODE ($TARGET_COMMIT)"
+say "PHASE 2 — FETCH VERIFIED CODE (branch $TARGET_BRANCH tip, >= $TARGET_COMMIT)"
 git -C "$APP" fetch origin --tags
 # stash any prod-local edits into the backup rather than losing them
 if [ "$(git -C "$APP" status --porcelain | wc -l)" -gt 0 ]; then
   git -C "$APP" stash push -u -m "pre-migration-$STAMP" && warn "local changes stashed (recover via 'git stash list')"
 fi
-git -C "$APP" checkout "$TARGET_COMMIT"
-ok "checked out $(git -C "$APP" rev-parse --short HEAD)"
+git -C "$APP" checkout "$TARGET_BRANCH"
+git -C "$APP" reset --hard "origin/$TARGET_BRANCH"
+ok "checked out $(git -C "$APP" rev-parse --short HEAD) (origin/$TARGET_BRANCH)"
+git -C "$APP" merge-base --is-ancestor "$TARGET_COMMIT" HEAD && ok "verified baseline $TARGET_COMMIT is included" || die "baseline $TARGET_COMMIT not in HEAD — wrong branch"
 
 ###############################################################################
 say "PHASE 3 — DATABASE (additive only, divergence-guarded)"
