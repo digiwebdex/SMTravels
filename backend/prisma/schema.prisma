@@ -611,6 +611,8 @@ model Customer {
   district     String?
   division     String?
   country      String?      @default("Bangladesh")
+  passportExpiry DateTime?  @db.Date
+  nationality  String?
   rating       String? // e.g. "Trusted Client"
   createdById  String?
   createdAt    DateTime     @default(now()) @db.Timestamptz(6)
@@ -1183,6 +1185,14 @@ model Document {
   ocrDob        DateTime?         @db.Date
   ocrExpiry     DateTime?         @db.Date
   ocrNationality String?
+  ocrGender     String?
+  ocrIssueCountry String?
+  ocrMrz        String?           @db.Text
+  ocrOriginalFields Json?
+  ocrCorrectedFields Json?
+  ocrReviewedById String?
+  ocrReviewedAt DateTime?         @db.Timestamptz(6)
+  ocrAppliedAt  DateTime?         @db.Timestamptz(6)
   piiKeyId      Int?
   uploadedById  String?
   verifiedById  String?
