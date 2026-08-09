@@ -14,7 +14,10 @@
 ###############################################################################
 set -uo pipefail
 APP=/var/www/SMTravels; BE=$APP/backend; FE=$APP/frontend
-PIN=db5bc04; DOMAIN=smtravelsinternational.com; APIPORT=4030
+PIN=45d8924; DOMAIN=smtravelsinternational.com; APIPORT=4030   # corrected: includes ocr_workflow_persist migration + schema
+# Gate expects the 5 CMS migrations PENDING. ocr_workflow_persist is already applied
+# in the prod DB, so with its file now present it shows as APPLIED (not pending) with
+# no drift. If it ever showed pending/drift, the gate below STOPs (pending != these 5).
 CMS_MIGS="20260808000000_cms_nav_footer_fields 20260808010000_statistics_module 20260808020000_home_services 20260808030000_hero_module 20260808040000_home_sections"
 die(){ printf '\n\033[31m✖ STOP: %s\033[0m\n' "$*" >&2; exit 1; }
 ok(){  printf '  \033[32m✔\033[0m %s\n' "$*"; }
