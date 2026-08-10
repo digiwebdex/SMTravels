@@ -38,6 +38,7 @@ import { hrRouter } from "./hr.route";
 import { currencyRouter } from "./currency.route";
 import { businessNetworkRouter } from "./business-network.route";
 import { payrollRouter } from "./payroll.route";
+import { manpowerRouter } from "./manpower.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
@@ -82,3 +83,4 @@ apiRouter.use(hrRouter);
 apiRouter.use(currencyRouter);
 apiRouter.use(businessNetworkRouter);
 apiRouter.use(payrollRouter);
+apiRouter.use(manpowerRouter);

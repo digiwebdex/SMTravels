@@ -45,6 +45,8 @@ const CurrencyModule = lazyNamed(() => import("./erp/CurrencyModule"), "Currency
 const CompaniesModule = lazyNamed(() => import("./erp/CompaniesModule"), "CompaniesModule");
 const MuftiScholarModule = lazyNamed(() => import("./erp/MuftiScholarModule"), "MuftiScholarModule");
 const PayrollModule = lazyNamed(() => import("./erp/PayrollModule"), "PayrollModule");
+const EmployersModule = lazyNamed(() => import("./erp/EmployersModule"), "EmployersModule");
+const JobOrdersModule = lazyNamed(() => import("./erp/JobOrdersModule"), "JobOrdersModule");
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
 const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
@@ -137,9 +139,9 @@ export const router = createBrowserRouter([
       { path: "ai", element: <ComingSoon k="ai" group="admin" /> },
       // Phase 2 final-menu placeholders — nav home + RBAC only, functionality lands in later phases.
       { path: "muallim", element: withSuspense(<MuallimModule />) },
-      { path: "manpower/job-orders", element: <ComingSoon k="jobOrders" group="manpower" /> },
+      { path: "manpower/job-orders", element: withSuspense(<JobOrdersModule />) },
       { path: "manpower/candidates", element: <ComingSoon k="candidates" group="manpower" /> },
-      { path: "manpower/employers", element: <ComingSoon k="employers" group="manpower" /> },
+      { path: "manpower/employers", element: withSuspense(<EmployersModule />) },
       { path: "manpower/recruitment", element: <ComingSoon k="recruitment" group="manpower" /> },
       { path: "manpower/visa", element: <ComingSoon k="mpVisa" group="manpower" /> },
       { path: "manpower/medical", element: <ComingSoon k="medical" group="manpower" /> },

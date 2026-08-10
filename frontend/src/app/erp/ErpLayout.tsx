@@ -67,9 +67,9 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: UserCircle, labelKey: "muallim",  path: "/erp/muallim", module: "operations_team" },
   ] },
   { key: "manpower", items: [
-    { icon: ClipboardList, labelKey: "jobOrders",   path: "/erp/manpower/job-orders",  module: "bookings", soon: true },
+    { icon: ClipboardList, labelKey: "jobOrders",   path: "/erp/manpower/job-orders",  module: "bookings" },
     { icon: Users,         labelKey: "candidates",  path: "/erp/manpower/candidates",  module: "bookings", soon: true },
-    { icon: Building2,     labelKey: "employers",   path: "/erp/manpower/employers",   module: "bookings", soon: true },
+    { icon: Building2,     labelKey: "employers",   path: "/erp/manpower/employers",   module: "bookings" },
     { icon: UsersRound,    labelKey: "recruitment", path: "/erp/manpower/recruitment", module: "bookings", soon: true },
     { icon: Stamp,         labelKey: "mpVisa",      path: "/erp/manpower/visa",        module: "bookings", soon: true },
     { icon: ScanLine,      labelKey: "medical",     path: "/erp/manpower/medical",     module: "bookings", soon: true },

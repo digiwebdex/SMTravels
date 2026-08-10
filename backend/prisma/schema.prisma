@@ -3040,3 +3040,59 @@ model Payslip {
   @@index([payrollRunId])
   @@index([employeeId])
 }
+
+// ─── MANPOWER / OVERSEAS EMPLOYMENT (Module 6A) ──────────────────────────────
+// Foreign employers and their job orders — the spine of the recruitment lifecycle
+// (Employer → JobOrder → Candidate → … → Deployment; candidate stages in 6B).
+model Employer {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  name          String
+  country       String?
+  city          String?
+  industry      String?
+  contactPerson String?
+  phone         String?
+  whatsapp      String?
+  email         String?
+  address       String?
+  status        String    @default("ACTIVE")
+  notes         String?
+  createdById   String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  jobOrders JobOrder[]
+
+  @@index([status])
+}
+
+model JobOrder {
+  id               String    @id @default(cuid())
+  code             String    @unique
+  employerId       String
+  jobTitle         String
+  category         String?
+  country          String?
+  quantity         Int       @default(1)
+  salary           Decimal?  @db.Decimal(18, 2)
+  currency         Currency  @default(SAR)
+  accommodation    String?
+  food             String?
+  workingHours     String?
+  contractDuration String?
+  requirements     String?
+  deadline         DateTime? @db.Date
+  status           String    @default("OPEN")
+  notes            String?
+  createdById      String?
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime? @db.Timestamptz(6)
+
+  employer Employer @relation(fields: [employerId], references: [id], onDelete: Restrict)
+
+  @@index([employerId])
+  @@index([status])
+}
