@@ -7,6 +7,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type { AuthCtx } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
+import {
+  shouldAdvanceStatus, canTransition,
+  MED_TRANSITIONS, BMET_TRANSITIONS, VISA_TRANSITIONS, DEPLOY_TRANSITIONS,
+} from "./business-rules";
 import type {
   MedicalCreateInput, MedicalUpdateInput, MedicalListQuery, MedicalDto,
   BmetCreateInput, BmetUpdateInput, BmetListQuery, BmetDto,
@@ -17,13 +21,12 @@ import type {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const dstr = (d: unknown) => (d ? (d as Date).toISOString().slice(0, 10) : null);
 
-// Candidate stage order — auto-advances the candidate as stages progress (only ever
-// forward; a stage moves the candidate status when it's behind). REJECTED never advances.
-const STAGE_ORDER = ["NEW", "SHORTLISTED", "SCREENING", "INTERVIEW", "SELECTED", "REJECTED", "CONTRACTED", "MEDICAL", "BMET", "VISA", "TICKETED", "DEPLOYED"];
+// Candidate auto-advances as stages progress (forward-only; REJECTED never advances).
+// STAGE_ORDER + shouldAdvanceStatus live in ./business-rules.
 async function advanceCandidate(candidateId: string, to: string) {
   const c = await prisma.candidate.findFirst({ where: { id: candidateId, deletedAt: null } });
   if (!c || c.status === "REJECTED") return;
-  if (STAGE_ORDER.indexOf(to) > STAGE_ORDER.indexOf(c.status)) {
+  if (shouldAdvanceStatus(c.status, to)) {
     await prisma.candidate.update({ where: { id: candidateId }, data: { status: to } });
   }
 }
@@ -47,10 +50,6 @@ async function loadCandidate(candidateId: string) {
 
 // ─── Medical ─────────────────────────────────────────────────────────────────
 const MED_CAND_OK = ["CONTRACTED", "MEDICAL", "BMET", "VISA", "TICKETED", "DEPLOYED"];
-const MED_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["APPOINTMENT", "COMPLETED"], APPOINTMENT: ["COMPLETED"], COMPLETED: ["FIT", "UNFIT"],
-  FIT: ["EXPIRED"], UNFIT: ["PENDING"], EXPIRED: ["PENDING"],
-};
 const MED_STR = ["medicalCenter", "documentRef", "remarks"] as const;
 const MED_DATE = ["appointmentDate", "medicalDate", "resultDate", "expiryDate"] as const;
 function toMedical(m: any): MedicalDto {
@@ -93,7 +92,7 @@ export async function updateMedical(_auth: AuthCtx, id: string, input: MedicalUp
   if (!cur) throw new HttpError(404, "NotFound");
   const data: Record<string, unknown> = { ...sset(input, MED_STR), ...dset(input, MED_DATE) };
   if (input.status && input.status !== cur.status) {
-    if (!(MED_TRANSITIONS[cur.status] ?? []).includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move medical from ${cur.status} to ${input.status}.` });
+    if (!canTransition(MED_TRANSITIONS, cur.status, input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move medical from ${cur.status} to ${input.status}.` });
     if (input.status === "FIT" && !(input.resultDate || cur.resultDate)) throw new HttpError(400, "MissingResultDate", { message: "FIT requires a result date." });
     if (input.status === "UNFIT" && !(input.remarks || cur.remarks)) throw new HttpError(400, "MissingRemarks", { message: "UNFIT requires remarks/reason." });
     data.status = input.status;
@@ -111,10 +110,6 @@ export async function archiveMedical(_auth: AuthCtx, id: string) {
 
 // ─── BMET ────────────────────────────────────────────────────────────────────
 const BMET_CAND_OK = ["MEDICAL", "BMET", "VISA", "TICKETED", "DEPLOYED"];
-const BMET_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["REGISTERED"], REGISTERED: ["PROCESSING", "CLEARED", "REJECTED"], PROCESSING: ["CLEARED", "REJECTED"],
-  CLEARED: ["EXPIRED"], REJECTED: ["PENDING"], EXPIRED: ["PENDING"],
-};
 const BMET_STR = ["registrationNo", "clearanceNo", "documentRef", "remarks"] as const;
 const BMET_DATE = ["registrationDate", "clearanceDate", "expiryDate"] as const;
 function toBmet(b: any): BmetDto {
@@ -157,7 +152,7 @@ export async function updateBmet(_auth: AuthCtx, id: string, input: BmetUpdateIn
   if (!cur) throw new HttpError(404, "NotFound");
   const data: Record<string, unknown> = { ...sset(input, BMET_STR), ...dset(input, BMET_DATE) };
   if (input.status && input.status !== cur.status) {
-    if (!(BMET_TRANSITIONS[cur.status] ?? []).includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move BMET from ${cur.status} to ${input.status}.` });
+    if (!canTransition(BMET_TRANSITIONS, cur.status, input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move BMET from ${cur.status} to ${input.status}.` });
     if (input.status === "CLEARED" && !((input.registrationNo || cur.registrationNo) && (input.clearanceNo || cur.clearanceNo))) throw new HttpError(400, "MissingClearanceInfo", { message: "CLEARED requires registration + clearance numbers." });
     if (input.status === "REJECTED" && !(input.remarks || cur.remarks)) throw new HttpError(400, "MissingRemarks", { message: "REJECTED requires remarks/reason." });
     data.status = input.status;
@@ -175,10 +170,6 @@ export async function archiveBmet(_auth: AuthCtx, id: string) {
 
 // ─── Manpower Visa (Module 6B-3) ─────────────────────────────────────────────
 const VISA_CAND_OK = ["BMET", "VISA", "TICKETED", "DEPLOYED"];
-const VISA_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["SUBMITTED"], SUBMITTED: ["PROCESSING", "APPROVED", "REJECTED"], PROCESSING: ["APPROVED", "REJECTED"],
-  APPROVED: ["EXPIRED"], REJECTED: ["PENDING"], EXPIRED: ["PENDING"],
-};
 const VISA_STR = ["visaNumber", "visaType", "sponsor", "documentRef", "remarks"] as const;
 const VISA_DATE = ["issueDate", "expiryDate"] as const;
 function toVisa(v: any): ManpowerVisaDto {
@@ -217,7 +208,7 @@ export async function updateVisa(_auth: AuthCtx, id: string, input: VisaUpdateIn
   if (!cur) throw new HttpError(404, "NotFound");
   const data: Record<string, unknown> = { ...sset(input, VISA_STR), ...dset(input, VISA_DATE) };
   if (input.status && input.status !== cur.status) {
-    if (!(VISA_TRANSITIONS[cur.status] ?? []).includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move visa from ${cur.status} to ${input.status}.` });
+    if (!canTransition(VISA_TRANSITIONS, cur.status, input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move visa from ${cur.status} to ${input.status}.` });
     if (input.status === "APPROVED" && !((input.visaNumber || cur.visaNumber) && (input.issueDate || cur.issueDate))) throw new HttpError(400, "MissingVisaInfo", { message: "APPROVED requires visa number + issue date." });
     if (input.status === "REJECTED" && !(input.remarks || cur.remarks)) throw new HttpError(400, "MissingRemarks", { message: "REJECTED requires remarks/reason." });
     data.status = input.status;
@@ -234,10 +225,6 @@ export async function archiveVisa(_auth: AuthCtx, id: string) {
 }
 
 // ─── Manpower Deployment (Module 6B-3) ───────────────────────────────────────
-const DEPLOY_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["TICKETED", "CANCELLED"], TICKETED: ["READY", "CANCELLED"], READY: ["DEPARTED", "CANCELLED"],
-  DEPARTED: ["DEPLOYED", "CANCELLED"], DEPLOYED: [], CANCELLED: ["PENDING"],
-};
 const DEP_STR = ["ticketRef", "flightNo", "departureAirport", "destination", "remarks"] as const;
 const DEP_DATE = ["departureDate", "arrivalDate"] as const;
 function toDeployment(d: any): ManpowerDeploymentDto {
@@ -276,7 +263,7 @@ export async function updateDeployment(_auth: AuthCtx, id: string, input: Deploy
   if (!cur) throw new HttpError(404, "NotFound");
   const data: Record<string, unknown> = { ...sset(input, DEP_STR), ...dset(input, DEP_DATE) };
   if (input.status && input.status !== cur.status) {
-    if (!(DEPLOY_TRANSITIONS[cur.status] ?? []).includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move deployment from ${cur.status} to ${input.status}.` });
+    if (!canTransition(DEPLOY_TRANSITIONS, cur.status, input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move deployment from ${cur.status} to ${input.status}.` });
     if ((input.status === "TICKETED" || input.status === "READY") && !(input.ticketRef || cur.ticketRef)) throw new HttpError(400, "MissingTicket", { message: "A ticket/reference is required before TICKETED/READY." });
     if (input.status === "DEPLOYED" && !(input.departureDate || cur.departureDate || input.departureAirport || cur.departureAirport)) throw new HttpError(400, "MissingDeparture", { message: "DEPLOYED requires departure information." });
     if (input.status === "CANCELLED" && !(input.remarks || cur.remarks)) throw new HttpError(400, "MissingRemarks", { message: "CANCELLED requires a reason." });

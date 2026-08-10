@@ -12,6 +12,7 @@ import type {
   CandidateCreateInput, CandidateUpdateInput, CandidateListQuery, CandidateDto, CandidateTransitionInput,
 } from "../contracts/manpower.contract";
 import { SLOT_STATUSES } from "../contracts/manpower.contract";
+import { CANDIDATE_TRANSITIONS, hasQuotaRoom } from "./business-rules";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function pick(input: any, keys: readonly string[]) {
@@ -149,20 +150,7 @@ const CAND_STR = ["fullName", "photoUrl", "gender", "nationality", "passportNo",
 const CAND_DATE = ["dob", "passportIssueDate", "passportExpiry", "interviewDate", "contractDate"] as const;
 // Allowed status transitions — enforces the real lifecycle. REJECTED can only be
 // explicitly un-rejected to SHORTLISTED (never accidentally SELECTED).
-const TRANSITIONS: Record<string, string[]> = {
-  NEW: ["SHORTLISTED", "SCREENING", "REJECTED"],
-  SHORTLISTED: ["SCREENING", "INTERVIEW", "REJECTED"],
-  SCREENING: ["INTERVIEW", "SELECTED", "REJECTED"],
-  INTERVIEW: ["SELECTED", "REJECTED"],
-  SELECTED: ["CONTRACTED", "REJECTED"],
-  CONTRACTED: ["MEDICAL", "REJECTED"],
-  MEDICAL: ["BMET", "REJECTED"],
-  BMET: ["VISA", "REJECTED"],
-  VISA: ["TICKETED", "REJECTED"],
-  TICKETED: ["DEPLOYED"],
-  DEPLOYED: [],
-  REJECTED: ["SHORTLISTED"],
-};
+// CANDIDATE_TRANSITIONS (the recruitment status machine) lives in ./business-rules.
 const dstr = (d: unknown) => (d ? (d as Date).toISOString().slice(0, 10) : null);
 
 function toCandidate(c: any): CandidateDto {
@@ -232,7 +220,7 @@ export async function updateCandidate(_auth: AuthCtx, id: string, input: Candida
 export async function transitionCandidate(_auth: AuthCtx, id: string, input: CandidateTransitionInput) {
   const c = await prisma.candidate.findFirst({ where: { id, deletedAt: null } });
   if (!c) throw new HttpError(404, "NotFound");
-  const allowed = TRANSITIONS[c.status] ?? [];
+  const allowed = CANDIDATE_TRANSITIONS[c.status] ?? [];
   if (c.status === input.status) throw new HttpError(400, "NoChange", { message: "Candidate already in this status." });
   if (!allowed.includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move from ${c.status} to ${input.status}.` });
 
@@ -240,7 +228,7 @@ export async function transitionCandidate(_auth: AuthCtx, id: string, input: Can
   if (input.status === "SELECTED") {
     const jo = await prisma.jobOrder.findUnique({ where: { id: c.jobOrderId } });
     const taken = await prisma.candidate.count({ where: { jobOrderId: c.jobOrderId, deletedAt: null, status: { in: SLOT_STATUSES as unknown as string[] } } });
-    if (jo && taken >= jo.quantity) throw new HttpError(400, "QuotaFull", { message: `Job order ${jo.code} already has ${taken}/${jo.quantity} selected.` });
+    if (jo && !hasQuotaRoom(taken, jo.quantity)) throw new HttpError(400, "QuotaFull", { message: `Job order ${jo.code} already has ${taken}/${jo.quantity} selected.` });
   }
   const data: Record<string, unknown> = { status: input.status };
   if (input.status === "REJECTED") data.rejectionReason = input.reason ?? null;

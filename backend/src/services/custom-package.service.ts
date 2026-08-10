@@ -7,6 +7,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import type { AuthCtx } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
+import {
+  computeItemSubtotal, computeSubtotal, computeGrandTotal, isDiscountValid, computeBaseAmount,
+  canTransition, isPackageEditable, INQUIRY_TRANSITIONS, PKG_TRANSITIONS,
+} from "./business-rules";
 import type {
   InquiryCreateInput, InquiryUpdateInput, InquiryListQuery, InquiryTransitionInput, InquiryDto,
   PackageCreateInput, PackageUpdateInput, PackageListQuery, PackageTransitionInput,
@@ -14,17 +18,13 @@ import type {
 } from "../contracts/custom-package.contract";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const r2 = (n: number) => Math.round(n * 100) / 100;
 const num = (v: unknown) => Number(v ?? 0);
 const dstr = (d: unknown) => (d ? (d as Date).toISOString().slice(0, 10) : null);
 const dnew = (s?: string) => (s ? new Date(s) : null);
 const SERVICE_TYPES = ["HAJJ", "UMRAH", "VISA", "AIR_TICKET", "MANPOWER", "TOUR", "HOTEL"];
 
 // ─── Inquiry ─────────────────────────────────────────────────────────────────
-const INQUIRY_TRANSITIONS: Record<string, string[]> = {
-  NEW: ["REVIEWING", "CANCELLED"], REVIEWING: ["PACKAGE_BUILDING", "CANCELLED"], PACKAGE_BUILDING: ["QUOTED", "CANCELLED"],
-  QUOTED: ["APPROVED", "CANCELLED"], APPROVED: ["BOOKED", "CANCELLED"], BOOKED: [], CANCELLED: ["NEW"],
-};
+// INQUIRY_TRANSITIONS / PKG_TRANSITIONS / editability live in ./business-rules.
 const INQ_STR = ["contactPhone", "contactEmail", "travelType", "destination", "preferredHotel", "roomRequirements", "flightPreference", "specialRequirements", "notes"] as const;
 const INQ_INT = ["adults", "children", "infants", "hotelNights"] as const;
 const INQ_BOOL = ["visaRequired", "transportRequired", "foodRequired", "ziyaratRequired", "muallimRequired"] as const;
@@ -68,7 +68,7 @@ export async function updateInquiry(_auth: AuthCtx, id: string, input: InquiryUp
 export async function transitionInquiry(_auth: AuthCtx, id: string, input: InquiryTransitionInput) {
   const cur = await prisma.packageInquiry.findFirst({ where: { id, deletedAt: null } });
   if (!cur) throw new HttpError(404, "NotFound");
-  if (!(INQUIRY_TRANSITIONS[cur.status] ?? []).includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move inquiry from ${cur.status} to ${input.status}.` });
+  if (!canTransition(INQUIRY_TRANSITIONS, cur.status, input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move inquiry from ${cur.status} to ${input.status}.` });
   const i = await prisma.packageInquiry.update({ where: { id }, data: { status: input.status } });
   return toInquiry(i);
 }
@@ -80,11 +80,6 @@ export async function archiveInquiry(_auth: AuthCtx, id: string) {
 }
 
 // ─── Custom Package ──────────────────────────────────────────────────────────
-const PKG_EDITABLE = ["DRAFT", "QUOTED"];
-const PKG_TRANSITIONS: Record<string, string[]> = {
-  DRAFT: ["QUOTED"], QUOTED: ["ACCEPTED", "REJECTED", "EXPIRED", "DRAFT"], ACCEPTED: ["BOOKED", "REJECTED"],
-  REJECTED: ["DRAFT"], EXPIRED: ["DRAFT"], BOOKED: [],
-};
 const PKG_STR = ["travelType", "terms", "notes"] as const;
 
 function toItem(it: any): CustomPackageItemDto {
@@ -104,14 +99,14 @@ const withCust = { customer: { select: { name: true } } };
 async function recomputeTotals(packageId: string) {
   const pkg = await prisma.customPackage.findUnique({ where: { id: packageId }, include: { items: true } });
   if (!pkg) return;
-  const subtotal = r2(pkg.items.reduce((s, it) => s + num(it.subtotal), 0));
-  const grand = r2(Math.max(0, subtotal + num(pkg.markup) - num(pkg.discount)));
+  const subtotal = computeSubtotal(pkg.items);
+  const grand = computeGrandTotal(subtotal, num(pkg.markup), num(pkg.discount));
   await prisma.customPackage.update({ where: { id: packageId }, data: { subtotal, grandTotal: grand } });
 }
 async function assertEditable(packageId: string) {
   const p = await prisma.customPackage.findFirst({ where: { id: packageId, deletedAt: null } });
   if (!p) throw new HttpError(404, "NotFound");
-  if (!PKG_EDITABLE.includes(p.status)) throw new HttpError(400, "Locked", { message: `Package is ${p.status} and can no longer be edited.` });
+  if (!isPackageEditable(p.status)) throw new HttpError(400, "Locked", { message: `Package is ${p.status} and can no longer be edited.` });
   return p;
 }
 
@@ -153,7 +148,7 @@ export async function updatePackage(auth: AuthCtx, id: string, input: PackageUpd
   const subtotal = num(cur!.subtotal);
   const markup = input.markup ?? num(cur!.markup);
   const discount = input.discount ?? num(cur!.discount);
-  if (discount > subtotal + markup) throw new HttpError(400, "DiscountTooHigh", { message: "Discount cannot exceed subtotal + markup." });
+  if (!isDiscountValid(discount, subtotal, markup)) throw new HttpError(400, "DiscountTooHigh", { message: "Discount cannot exceed subtotal + markup." });
   await prisma.customPackage.update({
     where: { id },
     data: {
@@ -169,7 +164,7 @@ export async function updatePackage(auth: AuthCtx, id: string, input: PackageUpd
 }
 export async function addItem(auth: AuthCtx, packageId: string, input: ItemCreateInput) {
   const pkg = await assertEditable(packageId);
-  const subtotal = r2(input.quantity * input.unitPrice);
+  const subtotal = computeItemSubtotal(input.quantity, input.unitPrice);
   await prisma.customPackageItem.create({ data: { customPackageId: packageId, serviceType: input.serviceType, description: input.description?.trim() || null, quantity: input.quantity, unitPrice: input.unitPrice, currency: input.currency ?? pkg.currency, subtotal, supplier: input.supplier?.trim() || null, notes: input.notes?.trim() || null } });
   await recomputeTotals(packageId);
   return getPackage(auth, packageId);
@@ -180,7 +175,7 @@ export async function updateItem(auth: AuthCtx, itemId: string, input: ItemUpdat
   await assertEditable(it.customPackageId);
   const quantity = input.quantity ?? it.quantity;
   const unitPrice = input.unitPrice ?? num(it.unitPrice);
-  await prisma.customPackageItem.update({ where: { id: itemId }, data: { ...(input.serviceType ? { serviceType: input.serviceType } : {}), ...(input.description !== undefined ? { description: input.description?.trim() || null } : {}), quantity, unitPrice, subtotal: r2(quantity * unitPrice), ...(input.currency ? { currency: input.currency } : {}), ...(input.supplier !== undefined ? { supplier: input.supplier?.trim() || null } : {}), ...(input.notes !== undefined ? { notes: input.notes?.trim() || null } : {}) } });
+  await prisma.customPackageItem.update({ where: { id: itemId }, data: { ...(input.serviceType ? { serviceType: input.serviceType } : {}), ...(input.description !== undefined ? { description: input.description?.trim() || null } : {}), quantity, unitPrice, subtotal: computeItemSubtotal(quantity, unitPrice), ...(input.currency ? { currency: input.currency } : {}), ...(input.supplier !== undefined ? { supplier: input.supplier?.trim() || null } : {}), ...(input.notes !== undefined ? { notes: input.notes?.trim() || null } : {}) } });
   await recomputeTotals(it.customPackageId);
   return getPackage(auth, it.customPackageId);
 }
@@ -196,7 +191,7 @@ export async function transitionPackage(auth: AuthCtx, id: string, input: Packag
   const cur = await prisma.customPackage.findFirst({ where: { id, deletedAt: null } });
   if (!cur) throw new HttpError(404, "NotFound");
   if (input.status === "BOOKED") throw new HttpError(400, "UseConvert", { message: "Use the convert-to-booking action to book an accepted package." });
-  if (!(PKG_TRANSITIONS[cur.status] ?? []).includes(input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move package from ${cur.status} to ${input.status}.` });
+  if (!canTransition(PKG_TRANSITIONS, cur.status, input.status)) throw new HttpError(400, "InvalidTransition", { message: `Cannot move package from ${cur.status} to ${input.status}.` });
   await prisma.customPackage.update({ where: { id }, data: { status: input.status, ...(input.status === "REJECTED" && input.reason ? { notes: input.reason } : {}) } });
   if (cur.inquiryId) {
     const inqStatus = input.status === "QUOTED" ? "QUOTED" : input.status === "ACCEPTED" ? "APPROVED" : null;
@@ -219,7 +214,7 @@ export async function convertToBooking(auth: AuthCtx, id: string) {
     const b = await tx.booking.create({
       data: {
         branchId, serviceType: serviceType as any, customerId: pkg.customerId, currency: pkg.currency, exchangeRate,
-        amount, baseAmount: r2(amount * exchangeRate), status: "DRAFT",
+        amount, baseAmount: computeBaseAmount(amount, exchangeRate), status: "DRAFT",
         notes: `Custom package ${pkg.code}: ${pkg.name}`,
       } as any,
     });
