@@ -33,3 +33,49 @@ Every change = **new additive migration** (`CREATE TABLE`/`ADD COLUMN IF NOT EXI
 
 ## Sequencing rationale
 Start with best reuse / lowest risk that clears a high-priority placeholder (**Muallim**, **Currency**), then medium net-new (**Companies**, **Mufti/Scholar**, **Payroll**), then the large **Manpower** lifecycle, then **Custom Package**. Each: schema→migration→service→controller→route→page→nav→build→commit.
+
+---
+
+# Step 2 — Delivery verification & final sign-off (2026-08-10)
+
+**Branch:** `feature/prod-cms-merge @ 1ed696b` (clean tree, pushed). **Prod `200.141.8.183` untouched.**
+
+## What was delivered
+10 real full-stack modules + 2 hardening phases — see
+[COMPLETION_PROGRAM.md](./COMPLETION_PROGRAM.md) for the per-module commit/model/route/page table.
+Muallim `77f1ece` · Currency `4975bd7` · Companies `9f39dd4` · Mufti/Scholar `870af30` ·
+Payroll `19c0a05` · Manpower 6A `451931b` / 6B-1 `8ccad63` / 6B-2 `959b974` / 6B-3 `411648b` ·
+Custom Package `8b95715` · RBAC hardening `6de4616` · tests+rule-centralization `4f50ac1` · docs `1ed696b`.
+
+## Verification gates (all fresh from clean)
+| Gate | Result |
+|---|---|
+| `prisma validate` | ✅ valid |
+| backend `tsc` (strict, noUnusedLocals) | **0 errors** |
+| `npm test` (23 node:test cases, no DB) | **23/23 pass** |
+| frontend `vite build` | ✅ 0 errors |
+| RBAC consistency | 21 guarded + 19 nav modules **all ∈ seed MODULES** |
+| Route registration | **41/41** route files wired |
+| Migrations | 15/15 new models covered · 15/15 `CREATE TABLE IF NOT EXISTS` · 9 idempotent FK blocks · **0 destructive statements** |
+
+## Integrity scan (repo-wide, delivered surface)
+- **0** `ComingSoon` in any of the 10 delivered module pages.
+- **0** `mock`/`simulate`/`faker`/`dummy`/`not-implemented` in delivered backend services.
+  *(The one `TODO` hit is a task-**status** default value `?? "TODO"`, a workflow column, not a stub.)*
+- 16 pre-existing `TODO/FIXME` remain in **older, untouched** files (0 in delivered code).
+
+## Deferrals (honest, out of program scope per "stop adding modules after Module 7")
+- **Nav-visible (3):** `hotels`, `transport` (→ resolve to Supplier-filtered view, no new models),
+  `whatsapp` (needs WhatsApp Business API credentials).
+- **URL-only, not in menu (4):** `marketing`, `ocr`, `integrations`, `ai` — retained for direct access, not surfaced.
+
+## Verdict — **CONDITIONAL GO**
+Code is complete, verified, and safe to deploy. **Not production-live until the owner runs the
+deploy.** Conditions before/at deploy (see [DEPLOYMENT_RUNBOOK.md](./DEPLOYMENT_RUNBOOK.md)):
+1. **Backup first** (`deploy/smtravels-backup.sh`), non-empty dump confirmed.
+2. `prisma migrate status` shows exactly the 9 additive migrations pending, **no drift**, before `migrate deploy`.
+3. **`npm run seed:rbac` before restart** — else all roles (admins included) get 403 on the 4 new modules.
+4. Post-deploy smoke: admin sees new nav with data; an unauthorized role gets **403 on a direct payroll API call** (authorization is server-side, not menu-hiding).
+
+**Not verified (cannot be, from dev host):** runtime behavior against the production DB, real
+login/RBAC end-to-end, and browser UX — these are the owner's post-deploy smoke tests above.
