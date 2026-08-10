@@ -2983,3 +2983,60 @@ model MuftiScholar {
 
   @@index([status])
 }
+
+// ─── HR — PAYROLL (Module 5) ─────────────────────────────────────────────────
+// Payroll runs + payslips. Reuses Employee (linked by scalar employeeId + snapshot,
+// no duplicate employee records). Workflow: DRAFT→CALCULATED→APPROVED→PAID→CLOSED.
+model PayrollRun {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  periodMonth    Int
+  periodYear     Int
+  label          String?
+  branchId       String?
+  status         String    @default("DRAFT")
+  grossTotal     Decimal   @default(0) @db.Decimal(18, 2)
+  deductionTotal Decimal   @default(0) @db.Decimal(18, 2)
+  netTotal       Decimal   @default(0) @db.Decimal(18, 2)
+  approvedById   String?
+  approvedAt     DateTime? @db.Timestamptz(6)
+  paidAt         DateTime? @db.Timestamptz(6)
+  notes          String?
+  createdById    String?
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime? @db.Timestamptz(6)
+
+  payslips Payslip[]
+
+  @@index([status])
+  @@index([periodYear, periodMonth])
+}
+
+model Payslip {
+  id            String    @id @default(cuid())
+  payrollRunId  String
+  employeeId    String
+  employeeCode  String?
+  employeeName  String
+  basic         Decimal   @default(0) @db.Decimal(18, 2)
+  allowances    Decimal   @default(0) @db.Decimal(18, 2)
+  bonus         Decimal   @default(0) @db.Decimal(18, 2)
+  overtime      Decimal   @default(0) @db.Decimal(18, 2)
+  deductions    Decimal   @default(0) @db.Decimal(18, 2)
+  advance       Decimal   @default(0) @db.Decimal(18, 2)
+  loan          Decimal   @default(0) @db.Decimal(18, 2)
+  gross         Decimal   @default(0) @db.Decimal(18, 2)
+  net           Decimal   @default(0) @db.Decimal(18, 2)
+  paymentStatus String    @default("UNPAID")
+  paidAt        DateTime? @db.Timestamptz(6)
+  remarks       String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+
+  run PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+
+  @@unique([payrollRunId, employeeId])
+  @@index([payrollRunId])
+  @@index([employeeId])
+}

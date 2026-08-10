@@ -102,7 +102,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Users,           labelKey: "employees",  path: "/erp/hr", q: "tab=employees",  module: "settings" },
     { icon: CalendarDays,    labelKey: "attendance", path: "/erp/hr", q: "tab=attendance", module: "settings" },
     { icon: FolderOpen,      labelKey: "leave",      path: "/erp/hr", q: "tab=leave",      module: "settings" },
-    { icon: BadgeDollarSign, labelKey: "payroll",    path: "/erp/hr/payroll", module: "settings", soon: true },
+    { icon: BadgeDollarSign, labelKey: "payroll",    path: "/erp/hr/payroll", module: "settings" },
   ] },
   { key: "businessNetwork", items: [
     { icon: Building2,  labelKey: "companies",    path: "/erp/network/companies", module: "partners" },

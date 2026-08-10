@@ -37,6 +37,7 @@ import { systemRouter, ocrRouter as systemOcrRouter } from "./system.route";
 import { hrRouter } from "./hr.route";
 import { currencyRouter } from "./currency.route";
 import { businessNetworkRouter } from "./business-network.route";
+import { payrollRouter } from "./payroll.route";
 
 /** Aggregate API router mounted at /api. Feature routers mount here. */
 export const apiRouter = Router();
@@ -80,3 +81,4 @@ apiRouter.use(opsRouter);
 apiRouter.use(hrRouter);
 apiRouter.use(currencyRouter);
 apiRouter.use(businessNetworkRouter);
+apiRouter.use(payrollRouter);
