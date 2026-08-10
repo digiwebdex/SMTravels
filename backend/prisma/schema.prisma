@@ -3063,7 +3063,8 @@ model Employer {
   updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt     DateTime? @db.Timestamptz(6)
 
-  jobOrders JobOrder[]
+  jobOrders  JobOrder[]
+  candidates Candidate[]
 
   @@index([status])
 }
@@ -3091,8 +3092,56 @@ model JobOrder {
   updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt        DateTime? @db.Timestamptz(6)
 
+  employer   Employer    @relation(fields: [employerId], references: [id], onDelete: Restrict)
+  candidates Candidate[]
+
+  @@index([employerId])
+  @@index([status])
+}
+
+// ─── MANPOWER — Candidate + Recruitment (Module 6B) ──────────────────────────
+// A candidate belongs to ONE JobOrder (and its Employer). Recruitment pipeline
+// (screening/interview/selection/contract) + downstream stage status live here.
+model Candidate {
+  id                String    @id @default(cuid())
+  code              String    @unique
+  jobOrderId        String
+  employerId        String
+  fullName          String
+  photoUrl          String?
+  dob               DateTime? @db.Date
+  gender            String?
+  nationality       String?
+  passportNo        String?
+  passportIssueDate DateTime? @db.Date
+  passportExpiry    DateTime? @db.Date
+  nid               String?
+  phone             String?
+  email             String?
+  address           String?
+  education         String?
+  experience        String?
+  skills            String?
+  customerId        String?
+  status            String    @default("NEW")
+  screeningNotes    String?
+  interviewDate     DateTime? @db.Date
+  interviewer       String?
+  interviewResult   String?
+  interviewRemarks  String?
+  rejectionReason   String?
+  contractStatus    String?
+  contractDate      DateTime? @db.Date
+  remarks           String?
+  createdById       String?
+  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt         DateTime? @db.Timestamptz(6)
+
+  jobOrder JobOrder @relation(fields: [jobOrderId], references: [id], onDelete: Restrict)
   employer Employer @relation(fields: [employerId], references: [id], onDelete: Restrict)
 
+  @@index([jobOrderId])
   @@index([employerId])
   @@index([status])
 }

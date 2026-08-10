@@ -4,6 +4,8 @@ import { requireAuth, requirePermission } from "../middleware/auth";
 import {
   listEmployersHandler, createEmployerHandler, updateEmployerHandler, archiveEmployerHandler,
   listJobOrdersHandler, createJobOrderHandler, updateJobOrderHandler, archiveJobOrderHandler,
+  listCandidatesHandler, createCandidateHandler, updateCandidateHandler, transitionCandidateHandler,
+  archiveCandidateHandler, jobOrderPipelineHandler,
 } from "../controllers/manpower.controller";
 
 // Manpower / Overseas Employment (Module 6). Gated on the existing "bookings" module
@@ -24,3 +26,11 @@ manpowerRouter.get("/manpower/job-orders", requireAuth, view, asyncHandler(listJ
 manpowerRouter.post("/manpower/job-orders", requireAuth, manage, asyncHandler(createJobOrderHandler));
 manpowerRouter.patch("/manpower/job-orders/:id", requireAuth, manage, asyncHandler(updateJobOrderHandler));
 manpowerRouter.delete("/manpower/job-orders/:id", requireAuth, manage, asyncHandler(archiveJobOrderHandler));
+manpowerRouter.get("/manpower/job-orders/:id/pipeline", requireAuth, view, asyncHandler(jobOrderPipelineHandler));
+
+// Candidates + Recruitment
+manpowerRouter.get("/manpower/candidates", requireAuth, view, asyncHandler(listCandidatesHandler));
+manpowerRouter.post("/manpower/candidates", requireAuth, manage, asyncHandler(createCandidateHandler));
+manpowerRouter.patch("/manpower/candidates/:id", requireAuth, manage, asyncHandler(updateCandidateHandler));
+manpowerRouter.post("/manpower/candidates/:id/transition", requireAuth, manage, asyncHandler(transitionCandidateHandler));
+manpowerRouter.delete("/manpower/candidates/:id", requireAuth, manage, asyncHandler(archiveCandidateHandler));

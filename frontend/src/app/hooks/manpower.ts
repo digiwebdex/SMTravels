@@ -4,6 +4,8 @@ import { apiFetch } from "../lib/api";
 import type {
   EmployerListResponse, EmployerDto, EmployerCreateInput, EmployerUpdateInput,
   JobOrderListResponse, JobOrderDto, JobOrderCreateInput, JobOrderUpdateInput,
+  CandidateListResponse, CandidateDto, CandidateCreateInput, CandidateUpdateInput,
+  CandidateTransitionInput, JobOrderPipelineDto,
 } from "@contracts/manpower.contract";
 
 const err = (e: Error) => toast.error(e.message || "Something went wrong");
@@ -71,6 +73,49 @@ export function useArchiveJobOrder() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<{ ok: boolean }>(`/manpower/job-orders/${id}`, { method: "DELETE" }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["job-orders"] }); toast.success("Job order cancelled"); },
+    onError: err,
+  });
+}
+
+// ─── Candidates + Recruitment ────────────────────────────────────────────────
+export interface CandidateFilters { q?: string; status?: string; jobOrderId?: string; employerId?: string; pageSize?: number }
+export const useCandidates = (f: CandidateFilters = {}) =>
+  useQuery({ queryKey: ["candidates", "list", f], queryFn: () => apiFetch<CandidateListResponse>(`/manpower/candidates?${qs(f)}`), staleTime: 20_000 });
+
+export const useJobOrderPipeline = (jobOrderId: string | null) =>
+  useQuery({ queryKey: ["job-order-pipeline", jobOrderId ?? ""], queryFn: () => apiFetch<JobOrderPipelineDto>(`/manpower/job-orders/${jobOrderId}/pipeline`), enabled: !!jobOrderId });
+
+const invCand = (qc: ReturnType<typeof useQueryClient>) => { qc.invalidateQueries({ queryKey: ["candidates"] }); qc.invalidateQueries({ queryKey: ["job-order-pipeline"] }); qc.invalidateQueries({ queryKey: ["job-orders"] }); };
+
+export function useCreateCandidate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CandidateCreateInput) => apiFetch<CandidateDto>("/manpower/candidates", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: (d) => { invCand(qc); toast.success(`${d.code} added`); },
+    onError: err,
+  });
+}
+export function useUpdateCandidate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: CandidateUpdateInput }) => apiFetch<CandidateDto>(`/manpower/candidates/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: () => { invCand(qc); toast.success("Candidate updated"); },
+    onError: err,
+  });
+}
+export function useTransitionCandidate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: CandidateTransitionInput }) => apiFetch<CandidateDto>(`/manpower/candidates/${id}/transition`, { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: (d) => { invCand(qc); toast.success(`Moved to ${d.status}`); },
+    onError: err,
+  });
+}
+export function useArchiveCandidate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<{ ok: boolean }>(`/manpower/candidates/${id}`, { method: "DELETE" }),
+    onSuccess: () => { invCand(qc); toast.success("Candidate archived"); },
     onError: err,
   });
 }
