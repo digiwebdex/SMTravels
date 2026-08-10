@@ -42,6 +42,7 @@ const SuppliersModule      = lazyNamed(() => import("./erp/SuppliersModule"), "S
 const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"), "OperationsTeamModule");
 const MuallimModule = lazyNamed(() => import("./erp/MuallimModule"), "MuallimModule");
 const CurrencyModule = lazyNamed(() => import("./erp/CurrencyModule"), "CurrencyModule");
+const CompaniesModule = lazyNamed(() => import("./erp/CompaniesModule"), "CompaniesModule");
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
 const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
@@ -142,7 +143,7 @@ export const router = createBrowserRouter([
       { path: "manpower/medical", element: <ComingSoon k="medical" group="manpower" /> },
       { path: "manpower/bmet", element: <ComingSoon k="bmet" group="manpower" /> },
       { path: "manpower/deployment", element: <ComingSoon k="deployment" group="manpower" /> },
-      { path: "network/companies", element: <ComingSoon k="companies" group="businessNetwork" /> },
+      { path: "network/companies", element: withSuspense(<CompaniesModule />) },
       { path: "network/scholars", element: <ComingSoon k="scholars" group="businessNetwork" /> },
       { path: "hr/payroll", element: <ComingSoon k="payroll" group="hrPayroll" /> },
       { path: "settings/currency", element: withSuspense(<CurrencyModule />) },

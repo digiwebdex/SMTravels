@@ -105,7 +105,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: BadgeDollarSign, labelKey: "payroll",    path: "/erp/hr/payroll", module: "settings", soon: true },
   ] },
   { key: "businessNetwork", items: [
-    { icon: Building2,  labelKey: "companies",    path: "/erp/network/companies", module: "partners", soon: true },
+    { icon: Building2,  labelKey: "companies",    path: "/erp/network/companies", module: "partners" },
     { icon: UserCircle, labelKey: "scholars",     path: "/erp/network/scholars",  module: "partners", soon: true },
     { icon: Truck,      labelKey: "netSuppliers", path: "/erp/suppliers", module: "suppliers" },
     { icon: Handshake,  labelKey: "b2bPartners",  path: "/erp/partners",  module: "partners" },
