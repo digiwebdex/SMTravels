@@ -47,3 +47,38 @@ export interface BusinessPartnerDto {
 export interface BusinessPartnerListResponse {
   items: BusinessPartnerDto[]; total: number; page: number; pageSize: number;
 }
+
+// ─── Mufti / Scholar Network (Module 4) ──────────────────────────────────────
+export const muftiScholarListQuerySchema = z.object({
+  q: z.string().trim().optional(),
+  status: z.string().trim().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
+});
+export type MuftiScholarListQuery = z.infer<typeof muftiScholarListQuerySchema>;
+
+export const muftiScholarCreateSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  title: z.string().trim().max(120).optional(),
+  organization: z.string().trim().max(160).optional(),
+  specialization: z.string().trim().max(160).optional(),
+  phone: z.string().trim().max(40).optional(),
+  whatsapp: z.string().trim().max(40).optional(),
+  email: z.string().trim().max(160).optional(),
+  location: z.string().trim().max(120).optional(),
+  availability: z.string().trim().max(120).optional(),
+  status: z.enum(businessPartnerStatuses).optional(),
+  notes: z.string().trim().max(2000).optional(),
+});
+export type MuftiScholarCreateInput = z.infer<typeof muftiScholarCreateSchema>;
+export const muftiScholarUpdateSchema = muftiScholarCreateSchema.partial();
+export type MuftiScholarUpdateInput = z.infer<typeof muftiScholarUpdateSchema>;
+
+export interface MuftiScholarDto {
+  id: string; code: string; name: string; title: string | null; organization: string | null;
+  specialization: string | null; phone: string | null; whatsapp: string | null; email: string | null;
+  location: string | null; availability: string | null; status: string; notes: string | null; createdAt: string;
+}
+export interface MuftiScholarListResponse {
+  items: MuftiScholarDto[]; total: number; page: number; pageSize: number;
+}

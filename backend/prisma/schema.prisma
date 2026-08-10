@@ -2958,3 +2958,28 @@ model BusinessPartner {
   @@index([status])
   @@index([type])
 }
+
+// ─── BUSINESS NETWORK — Mufti / Scholar Network (Module 4) ────────────────────
+// Relationship directory of Islamic scholars / muftis the agency consults. A network
+// entity — NOT an Employee and NOT a Muallim (operational Hajj staff).
+model MuftiScholar {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  name           String
+  title          String?
+  organization   String?
+  specialization String?
+  phone          String?
+  whatsapp       String?
+  email          String?
+  location       String?
+  availability   String?
+  status         String    @default("ACTIVE")
+  notes          String?
+  createdById    String?
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime? @db.Timestamptz(6)
+
+  @@index([status])
+}

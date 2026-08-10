@@ -106,7 +106,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
   ] },
   { key: "businessNetwork", items: [
     { icon: Building2,  labelKey: "companies",    path: "/erp/network/companies", module: "partners" },
-    { icon: UserCircle, labelKey: "scholars",     path: "/erp/network/scholars",  module: "partners", soon: true },
+    { icon: UserCircle, labelKey: "scholars",     path: "/erp/network/scholars",  module: "partners" },
     { icon: Truck,      labelKey: "netSuppliers", path: "/erp/suppliers", module: "suppliers" },
     { icon: Handshake,  labelKey: "b2bPartners",  path: "/erp/partners",  module: "partners" },
   ] },

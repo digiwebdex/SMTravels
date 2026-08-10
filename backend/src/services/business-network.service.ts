@@ -9,6 +9,7 @@ import type { AuthCtx } from "../middleware/auth";
 import { HttpError } from "../middleware/errorHandler";
 import type {
   BusinessPartnerCreateInput, BusinessPartnerUpdateInput, BusinessPartnerListQuery, BusinessPartnerDto,
+  MuftiScholarCreateInput, MuftiScholarUpdateInput, MuftiScholarListQuery, MuftiScholarDto,
 } from "../contracts/business-network.contract";
 
 type Row = {
@@ -100,5 +101,93 @@ export async function archiveBusinessPartner(_auth: AuthCtx, id: string) {
   const existing = await prisma.businessPartner.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new HttpError(404, "NotFound");
   await prisma.businessPartner.update({ where: { id }, data: { deletedAt: new Date(), status: "INACTIVE" } });
+  return { ok: true };
+}
+
+// ─── Mufti / Scholar (Module 4) ──────────────────────────────────────────────
+type ScholarRow = {
+  id: string; code: string; name: string; title: string | null; organization: string | null;
+  specialization: string | null; phone: string | null; whatsapp: string | null; email: string | null;
+  location: string | null; availability: string | null; status: string; notes: string | null; createdAt: Date;
+};
+function toScholarDto(s: ScholarRow): MuftiScholarDto {
+  return {
+    id: s.id, code: s.code, name: s.name, title: s.title, organization: s.organization,
+    specialization: s.specialization, phone: s.phone, whatsapp: s.whatsapp, email: s.email,
+    location: s.location, availability: s.availability, status: s.status, notes: s.notes,
+    createdAt: s.createdAt.toISOString(),
+  };
+}
+function cleanScholar(input: MuftiScholarCreateInput | MuftiScholarUpdateInput) {
+  const d: Record<string, string | null> = {};
+  const keys = ["title", "organization", "specialization", "phone", "whatsapp", "email", "location", "availability", "notes"] as const;
+  for (const k of keys) if (k in input) d[k] = (input as Record<string, string | undefined>)[k]?.trim() || null;
+  return d;
+}
+
+export async function listMuftiScholars(_auth: AuthCtx, q: MuftiScholarListQuery) {
+  const page = q.page ?? 1;
+  const pageSize = q.pageSize ?? 20;
+  const where: Prisma.MuftiScholarWhereInput = {
+    deletedAt: null,
+    ...(q.status ? { status: q.status } : {}),
+    ...(q.q
+      ? {
+          OR: [
+            { name: { contains: q.q, mode: "insensitive" } },
+            { code: { contains: q.q, mode: "insensitive" } },
+            { organization: { contains: q.q, mode: "insensitive" } },
+            { specialization: { contains: q.q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+  const [items, total] = await prisma.$transaction([
+    prisma.muftiScholar.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * pageSize, take: pageSize }),
+    prisma.muftiScholar.count({ where }),
+  ]);
+  return { items: (items as ScholarRow[]).map(toScholarDto), total, page, pageSize };
+}
+
+export async function getMuftiScholar(_auth: AuthCtx, id: string) {
+  const s = await prisma.muftiScholar.findFirst({ where: { id, deletedAt: null } });
+  if (!s) throw new HttpError(404, "NotFound");
+  return toScholarDto(s as ScholarRow);
+}
+
+export async function createMuftiScholar(auth: AuthCtx, input: MuftiScholarCreateInput) {
+  const s = await prisma.$transaction(async (tx) => {
+    const n = await tx.muftiScholar.count();
+    return tx.muftiScholar.create({
+      data: {
+        code: `MS-${String(n + 1).padStart(4, "0")}`,
+        name: input.name.trim(),
+        status: input.status ?? "ACTIVE",
+        createdById: auth.userId,
+        ...cleanScholar(input),
+      },
+    });
+  });
+  return toScholarDto(s as ScholarRow);
+}
+
+export async function updateMuftiScholar(_auth: AuthCtx, id: string, input: MuftiScholarUpdateInput) {
+  const existing = await prisma.muftiScholar.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  const s = await prisma.muftiScholar.update({
+    where: { id },
+    data: {
+      ...(input.name ? { name: input.name.trim() } : {}),
+      ...(input.status ? { status: input.status } : {}),
+      ...cleanScholar(input),
+    },
+  });
+  return toScholarDto(s as ScholarRow);
+}
+
+export async function archiveMuftiScholar(_auth: AuthCtx, id: string) {
+  const existing = await prisma.muftiScholar.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  await prisma.muftiScholar.update({ where: { id }, data: { deletedAt: new Date(), status: "INACTIVE" } });
   return { ok: true };
 }
