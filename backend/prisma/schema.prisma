@@ -3255,3 +3255,92 @@ model BmetClearance {
   @@index([status])
   @@index([jobOrderId])
 }
+
+// ─── CUSTOM PACKAGE BUILDER (Module 7) ───────────────────────────────────────
+// Inquiry → CustomPackage(+items, server-priced) → Quote → Accept → Booking. Reuses
+// Customer + Booking + Currency. Item subtotals + package totals are SNAPSHOTS —
+// never recomputed when exchange rates change.
+model PackageInquiry {
+  id                  String    @id @default(cuid())
+  code                String    @unique
+  customerId          String?
+  contactName         String
+  contactPhone        String?
+  contactEmail        String?
+  travelType          String?
+  destination         String?
+  departureDate       DateTime? @db.Date
+  returnDate          DateTime? @db.Date
+  adults              Int       @default(1)
+  children            Int       @default(0)
+  infants             Int       @default(0)
+  preferredHotel      String?
+  hotelNights         Int?
+  roomRequirements    String?
+  flightPreference    String?
+  visaRequired        Boolean   @default(false)
+  transportRequired   Boolean   @default(false)
+  foodRequired        Boolean   @default(false)
+  ziyaratRequired     Boolean   @default(false)
+  muallimRequired     Boolean   @default(false)
+  specialRequirements String?
+  notes               String?
+  status              String    @default("NEW")
+  customPackageId     String?   @unique
+  createdById         String?
+  createdAt           DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt           DateTime? @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model CustomPackage {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  inquiryId     String?
+  customerId    String?
+  name          String
+  travelType    String?
+  departureDate DateTime? @db.Date
+  returnDate    DateTime? @db.Date
+  currency      Currency  @default(BDT)
+  markup        Decimal   @default(0) @db.Decimal(18, 2)
+  discount      Decimal   @default(0) @db.Decimal(18, 2)
+  subtotal      Decimal   @default(0) @db.Decimal(18, 2)
+  grandTotal    Decimal   @default(0) @db.Decimal(18, 2)
+  validityDate  DateTime? @db.Date
+  terms         String?
+  notes         String?
+  status        String    @default("DRAFT")
+  bookingId     String?
+  createdById   String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  items CustomPackageItem[]
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model CustomPackageItem {
+  id              String   @id @default(cuid())
+  customPackageId String
+  serviceType     String
+  description     String?
+  quantity        Int      @default(1)
+  unitPrice       Decimal  @default(0) @db.Decimal(18, 2)
+  currency        Currency @default(BDT)
+  subtotal        Decimal  @default(0) @db.Decimal(18, 2)
+  supplier        String?
+  notes           String?
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+
+  package CustomPackage @relation(fields: [customPackageId], references: [id], onDelete: Cascade)
+
+  @@index([customPackageId])
+}
