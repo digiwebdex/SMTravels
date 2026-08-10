@@ -4,6 +4,8 @@ import { apiFetch } from "../lib/api";
 import type {
   MedicalListResponse, MedicalDto, MedicalCreateInput, MedicalUpdateInput,
   BmetListResponse, BmetDto, BmetCreateInput, BmetUpdateInput,
+  VisaListResponse, ManpowerVisaDto, VisaCreateInput, VisaUpdateInput,
+  DeploymentListResponse, ManpowerDeploymentDto, DeploymentCreateInput, DeploymentUpdateInput,
 } from "@contracts/manpower-stages.contract";
 
 const err = (e: Error) => toast.error(e.message || "Something went wrong");
@@ -44,4 +46,36 @@ export function useUpdateBmet() {
 export function useArchiveBmet() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (id: string) => apiFetch<{ ok: boolean }>(`/manpower/bmet/${id}`, { method: "DELETE" }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["bmet"] }); toast.success("BMET archived"); }, onError: err });
+}
+
+// ─── Manpower Visa (Module 6B-3) ─────────────────────────────────────────────
+export const useVisaList = (f: StageFilters = {}) =>
+  useQuery({ queryKey: ["mpvisa", "list", f], queryFn: () => apiFetch<VisaListResponse>(`/manpower/visa?${qs(f)}`), staleTime: 20_000 });
+export function useCreateVisa() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (input: VisaCreateInput) => apiFetch<ManpowerVisaDto>("/manpower/visa", { method: "POST", body: JSON.stringify(input) }), onSuccess: (d) => { qc.invalidateQueries({ queryKey: ["mpvisa"] }); qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success(`${d.code} added`); }, onError: err });
+}
+export function useUpdateVisa() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: ({ id, input }: { id: string; input: VisaUpdateInput }) => apiFetch<ManpowerVisaDto>(`/manpower/visa/${id}`, { method: "PATCH", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["mpvisa"] }); qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Visa updated"); }, onError: err });
+}
+export function useArchiveVisa() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => apiFetch<{ ok: boolean }>(`/manpower/visa/${id}`, { method: "DELETE" }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["mpvisa"] }); toast.success("Visa archived"); }, onError: err });
+}
+
+// ─── Manpower Deployment (Module 6B-3) ───────────────────────────────────────
+export const useDeploymentList = (f: StageFilters = {}) =>
+  useQuery({ queryKey: ["deployment", "list", f], queryFn: () => apiFetch<DeploymentListResponse>(`/manpower/deployment?${qs(f)}`), staleTime: 20_000 });
+export function useCreateDeployment() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (input: DeploymentCreateInput) => apiFetch<ManpowerDeploymentDto>("/manpower/deployment", { method: "POST", body: JSON.stringify(input) }), onSuccess: (d) => { qc.invalidateQueries({ queryKey: ["deployment"] }); qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success(`${d.code} added`); }, onError: err });
+}
+export function useUpdateDeployment() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: ({ id, input }: { id: string; input: DeploymentUpdateInput }) => apiFetch<ManpowerDeploymentDto>(`/manpower/deployment/${id}`, { method: "PATCH", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["deployment"] }); qc.invalidateQueries({ queryKey: ["candidates"] }); toast.success("Deployment updated"); }, onError: err });
+}
+export function useArchiveDeployment() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => apiFetch<{ ok: boolean }>(`/manpower/deployment/${id}`, { method: "DELETE" }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["deployment"] }); toast.success("Deployment archived"); }, onError: err });
 }

@@ -51,6 +51,8 @@ const CandidatesModule = lazyNamed(() => import("./erp/CandidatesModule"), "Cand
 const RecruitmentModule = lazyNamed(() => import("./erp/RecruitmentModule"), "RecruitmentModule");
 const MedicalModule = lazyNamed(() => import("./erp/MedicalModule"), "MedicalModule");
 const BmetModule = lazyNamed(() => import("./erp/BmetModule"), "BmetModule");
+const VisaModule = lazyNamed(() => import("./erp/VisaModule"), "VisaModule");
+const DeploymentModule = lazyNamed(() => import("./erp/DeploymentModule"), "DeploymentModule");
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
 const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
@@ -147,10 +149,10 @@ export const router = createBrowserRouter([
       { path: "manpower/candidates", element: withSuspense(<CandidatesModule />) },
       { path: "manpower/employers", element: withSuspense(<EmployersModule />) },
       { path: "manpower/recruitment", element: withSuspense(<RecruitmentModule />) },
-      { path: "manpower/visa", element: <ComingSoon k="mpVisa" group="manpower" /> },
+      { path: "manpower/visa", element: withSuspense(<VisaModule />) },
       { path: "manpower/medical", element: withSuspense(<MedicalModule />) },
       { path: "manpower/bmet", element: withSuspense(<BmetModule />) },
-      { path: "manpower/deployment", element: <ComingSoon k="deployment" group="manpower" /> },
+      { path: "manpower/deployment", element: withSuspense(<DeploymentModule />) },
       { path: "network/companies", element: withSuspense(<CompaniesModule />) },
       { path: "network/scholars", element: withSuspense(<MuftiScholarModule />) },
       { path: "hr/payroll", element: withSuspense(<PayrollModule />) },

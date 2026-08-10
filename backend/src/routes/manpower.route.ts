@@ -10,6 +10,8 @@ import {
 import {
   listMedicalHandler, createMedicalHandler, updateMedicalHandler, archiveMedicalHandler,
   listBmetHandler, createBmetHandler, updateBmetHandler, archiveBmetHandler,
+  listVisaHandler, createVisaHandler, updateVisaHandler, archiveVisaHandler,
+  listDeploymentHandler, createDeploymentHandler, updateDeploymentHandler, archiveDeploymentHandler,
 } from "../controllers/manpower-stages.controller";
 
 // Manpower / Overseas Employment (Module 6). Gated on the existing "bookings" module
@@ -50,3 +52,15 @@ manpowerRouter.get("/manpower/bmet", requireAuth, view, asyncHandler(listBmetHan
 manpowerRouter.post("/manpower/bmet", requireAuth, manage, asyncHandler(createBmetHandler));
 manpowerRouter.patch("/manpower/bmet/:id", requireAuth, manage, asyncHandler(updateBmetHandler));
 manpowerRouter.delete("/manpower/bmet/:id", requireAuth, manage, asyncHandler(archiveBmetHandler));
+
+// Visa (Module 6B-3)
+manpowerRouter.get("/manpower/visa", requireAuth, view, asyncHandler(listVisaHandler));
+manpowerRouter.post("/manpower/visa", requireAuth, manage, asyncHandler(createVisaHandler));
+manpowerRouter.patch("/manpower/visa/:id", requireAuth, manage, asyncHandler(updateVisaHandler));
+manpowerRouter.delete("/manpower/visa/:id", requireAuth, manage, asyncHandler(archiveVisaHandler));
+
+// Deployment (Module 6B-3)
+manpowerRouter.get("/manpower/deployment", requireAuth, view, asyncHandler(listDeploymentHandler));
+manpowerRouter.post("/manpower/deployment", requireAuth, manage, asyncHandler(createDeploymentHandler));
+manpowerRouter.patch("/manpower/deployment/:id", requireAuth, manage, asyncHandler(updateDeploymentHandler));
+manpowerRouter.delete("/manpower/deployment/:id", requireAuth, manage, asyncHandler(archiveDeploymentHandler));

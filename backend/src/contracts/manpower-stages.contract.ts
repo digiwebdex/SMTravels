@@ -55,3 +55,51 @@ export interface BmetDto {
   status: string; documentRef: string | null; remarks: string | null; createdAt: string;
 }
 export interface BmetListResponse { items: BmetDto[]; total: number; page: number; pageSize: number }
+
+// ─── Manpower Visa (Module 6B-3) ─────────────────────────────────────────────
+export const VISA_STATUSES = ["PENDING", "SUBMITTED", "PROCESSING", "APPROVED", "REJECTED", "EXPIRED"] as const;
+export const visaListQuerySchema = z.object({ ...listFields });
+export type VisaListQuery = z.infer<typeof visaListQuerySchema>;
+export const visaCreateSchema = z.object({
+  candidateId: z.string().trim().min(1),
+  visaNumber: z.string().trim().max(80).optional(),
+  visaType: z.string().trim().max(80).optional(),
+  sponsor: z.string().trim().max(160).optional(),
+  issueDate: dateOpt, expiryDate: dateOpt,
+  documentRef: z.string().trim().max(200).optional(),
+  remarks: z.string().trim().max(1000).optional(),
+});
+export type VisaCreateInput = z.infer<typeof visaCreateSchema>;
+export const visaUpdateSchema = visaCreateSchema.omit({ candidateId: true }).partial().extend({ status: z.enum(VISA_STATUSES).optional() });
+export type VisaUpdateInput = z.infer<typeof visaUpdateSchema>;
+export interface ManpowerVisaDto {
+  id: string; code: string; candidateId: string; candidateName: string; candidateCode: string;
+  jobOrderId: string; jobTitle: string; employerName: string; visaNumber: string | null; visaType: string | null;
+  sponsor: string | null; issueDate: string | null; expiryDate: string | null; status: string;
+  documentRef: string | null; remarks: string | null; createdAt: string;
+}
+export interface VisaListResponse { items: ManpowerVisaDto[]; total: number; page: number; pageSize: number }
+
+// ─── Manpower Deployment (Module 6B-3) ───────────────────────────────────────
+export const DEPLOYMENT_STATUSES = ["PENDING", "TICKETED", "READY", "DEPARTED", "DEPLOYED", "CANCELLED"] as const;
+export const deploymentListQuerySchema = z.object({ ...listFields });
+export type DeploymentListQuery = z.infer<typeof deploymentListQuerySchema>;
+export const deploymentCreateSchema = z.object({
+  candidateId: z.string().trim().min(1),
+  ticketRef: z.string().trim().max(120).optional(),
+  flightNo: z.string().trim().max(40).optional(),
+  departureAirport: z.string().trim().max(80).optional(),
+  destination: z.string().trim().max(80).optional(),
+  departureDate: dateOpt, arrivalDate: dateOpt,
+  remarks: z.string().trim().max(1000).optional(),
+});
+export type DeploymentCreateInput = z.infer<typeof deploymentCreateSchema>;
+export const deploymentUpdateSchema = deploymentCreateSchema.omit({ candidateId: true }).partial().extend({ status: z.enum(DEPLOYMENT_STATUSES).optional() });
+export type DeploymentUpdateInput = z.infer<typeof deploymentUpdateSchema>;
+export interface ManpowerDeploymentDto {
+  id: string; code: string; candidateId: string; candidateName: string; candidateCode: string;
+  jobOrderId: string; jobTitle: string; employerName: string; ticketRef: string | null; flightNo: string | null;
+  departureAirport: string | null; destination: string | null; departureDate: string | null; arrivalDate: string | null;
+  status: string; remarks: string | null; createdAt: string;
+}
+export interface DeploymentListResponse { items: ManpowerDeploymentDto[]; total: number; page: number; pageSize: number }
