@@ -126,7 +126,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Building2,  labelKey: "companySettings", path: "/erp/settings", q: "tab=company",  module: "settings" },
     { icon: Users,      labelKey: "usersRoles",      path: "/erp/settings", q: "tab=users",    module: "settings" },
     { icon: Globe,      labelKey: "branches",        path: "/erp/settings", q: "tab=branches", module: "settings" },
-    { icon: Wallet,     labelKey: "currency",        path: "/erp/settings/currency", module: "settings", soon: true },
+    { icon: Wallet,     labelKey: "currency",        path: "/erp/settings/currency", module: "settings" },
     { icon: FileEdit,   labelKey: "cms",             path: "/erp/cms", module: "cms" },
     { icon: Settings2,  labelKey: "systemSettings",  path: "/erp/settings", q: "tab=system",   module: "settings" },
   ] },

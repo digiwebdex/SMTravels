@@ -2905,3 +2905,26 @@ model HomeSection {
   updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt  DateTime? @db.Timestamptz(6)
 }
+
+// ─── CURRENCY (Module 2) ─────────────────────────────────────────────────────
+// Date-effective exchange rates. Base currency + supported list live in Setting
+// (currency.base / currency.supported). Historical financial rows keep their own
+// currency/exchangeRate/baseAmount — these rates are DEFAULTS for new entries only;
+// changing a rate NEVER recalculates posted transactions.
+model ExchangeRate {
+  id            String    @id @default(cuid())
+  currency      Currency
+  baseCurrency  Currency  @default(BDT)
+  rate          Decimal   @db.Decimal(18, 8)
+  effectiveDate DateTime  @db.Date
+  source        String?
+  active        Boolean   @default(true)
+  note          String?
+  createdById   String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
+
+  @@index([currency, effectiveDate])
+  @@index([active])
+}

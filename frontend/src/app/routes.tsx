@@ -41,6 +41,7 @@ const PartnersModule       = lazyNamed(() => import("./erp/PartnersModule"), "Pa
 const SuppliersModule      = lazyNamed(() => import("./erp/SuppliersModule"), "SuppliersModule");
 const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"), "OperationsTeamModule");
 const MuallimModule = lazyNamed(() => import("./erp/MuallimModule"), "MuallimModule");
+const CurrencyModule = lazyNamed(() => import("./erp/CurrencyModule"), "CurrencyModule");
 const SalesModule          = lazyNamed(() => import("./erp/SalesModule"), "SalesModule");
 const SmsCenterModule      = lazyNamed(() => import("./erp/SmsCenterModule"), "SmsCenterModule");
 const SettingsModule       = lazyNamed(() => import("./erp/SettingsModule"), "SettingsModule");
@@ -144,7 +145,7 @@ export const router = createBrowserRouter([
       { path: "network/companies", element: <ComingSoon k="companies" group="businessNetwork" /> },
       { path: "network/scholars", element: <ComingSoon k="scholars" group="businessNetwork" /> },
       { path: "hr/payroll", element: <ComingSoon k="payroll" group="hrPayroll" /> },
-      { path: "settings/currency", element: <ComingSoon k="currency" group="settings" /> },
+      { path: "settings/currency", element: withSuspense(<CurrencyModule />) },
     ],
   },
   { path: "/sitemap", element: withSuspense(<SitemapWorkflow />) },
