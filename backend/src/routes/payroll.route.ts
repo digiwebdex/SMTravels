@@ -9,8 +9,8 @@ import {
 // Payroll (Module 5). Gated on the existing "settings" module (sensitive HR/finance
 // data — same gate as the HR admin surface). view = read, manage = write/transition.
 export const payrollRouter = Router();
-const view = requirePermission("settings", "view");
-const manage = requirePermission("settings", "manage");
+const view = requirePermission("payroll", "view");
+const manage = requirePermission("payroll", "manage");
 
 payrollRouter.get("/payroll/runs", requireAuth, view, asyncHandler(listPayrollRunsHandler));
 payrollRouter.get("/payroll/runs/:id", requireAuth, view, asyncHandler(getPayrollRunHandler));

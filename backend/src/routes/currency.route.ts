@@ -9,8 +9,8 @@ import {
 // Currency (Module 2). Date-effective exchange rates + base/supported config.
 // Gated on the existing "settings" module (view reads, manage writes) — no new perm key.
 export const currencyRouter = Router();
-const view = requirePermission("settings", "view");
-const manage = requirePermission("settings", "manage");
+const view = requirePermission("currency", "view");
+const manage = requirePermission("currency", "manage");
 
 currencyRouter.get("/currency/rates", requireAuth, view, asyncHandler(listExchangeRatesHandler));
 currencyRouter.post("/currency/rates", requireAuth, manage, asyncHandler(createExchangeRateHandler));

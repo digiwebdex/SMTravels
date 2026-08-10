@@ -18,8 +18,8 @@ import {
 // (matches the manpower nav gate) — a dedicated "manpower" permission is added in the
 // RBAC finalization pass (Module 8), updating nav + API together.
 export const manpowerRouter = Router();
-const view = requirePermission("bookings", "view");
-const manage = requirePermission("bookings", "manage");
+const view = requirePermission("manpower", "view");
+const manage = requirePermission("manpower", "manage");
 
 // Employers
 manpowerRouter.get("/manpower/employers", requireAuth, view, asyncHandler(listEmployersHandler));

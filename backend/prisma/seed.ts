@@ -36,6 +36,8 @@ const MODULES = [
   "dashboard", "bookings", "crm", "packages", "accounts",
   "invoices", "reports", "documents", "cms", "ops", "settings", "hr",
   "partners", "suppliers", "operations_team", "sales", "communication",
+  // Phase 8 — dedicated modules (previously reused bookings/settings/partners).
+  "manpower", "payroll", "currency", "business_network",
 ] as const;
 
 // access matrix: role -> module -> full | view | none (default none)
@@ -45,14 +47,14 @@ const MATRIX: Partial<Record<UserRole, Record<string, string>>> = {
   COMPANY_ADMIN: FULL,
   // Merged: production module grants (partners/suppliers/ops-team/sales/communication)
   // + branch HR grants (hr). ERP roles get both; portal roles keep production grants.
-  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", communication: "full", hr: "full", accounts: "view", invoices: "view", reports: "view" },
-  ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view", hr: "view" },
-  STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view", hr: "view" },
-  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view", sales: "full", communication: "full" },
-  VISA_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", crm: "view", packages: "view" },
-  HAJJ_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
-  UMRAH_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view" },
-  AGENT: { dashboard: "view", crm: "full", bookings: "full", packages: "view" },
+  BRANCH_MANAGER: { dashboard: "full", bookings: "full", crm: "full", packages: "full", documents: "full", ops: "full", partners: "full", suppliers: "full", operations_team: "full", sales: "full", communication: "full", hr: "full", accounts: "view", invoices: "view", reports: "view", manpower: "full", business_network: "full", payroll: "full", currency: "view" },
+  ACCOUNTANT: { dashboard: "full", accounts: "full", invoices: "full", reports: "full", bookings: "view", documents: "view", hr: "view", manpower: "view", payroll: "full", currency: "full" },
+  STAFF: { dashboard: "full", bookings: "full", crm: "full", documents: "full", ops: "full", packages: "view", reports: "view", hr: "view", manpower: "full" },
+  SALES_EXECUTIVE: { dashboard: "full", crm: "full", bookings: "full", packages: "view", documents: "view", partners: "view", suppliers: "view", operations_team: "view", sales: "full", communication: "full", manpower: "full", business_network: "view" },
+  VISA_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", crm: "view", packages: "view", manpower: "full" },
+  HAJJ_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view", manpower: "full" },
+  UMRAH_EXECUTIVE: { dashboard: "full", bookings: "full", documents: "full", ops: "full", crm: "view", packages: "view", manpower: "full" },
+  AGENT: { dashboard: "view", crm: "full", bookings: "full", packages: "view", manpower: "full" },
   SUPPLIER: { dashboard: "view", documents: "view" },
   CUSTOMER: { dashboard: "view" },
 };
