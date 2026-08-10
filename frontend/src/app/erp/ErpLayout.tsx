@@ -72,8 +72,8 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Building2,     labelKey: "employers",   path: "/erp/manpower/employers",   module: "bookings" },
     { icon: UsersRound,    labelKey: "recruitment", path: "/erp/manpower/recruitment", module: "bookings" },
     { icon: Stamp,         labelKey: "mpVisa",      path: "/erp/manpower/visa",        module: "bookings", soon: true },
-    { icon: ScanLine,      labelKey: "medical",     path: "/erp/manpower/medical",     module: "bookings", soon: true },
-    { icon: FileEdit,      labelKey: "bmet",        path: "/erp/manpower/bmet",        module: "bookings", soon: true },
+    { icon: ScanLine,      labelKey: "medical",     path: "/erp/manpower/medical",     module: "bookings" },
+    { icon: FileEdit,      labelKey: "bmet",        path: "/erp/manpower/bmet",        module: "bookings" },
     { icon: Plane,         labelKey: "deployment",  path: "/erp/manpower/deployment",  module: "bookings", soon: true },
   ] },
   { key: "tour", items: [

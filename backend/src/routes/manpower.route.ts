@@ -7,6 +7,10 @@ import {
   listCandidatesHandler, createCandidateHandler, updateCandidateHandler, transitionCandidateHandler,
   archiveCandidateHandler, jobOrderPipelineHandler,
 } from "../controllers/manpower.controller";
+import {
+  listMedicalHandler, createMedicalHandler, updateMedicalHandler, archiveMedicalHandler,
+  listBmetHandler, createBmetHandler, updateBmetHandler, archiveBmetHandler,
+} from "../controllers/manpower-stages.controller";
 
 // Manpower / Overseas Employment (Module 6). Gated on the existing "bookings" module
 // (matches the manpower nav gate) — a dedicated "manpower" permission is added in the
@@ -34,3 +38,15 @@ manpowerRouter.post("/manpower/candidates", requireAuth, manage, asyncHandler(cr
 manpowerRouter.patch("/manpower/candidates/:id", requireAuth, manage, asyncHandler(updateCandidateHandler));
 manpowerRouter.post("/manpower/candidates/:id/transition", requireAuth, manage, asyncHandler(transitionCandidateHandler));
 manpowerRouter.delete("/manpower/candidates/:id", requireAuth, manage, asyncHandler(archiveCandidateHandler));
+
+// Medical (Module 6B-2)
+manpowerRouter.get("/manpower/medical", requireAuth, view, asyncHandler(listMedicalHandler));
+manpowerRouter.post("/manpower/medical", requireAuth, manage, asyncHandler(createMedicalHandler));
+manpowerRouter.patch("/manpower/medical/:id", requireAuth, manage, asyncHandler(updateMedicalHandler));
+manpowerRouter.delete("/manpower/medical/:id", requireAuth, manage, asyncHandler(archiveMedicalHandler));
+
+// BMET (Module 6B-2)
+manpowerRouter.get("/manpower/bmet", requireAuth, view, asyncHandler(listBmetHandler));
+manpowerRouter.post("/manpower/bmet", requireAuth, manage, asyncHandler(createBmetHandler));
+manpowerRouter.patch("/manpower/bmet/:id", requireAuth, manage, asyncHandler(updateBmetHandler));
+manpowerRouter.delete("/manpower/bmet/:id", requireAuth, manage, asyncHandler(archiveBmetHandler));

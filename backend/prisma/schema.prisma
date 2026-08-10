@@ -3138,10 +3138,65 @@ model Candidate {
   updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt         DateTime? @db.Timestamptz(6)
 
-  jobOrder JobOrder @relation(fields: [jobOrderId], references: [id], onDelete: Restrict)
-  employer Employer @relation(fields: [employerId], references: [id], onDelete: Restrict)
+  jobOrder JobOrder            @relation(fields: [jobOrderId], references: [id], onDelete: Restrict)
+  employer Employer            @relation(fields: [employerId], references: [id], onDelete: Restrict)
+  medical  MedicalProcessing?
+  bmet     BmetClearance?
 
   @@index([jobOrderId])
   @@index([employerId])
   @@index([status])
+}
+
+// ─── MANPOWER — Medical + BMET (Module 6B-2) ─────────────────────────────────
+// One medical + one BMET record per candidate (re-processing updates the record;
+// EXPIRED status keeps it identifiable). jobOrderId/employerId are snapshots.
+model MedicalProcessing {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  candidateId     String    @unique
+  jobOrderId      String
+  employerId      String
+  medicalCenter   String?
+  appointmentDate DateTime? @db.Date
+  medicalDate     DateTime? @db.Date
+  resultDate      DateTime? @db.Date
+  expiryDate      DateTime? @db.Date
+  status          String    @default("PENDING")
+  documentRef     String?
+  remarks         String?
+  createdById     String?
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime? @db.Timestamptz(6)
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([jobOrderId])
+}
+
+model BmetClearance {
+  id               String    @id @default(cuid())
+  code             String    @unique
+  candidateId      String    @unique
+  jobOrderId       String
+  employerId       String
+  registrationNo   String?
+  registrationDate DateTime? @db.Date
+  clearanceNo      String?
+  clearanceDate    DateTime? @db.Date
+  expiryDate       DateTime? @db.Date
+  status           String    @default("PENDING")
+  documentRef      String?
+  remarks          String?
+  createdById      String?
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime? @db.Timestamptz(6)
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([jobOrderId])
 }
