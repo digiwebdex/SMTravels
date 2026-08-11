@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router";
 import {
   Plus, Users, Building2, UserCircle, Edit3,
   Package, Activity, StickyNote, Phone, Mail, MapPin, Shield,
@@ -42,6 +43,15 @@ export function CustomersView() {
 
   const openNew = () => { setEditCustomer(null); setFormOpen(true); };
   const openEdit = (c: CustomerProfile) => { setEditCustomer(c); setFormOpen(true); setDetailId(null); };
+
+  // Deep-link: the top-bar "+ New Customer" lands here with ?new=1 and opens the form.
+  const [urlParams, setUrlParams] = useSearchParams();
+  useEffect(() => {
+    if (urlParams.get("new") === "1") {
+      openNew();
+      const next = new URLSearchParams(urlParams); next.delete("new"); setUrlParams(next, { replace: true });
+    }
+  }, [urlParams, setUrlParams]);
 
   const columns: DataColumn<CustomerListItem>[] = [
     {
@@ -146,6 +156,13 @@ export function CustomersView() {
 function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: string; onClose: () => void; onEdit: (c: CustomerProfile) => void }) {
   const { data: c, isLoading, isError, error, refetch } = useCustomer(customerId);
   const [tab, setTab] = useState<"bookings" | "notes" | "activity">("bookings");
+  const navigate = useNavigate();
+  const startBooking = () => {
+    if (!c) return;
+    const qs = new URLSearchParams({ new: "1", cname: c.name, cphone: c.phone || "" });
+    if (c.email) qs.set("cemail", c.email);
+    navigate(`/erp/bookings?${qs.toString()}`);
+  };
 
   return (
     <Drawer open onClose={onClose} width="max-w-[640px]" title={c ? c.name : "Customer"} subtitle={c ? `${c.phone}${c.email ? " · " + c.email : ""}` : undefined}>
@@ -154,7 +171,8 @@ function CustomerProfileDrawer({ customerId, onClose, onEdit }: { customerId: st
           <div className="flex items-center gap-2">
             {c.isCorporate ? <Pill label="Corporate" color="#0E7C66" bg="#ECFDF5" icon={Building2} /> : <Pill label="Individual" color="#1D4ED8" bg="#DBEAFE" />}
             {c.rating && <Pill label={c.rating} color="#065F46" bg="#D1FAE5" />}
-            <button onClick={() => onEdit(c)} className="ml-auto flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer"><Edit3 size={12} /> Edit</button>
+            <button onClick={startBooking} className="ml-auto flex items-center gap-1.5 h-8 px-3 bg-[#1B75BC] text-white rounded-[7px] text-[11px] font-bold hover:bg-[#14588F] cursor-pointer"><Plus size={12} /> New Booking</button>
+            <button onClick={() => onEdit(c)} className="flex items-center gap-1.5 h-8 px-3 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#374151] hover:border-[#1B75BC]/30 cursor-pointer"><Edit3 size={12} /> Edit</button>
           </div>
           <div className="border border-[#E5E7EB] rounded-[12px] p-4 grid grid-cols-3 gap-4">
             <KV label="Phone" value={c.phone} icon={Phone} />

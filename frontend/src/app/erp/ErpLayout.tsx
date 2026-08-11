@@ -10,7 +10,7 @@ import {
   AlertTriangle, RefreshCw, FolderOpen, MessageSquare, LineChart,
   Moon, Plane, Stamp, ClipboardList,
   Handshake, Truck, UsersRound, Hotel, Bus, Tag, Megaphone, Smartphone,
-  MessageCircle, ScanLine, Plug, Sparkles, BadgeDollarSign,
+  MessageCircle, ScanLine, Plug, Sparkles, BadgeDollarSign, Plus,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
@@ -92,16 +92,14 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Truck,      labelKey: "netSuppliers", path: "/erp/suppliers", module: "suppliers" },
     { icon: Handshake,  labelKey: "b2bPartners",  path: "/erp/partners",  module: "partners" },
   ] },
-  { key: "airTicketing", items: [
+  // Secondary travel desks (Air / Hotel / Tour) folded into one group to keep the
+  // menu focused on the core Hajj/Umrah/Manpower work.
+  { key: "otherTravel", items: [
     { icon: CalendarDays, labelKey: "airBookings",  path: "/erp/bookings",  svc: "AIR_TICKET", module: "bookings" },
     { icon: Plane,        labelKey: "tickets",      path: "/erp/bookings",  svc: "AIR_TICKET", q: "view=tickets", module: "bookings" },
     { icon: Truck,        labelKey: "airSuppliers", path: "/erp/suppliers", module: "suppliers" },
-  ] },
-  { key: "hotel", items: [
     { icon: CalendarDays, labelKey: "hotelBookings", path: "/erp/bookings", svc: "HOTEL", module: "bookings" },
     { icon: Hotel,        labelKey: "hotels",        path: "/erp/hotels", module: "suppliers", soon: true },
-  ] },
-  { key: "tour", items: [
     { icon: Package,      labelKey: "tourPackages", path: "/erp/packages", q: "type=tour", module: "packages" },
     { icon: CalendarDays, labelKey: "tourBookings", path: "/erp/bookings", svc: "TOUR", module: "bookings" },
     { icon: Bus,          labelKey: "transport",    path: "/erp/transport", module: "ops", soon: true },
@@ -335,6 +333,8 @@ function Topbar({
   const [branchOpen, setBranchOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [newOpen, setNewOpen] = useState(false);
+  const newRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const branchRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
@@ -355,6 +355,7 @@ function Topbar({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
+      if (!newRef.current?.contains(e.target as Node)) setNewOpen(false);
       if (!notifRef.current?.contains(e.target as Node)) setNotifOpen(false);
       if (!branchRef.current?.contains(e.target as Node)) setBranchOpen(false);
       if (!dateRef.current?.contains(e.target as Node)) setDateOpen(false);
@@ -434,6 +435,26 @@ function Topbar({
                   {dateRange === r && <div className="w-1.5 h-1.5 rounded-full bg-[#1B75BC]" />}
                 </button>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Quick add — one click to a new Booking or Customer from any screen */}
+        <div className="relative mr-1" ref={newRef}>
+          <button
+            onClick={() => { setNewOpen(v => !v); setNotifOpen(false); setBranchOpen(false); setDateOpen(false); setUserOpen(false); }}
+            className="h-9 px-3 flex items-center gap-1.5 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#14588F] transition-colors cursor-pointer shadow-lg shadow-[#1B75BC]/20"
+          >
+            <Plus size={15} /> New
+          </button>
+          {newOpen && (
+            <div className="absolute right-0 top-full mt-1.5 bg-white border border-[#E5E7EB] rounded-[12px] shadow-xl w-52 z-50 py-1.5">
+              <button onClick={() => { setNewOpen(false); navigate("/erp/bookings?new=1"); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] cursor-pointer text-left">
+                <CalendarDays size={14} className="text-[#1B75BC]" /> New Booking
+              </button>
+              <button onClick={() => { setNewOpen(false); navigate("/erp/crm?tab=customers&new=1"); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] cursor-pointer text-left">
+                <UserCircle size={14} className="text-[#1B75BC]" /> New Customer
+              </button>
             </div>
           )}
         </div>

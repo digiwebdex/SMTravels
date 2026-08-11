@@ -20,6 +20,8 @@ import { StickySaveBar } from "../../design-system";
 interface WizardProps {
   onBack: () => void;
   onComplete: (id: string) => void;
+  /** Prefill the primary traveler (used when starting a booking from a Customer). */
+  initialCustomer?: { name: string; phone: string; email?: string };
 }
 
 interface TravelerForm {
@@ -1145,10 +1147,14 @@ const emptyForm = (): WizardForm => ({
   payment: { mode: "installment", installments: 3, method: "cash", received: 0, txnRef: "", notes: "" },
 });
 
-export function BookingWizard({ onBack, onComplete }: WizardProps) {
+export function BookingWizard({ onBack, onComplete, initialCustomer }: WizardProps) {
   const [step, setStep] = useState(0);
   const [service, setService] = useState<ServiceType | null>(null);
-  const [form, setForm] = useState<WizardForm>(emptyForm);
+  const [form, setForm] = useState<WizardForm>(() =>
+    initialCustomer
+      ? { ...emptyForm, travelers: [{ ...emptyForm.travelers[0], name: initialCustomer.name, phone: initialCustomer.phone, email: initialCustomer.email ?? "" }] }
+      : emptyForm,
+  );
   const [draftId, setDraftId] = useState<string | null>(null);
 
   const create = useCreateBooking();

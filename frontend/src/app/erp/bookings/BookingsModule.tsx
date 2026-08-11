@@ -457,19 +457,36 @@ function BookingDetailLoader({ id, onBack, onEdit }: { id: string; onBack: () =>
 type View = "list" | "new" | { id: string };
 
 export function BookingsModule() {
+  const [params, setParams] = useSearchParams();
   const [view, setView] = useState<View>("list");
+  const [prefill, setPrefill] = useState<{ name: string; phone: string; email?: string } | undefined>(undefined);
+
+  // Deep-link: "+ New" (top bar) or a Customer's "New Booking" open the wizard via
+  // ?new=1 (+ optional cname/cphone/cemail to prefill the primary traveler).
+  useEffect(() => {
+    if (params.get("new") === "1") {
+      const name = params.get("cname"), phone = params.get("cphone");
+      setPrefill(name || phone ? { name: name ?? "", phone: phone ?? "", email: params.get("cemail") ?? "" } : undefined);
+      setView("new");
+      const next = new URLSearchParams(params);
+      ["new", "cname", "cphone", "cemail"].forEach((k) => next.delete(k));
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams]);
+
+  const openNew = () => { setPrefill(undefined); setView("new"); };
 
   if (view === "list") {
-    return <BookingsList onNew={() => setView("new")} onDetail={id => setView({ id })} />;
+    return <BookingsList onNew={openNew} onDetail={id => setView({ id })} />;
   }
   if (view === "new") {
-    return <BookingWizard onBack={() => setView("list")} onComplete={id => setView({ id })} />;
+    return <BookingWizard initialCustomer={prefill} onBack={() => setView("list")} onComplete={id => setView({ id })} />;
   }
   return (
     <BookingDetailLoader
       id={(view as { id: string }).id}
       onBack={() => setView("list")}
-      onEdit={() => setView("new")}
+      onEdit={openNew}
     />
   );
 }
