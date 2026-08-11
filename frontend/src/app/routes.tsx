@@ -138,14 +138,11 @@ export const router = createBrowserRouter([
       { path: "hotels", element: <ComingSoon k="hotels" group="partners" /> },
       { path: "transport", element: <ComingSoon k="transport" group="partners" /> },
       { path: "sales", element: withSuspense(<SalesModule />) },
-      { path: "marketing", element: <ComingSoon k="marketing" group="communication" /> },
       { path: "sms", element: withSuspense(<SmsCenterModule />) },
       { path: "whatsapp", element: <ComingSoon k="whatsapp" group="communication" /> },
       { path: "ocr", element: <ComingSoon k="ocr" group="operations" /> },
       // HR: use the real HrModule from the RC branch (supersedes the ComingSoon placeholder).
       { path: "hr", element: withSuspense(<HrModule />) },
-      { path: "integrations", element: <ComingSoon k="integrations" group="admin" /> },
-      { path: "ai", element: <ComingSoon k="ai" group="admin" /> },
       // Phase 2 final-menu placeholders — nav home + RBAC only, functionality lands in later phases.
       { path: "muallim", element: withSuspense(<MuallimModule />) },
       { path: "manpower/job-orders", element: withSuspense(<JobOrdersModule />) },
