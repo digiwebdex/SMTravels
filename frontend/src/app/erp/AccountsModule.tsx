@@ -313,15 +313,21 @@ function LedgerTableView({ title, rows, type }: {
   const total = rows.filter(r => r.status === "confirmed" || r.status === "paid").reduce((s, r) => s + r.amount, 0);
   const pending = rows.filter(r => r.status === "pending").reduce((s, r) => s + r.amount, 0);
   const [formOpen, setFormOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const shown = q.trim()
+    ? rows.filter((r) => [r.category, r.description, r.vendor, r.method, r.status].some((v) => (v ?? "").toLowerCase().includes(q.toLowerCase())))
+    : rows;
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-          <p className="text-sm text-slate-500 mt-0.5">{rows.length} entries</p>
+          <p className="text-sm text-slate-500 mt-0.5">{shown.length}{q.trim() ? ` of ${rows.length}` : ""} entries</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => exportCsv(`${type}.csv`, rows)}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter…"
+            className="h-9 px-3 w-40 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] outline-none focus:border-[#1B75BC]" />
+          <button onClick={() => exportCsv(`${type}.csv`, shown)}
             className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer">
             <Download size={14} /> Export
           </button>
@@ -339,8 +345,8 @@ function LedgerTableView({ title, rows, type }: {
         <KpiCard label="Pending" value={fmtCurrency(pending)} icon={Clock} color="bg-amber-500" />
         <KpiCard label="Transactions" value={String(rows.length)} icon={FileText} color="bg-blue-500" />
       </div>
-      {rows.length === 0 ? (
-        <EmptyState variant="no-data" title={`No ${type === "income" ? "income" : "expense"} entries`} desc={`${type === "income" ? "Income" : "Expense"} entries will appear here once recorded.`} />
+      {shown.length === 0 ? (
+        <EmptyState variant="no-data" title={q.trim() ? "No matching entries" : `No ${type === "income" ? "income" : "expense"} entries`} desc={q.trim() ? "Try a different filter." : `${type === "income" ? "Income" : "Expense"} entries will appear here once recorded.`} />
       ) : (
       <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-x-auto">
         <table className="w-full min-w-[680px] md:min-w-0">
@@ -352,7 +358,7 @@ function LedgerTableView({ title, rows, type }: {
             </tr>
           </thead>
           <tbody>
-            {rows.map(r => (
+            {shown.map(r => (
               <tr key={r.ref} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3 text-sm text-slate-500">{r.date}</td>
                 <td className="px-4 py-3 text-xs font-mono text-slate-400">{r.ref}</td>
