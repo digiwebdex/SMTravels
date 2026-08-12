@@ -628,6 +628,7 @@ model Customer {
   leads     Lead[]
   notes     Note[]
   documents Document[]
+  customPackages CustomPackage[]
 
   @@index([branchId, createdAt])
   @@index([agentId])
@@ -3320,7 +3321,8 @@ model CustomPackage {
   updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt     DateTime? @db.Timestamptz(6)
 
-  items CustomPackageItem[]
+  customer Customer?           @relation(fields: [customerId], references: [id])
+  items    CustomPackageItem[]
 
   @@index([status])
   @@index([customerId])
