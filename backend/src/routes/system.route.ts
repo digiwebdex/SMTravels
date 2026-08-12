@@ -8,6 +8,8 @@ import {
   smtpStatusHandler,
   smtpTestHandler,
   passportOcrHandler,
+  getCompanyHandler,
+  updateCompanyHandler,
 } from "../controllers/system.controller";
 import { ocrKindHandler, ocrApplyHandler } from "../controllers/ocr.controller";
 
@@ -43,6 +45,8 @@ systemRouter.post(
   manageSettings,
   asyncHandler(smtpTestHandler),
 );
+systemRouter.get("/company", requireAuth, viewSettings, asyncHandler(getCompanyHandler));
+systemRouter.patch("/company", requireAuth, manageSettings, asyncHandler(updateCompanyHandler));
 
 export const ocrRouter = Router();
 

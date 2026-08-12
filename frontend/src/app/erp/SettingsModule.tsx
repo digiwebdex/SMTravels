@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useCompany, useUpdateCompany } from "../hooks/company";
 import {
   Settings, Mail, MessageSquare, Phone, CreditCard, ScanText,
   Database, Shield, Lock, Cpu, Building2, Users, Star, Activity,
@@ -217,6 +218,14 @@ function IntegrationTestForm({ channel, placeholder }: { channel: "email" | "sms
 
 // ─── GENERAL ─────────────────────────────────────────────────────────────────
 function GeneralSettings() {
+  const { data: company } = useCompany();
+  const updateCompany = useUpdateCompany();
+  const onLogoPick = (file: File) => {
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
+    const reader = new FileReader();
+    reader.onload = () => updateCompany.mutate({ logoUrl: String(reader.result) });
+    reader.readAsDataURL(file);
+  };
   return (
     <div className="space-y-5">
       <PageHeader title="General Settings" subtitle="Core business information and localization"/>
@@ -241,9 +250,13 @@ function GeneralSettings() {
         </Field>
         <Field label="Company Logo">
           <div className="flex items-center gap-3">
-            <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold">SM</div>
-            <button disabled title="Logo upload is not available in this build"
-              className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed"><Upload size={13}/> Upload</button>
+            <div className="w-16 h-10 rounded-lg bg-[#1B75BC] flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+              {company?.logoUrl ? <img src={company.logoUrl} alt="Logo" className="w-full h-full object-contain bg-white" /> : (company?.name ?? "SM").slice(0, 2).toUpperCase()}
+            </div>
+            <label className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer">
+              <Upload size={13}/> {updateCompany.isPending ? "Uploading…" : "Upload"}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onLogoPick(f); e.target.value = ""; }} />
+            </label>
           </div>
         </Field>
       </Panel>

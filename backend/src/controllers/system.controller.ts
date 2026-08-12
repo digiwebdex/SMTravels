@@ -4,7 +4,16 @@ import { checkVisionHealth, ocrPassport } from "../services/googleVision.service
 import { checkGeminiHealth } from "../services/gemini.service";
 import { checkSmtpHealth, sendSmtpTestEmail } from "../services/email.service";
 import { HttpError } from "../middleware/errorHandler";
+import * as company from "../services/company.service";
+import { companyUpdateSchema } from "../contracts/company.contract";
 import fs from "node:fs";
+
+export async function getCompanyHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await company.getCompany());
+}
+export async function updateCompanyHandler(req: Request, res: Response): Promise<void> {
+  res.json(await company.updateCompany(companyUpdateSchema.parse(req.body)));
+}
 
 const smtpTestSchema = z.object({
   email: z.string().trim().email(),
