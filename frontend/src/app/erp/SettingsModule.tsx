@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   Settings, Mail, MessageSquare, Phone, CreditCard, ScanText,
   Database, Shield, Lock, Cpu, Building2, Users, Star, Activity,
@@ -650,6 +652,8 @@ function PermissionsMatrix() {
 
 // ─── SYSTEM CONFIG ────────────────────────────────────────────────────────────
 function SystemConfig() {
+  const qc = useQueryClient();
+  const clearCaches = () => { qc.clear(); toast.success("All cached data cleared — screens will refetch."); };
   return (
     <div className="space-y-5">
       <PageHeader title="System Configuration" subtitle="Advanced ERP behaviour and performance settings"/>
@@ -672,8 +676,8 @@ function SystemConfig() {
         <Field label="Cache TTL (seconds)"><Inp dv="3600"/></Field>
         <Field label="Queue Driver"><Sel opts={["Sync","Database","Redis"]} dv="Redis"/></Field>
         <div className="pt-2">
-          <button disabled title="Clear All Caches is not available in this build"
-            className="flex items-center gap-1.5 text-sm px-3 py-2 border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed"><RefreshCw size={13}/> Clear All Caches</button>
+          <button onClick={clearCaches}
+            className="flex items-center gap-1.5 text-sm px-3 py-2 border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer"><RefreshCw size={13}/> Clear All Caches</button>
         </div>
       </Panel>
       <SaveBtn/>
