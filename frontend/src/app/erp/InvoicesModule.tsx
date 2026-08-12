@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn, img, fmtPrice } from "../lib/utils";
 import { SkeletonTable, ErrorBanner, EmptyState } from "../lib/ds";
+import { exportCsv } from "../lib/csv";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn } from "./crm/ui";
 import {
   useInvoices, useInvoice, useCreateInvoice, useIssueInvoice, useCancelInvoice, useRecordPayment,
@@ -243,8 +244,8 @@ function InvoiceListView({ onView, onNew }: { onView: (id: string) => void; onNe
           <p className="text-sm text-slate-500 mt-0.5">{data?.total ?? 0} invoices · manage all customer invoices</p>
         </div>
         <div className="flex gap-2">
-          <button disabled title="Export is not available in this build"
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
+          <button onClick={() => exportCsv("invoices.csv", rows as unknown as Record<string, unknown>[])}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer">
             <Download size={14} /> Export
           </button>
           <button onClick={onNew} className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]">

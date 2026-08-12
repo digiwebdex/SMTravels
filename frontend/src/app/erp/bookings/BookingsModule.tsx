@@ -9,6 +9,7 @@ import {
 import { cn, fmtPrice } from "../../lib/utils";
 import { SkeletonTable, ErrorBanner } from "../../lib/ds";
 import { BookingWizard } from "./BookingWizard";
+import { exportCsv } from "../../lib/csv";
 import { BookingDetail } from "./BookingDetail";
 import { useSearchParams } from "react-router";
 import {
@@ -206,9 +207,9 @@ function BookingsList({ onNew, onDetail }: { onNew: () => void; onDetail: (id: s
           <p className="text-[11px] text-[#9CA3AF] mt-0.5">{total} total{isFetching ? " · refreshing…" : ""}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button disabled title="Export is not available in this build"
-            className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed">
-            <Download size={13} className="text-[#9CA3AF]" /> Export
+          <button onClick={() => exportCsv("bookings.csv", rows as unknown as Record<string, unknown>[])}
+            className="flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E5E7EB] rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] cursor-pointer">
+            <Download size={13} className="text-[#374151]" /> Export
           </button>
           <button onClick={onNew}
             className="flex items-center gap-1.5 h-9 px-4 bg-[#1B75BC] text-white rounded-[8px] text-[12px] font-bold hover:bg-[#14588F] transition-colors cursor-pointer shadow-lg shadow-[#1B75BC]/20">

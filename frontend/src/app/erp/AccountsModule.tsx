@@ -18,19 +18,8 @@ import {
 import { Loader2 } from "lucide-react";
 import { AiInsightCard } from "../design-system";
 import { Drawer, Field } from "./crm/ui";
+import { exportCsv } from "../lib/csv";
 import type { AccountDto } from "@contracts/finance.contract";
-
-// ── Client-side CSV export (used by the Export buttons) ───────────────────────
-function exportCsv(filename: string, rows: Record<string, unknown>[]) {
-  if (!rows.length) { return; }
-  const cols = Object.keys(rows[0]);
-  const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const csv = [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
 
 const fieldCls = "w-full h-9 px-3 border border-[var(--color-border)] rounded-lg text-sm bg-[var(--color-surface)]";
 
