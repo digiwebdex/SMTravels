@@ -1150,11 +1150,12 @@ const emptyForm = (): WizardForm => ({
 export function BookingWizard({ onBack, onComplete, initialCustomer }: WizardProps) {
   const [step, setStep] = useState(0);
   const [service, setService] = useState<ServiceType | null>(null);
-  const [form, setForm] = useState<WizardForm>(() =>
-    initialCustomer
-      ? { ...emptyForm, travelers: [{ ...emptyForm.travelers[0], name: initialCustomer.name, phone: initialCustomer.phone, email: initialCustomer.email ?? "" }] }
-      : emptyForm,
-  );
+  const [form, setForm] = useState<WizardForm>(() => {
+    const base = emptyForm(); // emptyForm is a factory — must be called
+    return initialCustomer
+      ? { ...base, travelers: [{ ...base.travelers[0], name: initialCustomer.name, phone: initialCustomer.phone, email: initialCustomer.email ?? "" }] }
+      : base;
+  });
   const [draftId, setDraftId] = useState<string | null>(null);
 
   const create = useCreateBooking();
