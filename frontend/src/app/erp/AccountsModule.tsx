@@ -13,9 +13,87 @@ import {
   useAccounts, buildCoaTree, useBankAccounts, useIncome, useExpenses,
   useJournal, useCreateJournal, useReverseJournal, usePostJournal,
   useInstallmentPlans, usePayments,
+  useCreateIncome, useCreateExpense, useCreateAccount,
 } from "../hooks/finance";
 import { Loader2 } from "lucide-react";
 import { AiInsightCard } from "../design-system";
+import { Drawer, Field } from "./crm/ui";
+import type { AccountDto } from "@contracts/finance.contract";
+
+// ── Client-side CSV export (used by the Export buttons) ───────────────────────
+function exportCsv(filename: string, rows: Record<string, unknown>[]) {
+  if (!rows.length) { return; }
+  const cols = Object.keys(rows[0]);
+  const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+const fieldCls = "w-full h-9 px-3 border border-[var(--color-border)] rounded-lg text-sm bg-[var(--color-surface)]";
+
+// ── Add Income / Expense form ─────────────────────────────────────────────────
+const PAY_METHODS = ["CASH", "BANK_TRANSFER", "BKASH", "NAGAD", "ROCKET", "CHEQUE", "CARD", "SSLCOMMERZ"] as const;
+function LedgerFormDrawer({ type, onClose }: { type: "income" | "expense"; onClose: () => void }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [f, setF] = useState({ category: "", amount: "", date: today, description: "", party: "", method: "CASH" });
+  const createIncome = useCreateIncome();
+  const createExpense = useCreateExpense();
+  const busy = createIncome.isPending || createExpense.isPending;
+  const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const submit = () => {
+    if (!f.category.trim() || !(Number(f.amount) > 0) || !f.date) { return; }
+    const base = { category: f.category.trim(), amount: Number(f.amount), date: f.date, description: f.description.trim() || undefined, method: f.method as (typeof PAY_METHODS)[number] };
+    const done = { onSuccess: onClose };
+    if (type === "income") createIncome.mutate({ ...base, payerName: f.party.trim() || undefined }, done);
+    else createExpense.mutate({ ...base, vendorName: f.party.trim() || undefined }, done);
+  };
+  return (
+    <Drawer open onClose={onClose} title={type === "income" ? "Add Income" : "Add Expense"} subtitle="Record a ledger entry"
+      footer={<div className="flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600">Cancel</button><button onClick={submit} disabled={busy} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save"}</button></div>}>
+      <div className="flex flex-col gap-3">
+        <Field label="Category" required><input className={fieldCls} value={f.category} onChange={(e) => set("category", e.target.value)} placeholder={type === "income" ? "e.g. Package sale" : "e.g. Office rent"} /></Field>
+        <Field label="Amount (৳)" required><input type="number" min="0" className={fieldCls} value={f.amount} onChange={(e) => set("amount", e.target.value)} /></Field>
+        <Field label="Date" required><input type="date" className={fieldCls} value={f.date} onChange={(e) => set("date", e.target.value)} /></Field>
+        <Field label={type === "income" ? "Payer name" : "Vendor name"}><input className={fieldCls} value={f.party} onChange={(e) => set("party", e.target.value)} /></Field>
+        <Field label="Method"><select className={fieldCls} value={f.method} onChange={(e) => set("method", e.target.value)}>{PAY_METHODS.map((m) => <option key={m} value={m}>{m.replace(/_/g, " ")}</option>)}</select></Field>
+        <Field label="Description"><input className={fieldCls} value={f.description} onChange={(e) => set("description", e.target.value)} /></Field>
+      </div>
+    </Drawer>
+  );
+}
+
+// ── Add Account (chart of accounts) form ──────────────────────────────────────
+const ACCOUNT_CLASSES = ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"] as const;
+function AccountFormDrawer({ accounts, onClose }: { accounts: AccountDto[]; onClose: () => void }) {
+  const [f, setF] = useState({ code: "", name: "", accountClass: "ASSET", parentId: "", role: "DETAIL" });
+  const create = useCreateAccount();
+  const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const submit = () => {
+    if (!f.code.trim() || !f.name.trim()) { return; }
+    create.mutate({
+      code: f.code.trim(), name: f.name.trim(),
+      accountClass: f.accountClass as (typeof ACCOUNT_CLASSES)[number],
+      role: f.role as "HEADER" | "DETAIL",
+      parentId: f.parentId || undefined,
+    }, { onSuccess: onClose });
+  };
+  const headers = accounts.filter((a) => a.role === "HEADER");
+  return (
+    <Drawer open onClose={onClose} title="Add Account" subtitle="New chart-of-accounts entry"
+      footer={<div className="flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600">Cancel</button><button onClick={submit} disabled={create.isPending} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg font-semibold disabled:opacity-50">{create.isPending ? "Saving…" : "Save"}</button></div>}>
+      <div className="flex flex-col gap-3">
+        <Field label="Code" required><input className={fieldCls} value={f.code} onChange={(e) => set("code", e.target.value)} placeholder="e.g. 1210" /></Field>
+        <Field label="Account name" required><input className={fieldCls} value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
+        <Field label="Class" required><select className={fieldCls} value={f.accountClass} onChange={(e) => set("accountClass", e.target.value)}>{ACCOUNT_CLASSES.map((c) => <option key={c} value={c}>{c}</option>)}</select></Field>
+        <Field label="Type"><select className={fieldCls} value={f.role} onChange={(e) => set("role", e.target.value)}><option value="DETAIL">Detail</option><option value="HEADER">Header</option></select></Field>
+        <Field label="Parent account"><select className={fieldCls} value={f.parentId} onChange={(e) => set("parentId", e.target.value)}><option value="">— none —</option>{headers.map((h) => <option key={h.id} value={h.id}>{h.code} · {h.name}</option>)}</select></Field>
+      </div>
+    </Drawer>
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AccountsView =
@@ -164,6 +242,7 @@ function ChartOfAccountsView() {
   const { data: accounts, isLoading, isError, error, refetch } = useAccounts();
   const tree = buildCoaTree(accounts ?? []);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["1000", "2000", "3000", "4000", "5000"]));
+  const [addOpen, setAddOpen] = useState(false);
   const toggle = (code: string) => {
     setExpanded(prev => {
       const next = new Set(prev);
@@ -186,16 +265,17 @@ function ChartOfAccountsView() {
           <p className="text-sm text-slate-500 mt-0.5">Double-entry bookkeeping structure</p>
         </div>
         <div className="flex gap-2">
-          <button disabled title="Export is not available in this build"
-            className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
+          <button onClick={() => exportCsv("chart-of-accounts.csv", (accounts ?? []).map((a) => ({ Code: a.code, Name: a.name, Class: a.accountClass, Role: a.role, Balance: a.balance })))}
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer">
             <Download size={15} /> Export
           </button>
-          <button disabled title="Add Account is not available in this build"
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
+          <button onClick={() => setAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg font-semibold hover:bg-[#14588F] cursor-pointer">
             <Plus size={15} /> Add Account
           </button>
         </div>
       </div>
+      {addOpen && <AccountFormDrawer accounts={accounts ?? []} onClose={() => setAddOpen(false)} />}
       {isError ? (
         <div className="p-2"><ErrorBanner message={(error as Error)?.message || "Failed to load accounts."} onRetry={() => refetch()} /></div>
       ) : isLoading ? (
@@ -233,28 +313,26 @@ function LedgerTableView({ title, rows, type }: {
 }) {
   const total = rows.filter(r => r.status === "confirmed" || r.status === "paid").reduce((s, r) => s + r.amount, 0);
   const pending = rows.filter(r => r.status === "pending").reduce((s, r) => s + r.amount, 0);
+  const [formOpen, setFormOpen] = useState(false);
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-          <p className="text-sm text-slate-500 mt-0.5">July 2024</p>
+          <p className="text-sm text-slate-500 mt-0.5">{rows.length} entries</p>
         </div>
         <div className="flex gap-2">
-          <button disabled title="Filter is not available in this build"
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
-            <Filter size={14} /> Filter
-          </button>
-          <button disabled title="Export is not available in this build"
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-[#9CA3AF] opacity-60 cursor-not-allowed">
+          <button onClick={() => exportCsv(`${type}.csv`, rows)}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer">
             <Download size={14} /> Export
           </button>
-          <button disabled title={`Add ${type === "income" ? "Income" : "Expense"} is not available in this build`}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-200 text-[#9CA3AF] rounded-lg opacity-60 cursor-not-allowed">
+          <button onClick={() => setFormOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg font-semibold hover:bg-[#14588F] cursor-pointer">
             <Plus size={14} /> Add {type === "income" ? "Income" : "Expense"}
           </button>
         </div>
       </div>
+      {formOpen && <LedgerFormDrawer type={type} onClose={() => setFormOpen(false)} />}
       <div className="grid grid-cols-3 gap-4">
         <KpiCard label="Total Confirmed" value={fmtCurrency(total)}
           icon={type === "income" ? TrendingUp : TrendingDown}
