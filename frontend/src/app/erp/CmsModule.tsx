@@ -15,6 +15,7 @@ import { Drawer, Field, inputCls, selectCls, PrimaryBtn, GhostBtn } from "./crm/
 import {
   useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost,
   useFaqs, useCreateFaq, useUpdateFaq, useDeleteFaq,
+  useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory,
   useTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial,
   useCmsPages, useCmsPage, useCreateCmsPage, useUpdateCmsPage, useDeleteCmsPage,
   useMenus, useCreateMenu, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
@@ -936,7 +937,11 @@ function BannersView() {
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
 function CategoriesView() {
-  const [cats, setCats] = useState(CATEGORIES);
+  const { data } = useCategories();
+  const cats = data?.data ?? [];
+  const createCat = useCreateCategory();
+  const updateCat = useUpdateCategory();
+  const deleteCat = useDeleteCategory();
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
 
@@ -956,7 +961,7 @@ function CategoriesView() {
               placeholder="Category name…" autoFocus
               className="w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none" />
             <div className="flex gap-2">
-              <button onClick={() => { if (newName.trim()) { setCats(c => [...c, { id: Date.now(), name: newName, slug: newName.toLowerCase(), count: 0, color: "#64748B" }]); } setAdding(false); setNewName(""); }}
+              <button onClick={() => { if (newName.trim()) createCat.mutate({ name: newName.trim() }, { onSuccess: () => { setAdding(false); setNewName(""); } }); else { setAdding(false); setNewName(""); } }}
                 className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg">Add</button>
               <button onClick={() => setAdding(false)} className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg text-slate-500">Cancel</button>
             </div>
@@ -965,17 +970,17 @@ function CategoriesView() {
         <div className="space-y-2">
           {cats.map(cat => (
             <div key={cat.id} className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] group">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: cat.color }} />
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: cat.color ?? "#64748B" }} />
               <div className="flex-1">
                 <p className="text-sm font-medium text-slate-700">{cat.name}</p>
                 <p className="text-xs text-slate-400 font-mono">/{cat.slug}</p>
               </div>
-              <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{cat.count} posts</span>
+              <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{cat.postCount} posts</span>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                <button disabled title="Editing categories is not available in this build"
-                  className="p-1.5 rounded text-[#9CA3AF] opacity-60 cursor-not-allowed"><Edit2 size={12} /></button>
-                <button disabled title="Deleting categories is not available in this build"
-                  className="p-1.5 rounded text-[#9CA3AF] opacity-60 cursor-not-allowed"><Trash2 size={12} /></button>
+                <button onClick={() => { const n = window.prompt("Rename category", cat.name); if (n?.trim()) updateCat.mutate({ id: cat.id, name: n.trim() }); }} title="Rename"
+                  className="p-1.5 rounded text-[#6B7280] hover:bg-slate-100 cursor-pointer"><Edit2 size={12} /></button>
+                <button onClick={() => { if (window.confirm(`Delete category "${cat.name}"?`)) deleteCat.mutate(cat.id); }} title="Delete"
+                  className="p-1.5 rounded text-[#DC2626] hover:bg-red-50 cursor-pointer"><Trash2 size={12} /></button>
               </div>
             </div>
           ))}
@@ -987,16 +992,16 @@ function CategoriesView() {
         <div className="space-y-3">
           {cats.map(cat => (
             <div key={cat.id} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: cat.color + "20" }}>
-                <Tag size={14} style={{ color: cat.color }} />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: (cat.color ?? "#64748B") + "20" }}>
+                <Tag size={14} style={{ color: cat.color ?? "#64748B" }} />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-slate-700">{cat.name}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${(cat.count / 14) * 100}%`, background: cat.color }} />
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(100, (cat.postCount / 14) * 100)}%`, background: cat.color ?? "#64748B" }} />
                   </div>
-                  <span className="text-xs text-slate-500">{cat.count}</span>
+                  <span className="text-xs text-slate-500">{cat.postCount}</span>
                 </div>
               </div>
             </div>

@@ -8,6 +8,7 @@ import type {
   BlogPostListQuery,
   BlogPostDto,
   BlogPostListResponse,
+  CategoryCreateInput, CategoryUpdateInput, CategoryDto, CategoryListResponse,
   FaqCreateInput,
   FaqUpdateInput,
   FaqListQuery,
@@ -286,6 +287,43 @@ export async function deleteFaq(id: string): Promise<void> {
   const existing = await prisma.faq.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new HttpError(404, "NotFound");
   await prisma.faq.update({ where: { id }, data: { deletedAt: new Date() } });
+}
+
+// ── Blog Category ─────────────────────────────────────────────────────────────
+const slugifyCat = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "category";
+type CatRow = Prisma.BlogCategoryGetPayload<{ include: { _count: { select: { posts: true } } } }>;
+function toCategoryDto(c: CatRow): CategoryDto {
+  return { id: c.id, name: c.name, slug: c.slug, color: c.color, postCount: c._count.posts };
+}
+export async function listCategories(): Promise<CategoryListResponse> {
+  const rows = await prisma.blogCategory.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" }, include: { _count: { select: { posts: true } } } });
+  return { data: rows.map(toCategoryDto), total: rows.length };
+}
+export async function createCategory(input: CategoryCreateInput): Promise<CategoryDto> {
+  const c = await prisma.blogCategory.create({
+    data: { name: input.name, slug: slugifyCat(input.slug || input.name), color: input.color ?? null },
+    include: { _count: { select: { posts: true } } },
+  });
+  return toCategoryDto(c);
+}
+export async function updateCategory(id: string, input: CategoryUpdateInput): Promise<CategoryDto> {
+  const existing = await prisma.blogCategory.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  const c = await prisma.blogCategory.update({
+    where: { id },
+    data: {
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.slug !== undefined ? { slug: slugifyCat(input.slug) } : {}),
+      ...(input.color !== undefined ? { color: input.color } : {}),
+    },
+    include: { _count: { select: { posts: true } } },
+  });
+  return toCategoryDto(c);
+}
+export async function deleteCategory(id: string): Promise<void> {
+  const existing = await prisma.blogCategory.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  await prisma.blogCategory.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 // ── Testimonial ───────────────────────────────────────────────────────────────

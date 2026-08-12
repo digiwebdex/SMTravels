@@ -10,6 +10,10 @@ import type {
   FaqCreateInput,
   FaqUpdateInput,
   FaqListResponse,
+  CategoryDto,
+  CategoryCreateInput,
+  CategoryUpdateInput,
+  CategoryListResponse,
   TestimonialDto,
   TestimonialCreateInput,
   TestimonialUpdateInput,
@@ -158,6 +162,35 @@ export function useDeleteFaq() {
       qc.invalidateQueries({ queryKey: ["cms", "faqs"] });
       toast.success("FAQ deleted");
     },
+    onError: err,
+  });
+}
+
+// ── Blog Categories ─────────────────────────────────────────────────────────────
+export function useCategories() {
+  return useQuery({ queryKey: ["cms", "categories"], queryFn: () => apiFetch<CategoryListResponse>("/cms/categories") });
+}
+export function useCreateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CategoryCreateInput) => apiFetch<CategoryDto>("/cms/categories", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "categories"] }); toast.success("Category created"); },
+    onError: err,
+  });
+}
+export function useUpdateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: CategoryUpdateInput & { id: string }) => apiFetch<CategoryDto>(`/cms/categories/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "categories"] }); toast.success("Category updated"); },
+    onError: err,
+  });
+}
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/cms/categories/${id}`, { method: "DELETE" }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "categories"] }); toast.success("Category deleted"); },
     onError: err,
   });
 }

@@ -6,6 +6,8 @@ import {
   faqCreateSchema,
   faqUpdateSchema,
   faqListQuerySchema,
+  categoryCreateSchema,
+  categoryUpdateSchema,
   testimonialCreateSchema,
   testimonialUpdateSchema,
   testimonialListQuerySchema,
@@ -68,6 +70,19 @@ export async function updateFaqHandler(req: Request, res: Response): Promise<voi
 
 export async function deleteFaqHandler(req: Request, res: Response): Promise<void> {
   await cms.deleteFaq(req.params.id);
+  res.json({ ok: true });
+}
+export async function listCategoriesHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cms.listCategories());
+}
+export async function createCategoryHandler(req: Request, res: Response): Promise<void> {
+  res.status(201).json(await cms.createCategory(categoryCreateSchema.parse(req.body)));
+}
+export async function updateCategoryHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cms.updateCategory(req.params.id, categoryUpdateSchema.parse(req.body)));
+}
+export async function deleteCategoryHandler(req: Request, res: Response): Promise<void> {
+  await cms.deleteCategory(req.params.id);
   res.json({ ok: true });
 }
 

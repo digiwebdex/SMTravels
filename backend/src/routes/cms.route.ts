@@ -12,6 +12,10 @@ import {
   createFaqHandler,
   updateFaqHandler,
   deleteFaqHandler,
+  listCategoriesHandler,
+  createCategoryHandler,
+  updateCategoryHandler,
+  deleteCategoryHandler,
   listTestimonialsHandler,
   getTestimonialHandler,
   createTestimonialHandler,
@@ -58,6 +62,10 @@ cmsRouter.get("/cms/faqs/:id", requireAuth, view, asyncHandler(getFaqHandler));
 cmsRouter.post("/cms/faqs", requireAuth, manage, asyncHandler(createFaqHandler));
 cmsRouter.patch("/cms/faqs/:id", requireAuth, manage, asyncHandler(updateFaqHandler));
 cmsRouter.delete("/cms/faqs/:id", requireAuth, manage, asyncHandler(deleteFaqHandler));
+cmsRouter.get("/cms/categories", requireAuth, view, asyncHandler(listCategoriesHandler));
+cmsRouter.post("/cms/categories", requireAuth, manage, asyncHandler(createCategoryHandler));
+cmsRouter.patch("/cms/categories/:id", requireAuth, manage, asyncHandler(updateCategoryHandler));
+cmsRouter.delete("/cms/categories/:id", requireAuth, manage, asyncHandler(deleteCategoryHandler));
 
 cmsRouter.get("/cms/testimonials", requireAuth, view, asyncHandler(listTestimonialsHandler));
 cmsRouter.get("/cms/testimonials/:id", requireAuth, view, asyncHandler(getTestimonialHandler));

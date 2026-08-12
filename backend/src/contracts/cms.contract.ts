@@ -209,6 +209,24 @@ export type FaqCreateInput = z.infer<typeof faqCreateSchema>;
 export const faqUpdateSchema = faqCreateSchema.partial();
 export type FaqUpdateInput = z.infer<typeof faqUpdateSchema>;
 
+// ── admin Blog Category ───────────────────────────────────────────────────────
+export const categoryCreateSchema = z.object({
+  name: trimmed(120),
+  slug: optStr,
+  color: optStr,
+});
+export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>;
+export const categoryUpdateSchema = categoryCreateSchema.partial();
+export type CategoryUpdateInput = z.infer<typeof categoryUpdateSchema>;
+export interface CategoryDto {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+  postCount: number;
+}
+export interface CategoryListResponse { data: CategoryDto[]; total: number }
+
 export interface FaqDto {
   id: string;
   question: string;
