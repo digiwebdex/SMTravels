@@ -43,7 +43,7 @@ export function createApp(): Express {
   app.use(compression());
 
   // Body / cookie parsing
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: "12mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 

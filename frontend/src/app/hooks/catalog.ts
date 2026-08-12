@@ -65,7 +65,7 @@ export function toPackagePayload(f: {
   tiers: { label: string; price: number; originalPrice?: number; seats: number; occupied: number }[];
   days: { day: number; title: string; desc: string; activities: string[]; hotel: string; meals: { breakfast: boolean; lunch: boolean; dinner: boolean }; transport: string }[];
   hotels: unknown[]; flights: unknown[]; includes: string[]; excludes: string[]; departureDates: string[];
-  image?: string;
+  image?: string; images?: string[];
 }): PackageCreateInput {
   const prices = f.tiers.map((t) => Number(t.price) || 0).filter((n) => n > 0);
   const basePrice = prices.length ? Math.min(...prices) : 0;
@@ -75,7 +75,8 @@ export function toPackagePayload(f: {
     departure: f.departure || undefined, status: pkgStatusToEnum(f.status), shortDesc: f.shortDesc || undefined,
     longDesc: f.longDesc || undefined, featured: f.featured, currency: "BDT",
     basePrice, originalPrice: cheapest?.originalPrice ? Number(cheapest.originalPrice) : undefined,
-    image: f.image || undefined,
+    image: f.images?.[0] || f.image || undefined,
+    images: f.images ?? undefined,
     tiers: f.tiers.map((t, i) => ({ label: t.label, price: Number(t.price) || 0, originalPrice: t.originalPrice ? Number(t.originalPrice) : undefined, seats: Number(t.seats) || 0, occupied: Number(t.occupied) || 0, sortOrder: i })),
     itinerary: f.days.map((d) => ({ day: d.day, title: d.title, description: d.desc || undefined, activities: d.activities, hotel: d.hotel || undefined, breakfast: d.meals.breakfast, lunch: d.meals.lunch, dinner: d.meals.dinner, transport: d.transport || undefined })),
     inclusions: [

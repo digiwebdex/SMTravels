@@ -11,6 +11,7 @@ import {
 import { cn, fmtPrice, img } from "../lib/utils";
 import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import { exportCsv } from "../lib/csv";
+import { toast } from "sonner";
 import {
   usePackages, usePackage, useCreatePackage, useUpdatePackage, useDeletePackage, useDuplicatePackage,
   mapListItem, mapDetail, toPackagePayload, pkgTypeToEnum, pkgStatusToEnum,
@@ -265,7 +266,7 @@ function PackageListView({
                     <td className="py-3.5 pr-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-[10px] overflow-hidden flex-shrink-0 bg-[#F3F4F6]">
-                          <img src={`https://images.unsplash.com/${pkg.image}?w=96&h=96&fit=crop&auto=format`} alt={pkg.name}
+                          <img src={pkg.image?.startsWith("data:") || pkg.image?.startsWith("http") ? pkg.image : `https://images.unsplash.com/${pkg.image}?w=96&h=96&fit=crop&auto=format`} alt={pkg.name}
                             className="w-full h-full object-cover" />
                         </div>
                         <div>
@@ -797,6 +798,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
   const [includes, setIncludes] = useState<string[]>(pkg?.includes ?? []);
   const [excludes, setExcludes] = useState<string[]>(pkg?.excludes?.length ? pkg.excludes : ["Visa fee", "Travel insurance", "Personal expenses"]);
   const [departureDates, setDepartureDates] = useState<string[]>(pkg?.departureDates || ["2026-05-12", "2026-05-14"]);
+  const [images, setImages] = useState<string[]>(pkg?.images ?? []);
 
   const create = useCreatePackage();
   const update = useUpdatePackage(pkg?.id ?? "");
@@ -806,7 +808,7 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
     // Unsplash image IDs are kept as-is (no upload pipeline yet — Documents/media module later).
     const payload = toPackagePayload({
       name, type, season, duration, departure, status, shortDesc, longDesc, featured,
-      tiers, days, hotels, flights, includes, excludes, departureDates, image: pkg?.image,
+      tiers, days, hotels, flights, includes, excludes, departureDates, image: pkg?.image, images,
     });
     try {
       if (isEdit && pkg?.id) await update.mutateAsync(payload);
@@ -1070,24 +1072,33 @@ function PackageFormView({ pkg, isEdit, onBack, onSave }: {
             <Card className="p-5">
               <div className="pb-4 mb-5 border-b border-[#F3F4F6]">
                 <h2 className="text-[15px] font-black text-[#111827]">Package Images</h2>
-                <p className="text-[11px] text-[#9CA3AF]">First image is the cover. Supported: JPG, PNG, WebP. Max 5MB each.</p>
+                <p className="text-[11px] text-[#9CA3AF]">First image is the cover. Supported: JPG, PNG, WebP. Max 3MB each.</p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Current images */}
-                {(pkg?.images || ["photo-1591604466107-ec97de577aff", "photo-1576158113928-4c240eaaf360"]).map((imgId, i) => (
+                {images.map((imgId, i) => (
                   <div key={imgId} className="relative aspect-video rounded-[10px] overflow-hidden bg-[#F3F4F6] group">
-                    <img src={`https://images.unsplash.com/${imgId}?w=400&h=225&fit=crop`} alt="Package image" className="w-full h-full object-cover" />
+                    <img src={imgId.startsWith("data:") || imgId.startsWith("http") ? imgId : `https://images.unsplash.com/${imgId}?w=400&h=225&fit=crop`} alt="Package image" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button disabled title="Removing images is not available in this build" className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed"><Trash2 size={13} /></button>
+                      <button onClick={() => setImages(imgs => imgs.filter((_, j) => j !== i))} title="Remove image" className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-[#DC2626] hover:bg-white cursor-pointer"><Trash2 size={13} /></button>
                     </div>
                     {i === 0 && <span className="absolute top-2 left-2 text-[9px] font-black bg-[#F15A24] text-[#1B75BC] px-1.5 py-0.5 rounded-full">COVER</span>}
                   </div>
                 ))}
                 {/* Upload slot */}
-                <button disabled title="Image upload is not available in this build" className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 opacity-60 cursor-not-allowed">
-                  <Upload size={20} className="text-[#D1D5DB]" />
-                  <span className="text-[10px] font-medium text-[#9CA3AF]">Upload Image</span>
-                </button>
+                <label className="aspect-video rounded-[10px] border-2 border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#1B75BC] hover:bg-[#F7F8FA] transition-colors">
+                  <Upload size={20} className="text-[#9CA3AF]" />
+                  <span className="text-[10px] font-medium text-[#6B7280]">Upload Image</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+                    Array.from(e.target.files ?? []).forEach((file) => {
+                      if (file.size > 3 * 1024 * 1024) { toast.error(`${file.name} exceeds 3MB`); return; }
+                      const reader = new FileReader();
+                      reader.onload = () => setImages(imgs => [...imgs, String(reader.result)]);
+                      reader.readAsDataURL(file);
+                    });
+                    e.target.value = "";
+                  }} />
+                </label>
               </div>
               <div className="mt-4 p-3 bg-[#F7F8FA] rounded-[8px] text-[11px] text-[#9CA3AF] flex items-center gap-2">
                 <Info size={13} className="flex-shrink-0" /> Images are optimized automatically. Recommended: 1280×720px landscape.
@@ -1168,7 +1179,7 @@ function PackageDetailView({ pkg, onBack, onEdit }: { pkg: Package; onBack: () =
       {/* Hero */}
       <Card className="overflow-hidden mb-5">
         <div className="relative h-52 bg-[#1B75BC]">
-          <img src={`https://images.unsplash.com/${pkg.image}?w=1200&h=420&fit=crop&auto=format`} alt={pkg.name}
+          <img src={pkg.image?.startsWith("data:") || pkg.image?.startsWith("http") ? pkg.image : `https://images.unsplash.com/${pkg.image}?w=1200&h=420&fit=crop&auto=format`} alt={pkg.name}
             className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1B75BC]/90 via-[#1B75BC]/60 to-transparent" />
           <div className="absolute bottom-5 left-6 right-6">
