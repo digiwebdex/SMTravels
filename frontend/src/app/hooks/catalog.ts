@@ -136,6 +136,14 @@ export function useDeletePackage() {
     onError: err,
   });
 }
+export function useDuplicatePackage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<PackageDetail>(`/packages/${id}/duplicate`, { method: "POST" }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["catalog", "packages"] }); toast.success("Package duplicated"); },
+    onError: err,
+  });
+}
 
 // ── services ──────────────────────────────────────────────────────────────────
 export function useServices() {

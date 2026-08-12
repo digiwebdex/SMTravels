@@ -2,7 +2,7 @@ import { Router } from "express";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth, requirePermission } from "../middleware/auth";
 import {
-  listPackagesHandler, getPackageHandler, createPackageHandler, updatePackageHandler, deletePackageHandler,
+  listPackagesHandler, getPackageHandler, createPackageHandler, updatePackageHandler, deletePackageHandler, duplicatePackageHandler,
   listServicesHandler, getServiceHandler, createServiceHandler, updateServiceHandler,
 } from "../controllers/catalog.controller";
 
@@ -15,6 +15,7 @@ const manage = requirePermission("packages", "manage");
 catalogRouter.get("/packages", requireAuth, view, asyncHandler(listPackagesHandler));
 catalogRouter.get("/packages/:id", requireAuth, view, asyncHandler(getPackageHandler));
 catalogRouter.post("/packages", requireAuth, manage, asyncHandler(createPackageHandler));
+catalogRouter.post("/packages/:id/duplicate", requireAuth, manage, asyncHandler(duplicatePackageHandler));
 catalogRouter.patch("/packages/:id", requireAuth, manage, asyncHandler(updatePackageHandler));
 catalogRouter.delete("/packages/:id", requireAuth, manage, asyncHandler(deletePackageHandler));
 

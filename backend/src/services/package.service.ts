@@ -166,6 +166,39 @@ export async function createPackage(auth: AuthCtx, input: PackageCreateInput): P
   return getPackage(auth, id!);
 }
 
+/** Clone a package (+ its tiers/itinerary/inclusions/availability) as a new DRAFT.
+ *  Rebuilds a create input from the source detail; code/slug are auto-generated. */
+export async function duplicatePackage(auth: AuthCtx, id: string): Promise<PackageDetail> {
+  const src = await getPackage(auth, id);
+  return createPackage(auth, {
+    serviceId: src.serviceId ?? undefined,
+    type: src.type,
+    name: `${src.name} (copy)`,
+    season: src.season ?? undefined,
+    departure: src.departure ?? undefined,
+    duration: src.duration ?? undefined,
+    status: "DRAFT",
+    basePrice: src.basePrice,
+    originalPrice: src.originalPrice ?? undefined,
+    currency: src.currency,
+    exchangeRate: src.exchangeRate,
+    totalSeats: src.totalSeats,
+    availableSeats: src.availableSeats,
+    rating: src.rating ?? undefined,
+    image: src.image ?? undefined,
+    images: src.images,
+    shortDesc: src.shortDesc ?? undefined,
+    longDesc: src.longDesc ?? undefined,
+    featured: src.featured,
+    hotels: src.hotels,
+    flights: src.flights,
+    tiers: src.tiers.map((t) => ({ label: t.label, price: t.price, originalPrice: t.originalPrice ?? undefined, currency: t.currency, seats: t.seats, occupied: t.occupied, sortOrder: t.sortOrder })),
+    itinerary: src.itinerary.map((d) => ({ day: d.day, title: d.title, description: d.description ?? undefined, activities: d.activities, hotel: d.hotel ?? undefined, breakfast: d.breakfast, lunch: d.lunch, dinner: d.dinner, transport: d.transport ?? undefined })),
+    inclusions: src.inclusions.map((i) => ({ kind: i.kind as "include" | "exclude", text: i.text, sortOrder: i.sortOrder })),
+    availability: src.availability.map((a) => ({ departureDate: a.departureDate, totalSeats: a.totalSeats, soldSeats: a.soldSeats, status: a.status })),
+  });
+}
+
 export async function updatePackage(auth: AuthCtx, id: string, input: PackageUpdateInput): Promise<PackageDetail> {
   const existing = await prisma.package.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new HttpError(404, "NotFound");

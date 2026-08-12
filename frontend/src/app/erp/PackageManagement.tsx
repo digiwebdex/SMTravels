@@ -12,7 +12,7 @@ import { cn, fmtPrice, img } from "../lib/utils";
 import { SkeletonTable, ErrorBanner } from "../lib/ds";
 import { exportCsv } from "../lib/csv";
 import {
-  usePackages, usePackage, useCreatePackage, useUpdatePackage, useDeletePackage,
+  usePackages, usePackage, useCreatePackage, useUpdatePackage, useDeletePackage, useDuplicatePackage,
   mapListItem, mapDetail, toPackagePayload, pkgTypeToEnum, pkgStatusToEnum,
   type PackageListParams,
 } from "../hooks/catalog";
@@ -153,6 +153,7 @@ function PackageListView({
   };
   const { data, isLoading, isError, error, refetch } = usePackages(params);
   const del = useDeletePackage();
+  const dup = useDuplicatePackage();
   const filtered = (data?.data ?? []).map(mapListItem);
   const total = data?.total ?? 0;
   const stats = data?.stats ?? { total: 0, active: 0, draft: 0, totalRevenue: 0 };
@@ -222,7 +223,7 @@ function PackageListView({
               <div className="flex items-center gap-2 ml-auto text-[12px]">
                 <span className="text-[#9CA3AF]">{selected.size} selected</span>
                 <button onClick={() => { if (window.confirm(`Archive ${selected.size} package(s)?`)) { selected.forEach((id) => del.mutate(id)); setSelected(new Set()); } }} className="h-7 px-2.5 bg-[#F3F4F6] text-[#374151] font-medium rounded-[6px] hover:bg-[#E5E7EB] cursor-pointer text-[11px]">Archive</button>
-                <button disabled title="Duplicate is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Duplicate</button>
+                <button onClick={() => { selected.forEach((id) => dup.mutate(id)); setSelected(new Set()); }} className="h-7 px-2.5 bg-[#F3F4F6] text-[#374151] font-medium rounded-[6px] hover:bg-[#E5E7EB] cursor-pointer text-[11px]">Duplicate</button>
               </div>
             )}
           </div>
@@ -312,7 +313,7 @@ function PackageListView({
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => onView(pkg.id)} title="View" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Eye size={14} /></button>
                         <button onClick={() => onEdit(pkg.id)} title="Edit" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Edit2 size={14} /></button>
-                        <button disabled title="Duplicate is not available in this build" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed rounded-[6px]"><Copy size={14} /></button>
+                        <button onClick={() => dup.mutate(pkg.id)} title="Duplicate" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#1B75BC] hover:bg-[#EEF2FF] rounded-[6px] transition-colors cursor-pointer"><Copy size={14} /></button>
                         <button disabled title="More is not available in this build" className="w-7 h-7 flex items-center justify-center text-[#9CA3AF] opacity-60 cursor-not-allowed rounded-[6px]"><MoreHorizontal size={14} /></button>
                       </div>
                     </td>

@@ -19,6 +19,9 @@ export async function createPackageHandler(req: Request, res: Response): Promise
 export async function updatePackageHandler(req: Request, res: Response): Promise<void> {
   res.json(await packages.updatePackage(req.auth!, req.params.id, packageUpdateSchema.parse(req.body)));
 }
+export async function duplicatePackageHandler(req: Request, res: Response): Promise<void> {
+  res.status(201).json(await packages.duplicatePackage(req.auth!, req.params.id));
+}
 export async function deletePackageHandler(req: Request, res: Response): Promise<void> {
   await packages.deletePackage(req.auth!, req.params.id);
   res.json({ ok: true });
