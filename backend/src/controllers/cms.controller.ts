@@ -10,6 +10,8 @@ import {
   categoryUpdateSchema,
   statisticCreateSchema,
   statisticUpdateSchema,
+  homeServiceCreateSchema,
+  homeServiceUpdateSchema,
   testimonialCreateSchema,
   testimonialUpdateSchema,
   testimonialListQuerySchema,
@@ -98,6 +100,19 @@ export async function updateStatisticHandler(req: Request, res: Response): Promi
 }
 export async function deleteStatisticHandler(req: Request, res: Response): Promise<void> {
   await cms.deleteStatistic(req.params.id);
+  res.json({ ok: true });
+}
+export async function listHomeServicesHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cms.listHomeServices());
+}
+export async function createHomeServiceHandler(req: Request, res: Response): Promise<void> {
+  res.status(201).json(await cms.createHomeService(homeServiceCreateSchema.parse(req.body)));
+}
+export async function updateHomeServiceHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cms.updateHomeService(req.params.id, homeServiceUpdateSchema.parse(req.body)));
+}
+export async function deleteHomeServiceHandler(req: Request, res: Response): Promise<void> {
+  await cms.deleteHomeService(req.params.id);
   res.json({ ok: true });
 }
 

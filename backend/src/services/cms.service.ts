@@ -10,6 +10,7 @@ import type {
   BlogPostListResponse,
   CategoryCreateInput, CategoryUpdateInput, CategoryDto, CategoryListResponse,
   StatisticCreateInput, StatisticUpdateInput, StatisticDto, StatisticListResponse,
+  HomeServiceCreateInput, HomeServiceUpdateInput, HomeServiceDto, HomeServiceListResponse,
   FaqCreateInput,
   FaqUpdateInput,
   FaqListQuery,
@@ -363,6 +364,46 @@ export async function deleteStatistic(id: string): Promise<void> {
   const existing = await prisma.statistic.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new HttpError(404, "NotFound");
   await prisma.statistic.update({ where: { id }, data: { deletedAt: new Date() } });
+}
+
+// ── HomeService (homepage service icons) ──────────────────────────────────────
+type HomeSvcRow = { id: string; title: string; shortDesc: string | null; icon: string | null; image: string | null; buttonText: string | null; buttonUrl: string; color: string | null; sortOrder: number; visible: boolean };
+function toHomeServiceDto(s: HomeSvcRow): HomeServiceDto {
+  return { id: s.id, title: s.title, shortDesc: s.shortDesc, icon: s.icon, image: s.image, buttonText: s.buttonText, buttonUrl: s.buttonUrl, color: s.color, sortOrder: s.sortOrder, visible: s.visible };
+}
+export async function listHomeServices(): Promise<HomeServiceListResponse> {
+  const rows = await prisma.homeService.findMany({ where: { deletedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  return { data: rows.map(toHomeServiceDto), total: rows.length };
+}
+export async function createHomeService(input: HomeServiceCreateInput): Promise<HomeServiceDto> {
+  const s = await prisma.homeService.create({
+    data: { title: input.title, shortDesc: input.shortDesc ?? null, icon: input.icon ?? null, image: input.image ?? null, buttonText: input.buttonText ?? null, buttonUrl: input.buttonUrl, color: input.color ?? null, sortOrder: input.sortOrder ?? 0, visible: input.visible ?? true },
+  });
+  return toHomeServiceDto(s);
+}
+export async function updateHomeService(id: string, input: HomeServiceUpdateInput): Promise<HomeServiceDto> {
+  const existing = await prisma.homeService.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  const s = await prisma.homeService.update({
+    where: { id },
+    data: {
+      ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.shortDesc !== undefined ? { shortDesc: input.shortDesc } : {}),
+      ...(input.icon !== undefined ? { icon: input.icon } : {}),
+      ...(input.image !== undefined ? { image: input.image } : {}),
+      ...(input.buttonText !== undefined ? { buttonText: input.buttonText } : {}),
+      ...(input.buttonUrl !== undefined ? { buttonUrl: input.buttonUrl } : {}),
+      ...(input.color !== undefined ? { color: input.color } : {}),
+      ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
+      ...(input.visible !== undefined ? { visible: input.visible } : {}),
+    },
+  });
+  return toHomeServiceDto(s);
+}
+export async function deleteHomeService(id: string): Promise<void> {
+  const existing = await prisma.homeService.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  await prisma.homeService.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 // ── Testimonial ───────────────────────────────────────────────────────────────

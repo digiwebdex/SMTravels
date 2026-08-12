@@ -18,6 +18,10 @@ import type {
   StatisticCreateInput,
   StatisticUpdateInput,
   StatisticListResponse,
+  HomeServiceDto,
+  HomeServiceCreateInput,
+  HomeServiceUpdateInput,
+  HomeServiceListResponse,
   TestimonialDto,
   TestimonialCreateInput,
   TestimonialUpdateInput,
@@ -224,6 +228,35 @@ export function useDeleteStatistic() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/cms/statistics/${id}`, { method: "DELETE" }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "statistics"] }); toast.success("Stat deleted"); },
+    onError: err,
+  });
+}
+
+// ── Home Services (homepage service icons) ──────────────────────────────────────
+export function useCmsHomeServices() {
+  return useQuery({ queryKey: ["cms", "home-services"], queryFn: () => apiFetch<HomeServiceListResponse>("/cms/home-services") });
+}
+export function useCreateHomeService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: HomeServiceCreateInput) => apiFetch<HomeServiceDto>("/cms/home-services", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "home-services"] }); toast.success("Service added"); },
+    onError: err,
+  });
+}
+export function useUpdateHomeService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: HomeServiceUpdateInput & { id: string }) => apiFetch<HomeServiceDto>(`/cms/home-services/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "home-services"] }); toast.success("Service updated"); },
+    onError: err,
+  });
+}
+export function useDeleteHomeService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/cms/home-services/${id}`, { method: "DELETE" }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "home-services"] }); toast.success("Service deleted"); },
     onError: err,
   });
 }

@@ -246,6 +246,27 @@ export interface StatisticDto {
 }
 export interface StatisticListResponse { data: StatisticDto[]; total: number }
 
+// ── admin HomeService (homepage service icons) ────────────────────────────────
+export const homeServiceCreateSchema = z.object({
+  title: trimmed(120),
+  shortDesc: optStr,
+  icon: optStr,
+  image: optStr,
+  buttonText: optStr,
+  buttonUrl: z.string().trim().min(1),
+  color: optStr,
+  sortOrder: z.coerce.number().int().optional(),
+  visible: z.boolean().optional(),
+});
+export type HomeServiceCreateInput = z.infer<typeof homeServiceCreateSchema>;
+export const homeServiceUpdateSchema = homeServiceCreateSchema.partial();
+export type HomeServiceUpdateInput = z.infer<typeof homeServiceUpdateSchema>;
+export interface HomeServiceDto {
+  id: string; title: string; shortDesc: string | null; icon: string | null; image: string | null;
+  buttonText: string | null; buttonUrl: string; color: string | null; sortOrder: number; visible: boolean;
+}
+export interface HomeServiceListResponse { data: HomeServiceDto[]; total: number }
+
 export interface FaqDto {
   id: string;
   question: string;

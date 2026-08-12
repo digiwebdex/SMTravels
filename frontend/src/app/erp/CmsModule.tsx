@@ -17,6 +17,7 @@ import {
   useFaqs, useCreateFaq, useUpdateFaq, useDeleteFaq,
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory,
   useCmsStatistics, useCreateStatistic, useUpdateStatistic, useDeleteStatistic,
+  useCmsHomeServices, useCreateHomeService, useUpdateHomeService, useDeleteHomeService,
   useTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial,
   useCmsPages, useCmsPage, useCreateCmsPage, useUpdateCmsPage, useDeleteCmsPage,
   useMenus, useCreateMenu, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
@@ -28,7 +29,7 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CmsView =
   | "pages" | "page-editor"
-  | "menus" | "sliders" | "banners" | "statistics"
+  | "menus" | "sliders" | "banners" | "statistics" | "home-services"
   | "blog" | "blog-editor"
   | "categories" | "testimonials" | "faqs"
   | "media" | "settings";
@@ -52,6 +53,7 @@ const NAV_GROUPS = [
       { id: "sliders" as CmsView, label: "Sliders",  icon: Layers },
       { id: "banners" as CmsView, label: "Banners",  icon: Megaphone },
       { id: "statistics" as CmsView, label: "Statistics", icon: BarChart2 },
+      { id: "home-services" as CmsView, label: "Services", icon: Layers },
     ],
   },
   {
@@ -938,6 +940,48 @@ function BannersView() {
 }
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
+function HomeServicesView() {
+  const { data } = useCmsHomeServices();
+  const items = data?.data ?? [];
+  const create = useCreateHomeService();
+  const update = useUpdateHomeService();
+  const del = useDeleteHomeService();
+  const [adding, setAdding] = useState(false);
+  const [f, setF] = useState({ title: "", buttonUrl: "", icon: "", shortDesc: "" });
+  const inp = "text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none";
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-slate-800">Service Icons</h3>
+        <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={13} /> Add Service</button>
+      </div>
+      {adding && (
+        <div className="p-3 bg-[var(--color-surface)] border border-[#1B75BC]/30 rounded-xl grid grid-cols-2 gap-2">
+          <input className={inp} placeholder="Title (e.g. Hajj Package)" value={f.title} onChange={e => setF({ ...f, title: e.target.value })} autoFocus />
+          <input className={inp} placeholder="Link (e.g. /hajj)" value={f.buttonUrl} onChange={e => setF({ ...f, buttonUrl: e.target.value })} />
+          <input className={inp} placeholder="Icon key (optional)" value={f.icon} onChange={e => setF({ ...f, icon: e.target.value })} />
+          <input className={inp} placeholder="Short description (optional)" value={f.shortDesc} onChange={e => setF({ ...f, shortDesc: e.target.value })} />
+          <div className="col-span-2 flex gap-2">
+            <button onClick={() => { if (f.title.trim() && f.buttonUrl.trim()) create.mutate({ title: f.title.trim(), buttonUrl: f.buttonUrl.trim(), icon: f.icon || undefined, shortDesc: f.shortDesc || undefined }, { onSuccess: () => { setAdding(false); setF({ title: "", buttonUrl: "", icon: "", shortDesc: "" }); } }); }} className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg">Add</button>
+            <button onClick={() => setAdding(false)} className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg text-slate-500">Cancel</button>
+          </div>
+        </div>
+      )}
+      <div className="space-y-2">
+        {items.map(s => (
+          <div key={s.id} className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+            <input className="w-48 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.title} onBlur={e => { if (e.target.value.trim() && e.target.value !== s.title) update.mutate({ id: s.id, title: e.target.value.trim() }); }} />
+            <input className="w-40 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.buttonUrl} onBlur={e => { if (e.target.value.trim() && e.target.value !== s.buttonUrl) update.mutate({ id: s.id, buttonUrl: e.target.value.trim() }); }} />
+            <input className="flex-1 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.shortDesc ?? ""} placeholder="short description" onBlur={e => { if (e.target.value !== (s.shortDesc ?? "")) update.mutate({ id: s.id, shortDesc: e.target.value }); }} />
+            <button onClick={() => { if (window.confirm(`Delete "${s.title}"?`)) del.mutate(s.id); }} className="p-1.5 rounded text-[#DC2626] hover:bg-red-50 cursor-pointer"><Trash2 size={14} /></button>
+          </div>
+        ))}
+        {items.length === 0 && <p className="text-sm text-slate-400">No services yet.</p>}
+      </div>
+    </div>
+  );
+}
+
 function StatisticsView() {
   const { data } = useCmsStatistics();
   const stats = data?.data ?? [];
@@ -1673,6 +1717,12 @@ export function CmsModule() {
               <>
                 <SectionHeader title="Homepage Statistics" subtitle="The counters (100K+ / 12+ / …) shown on the website" />
                 <StatisticsView />
+              </>
+            )}
+            {view === "home-services" && (
+              <>
+                <SectionHeader title="Homepage Services" subtitle="The service icons row on the homepage" />
+                <HomeServicesView />
               </>
             )}
             {view === "testimonials" && (

@@ -20,6 +20,10 @@ import {
   createStatisticHandler,
   updateStatisticHandler,
   deleteStatisticHandler,
+  listHomeServicesHandler,
+  createHomeServiceHandler,
+  updateHomeServiceHandler,
+  deleteHomeServiceHandler,
   listTestimonialsHandler,
   getTestimonialHandler,
   createTestimonialHandler,
@@ -74,6 +78,10 @@ cmsRouter.get("/cms/statistics", requireAuth, view, asyncHandler(listStatisticsH
 cmsRouter.post("/cms/statistics", requireAuth, manage, asyncHandler(createStatisticHandler));
 cmsRouter.patch("/cms/statistics/:id", requireAuth, manage, asyncHandler(updateStatisticHandler));
 cmsRouter.delete("/cms/statistics/:id", requireAuth, manage, asyncHandler(deleteStatisticHandler));
+cmsRouter.get("/cms/home-services", requireAuth, view, asyncHandler(listHomeServicesHandler));
+cmsRouter.post("/cms/home-services", requireAuth, manage, asyncHandler(createHomeServiceHandler));
+cmsRouter.patch("/cms/home-services/:id", requireAuth, manage, asyncHandler(updateHomeServiceHandler));
+cmsRouter.delete("/cms/home-services/:id", requireAuth, manage, asyncHandler(deleteHomeServiceHandler));
 
 cmsRouter.get("/cms/testimonials", requireAuth, view, asyncHandler(listTestimonialsHandler));
 cmsRouter.get("/cms/testimonials/:id", requireAuth, view, asyncHandler(getTestimonialHandler));
