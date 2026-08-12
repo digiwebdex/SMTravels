@@ -8,6 +8,8 @@ import {
   faqListQuerySchema,
   categoryCreateSchema,
   categoryUpdateSchema,
+  statisticCreateSchema,
+  statisticUpdateSchema,
   testimonialCreateSchema,
   testimonialUpdateSchema,
   testimonialListQuerySchema,
@@ -83,6 +85,19 @@ export async function updateCategoryHandler(req: Request, res: Response): Promis
 }
 export async function deleteCategoryHandler(req: Request, res: Response): Promise<void> {
   await cms.deleteCategory(req.params.id);
+  res.json({ ok: true });
+}
+export async function listStatisticsHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cms.listStatistics());
+}
+export async function createStatisticHandler(req: Request, res: Response): Promise<void> {
+  res.status(201).json(await cms.createStatistic(statisticCreateSchema.parse(req.body)));
+}
+export async function updateStatisticHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cms.updateStatistic(req.params.id, statisticUpdateSchema.parse(req.body)));
+}
+export async function deleteStatisticHandler(req: Request, res: Response): Promise<void> {
+  await cms.deleteStatistic(req.params.id);
   res.json({ ok: true });
 }
 

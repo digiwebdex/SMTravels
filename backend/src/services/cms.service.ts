@@ -9,6 +9,7 @@ import type {
   BlogPostDto,
   BlogPostListResponse,
   CategoryCreateInput, CategoryUpdateInput, CategoryDto, CategoryListResponse,
+  StatisticCreateInput, StatisticUpdateInput, StatisticDto, StatisticListResponse,
   FaqCreateInput,
   FaqUpdateInput,
   FaqListQuery,
@@ -324,6 +325,44 @@ export async function deleteCategory(id: string): Promise<void> {
   const existing = await prisma.blogCategory.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new HttpError(404, "NotFound");
   await prisma.blogCategory.update({ where: { id }, data: { deletedAt: new Date() } });
+}
+
+// ── Statistic (homepage stats bar) ────────────────────────────────────────────
+type StatRow = { id: string; title: string; value: number; suffix: string | null; icon: string | null; color: string | null; sortOrder: number; visible: boolean };
+function toStatisticDto(s: StatRow): StatisticDto {
+  return { id: s.id, title: s.title, value: s.value, suffix: s.suffix, icon: s.icon, color: s.color, sortOrder: s.sortOrder, visible: s.visible };
+}
+export async function listStatistics(): Promise<StatisticListResponse> {
+  const rows = await prisma.statistic.findMany({ where: { deletedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  return { data: rows.map(toStatisticDto), total: rows.length };
+}
+export async function createStatistic(input: StatisticCreateInput): Promise<StatisticDto> {
+  const s = await prisma.statistic.create({
+    data: { title: input.title, value: input.value, suffix: input.suffix ?? null, icon: input.icon ?? null, color: input.color ?? null, sortOrder: input.sortOrder ?? 0, visible: input.visible ?? true },
+  });
+  return toStatisticDto(s);
+}
+export async function updateStatistic(id: string, input: StatisticUpdateInput): Promise<StatisticDto> {
+  const existing = await prisma.statistic.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  const s = await prisma.statistic.update({
+    where: { id },
+    data: {
+      ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.value !== undefined ? { value: input.value } : {}),
+      ...(input.suffix !== undefined ? { suffix: input.suffix } : {}),
+      ...(input.icon !== undefined ? { icon: input.icon } : {}),
+      ...(input.color !== undefined ? { color: input.color } : {}),
+      ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
+      ...(input.visible !== undefined ? { visible: input.visible } : {}),
+    },
+  });
+  return toStatisticDto(s);
+}
+export async function deleteStatistic(id: string): Promise<void> {
+  const existing = await prisma.statistic.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  await prisma.statistic.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 // ── Testimonial ───────────────────────────────────────────────────────────────

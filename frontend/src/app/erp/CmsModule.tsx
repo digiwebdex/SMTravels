@@ -16,6 +16,7 @@ import {
   useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost,
   useFaqs, useCreateFaq, useUpdateFaq, useDeleteFaq,
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory,
+  useCmsStatistics, useCreateStatistic, useUpdateStatistic, useDeleteStatistic,
   useTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial,
   useCmsPages, useCmsPage, useCreateCmsPage, useUpdateCmsPage, useDeleteCmsPage,
   useMenus, useCreateMenu, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
@@ -27,7 +28,7 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CmsView =
   | "pages" | "page-editor"
-  | "menus" | "sliders" | "banners"
+  | "menus" | "sliders" | "banners" | "statistics"
   | "blog" | "blog-editor"
   | "categories" | "testimonials" | "faqs"
   | "media" | "settings";
@@ -50,6 +51,7 @@ const NAV_GROUPS = [
       { id: "menus"   as CmsView, label: "Menus",    icon: Menu   },
       { id: "sliders" as CmsView, label: "Sliders",  icon: Layers },
       { id: "banners" as CmsView, label: "Banners",  icon: Megaphone },
+      { id: "statistics" as CmsView, label: "Statistics", icon: BarChart2 },
     ],
   },
   {
@@ -936,6 +938,48 @@ function BannersView() {
 }
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
+function StatisticsView() {
+  const { data } = useCmsStatistics();
+  const stats = data?.data ?? [];
+  const create = useCreateStatistic();
+  const update = useUpdateStatistic();
+  const del = useDeleteStatistic();
+  const [adding, setAdding] = useState(false);
+  const [f, setF] = useState({ title: "", value: "", suffix: "+" });
+  const inp = "text-sm border border-[var(--color-border)] rounded-lg px-3 py-2 focus:outline-none";
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-slate-800">Homepage Counters</h3>
+        <button onClick={() => setAdding(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg hover:bg-[#14588F]"><Plus size={13} /> Add Stat</button>
+      </div>
+      {adding && (
+        <div className="p-3 bg-[var(--color-surface)] border border-[#1B75BC]/30 rounded-xl grid grid-cols-3 gap-2">
+          <input className={inp} placeholder="Label (e.g. Happy Pilgrims)" value={f.title} onChange={e => setF({ ...f, title: e.target.value })} autoFocus />
+          <input className={inp} type="number" placeholder="Value (e.g. 100000)" value={f.value} onChange={e => setF({ ...f, value: e.target.value })} />
+          <input className={inp} placeholder="Suffix (+, K+, %)" value={f.suffix} onChange={e => setF({ ...f, suffix: e.target.value })} />
+          <div className="col-span-3 flex gap-2">
+            <button onClick={() => { if (f.title.trim() && f.value !== "") create.mutate({ title: f.title.trim(), value: Number(f.value), suffix: f.suffix || undefined }, { onSuccess: () => { setAdding(false); setF({ title: "", value: "", suffix: "+" }); } }); }} className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg">Add</button>
+            <button onClick={() => setAdding(false)} className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg text-slate-500">Cancel</button>
+          </div>
+        </div>
+      )}
+      <div className="space-y-2">
+        {stats.map(s => (
+          <div key={s.id} className="flex items-center gap-3 p-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+            <input className="w-44 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.title} onBlur={e => { if (e.target.value.trim() && e.target.value !== s.title) update.mutate({ id: s.id, title: e.target.value.trim() }); }} />
+            <input className="w-28 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" type="number" defaultValue={s.value} onBlur={e => { if (Number(e.target.value) !== s.value) update.mutate({ id: s.id, value: Number(e.target.value) }); }} />
+            <input className="w-20 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.suffix ?? ""} onBlur={e => { if (e.target.value !== (s.suffix ?? "")) update.mutate({ id: s.id, suffix: e.target.value }); }} />
+            <span className="text-xs text-slate-400 flex-1">→ <b>{s.value.toLocaleString()}{s.suffix ?? ""}</b></span>
+            <button onClick={() => { if (window.confirm(`Delete "${s.title}"?`)) del.mutate(s.id); }} className="p-1.5 rounded text-[#DC2626] hover:bg-red-50 cursor-pointer"><Trash2 size={14} /></button>
+          </div>
+        ))}
+        {stats.length === 0 && <p className="text-sm text-slate-400">No stats yet — Add Stat to show counters on the homepage.</p>}
+      </div>
+    </div>
+  );
+}
+
 function CategoriesView() {
   const { data } = useCategories();
   const cats = data?.data ?? [];
@@ -1623,6 +1667,12 @@ export function CmsModule() {
               <>
                 <SectionHeader title="Categories" subtitle="Organise blog content into categories" />
                 <CategoriesView />
+              </>
+            )}
+            {view === "statistics" && (
+              <>
+                <SectionHeader title="Homepage Statistics" subtitle="The counters (100K+ / 12+ / …) shown on the website" />
+                <StatisticsView />
               </>
             )}
             {view === "testimonials" && (

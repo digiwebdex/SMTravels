@@ -227,6 +227,25 @@ export interface CategoryDto {
 }
 export interface CategoryListResponse { data: CategoryDto[]; total: number }
 
+// ── admin Statistic (homepage stats bar) ──────────────────────────────────────
+export const statisticCreateSchema = z.object({
+  title: trimmed(120),
+  value: z.coerce.number().int().min(0),
+  suffix: optStr,
+  icon: optStr,
+  color: optStr,
+  sortOrder: z.coerce.number().int().optional(),
+  visible: z.boolean().optional(),
+});
+export type StatisticCreateInput = z.infer<typeof statisticCreateSchema>;
+export const statisticUpdateSchema = statisticCreateSchema.partial();
+export type StatisticUpdateInput = z.infer<typeof statisticUpdateSchema>;
+export interface StatisticDto {
+  id: string; title: string; value: number; suffix: string | null;
+  icon: string | null; color: string | null; sortOrder: number; visible: boolean;
+}
+export interface StatisticListResponse { data: StatisticDto[]; total: number }
+
 export interface FaqDto {
   id: string;
   question: string;

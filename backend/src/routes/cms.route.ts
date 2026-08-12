@@ -16,6 +16,10 @@ import {
   createCategoryHandler,
   updateCategoryHandler,
   deleteCategoryHandler,
+  listStatisticsHandler,
+  createStatisticHandler,
+  updateStatisticHandler,
+  deleteStatisticHandler,
   listTestimonialsHandler,
   getTestimonialHandler,
   createTestimonialHandler,
@@ -66,6 +70,10 @@ cmsRouter.get("/cms/categories", requireAuth, view, asyncHandler(listCategoriesH
 cmsRouter.post("/cms/categories", requireAuth, manage, asyncHandler(createCategoryHandler));
 cmsRouter.patch("/cms/categories/:id", requireAuth, manage, asyncHandler(updateCategoryHandler));
 cmsRouter.delete("/cms/categories/:id", requireAuth, manage, asyncHandler(deleteCategoryHandler));
+cmsRouter.get("/cms/statistics", requireAuth, view, asyncHandler(listStatisticsHandler));
+cmsRouter.post("/cms/statistics", requireAuth, manage, asyncHandler(createStatisticHandler));
+cmsRouter.patch("/cms/statistics/:id", requireAuth, manage, asyncHandler(updateStatisticHandler));
+cmsRouter.delete("/cms/statistics/:id", requireAuth, manage, asyncHandler(deleteStatisticHandler));
 
 cmsRouter.get("/cms/testimonials", requireAuth, view, asyncHandler(listTestimonialsHandler));
 cmsRouter.get("/cms/testimonials/:id", requireAuth, view, asyncHandler(getTestimonialHandler));

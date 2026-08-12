@@ -14,6 +14,10 @@ import type {
   CategoryCreateInput,
   CategoryUpdateInput,
   CategoryListResponse,
+  StatisticDto,
+  StatisticCreateInput,
+  StatisticUpdateInput,
+  StatisticListResponse,
   TestimonialDto,
   TestimonialCreateInput,
   TestimonialUpdateInput,
@@ -191,6 +195,35 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/cms/categories/${id}`, { method: "DELETE" }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "categories"] }); toast.success("Category deleted"); },
+    onError: err,
+  });
+}
+
+// ── Statistics (homepage stats bar) ─────────────────────────────────────────────
+export function useCmsStatistics() {
+  return useQuery({ queryKey: ["cms", "statistics"], queryFn: () => apiFetch<StatisticListResponse>("/cms/statistics") });
+}
+export function useCreateStatistic() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: StatisticCreateInput) => apiFetch<StatisticDto>("/cms/statistics", { method: "POST", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "statistics"] }); toast.success("Stat added"); },
+    onError: err,
+  });
+}
+export function useUpdateStatistic() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: StatisticUpdateInput & { id: string }) => apiFetch<StatisticDto>(`/cms/statistics/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "statistics"] }); toast.success("Stat updated"); },
+    onError: err,
+  });
+}
+export function useDeleteStatistic() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/cms/statistics/${id}`, { method: "DELETE" }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "statistics"] }); toast.success("Stat deleted"); },
     onError: err,
   });
 }
