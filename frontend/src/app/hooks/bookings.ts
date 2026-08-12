@@ -113,6 +113,7 @@ export function mapDetail(x: BookingDetailResponse): Booking {
     activityLog: x.activities.map((a) => ({
       time: a.createdAt.replace("T", " ").slice(0, 16), actor: a.actor ?? "System", action: a.action, note: a.note ?? undefined,
     })),
+    notes: x.notes ?? null,
   };
 }
 

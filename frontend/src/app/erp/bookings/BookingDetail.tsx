@@ -11,7 +11,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { cn, fmtPrice } from "../../lib/utils";
 import { Booking, ServiceType, SERVICE_CFG, STATUS_CFG, ServiceBadge, StatusBadge } from "./BookingsModule";
-import { useSetVisaWindow } from "../../hooks/bookings";
+import { useSetVisaWindow, useUpdateBooking } from "../../hooks/bookings";
+import { toast } from "sonner";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface DetailProps {
@@ -398,8 +399,8 @@ function OverviewTab({ booking, onEdit }: { booking: Booking; onEdit: () => void
                   </button>
                 );
               })}
-              <button disabled title="Direct sharing is not available in this build — use Print/PDF or Send SMS"
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed text-left">
+              <button onClick={() => { navigator.clipboard?.writeText(`SM Travels International — Booking ${booking.id}\nAmount: ${fmtPrice(booking.amount)} · Paid: ${fmtPrice(booking.paid)}`); toast.success("Booking summary copied to clipboard"); }}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-[8px] text-[12px] font-medium text-[#374151] hover:bg-[#F7F8FA] cursor-pointer text-left">
                 <Share2 size={14} /> Share Booking
               </button>
             </div>
@@ -723,14 +724,12 @@ function PaymentsTab({ booking }: { booking: Booking }) {
 
 // ─── Activity tab ──────────────────────────────────────────────────────────────
 function ActivityTab({ booking }: { booking: Booking }) {
+  const upd = useUpdateBooking(booking.id);
+  const [note, setNote] = useState(booking.notes ?? "");
+  const saveNote = () => upd.mutate({ notes: note }, { onSuccess: () => toast.success("Note saved") });
   return (
     <Card>
-      <SectionHeader title="Activity Log" action={
-        <button disabled title="Adding booking notes is not available in this build"
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E7EB] rounded-[7px] text-[11px] font-medium text-[#9CA3AF] opacity-60 cursor-not-allowed">
-          <MessageSquare size={11} /> Add Note
-        </button>
-      } />
+      <SectionHeader title="Activity Log & Notes" />
       <div className="p-5">
         {booking.activityLog.length > 0 ? (
           <div className="flex flex-col gap-0 relative">
@@ -762,13 +761,13 @@ function ActivityTab({ booking }: { booking: Booking }) {
 
         {/* Add note inline — disabled: no booking-note API in this build */}
         <div className="mt-5 pt-5 border-t border-[#F3F4F6]">
-          <textarea disabled
-            className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none resize-none bg-[#F7F8FA] placeholder:text-[#D1D5DB] cursor-not-allowed"
-            rows={2} placeholder="Adding booking notes is not available in this build." />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)}
+            className="w-full px-3 py-2.5 border border-[#E5E7EB] rounded-[8px] text-[12px] outline-none resize-none bg-white focus:border-[#1B75BC]"
+            rows={2} placeholder="Add a note for this booking…" />
           <div className="flex justify-end mt-2">
-            <button disabled title="Adding booking notes is not available in this build"
-              className="px-4 py-1.5 bg-[#E5E7EB] text-[#9CA3AF] text-[11px] font-bold rounded-[7px] cursor-not-allowed transition-colors">
-              Save Note
+            <button onClick={saveNote} disabled={upd.isPending}
+              className="px-4 py-1.5 bg-[#1B75BC] text-white text-[11px] font-bold rounded-[7px] hover:bg-[#14588F] cursor-pointer disabled:opacity-50 transition-colors">
+              {upd.isPending ? "Saving…" : "Save Note"}
             </button>
           </div>
         </div>

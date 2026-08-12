@@ -221,7 +221,7 @@ function PackageListView({
             {selected.size > 0 && (
               <div className="flex items-center gap-2 ml-auto text-[12px]">
                 <span className="text-[#9CA3AF]">{selected.size} selected</span>
-                <button disabled title="Archive is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Archive</button>
+                <button onClick={() => { if (window.confirm(`Archive ${selected.size} package(s)?`)) { selected.forEach((id) => del.mutate(id)); setSelected(new Set()); } }} className="h-7 px-2.5 bg-[#F3F4F6] text-[#374151] font-medium rounded-[6px] hover:bg-[#E5E7EB] cursor-pointer text-[11px]">Archive</button>
                 <button disabled title="Duplicate is not available in this build" className="h-7 px-2.5 bg-[#F3F4F6] text-[#9CA3AF] font-medium rounded-[6px] opacity-60 cursor-not-allowed text-[11px]">Duplicate</button>
               </div>
             )}
