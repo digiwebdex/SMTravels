@@ -267,6 +267,25 @@ export interface HomeServiceDto {
 }
 export interface HomeServiceListResponse { data: HomeServiceDto[]; total: number }
 
+// ── admin HomeSection (homepage section manager: show/hide, titles, config JSON) ──
+export const homeSectionUpdateSchema = z.object({
+  eyebrow: optStr, eyebrowBn: optStr,
+  title: optStr, titleBn: optStr,
+  subtitle: optStr, subtitleBn: optStr,
+  config: z.unknown().optional(),
+  sortOrder: z.coerce.number().int().optional(),
+  visible: z.boolean().optional(),
+});
+export type HomeSectionUpdateInput = z.infer<typeof homeSectionUpdateSchema>;
+export interface HomeSectionDto {
+  id: string; key: string; type: string;
+  eyebrow: string | null; eyebrowBn: string | null;
+  title: string | null; titleBn: string | null;
+  subtitle: string | null; subtitleBn: string | null;
+  config: unknown; sortOrder: number; visible: boolean;
+}
+export interface HomeSectionListResponse { data: HomeSectionDto[]; total: number }
+
 export interface FaqDto {
   id: string;
   question: string;

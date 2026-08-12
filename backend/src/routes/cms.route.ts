@@ -24,6 +24,8 @@ import {
   createHomeServiceHandler,
   updateHomeServiceHandler,
   deleteHomeServiceHandler,
+  listHomeSectionsHandler,
+  updateHomeSectionHandler,
   listTestimonialsHandler,
   getTestimonialHandler,
   createTestimonialHandler,
@@ -82,6 +84,8 @@ cmsRouter.get("/cms/home-services", requireAuth, view, asyncHandler(listHomeServ
 cmsRouter.post("/cms/home-services", requireAuth, manage, asyncHandler(createHomeServiceHandler));
 cmsRouter.patch("/cms/home-services/:id", requireAuth, manage, asyncHandler(updateHomeServiceHandler));
 cmsRouter.delete("/cms/home-services/:id", requireAuth, manage, asyncHandler(deleteHomeServiceHandler));
+cmsRouter.get("/cms/home-sections", requireAuth, view, asyncHandler(listHomeSectionsHandler));
+cmsRouter.patch("/cms/home-sections/:id", requireAuth, manage, asyncHandler(updateHomeSectionHandler));
 
 cmsRouter.get("/cms/testimonials", requireAuth, view, asyncHandler(listTestimonialsHandler));
 cmsRouter.get("/cms/testimonials/:id", requireAuth, view, asyncHandler(getTestimonialHandler));

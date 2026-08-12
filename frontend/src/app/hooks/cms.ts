@@ -22,6 +22,9 @@ import type {
   HomeServiceCreateInput,
   HomeServiceUpdateInput,
   HomeServiceListResponse,
+  HomeSectionDto,
+  HomeSectionUpdateInput,
+  HomeSectionListResponse,
   TestimonialDto,
   TestimonialCreateInput,
   TestimonialUpdateInput,
@@ -257,6 +260,19 @@ export function useDeleteHomeService() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/cms/home-services/${id}`, { method: "DELETE" }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "home-services"] }); toast.success("Service deleted"); },
+    onError: err,
+  });
+}
+
+// ── Home Sections (homepage section manager) ────────────────────────────────────
+export function useCmsHomeSections() {
+  return useQuery({ queryKey: ["cms", "home-sections"], queryFn: () => apiFetch<HomeSectionListResponse>("/cms/home-sections") });
+}
+export function useUpdateHomeSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: HomeSectionUpdateInput & { id: string }) => apiFetch<HomeSectionDto>(`/cms/home-sections/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "home-sections"] }); toast.success("Section updated"); },
     onError: err,
   });
 }

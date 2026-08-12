@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   FileText, Menu, Image, Layout, BookOpen, Tag, Star, HelpCircle,
   FolderOpen, Settings, Plus, Search, Eye, Edit2, Trash2, Copy,
@@ -18,6 +19,7 @@ import {
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory,
   useCmsStatistics, useCreateStatistic, useUpdateStatistic, useDeleteStatistic,
   useCmsHomeServices, useCreateHomeService, useUpdateHomeService, useDeleteHomeService,
+  useCmsHomeSections, useUpdateHomeSection,
   useTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial,
   useCmsPages, useCmsPage, useCreateCmsPage, useUpdateCmsPage, useDeleteCmsPage,
   useMenus, useCreateMenu, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
@@ -29,7 +31,7 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CmsView =
   | "pages" | "page-editor"
-  | "menus" | "sliders" | "banners" | "statistics" | "home-services"
+  | "menus" | "sliders" | "banners" | "statistics" | "home-services" | "home-sections"
   | "blog" | "blog-editor"
   | "categories" | "testimonials" | "faqs"
   | "media" | "settings";
@@ -54,6 +56,7 @@ const NAV_GROUPS = [
       { id: "banners" as CmsView, label: "Banners",  icon: Megaphone },
       { id: "statistics" as CmsView, label: "Statistics", icon: BarChart2 },
       { id: "home-services" as CmsView, label: "Services", icon: Layers },
+      { id: "home-sections" as CmsView, label: "Sections", icon: Layout },
     ],
   },
   {
@@ -940,6 +943,48 @@ function BannersView() {
 }
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
+function HomeSectionsView() {
+  const { data } = useCmsHomeSections();
+  const sections = data?.data ?? [];
+  const update = useUpdateHomeSection();
+  const [editJson, setEditJson] = useState<string | null>(null);
+  const [jsonText, setJsonText] = useState("");
+  const saveJson = (id: string) => {
+    try {
+      const parsed = jsonText.trim() ? JSON.parse(jsonText) : null;
+      update.mutate({ id, config: parsed }, { onSuccess: () => setEditJson(null) });
+    } catch { toast.error("Invalid JSON — check your brackets/quotes."); }
+  };
+  return (
+    <div className="space-y-2">
+      {sections.map(s => (
+        <div key={s.id} className="p-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono text-slate-400 w-28 shrink-0">{s.key}</span>
+            <input className="flex-1 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.titleBn ?? s.title ?? ""} placeholder="Section title" onBlur={e => { const v = e.target.value; if (v !== (s.titleBn ?? s.title ?? "")) update.mutate({ id: s.id, titleBn: v, title: v }); }} />
+            <label className="flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
+              <input type="checkbox" checked={s.visible} onChange={e => update.mutate({ id: s.id, visible: e.target.checked })} /> Visible
+            </label>
+            <input type="number" className="w-16 text-sm border border-[var(--color-border)] rounded-lg px-2 py-1.5" defaultValue={s.sortOrder} onBlur={e => { if (Number(e.target.value) !== s.sortOrder) update.mutate({ id: s.id, sortOrder: Number(e.target.value) }); }} title="Order" />
+            <button onClick={() => { setEditJson(editJson === s.id ? null : s.id); setJsonText(JSON.stringify(s.config ?? {}, null, 2)); }} className="text-xs px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 shrink-0 cursor-pointer">{editJson === s.id ? "Close" : "Content (JSON)"}</button>
+          </div>
+          {editJson === s.id && (
+            <div className="mt-3">
+              <p className="text-[11px] text-slate-400 mb-1">Section content (e.g. the sunnah / prohibitions lists). Edit the JSON, then Save.</p>
+              <textarea className="w-full h-48 text-xs font-mono border border-[var(--color-border)] rounded-lg p-2" value={jsonText} onChange={e => setJsonText(e.target.value)} />
+              <div className="flex justify-end gap-2 mt-2">
+                <button onClick={() => setEditJson(null)} className="px-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg text-slate-500 cursor-pointer">Cancel</button>
+                <button onClick={() => saveJson(s.id)} className="px-3 py-1.5 text-sm bg-[#1B75BC] text-white rounded-lg cursor-pointer">Save Content</button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      {sections.length === 0 && <p className="text-sm text-slate-400">No sections configured.</p>}
+    </div>
+  );
+}
+
 function HomeServicesView() {
   const { data } = useCmsHomeServices();
   const items = data?.data ?? [];
@@ -1723,6 +1768,12 @@ export function CmsModule() {
               <>
                 <SectionHeader title="Homepage Services" subtitle="The service icons row on the homepage" />
                 <HomeServicesView />
+              </>
+            )}
+            {view === "home-sections" && (
+              <>
+                <SectionHeader title="Homepage Sections" subtitle="Show/hide, reorder and edit each homepage section (incl. Sunnah & Prohibitions)" />
+                <HomeSectionsView />
               </>
             )}
             {view === "testimonials" && (

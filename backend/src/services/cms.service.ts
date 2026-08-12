@@ -11,6 +11,7 @@ import type {
   CategoryCreateInput, CategoryUpdateInput, CategoryDto, CategoryListResponse,
   StatisticCreateInput, StatisticUpdateInput, StatisticDto, StatisticListResponse,
   HomeServiceCreateInput, HomeServiceUpdateInput, HomeServiceDto, HomeServiceListResponse,
+  HomeSectionUpdateInput, HomeSectionDto, HomeSectionListResponse,
   FaqCreateInput,
   FaqUpdateInput,
   FaqListQuery,
@@ -404,6 +405,35 @@ export async function deleteHomeService(id: string): Promise<void> {
   const existing = await prisma.homeService.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new HttpError(404, "NotFound");
   await prisma.homeService.update({ where: { id }, data: { deletedAt: new Date() } });
+}
+
+// ── HomeSection (homepage section manager) ────────────────────────────────────
+type SectionRow = { id: string; key: string; type: string; eyebrow: string | null; eyebrowBn: string | null; title: string | null; titleBn: string | null; subtitle: string | null; subtitleBn: string | null; config: unknown; sortOrder: number; visible: boolean };
+function toHomeSectionDto(s: SectionRow): HomeSectionDto {
+  return { id: s.id, key: s.key, type: s.type, eyebrow: s.eyebrow, eyebrowBn: s.eyebrowBn, title: s.title, titleBn: s.titleBn, subtitle: s.subtitle, subtitleBn: s.subtitleBn, config: s.config, sortOrder: s.sortOrder, visible: s.visible };
+}
+export async function listHomeSections(): Promise<HomeSectionListResponse> {
+  const rows = await prisma.homeSection.findMany({ where: { deletedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  return { data: rows.map((r) => toHomeSectionDto(r as SectionRow)), total: rows.length };
+}
+export async function updateHomeSection(id: string, input: HomeSectionUpdateInput): Promise<HomeSectionDto> {
+  const existing = await prisma.homeSection.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  const s = await prisma.homeSection.update({
+    where: { id },
+    data: {
+      ...(input.eyebrow !== undefined ? { eyebrow: input.eyebrow } : {}),
+      ...(input.eyebrowBn !== undefined ? { eyebrowBn: input.eyebrowBn } : {}),
+      ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.titleBn !== undefined ? { titleBn: input.titleBn } : {}),
+      ...(input.subtitle !== undefined ? { subtitle: input.subtitle } : {}),
+      ...(input.subtitleBn !== undefined ? { subtitleBn: input.subtitleBn } : {}),
+      ...(input.config !== undefined ? { config: input.config as Prisma.InputJsonValue } : {}),
+      ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
+      ...(input.visible !== undefined ? { visible: input.visible } : {}),
+    },
+  });
+  return toHomeSectionDto(s as SectionRow);
 }
 
 // ── Testimonial ───────────────────────────────────────────────────────────────
