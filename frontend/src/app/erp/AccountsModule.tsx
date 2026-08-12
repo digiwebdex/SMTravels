@@ -13,7 +13,7 @@ import {
   useAccounts, buildCoaTree, useBankAccounts, useIncome, useExpenses,
   useJournal, useCreateJournal, useReverseJournal, usePostJournal,
   useInstallmentPlans, usePayments,
-  useCreateIncome, useCreateExpense, useCreateAccount,
+  useCreateIncome, useCreateExpense, useCreateAccount, useUpdateAccount,
 } from "../hooks/finance";
 import { Loader2 } from "lucide-react";
 import { AiInsightCard } from "../design-system";
@@ -56,25 +56,33 @@ function LedgerFormDrawer({ type, onClose }: { type: "income" | "expense"; onClo
 
 // ── Add Account (chart of accounts) form ──────────────────────────────────────
 const ACCOUNT_CLASSES = ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"] as const;
-function AccountFormDrawer({ accounts, onClose }: { accounts: AccountDto[]; onClose: () => void }) {
-  const [f, setF] = useState({ code: "", name: "", accountClass: "ASSET", parentId: "", role: "DETAIL" });
+function AccountFormDrawer({ accounts, account, onClose }: { accounts: AccountDto[]; account?: AccountDto; onClose: () => void }) {
+  const editing = !!account;
+  const [f, setF] = useState({
+    code: account?.code ?? "", name: account?.name ?? "",
+    accountClass: account?.accountClass ?? "ASSET", parentId: account?.parentId ?? "", role: account?.role ?? "DETAIL",
+  });
   const create = useCreateAccount();
+  const update = useUpdateAccount();
+  const busy = create.isPending || update.isPending;
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
   const submit = () => {
     if (!f.code.trim() || !f.name.trim()) { return; }
-    create.mutate({
-      code: f.code.trim(), name: f.name.trim(),
+    const common = {
+      name: f.name.trim(),
       accountClass: f.accountClass as (typeof ACCOUNT_CLASSES)[number],
       role: f.role as "HEADER" | "DETAIL",
       parentId: f.parentId || undefined,
-    }, { onSuccess: onClose });
+    };
+    if (editing) update.mutate({ id: account!.id, input: common }, { onSuccess: onClose });
+    else create.mutate({ code: f.code.trim(), ...common }, { onSuccess: onClose });
   };
-  const headers = accounts.filter((a) => a.role === "HEADER");
+  const headers = accounts.filter((a) => a.role === "HEADER" && a.id !== account?.id);
   return (
-    <Drawer open onClose={onClose} title="Add Account" subtitle="New chart-of-accounts entry"
-      footer={<div className="flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600">Cancel</button><button onClick={submit} disabled={create.isPending} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg font-semibold disabled:opacity-50">{create.isPending ? "Saving…" : "Save"}</button></div>}>
+    <Drawer open onClose={onClose} title={editing ? "Edit Account" : "Add Account"} subtitle={editing ? "Update chart-of-accounts entry" : "New chart-of-accounts entry"}
+      footer={<div className="flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600">Cancel</button><button onClick={submit} disabled={busy} className="px-4 py-2 text-sm bg-[#1B75BC] text-white rounded-lg font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save"}</button></div>}>
       <div className="flex flex-col gap-3">
-        <Field label="Code" required><input className={fieldCls} value={f.code} onChange={(e) => set("code", e.target.value)} placeholder="e.g. 1210" /></Field>
+        <Field label="Code" required><input className={fieldCls} value={f.code} disabled={editing} onChange={(e) => set("code", e.target.value)} placeholder="e.g. 1210" /></Field>
         <Field label="Account name" required><input className={fieldCls} value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
         <Field label="Class" required><select className={fieldCls} value={f.accountClass} onChange={(e) => set("accountClass", e.target.value)}>{ACCOUNT_CLASSES.map((c) => <option key={c} value={c}>{c}</option>)}</select></Field>
         <Field label="Type"><select className={fieldCls} value={f.role} onChange={(e) => set("role", e.target.value)}><option value="DETAIL">Detail</option><option value="HEADER">Header</option></select></Field>
@@ -172,13 +180,13 @@ function Section({ title, actions, children }: { title: string; actions?: React.
 
 // ─── Chart of Accounts ────────────────────────────────────────────────────────
 type CoaNode = {
-  code: string; name: string; type: string; balance: number;
+  id: string; code: string; name: string; type: string; balance: number;
   currency?: string; children?: CoaNode[];
 };
 
-function CoaRow({ node, depth = 0, expanded, onToggle }: {
+function CoaRow({ node, depth = 0, expanded, onToggle, onEdit }: {
   node: CoaNode; depth?: number; expanded: Set<string>;
-  onToggle: (code: string) => void;
+  onToggle: (code: string) => void; onEdit: (id: string) => void;
 }) {
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = expanded.has(node.code);
@@ -215,13 +223,13 @@ function CoaRow({ node, depth = 0, expanded, onToggle }: {
         </td>
         <td className="py-2.5 px-4 text-center">
           {node.type === "detail" && (
-            <button disabled title="Edit account is not available in this build"
-              className="p-1 rounded opacity-60 cursor-not-allowed"><Edit2 size={13} className="text-[#9CA3AF]" /></button>
+            <button onClick={(e) => { e.stopPropagation(); onEdit(node.id); }} title="Edit account"
+              className="p-1 rounded hover:bg-slate-100 cursor-pointer"><Edit2 size={13} className="text-slate-500" /></button>
           )}
         </td>
       </tr>
       {isExpanded && node.children?.map(child => (
-        <CoaRow key={child.code} node={child} depth={depth + 1} expanded={expanded} onToggle={onToggle} />
+        <CoaRow key={child.code} node={child} depth={depth + 1} expanded={expanded} onToggle={onToggle} onEdit={onEdit} />
       ))}
     </>
   );
@@ -232,6 +240,7 @@ function ChartOfAccountsView() {
   const tree = buildCoaTree(accounts ?? []);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["1000", "2000", "3000", "4000", "5000"]));
   const [addOpen, setAddOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const toggle = (code: string) => {
     setExpanded(prev => {
       const next = new Set(prev);
@@ -265,6 +274,7 @@ function ChartOfAccountsView() {
         </div>
       </div>
       {addOpen && <AccountFormDrawer accounts={accounts ?? []} onClose={() => setAddOpen(false)} />}
+      {editId && <AccountFormDrawer accounts={accounts ?? []} account={(accounts ?? []).find((a) => a.id === editId)} onClose={() => setEditId(null)} />}
       {isError ? (
         <div className="p-2"><ErrorBanner message={(error as Error)?.message || "Failed to load accounts."} onRetry={() => refetch()} /></div>
       ) : isLoading ? (
@@ -283,7 +293,7 @@ function ChartOfAccountsView() {
           </thead>
           <tbody>
             {tree.map(node => (
-              <CoaRow key={node.code} node={node} expanded={expanded} onToggle={toggle} />
+              <CoaRow key={node.code} node={node} expanded={expanded} onToggle={toggle} onEdit={setEditId} />
             ))}
           </tbody>
         </table>

@@ -9,7 +9,7 @@ import type {
   PaymentListResponse, PaymentDto, PaymentRecordInput,
   RefundListResponse, RefundCreateInput,
   InstallmentPlanListResponse, InstallmentPlanCreateInput, InstallmentPlanDto,
-  LedgerListResponse, ExpenseCreateInput, IncomeCreateInput, AccountCreateInput,
+  LedgerListResponse, ExpenseCreateInput, IncomeCreateInput, AccountCreateInput, AccountUpdateInput,
 } from "@contracts/finance.contract";
 
 export { useBranches };
@@ -162,6 +162,10 @@ export function useCreateExpense() {
 export function useCreateAccount() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (input: AccountCreateInput) => apiFetch<AccountDto>("/accounts", { method: "POST", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: finKeys.accounts }); toast.success("Account created"); }, onError: err });
+}
+export function useUpdateAccount() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: ({ id, input }: { id: string; input: AccountUpdateInput }) => apiFetch<AccountDto>(`/accounts/${id}`, { method: "PATCH", body: JSON.stringify(input) }), onSuccess: () => { qc.invalidateQueries({ queryKey: finKeys.accounts }); toast.success("Account updated"); }, onError: err });
 }
 
 export type { InvoiceDetail, JournalDetail, AccountDto, BankAccountDto };
