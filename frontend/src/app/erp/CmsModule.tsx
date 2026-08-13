@@ -26,6 +26,7 @@ import {
   useMenus, useCreateMenu, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
   useBanners, useCreateBanner, useUpdateBanner, useDeleteBanner,
   useMediaAssets, useCreateMediaAsset, useDeleteMediaAsset,
+  useSiteContentList, useUpdateSiteContent,
   type FaqDto, type TestimonialDto, type BannerDto, type MenuItemDto,
 } from "../hooks/cms";
 
@@ -35,6 +36,7 @@ type CmsView =
   | "menus" | "sliders" | "banners" | "statistics" | "home-services" | "home-sections" | "hero"
   | "blog" | "blog-editor"
   | "categories" | "testimonials" | "faqs"
+  | "website-content"
   | "media" | "settings";
 
 // ─── Nav ──────────────────────────────────────────────────────────────────────
@@ -59,6 +61,12 @@ const NAV_GROUPS = [
       { id: "statistics" as CmsView, label: "Statistics", icon: BarChart2 },
       { id: "home-services" as CmsView, label: "Services", icon: Layers },
       { id: "home-sections" as CmsView, label: "Sections", icon: Layout },
+    ],
+  },
+  {
+    label: "Public Website",
+    items: [
+      { id: "website-content" as CmsView, label: "Website Content", icon: Globe },
     ],
   },
   {
@@ -1724,6 +1732,140 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
   );
 }
 
+// ─── Website Content (SiteContent store) ──────────────────────────────────────
+const SITE_CONTENT_LABELS: Record<string, { label: string; hint: string }> = {
+  packages:      { label: "Packages",       hint: "Hajj & Umrah — prices, hotels, itinerary, inclusions" },
+  services:      { label: "Services",        hint: "The six service cards on the homepage" },
+  testimonials:  { label: "Testimonials",    hint: "Customer reviews" },
+  faqs:          { label: "FAQs",            hint: "Homepage questions & answers" },
+  tours:         { label: "Tours",           hint: "Tour packages & regions" },
+  visaCountries: { label: "Visa countries",  hint: "Countries, documents & timelines" },
+  manpower:      { label: "Manpower",        hint: "Sectors, destinations & the process" },
+  about:         { label: "About page",      hint: "Story, mission, milestones, team" },
+  knowledge:     { label: "Knowledge",       hint: "Ihram, Sunnah, prohibitions, guides" },
+  siteConfig:    { label: "Site settings",   hint: "Brand, phones, email, branches, licences" },
+  airTickets:    { label: "Air tickets",     hint: "Popular routes & airline partners" },
+  howItWorks:    { label: "How it works",    hint: "The six-step process" },
+  partners:      { label: "Partners",        hint: "Partner logos & groups" },
+};
+
+function WebsiteContentView() {
+  const { data, isLoading } = useSiteContentList();
+  const update = useUpdateSiteContent();
+  const rows = data?.data ?? [];
+  const [selected, setSelected] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const current = rows.find((r) => r.key === selected);
+
+  useEffect(() => {
+    if (!selected && rows.length) setSelected(rows[0].key);
+  }, [rows, selected]);
+
+  useEffect(() => {
+    if (current) {
+      setDraft(JSON.stringify(current.data, null, 2));
+      setError(null);
+    }
+    // reload editor when a different key is picked or the row is refetched
+  }, [selected, current?.updatedAt]);
+
+  const label = (k: string) => SITE_CONTENT_LABELS[k]?.label ?? k;
+
+  const onFormat = () => {
+    try {
+      setDraft(JSON.stringify(JSON.parse(draft), null, 2));
+      setError(null);
+    } catch (e) {
+      setError("Invalid JSON — " + (e as Error).message);
+    }
+  };
+  const onReset = () => {
+    if (current) {
+      setDraft(JSON.stringify(current.data, null, 2));
+      setError(null);
+    }
+  };
+  const onSave = () => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(draft);
+    } catch (e) {
+      setError("Invalid JSON — " + (e as Error).message);
+      return;
+    }
+    setError(null);
+    if (selected) update.mutate({ key: selected, data: parsed });
+  };
+
+  if (isLoading) return <div className="py-10 text-center text-sm text-slate-400">Loading…</div>;
+  if (!rows.length)
+    return <div className="py-10 text-center text-sm text-slate-400">No website content found. Run the site-content seed on the server.</div>;
+
+  return (
+    <div className="flex gap-5">
+      <div className="w-60 shrink-0 space-y-1">
+        {rows.map((r) => (
+          <button
+            key={r.key}
+            onClick={() => setSelected(r.key)}
+            className={cn(
+              "w-full rounded-lg px-3 py-2 text-left text-sm",
+              selected === r.key ? "bg-[#1B75BC] text-white" : "text-slate-600 hover:bg-slate-100",
+            )}
+          >
+            <div className="font-medium">{label(r.key)}</div>
+            <div className={cn("truncate text-xs", selected === r.key ? "text-white/70" : "text-slate-400")}>
+              {SITE_CONTENT_LABELS[r.key]?.hint ?? r.key}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        {current ? (
+          <>
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-slate-700">{label(current.key)}</div>
+                <div className="text-xs text-slate-400">
+                  Last saved {new Date(current.updatedAt).toLocaleString()}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={onFormat} className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">Format</button>
+                <button onClick={onReset} className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">Reset</button>
+                <button
+                  onClick={onSave}
+                  disabled={update.isPending}
+                  className="rounded-lg bg-[#1B75BC] px-3.5 py-1.5 text-sm text-white hover:bg-[#14588F] disabled:opacity-50"
+                >
+                  {update.isPending ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+            {error && (
+              <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>
+            )}
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              spellCheck={false}
+              className="h-[60vh] w-full rounded-lg border border-[var(--color-border)] p-3 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"
+            />
+            <div className="mt-2 text-xs text-slate-400">
+              Change the values (text, prices, phone numbers, image URLs) — keep the field names the same. Edits appear on the public website within a minute.
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-slate-400">Select a section to edit.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Module ──────────────────────────────────────────────────────────────
 export function CmsModule() {
   const [view, setView] = useState<CmsView>("pages");
@@ -1864,6 +2006,12 @@ export function CmsModule() {
               <>
                 <SectionHeader title="Banners" subtitle="Promotional banners and announcement bars" />
                 <BannersView />
+              </>
+            )}
+            {view === "website-content" && (
+              <>
+                <SectionHeader title="Website Content" subtitle="Every section of the public website — packages, services, about, contact, tours, visa, manpower, knowledge and more" />
+                <WebsiteContentView />
               </>
             )}
             {view === "media" && (

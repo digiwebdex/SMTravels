@@ -567,6 +567,36 @@ export function useDeleteMediaAsset() {
   });
 }
 
+// ── Website content (SiteContent store — the new public site's content) ──────
+export interface SiteContentRow {
+  key: string;
+  data: unknown;
+  updatedAt: string;
+}
+
+export function useSiteContentList() {
+  return useQuery({
+    queryKey: ["cms", "site-content"],
+    queryFn: () => apiFetch<{ data: SiteContentRow[] }>("/cms/site-content"),
+  });
+}
+
+export function useUpdateSiteContent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ key, data }: { key: string; data: unknown }) =>
+      apiFetch<SiteContentRow>(`/cms/site-content/${key}`, {
+        method: "PATCH",
+        body: JSON.stringify({ data }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cms", "site-content"] });
+      toast.success("Website content saved");
+    },
+    onError: err,
+  });
+}
+
 export type {
   BlogPostDto,
   FaqDto,
