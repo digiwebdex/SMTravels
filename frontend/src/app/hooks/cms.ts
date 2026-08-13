@@ -25,6 +25,9 @@ import type {
   HomeSectionDto,
   HomeSectionUpdateInput,
   HomeSectionListResponse,
+  HeroDto,
+  HeroUpdateInput,
+  HeroListResponse,
   TestimonialDto,
   TestimonialCreateInput,
   TestimonialUpdateInput,
@@ -273,6 +276,19 @@ export function useUpdateHomeSection() {
   return useMutation({
     mutationFn: ({ id, ...input }: HomeSectionUpdateInput & { id: string }) => apiFetch<HomeSectionDto>(`/cms/home-sections/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "home-sections"] }); toast.success("Section updated"); },
+    onError: err,
+  });
+}
+
+// ── Hero (homepage hero slide) ──────────────────────────────────────────────────
+export function useCmsHeroes() {
+  return useQuery({ queryKey: ["cms", "heroes"], queryFn: () => apiFetch<HeroListResponse>("/cms/heroes") });
+}
+export function useUpdateHero() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: HeroUpdateInput & { id: string }) => apiFetch<HeroDto>(`/cms/heroes/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["cms", "heroes"] }); toast.success("Hero updated"); },
     onError: err,
   });
 }

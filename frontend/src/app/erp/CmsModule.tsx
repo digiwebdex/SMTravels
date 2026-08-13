@@ -20,6 +20,7 @@ import {
   useCmsStatistics, useCreateStatistic, useUpdateStatistic, useDeleteStatistic,
   useCmsHomeServices, useCreateHomeService, useUpdateHomeService, useDeleteHomeService,
   useCmsHomeSections, useUpdateHomeSection,
+  useCmsHeroes, useUpdateHero,
   useTestimonials, useCreateTestimonial, useUpdateTestimonial, useDeleteTestimonial,
   useCmsPages, useCmsPage, useCreateCmsPage, useUpdateCmsPage, useDeleteCmsPage,
   useMenus, useCreateMenu, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
@@ -31,7 +32,7 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CmsView =
   | "pages" | "page-editor"
-  | "menus" | "sliders" | "banners" | "statistics" | "home-services" | "home-sections"
+  | "menus" | "sliders" | "banners" | "statistics" | "home-services" | "home-sections" | "hero"
   | "blog" | "blog-editor"
   | "categories" | "testimonials" | "faqs"
   | "media" | "settings";
@@ -54,6 +55,7 @@ const NAV_GROUPS = [
       { id: "menus"   as CmsView, label: "Menus",    icon: Menu   },
       { id: "sliders" as CmsView, label: "Sliders",  icon: Layers },
       { id: "banners" as CmsView, label: "Banners",  icon: Megaphone },
+      { id: "hero" as CmsView, label: "Hero", icon: Image },
       { id: "statistics" as CmsView, label: "Statistics", icon: BarChart2 },
       { id: "home-services" as CmsView, label: "Services", icon: Layers },
       { id: "home-sections" as CmsView, label: "Sections", icon: Layout },
@@ -943,6 +945,58 @@ function BannersView() {
 }
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
+function HeroEditView() {
+  const { data } = useCmsHeroes();
+  const heroes = data?.data ?? [];
+  const update = useUpdateHero();
+  const onImg = (id: string, file: File) => {
+    if (file.size > 3 * 1024 * 1024) { toast.error("Image must be under 3MB"); return; }
+    const r = new FileReader();
+    r.onload = () => update.mutate({ id, backgroundImage: String(r.result) });
+    r.readAsDataURL(file);
+  };
+  const fld = (label: string, val: string, on: (v: string) => void) => (
+    <label className="block" key={label}>
+      <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</span>
+      <input className="mt-1 w-full text-sm border border-[var(--color-border)] rounded-lg px-3 py-2" defaultValue={val} onBlur={e => { if (e.target.value !== val) on(e.target.value); }} />
+    </label>
+  );
+  return (
+    <div className="space-y-6">
+      {heroes.map(h => (
+        <div key={h.id} className="p-4 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono text-slate-400">{h.key}</span>
+            <label className="flex items-center gap-1.5 text-xs text-slate-500"><input type="checkbox" checked={h.visible} onChange={e => update.mutate({ id: h.id, visible: e.target.checked })} /> Visible on site</label>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-44 h-24 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center text-xs text-slate-400">
+              {h.backgroundImage ? <img src={h.backgroundImage} alt="Hero background" className="w-full h-full object-cover" /> : "No image"}
+            </div>
+            <label className="flex items-center gap-1.5 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer">
+              <Image size={13} /> Upload Background
+              <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onImg(h.id, f); e.target.value = ""; }} />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {fld("Title (Bangla)", h.titleBn ?? "", v => update.mutate({ id: h.id, titleBn: v }))}
+            {fld("Title (English)", h.title, v => update.mutate({ id: h.id, title: v }))}
+            {fld("Highlight word (Bangla)", h.highlightBn ?? "", v => update.mutate({ id: h.id, highlightBn: v }))}
+            {fld("Highlight word (English)", h.highlight ?? "", v => update.mutate({ id: h.id, highlight: v }))}
+            {fld("Subtitle (Bangla)", h.subtitleBn ?? "", v => update.mutate({ id: h.id, subtitleBn: v }))}
+            {fld("Subtitle (English)", h.subtitle ?? "", v => update.mutate({ id: h.id, subtitle: v }))}
+            {fld("Primary button (Bangla)", h.primaryLabelBn ?? "", v => update.mutate({ id: h.id, primaryLabelBn: v }))}
+            {fld("Primary button link", h.primaryUrl ?? "", v => update.mutate({ id: h.id, primaryUrl: v }))}
+            {fld("Secondary button (Bangla)", h.secondaryLabelBn ?? "", v => update.mutate({ id: h.id, secondaryLabelBn: v }))}
+            {fld("Secondary button link", h.secondaryUrl ?? "", v => update.mutate({ id: h.id, secondaryUrl: v }))}
+          </div>
+        </div>
+      ))}
+      {heroes.length === 0 && <p className="text-sm text-slate-400">No hero configured.</p>}
+    </div>
+  );
+}
+
 function HomeSectionsView() {
   const { data } = useCmsHomeSections();
   const sections = data?.data ?? [];
@@ -1774,6 +1828,12 @@ export function CmsModule() {
               <>
                 <SectionHeader title="Homepage Sections" subtitle="Show/hide, reorder and edit each homepage section (incl. Sunnah & Prohibitions)" />
                 <HomeSectionsView />
+              </>
+            )}
+            {view === "hero" && (
+              <>
+                <SectionHeader title="Homepage Hero" subtitle="The main banner (title, buttons, background image) on the homepage" />
+                <HeroEditView />
               </>
             )}
             {view === "testimonials" && (

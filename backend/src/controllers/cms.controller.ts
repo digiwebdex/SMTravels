@@ -13,6 +13,7 @@ import {
   homeServiceCreateSchema,
   homeServiceUpdateSchema,
   homeSectionUpdateSchema,
+  heroUpdateSchema,
   testimonialCreateSchema,
   testimonialUpdateSchema,
   testimonialListQuerySchema,
@@ -121,6 +122,12 @@ export async function listHomeSectionsHandler(_req: Request, res: Response): Pro
 }
 export async function updateHomeSectionHandler(req: Request, res: Response): Promise<void> {
   res.json(await cms.updateHomeSection(req.params.id, homeSectionUpdateSchema.parse(req.body)));
+}
+export async function listHeroesHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await cms.listHeroes());
+}
+export async function updateHeroHandler(req: Request, res: Response): Promise<void> {
+  res.json(await cms.updateHero(req.params.id, heroUpdateSchema.parse(req.body)));
 }
 
 // ── Testimonial ─────────────────────────────────────────────────────────────────

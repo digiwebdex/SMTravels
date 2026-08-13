@@ -286,6 +286,32 @@ export interface HomeSectionDto {
 }
 export interface HomeSectionListResponse { data: HomeSectionDto[]; total: number }
 
+// ── admin Hero (homepage hero slide) ──────────────────────────────────────────
+export const heroUpdateSchema = z.object({
+  eyebrow: optStr, eyebrowBn: optStr,
+  title: z.string().trim().min(1).optional(), titleBn: optStr,
+  highlight: optStr, highlightBn: optStr,
+  subtitle: optStr, subtitleBn: optStr,
+  primaryLabel: optStr, primaryLabelBn: optStr, primaryUrl: optStr,
+  secondaryLabel: optStr, secondaryLabelBn: optStr, secondaryUrl: optStr,
+  backgroundImage: optStr, overlay: optStr,
+  badges: z.unknown().optional(),
+  sortOrder: z.coerce.number().int().optional(),
+  visible: z.boolean().optional(),
+});
+export type HeroUpdateInput = z.infer<typeof heroUpdateSchema>;
+export interface HeroDto {
+  id: string; key: string;
+  eyebrow: string | null; eyebrowBn: string | null;
+  title: string; titleBn: string | null;
+  highlight: string | null; highlightBn: string | null;
+  subtitle: string | null; subtitleBn: string | null;
+  primaryLabel: string | null; primaryLabelBn: string | null; primaryUrl: string | null;
+  secondaryLabel: string | null; secondaryLabelBn: string | null; secondaryUrl: string | null;
+  backgroundImage: string | null; overlay: string | null; badges: unknown; sortOrder: number; visible: boolean;
+}
+export interface HeroListResponse { data: HeroDto[]; total: number }
+
 export interface FaqDto {
   id: string;
   question: string;

@@ -12,6 +12,7 @@ import type {
   StatisticCreateInput, StatisticUpdateInput, StatisticDto, StatisticListResponse,
   HomeServiceCreateInput, HomeServiceUpdateInput, HomeServiceDto, HomeServiceListResponse,
   HomeSectionUpdateInput, HomeSectionDto, HomeSectionListResponse,
+  HeroUpdateInput, HeroDto, HeroListResponse,
   FaqCreateInput,
   FaqUpdateInput,
   FaqListQuery,
@@ -434,6 +435,35 @@ export async function updateHomeSection(id: string, input: HomeSectionUpdateInpu
     },
   });
   return toHomeSectionDto(s as SectionRow);
+}
+
+// ── Hero (homepage hero slide) ────────────────────────────────────────────────
+function toHeroDto(h: Record<string, unknown>): HeroDto {
+  return {
+    id: h.id as string, key: h.key as string,
+    eyebrow: (h.eyebrow as string) ?? null, eyebrowBn: (h.eyebrowBn as string) ?? null,
+    title: h.title as string, titleBn: (h.titleBn as string) ?? null,
+    highlight: (h.highlight as string) ?? null, highlightBn: (h.highlightBn as string) ?? null,
+    subtitle: (h.subtitle as string) ?? null, subtitleBn: (h.subtitleBn as string) ?? null,
+    primaryLabel: (h.primaryLabel as string) ?? null, primaryLabelBn: (h.primaryLabelBn as string) ?? null, primaryUrl: (h.primaryUrl as string) ?? null,
+    secondaryLabel: (h.secondaryLabel as string) ?? null, secondaryLabelBn: (h.secondaryLabelBn as string) ?? null, secondaryUrl: (h.secondaryUrl as string) ?? null,
+    backgroundImage: (h.backgroundImage as string) ?? null, overlay: (h.overlay as string) ?? null,
+    badges: h.badges ?? null, sortOrder: h.sortOrder as number, visible: h.visible as boolean,
+  };
+}
+export async function listHeroes(): Promise<HeroListResponse> {
+  const rows = await prisma.hero.findMany({ where: { deletedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  return { data: rows.map((r) => toHeroDto(r as unknown as Record<string, unknown>)), total: rows.length };
+}
+export async function updateHero(id: string, input: HeroUpdateInput): Promise<HeroDto> {
+  const existing = await prisma.hero.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) throw new HttpError(404, "NotFound");
+  const { badges, ...rest } = input;
+  const data: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rest)) if (v !== undefined) data[k] = v;
+  if (badges !== undefined) data.badges = badges as Prisma.InputJsonValue;
+  const h = await prisma.hero.update({ where: { id }, data });
+  return toHeroDto(h as unknown as Record<string, unknown>);
 }
 
 // ── Testimonial ───────────────────────────────────────────────────────────────
