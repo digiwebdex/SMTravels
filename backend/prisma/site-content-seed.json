@@ -1,0 +1,2567 @@
+{
+  "packages": [
+    {
+      "slug": "hajj-economy",
+      "kind": "hajj",
+      "tier": "Economy",
+      "tierBn": "ইকোনমি",
+      "title": "Hajj Economy 2027",
+      "titleBn": "হজ ইকোনমি",
+      "season": "Hajj 2027",
+      "seasonBn": "হজ ২০২৭",
+      "durationNights": "38–42 days",
+      "durationNightsBn": "৩৮–৪২ দিন",
+      "price": "৳ 600,000",
+      "priceBn": "৳ ৬,০০,০০০",
+      "priceNote": "per person, sharing a 5-bed room",
+      "priceNoteBn": "জনপ্রতি, ৫ জনের রুম শেয়ারে",
+      "makkahDistance": "1,200 m from Haram",
+      "makkahDistanceBn": "হারাম থেকে ১,২০০ মিটার",
+      "madinahDistance": "600 m from Masjid an-Nabawi",
+      "madinahDistanceBn": "মসজিদে নববী থেকে ৬০০ মিটার",
+      "inclusions": [
+        "Hajj visa and Ministry registration",
+        "Return air ticket, Dhaka – Jeddah – Dhaka",
+        "Makkah and Madinah hotel, 5-bed sharing",
+        "Mina tent (zone C) and Arafat camp",
+        "Three Bangla meals a day",
+        "Bus transfer between all sites",
+        "Bangla-speaking guide, one per 45 pilgrims"
+      ],
+      "inclusionsBn": [
+        "হজ ভিসা ও মন্ত্রণালয়ের নিবন্ধন",
+        "রিটার্ন এয়ার টিকেট, ঢাকা – জেদ্দা – ঢাকা",
+        "মক্কা ও মদিনায় হোটেল, ৫ জনের রুম শেয়ারে",
+        "মিনায় তাঁবু (জোন সি) ও আরাফাতের ক্যাম্প",
+        "প্রতিদিন তিন বেলা বাংলা খাবার",
+        "সব স্থানের মধ্যে বাসে যাতায়াত",
+        "বাংলাভাষী গাইড, প্রতি ৪৫ জন হাজিতে একজন"
+      ],
+      "exclusions": [
+        "Passport fee",
+        "Qurbani",
+        "Personal shopping and laundry",
+        "Excess baggage",
+        "Travel insurance"
+      ],
+      "exclusionsBn": [
+        "পাসপোর্ট ফি",
+        "কুরবানি",
+        "ব্যক্তিগত কেনাকাটা ও লন্ড্রি",
+        "অতিরিক্ত লাগেজ",
+        "ট্রাভেল ইন্স্যুরেন্স"
+      ],
+      "hotels": [
+        {
+          "city": "Makkah",
+          "name": "Makkah economy hotel (Aziziyah area)",
+          "nameBn": "মক্কা ইকোনমি হোটেল (আজিজিয়া এলাকা)",
+          "rating": "3 star",
+          "ratingBn": "৩ স্টার",
+          "distanceFromHaram": "1,200 m",
+          "distanceFromHaramBn": "১,২০০ মিটার",
+          "roomType": "5-bed sharing",
+          "roomTypeBn": "৫ জনের রুম শেয়ার"
+        },
+        {
+          "city": "Madinah",
+          "name": "Madinah economy hotel (Markaziyah)",
+          "nameBn": "মদিনা ইকোনমি হোটেল (মারকাজিয়া)",
+          "rating": "3 star",
+          "ratingBn": "৩ স্টার",
+          "distanceFromHaram": "600 m",
+          "distanceFromHaramBn": "৬০০ মিটার",
+          "roomType": "5-bed sharing",
+          "roomTypeBn": "৫ জনের রুম শেয়ার"
+        }
+      ],
+      "itinerary": [
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Day 0",
+          "nightsBn": "দিন ০",
+          "note": "Briefing at the office, then departure from Hazrat Shahjalal (DAC).",
+          "noteBn": "অফিসে ব্রিফিং, এরপর হযরত শাহজালাল (ডিএসি) থেকে যাত্রা।"
+        },
+        {
+          "city": "Jeddah",
+          "nights": "Day 1",
+          "nightsBn": "দিন ১",
+          "note": "Arrival at King Abdulaziz (JED), immigration, bus to Makkah.",
+          "noteBn": "কিং আব্দুলআজিজ (জেইডি) বিমানবন্দরে পৌঁছানো, ইমিগ্রেশন, বাসে মক্কা যাত্রা।"
+        },
+        {
+          "city": "Makkah",
+          "cityBn": "মক্কা",
+          "nights": "22 nights",
+          "nightsBn": "২২ রাত",
+          "note": "Umrah on arrival, then Hajj rites: Mina, Arafat, Muzdalifah, Jamarat.",
+          "noteBn": "পৌঁছেই ওমরাহ, এরপর হজের আনুষ্ঠানিকতা: মিনা, আরাফাত, মুজদালিফা, জামারাত।"
+        },
+        {
+          "city": "Madinah",
+          "cityBn": "মদিনা",
+          "nights": "8 nights",
+          "nightsBn": "৮ রাত",
+          "note": "Forty prayers at Masjid an-Nabawi and ziyarat of the historic sites.",
+          "noteBn": "মসজিদে নববীতে চল্লিশ ওয়াক্ত নামাজ ও ঐতিহাসিক স্থান জিয়ারত।"
+        },
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Return",
+          "nightsBn": "ফেরার দিন",
+          "note": "Return flight from Jeddah (JED) to Dhaka (DAC).",
+          "noteBn": "জেদ্দা (জেইডি) থেকে ঢাকা (ডিএসি) ফেরার ফ্লাইট।"
+        }
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Air ticket (return)",
+          "labelBn": "এয়ার টিকেট (রিটার্ন)",
+          "amount": "৳ 145,000"
+        },
+        {
+          "label": "Visa and government fees",
+          "labelBn": "ভিসা ও সরকারি ফি",
+          "amount": "৳ 65,000"
+        },
+        {
+          "label": "Hotels, 30 nights",
+          "labelBn": "হোটেল, ৩০ রাত",
+          "amount": "৳ 235,000"
+        },
+        {
+          "label": "Mina and Arafat services",
+          "labelBn": "মিনা ও আরাফাত সেবা",
+          "amount": "৳ 95,000"
+        },
+        {
+          "label": "Food and transport",
+          "labelBn": "খাবার ও যাতায়াত",
+          "amount": "৳ 60,000"
+        }
+      ],
+      "featured": true
+    },
+    {
+      "slug": "hajj-standard",
+      "kind": "hajj",
+      "tier": "Standard",
+      "tierBn": "স্ট্যান্ডার্ড",
+      "title": "General Package Hajj 2027",
+      "titleBn": "জেনারেল হজ প্যাকেজ",
+      "season": "Hajj 2027",
+      "seasonBn": "হজ ২০২৭",
+      "durationNights": "38–42 days",
+      "durationNightsBn": "৩৮–৪২ দিন",
+      "price": "৳ 513,000",
+      "priceBn": "৳ ৫,১৩,০০০",
+      "priceNote": "per person, sharing a 4-bed room",
+      "priceNoteBn": "জনপ্রতি, ৪ জনের রুম শেয়ারে",
+      "makkahDistance": "700 m from Haram",
+      "makkahDistanceBn": "হারাম থেকে ৭০০ মিটার",
+      "madinahDistance": "350 m from Masjid an-Nabawi",
+      "madinahDistanceBn": "মসজিদে নববী থেকে ৩৫০ মিটার",
+      "highlight": "Most booked",
+      "highlightBn": "সবচেয়ে বেশি বুক করা",
+      "inclusions": [
+        "Hajj visa and Ministry registration",
+        "Return air ticket on a direct flight",
+        "Makkah and Madinah hotel, 4-bed sharing",
+        "Mina tent (zone B) with cooled seating",
+        "Three Bangla meals a day",
+        "Air-conditioned coach for all transfers",
+        "Bangla-speaking guide, one per 30 pilgrims"
+      ],
+      "inclusionsBn": [
+        "হজ ভিসা ও মন্ত্রণালয়ের নিবন্ধন",
+        "সরাসরি ফ্লাইটে রিটার্ন এয়ার টিকেট",
+        "মক্কা ও মদিনায় হোটেল, ৪ জনের রুম শেয়ারে",
+        "মিনায় তাঁবু (জোন বি), শীতাতপ নিয়ন্ত্রিত বসার ব্যবস্থাসহ",
+        "প্রতিদিন তিন বেলা বাংলা খাবার",
+        "সব যাতায়াতে শীতাতপ নিয়ন্ত্রিত কোচ",
+        "বাংলাভাষী গাইড, প্রতি ৩০ জন হাজিতে একজন"
+      ],
+      "exclusions": [
+        "Passport fee",
+        "Qurbani",
+        "Personal shopping and laundry",
+        "Excess baggage"
+      ],
+      "exclusionsBn": [
+        "পাসপোর্ট ফি",
+        "কুরবানি",
+        "ব্যক্তিগত কেনাকাটা ও লন্ড্রি",
+        "অতিরিক্ত লাগেজ"
+      ],
+      "hotels": [
+        {
+          "city": "Makkah",
+          "name": "Makkah 4-star, Ibrahim Khalil Road",
+          "nameBn": "মক্কা ৪ স্টার, ইব্রাহিম খলিল রোড",
+          "rating": "4 star",
+          "ratingBn": "৪ স্টার",
+          "distanceFromHaram": "700 m",
+          "distanceFromHaramBn": "৭০০ মিটার",
+          "roomType": "4-bed sharing",
+          "roomTypeBn": "৪ জনের রুম শেয়ার"
+        },
+        {
+          "city": "Madinah",
+          "name": "Madinah 4-star, central area",
+          "nameBn": "মদিনা ৪ স্টার, কেন্দ্রীয় এলাকা",
+          "rating": "4 star",
+          "ratingBn": "৪ স্টার",
+          "distanceFromHaram": "350 m",
+          "distanceFromHaramBn": "৩৫০ মিটার",
+          "roomType": "4-bed sharing",
+          "roomTypeBn": "৪ জনের রুম শেয়ার"
+        }
+      ],
+      "itinerary": [
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Day 0",
+          "nightsBn": "দিন ০",
+          "note": "Group briefing, then departure from Dhaka (DAC).",
+          "noteBn": "গ্রুপ ব্রিফিং, এরপর ঢাকা (ডিএসি) থেকে যাত্রা।"
+        },
+        {
+          "city": "Jeddah",
+          "nights": "Day 1",
+          "nightsBn": "দিন ১",
+          "note": "Direct arrival at Jeddah (JED), coach to Makkah.",
+          "noteBn": "জেদ্দায় (জেইডি) সরাসরি পৌঁছানো, কোচে মক্কা যাত্রা।"
+        },
+        {
+          "city": "Makkah",
+          "cityBn": "মক্কা",
+          "nights": "20 nights",
+          "nightsBn": "২০ রাত",
+          "note": "Umrah, Hajj rites and organised ziyarat around Makkah.",
+          "noteBn": "ওমরাহ, হজের আনুষ্ঠানিকতা ও মক্কার আশেপাশে সংগঠিত জিয়ারত।"
+        },
+        {
+          "city": "Madinah",
+          "cityBn": "মদিনা",
+          "nights": "8 nights",
+          "nightsBn": "৮ রাত",
+          "note": "Forty prayers and ziyarat, hotel inside the central area.",
+          "noteBn": "চল্লিশ ওয়াক্ত নামাজ ও জিয়ারত, কেন্দ্রীয় এলাকার ভেতরে হোটেল।"
+        },
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Return",
+          "nightsBn": "ফেরার দিন",
+          "note": "Return direct flight to Dhaka (DAC).",
+          "noteBn": "ঢাকায় (ডিএসি) সরাসরি ফেরার ফ্লাইট।"
+        }
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Air ticket (direct, return)",
+          "labelBn": "এয়ার টিকেট (সরাসরি, রিটার্ন)",
+          "amount": "৳ 145,000"
+        },
+        {
+          "label": "Visa and government fees",
+          "labelBn": "ভিসা ও সরকারি ফি",
+          "amount": "৳ 65,000"
+        },
+        {
+          "label": "Hotels, 28 nights",
+          "labelBn": "হোটেল, ২৮ রাত",
+          "amount": "৳ 235,000"
+        },
+        {
+          "label": "Mina and Arafat services",
+          "labelBn": "মিনা ও আরাফাত সেবা",
+          "amount": "৳ 95,000"
+        },
+        {
+          "label": "Food and transport",
+          "labelBn": "খাবার ও যাতায়াত",
+          "amount": "৳ 60,000"
+        }
+      ],
+      "featured": true
+    },
+    {
+      "slug": "hajj-premium",
+      "kind": "hajj",
+      "tier": "Premium",
+      "tierBn": "প্রিমিয়াম",
+      "title": "Hajj Premium 2027",
+      "titleBn": "হজ প্রিমিয়াম",
+      "season": "Hajj 2027",
+      "seasonBn": "হজ ২০২৭",
+      "durationNights": "40 days",
+      "durationNightsBn": "৪০ দিন",
+      "price": "৳ 725,000",
+      "priceBn": "৳ ৭,২৫,০০০",
+      "priceNote": "per person, twin sharing",
+      "priceNoteBn": "জনপ্রতি, দুইজনের রুম শেয়ারে",
+      "makkahDistance": "150 m from Haram",
+      "makkahDistanceBn": "হারাম থেকে ১৫০ মিটার",
+      "madinahDistance": "120 m from Masjid an-Nabawi",
+      "madinahDistanceBn": "মসজিদে নববী থেকে ১২০ মিটার",
+      "inclusions": [
+        "Hajj visa and Ministry registration",
+        "Return air ticket, direct, extra baggage",
+        "Twin-sharing room with Haram-side view where available",
+        "Mina VIP tent (zone A) with private washrooms",
+        "Buffet meals, Bangla and Arabic menu",
+        "Private car for Jeddah and Madinah transfers",
+        "Bangla-speaking guide, one per 15 pilgrims"
+      ],
+      "inclusionsBn": [
+        "হজ ভিসা ও মন্ত্রণালয়ের নিবন্ধন",
+        "সরাসরি রিটার্ন এয়ার টিকেট, অতিরিক্ত লাগেজসহ",
+        "সম্ভব হলে হারাম-মুখী দৃশ্যসহ দুইজনের রুম শেয়ার",
+        "মিনায় ভিআইপি তাঁবু (জোন এ), ব্যক্তিগত ওয়াশরুমসহ",
+        "বুফে খাবার, বাংলা ও আরবি মেনু",
+        "জেদ্দা ও মদিনা যাতায়াতে প্রাইভেট কার",
+        "বাংলাভাষী গাইড, প্রতি ১৫ জন হাজিতে একজন"
+      ],
+      "exclusions": [
+        "Passport fee",
+        "Qurbani",
+        "Personal shopping and laundry"
+      ],
+      "exclusionsBn": [
+        "পাসপোর্ট ফি",
+        "কুরবানি",
+        "ব্যক্তিগত কেনাকাটা ও লন্ড্রি"
+      ],
+      "hotels": [
+        {
+          "city": "Makkah",
+          "name": "Makkah 5-star, Haram walking distance",
+          "nameBn": "মক্কা ৫ স্টার, হারাম থেকে হাঁটার দূরত্বে",
+          "rating": "5 star",
+          "ratingBn": "৫ স্টার",
+          "distanceFromHaram": "150 m",
+          "distanceFromHaramBn": "১৫০ মিটার",
+          "roomType": "Twin sharing",
+          "roomTypeBn": "দুইজনের রুম শেয়ার"
+        },
+        {
+          "city": "Madinah",
+          "name": "Madinah 5-star, Masjid an-Nabawi view",
+          "nameBn": "মদিনা ৫ স্টার, মসজিদে নববী দৃশ্য",
+          "rating": "5 star",
+          "ratingBn": "৫ স্টার",
+          "distanceFromHaram": "120 m",
+          "distanceFromHaramBn": "১২০ মিটার",
+          "roomType": "Twin sharing",
+          "roomTypeBn": "দুইজনের রুম শেয়ার"
+        }
+      ],
+      "itinerary": [
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Day 0",
+          "nightsBn": "দিন ০",
+          "note": "Lounge check-in assistance at Dhaka (DAC).",
+          "noteBn": "ঢাকায় (ডিএসি) লাউঞ্জ চেক-ইন সহায়তা।"
+        },
+        {
+          "city": "Jeddah",
+          "nights": "Day 1",
+          "nightsBn": "দিন ১",
+          "note": "Fast-track immigration, private car to Makkah.",
+          "noteBn": "ফাস্ট-ট্র্যাক ইমিগ্রেশন, প্রাইভেট কারে মক্কা যাত্রা।"
+        },
+        {
+          "city": "Makkah",
+          "cityBn": "মক্কা",
+          "nights": "18 nights",
+          "nightsBn": "১৮ রাত",
+          "note": "Umrah, Hajj rites, guided ziyarat in small groups.",
+          "noteBn": "ওমরাহ, হজের আনুষ্ঠানিকতা, ছোট দলে গাইডেড জিয়ারত।"
+        },
+        {
+          "city": "Madinah",
+          "cityBn": "মদিনা",
+          "nights": "7 nights",
+          "nightsBn": "৭ রাত",
+          "note": "Hotel facing the Haram gate, flexible ziyarat schedule.",
+          "noteBn": "হারামের গেট মুখী হোটেল, নমনীয় জিয়ারত সময়সূচি।"
+        },
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Return",
+          "nightsBn": "ফেরার দিন",
+          "note": "Direct return flight to Dhaka (DAC).",
+          "noteBn": "ঢাকায় (ডিএসি) সরাসরি ফেরার ফ্লাইট।"
+        }
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Air ticket (direct, return)",
+          "labelBn": "এয়ার টিকেট (সরাসরি, রিটার্ন)",
+          "amount": "৳ 145,000"
+        },
+        {
+          "label": "Visa and government fees",
+          "labelBn": "ভিসা ও সরকারি ফি",
+          "amount": "৳ 65,000"
+        },
+        {
+          "label": "Hotels, 25 nights",
+          "labelBn": "হোটেল, ২৫ রাত",
+          "amount": "৳ 235,000"
+        },
+        {
+          "label": "Mina VIP services",
+          "labelBn": "মিনা ভিআইপি সেবা",
+          "amount": "৳ 95,000"
+        },
+        {
+          "label": "Buffet meals and private transport",
+          "labelBn": "বুফে খাবার ও প্রাইভেট যাতায়াত",
+          "amount": "৳ 60,000"
+        }
+      ],
+      "featured": false
+    },
+    {
+      "slug": "umrah-economy",
+      "kind": "umrah",
+      "tier": "Economy",
+      "tierBn": "ইকোনমি",
+      "title": "Umrah Silver Package",
+      "titleBn": "ওমরাহ সিলভার",
+      "season": "Year round",
+      "seasonBn": "সারা বছর",
+      "durationNights": "13 days",
+      "durationNightsBn": "১৩ দিন",
+      "price": "৳ 140,000",
+      "priceBn": "৳ ১,৪০,০০০",
+      "priceNote": "per person, sharing a 4-bed room",
+      "priceNoteBn": "জনপ্রতি, ৪ জনের রুম শেয়ারে",
+      "makkahDistance": "900 m from Haram",
+      "makkahDistanceBn": "হারাম থেকে ৯০০ মিটার",
+      "madinahDistance": "500 m from Masjid an-Nabawi",
+      "madinahDistanceBn": "মসজিদে নববী থেকে ৫০০ মিটার",
+      "inclusions": [
+        "Umrah visa",
+        "Return air ticket with one transit",
+        "Hotel, 4-bed sharing",
+        "Breakfast and dinner",
+        "Bus transfers",
+        "Ziyarat in Makkah and Madinah"
+      ],
+      "inclusionsBn": [
+        "ওমরাহ ভিসা",
+        "এক ট্রানজিটসহ রিটার্ন এয়ার টিকেট",
+        "হোটেল, ৪ জনের রুম শেয়ারে",
+        "সকালের নাস্তা ও রাতের খাবার",
+        "বাসে যাতায়াত",
+        "মক্কা ও মদিনায় জিয়ারত"
+      ],
+      "exclusions": [
+        "Lunch",
+        "Passport fee",
+        "Personal expenses",
+        "Travel insurance"
+      ],
+      "exclusionsBn": [
+        "দুপুরের খাবার",
+        "পাসপোর্ট ফি",
+        "ব্যক্তিগত খরচ",
+        "ট্রাভেল ইন্স্যুরেন্স"
+      ],
+      "hotels": [
+        {
+          "city": "Makkah",
+          "name": "Makkah 3-star, Misfalah",
+          "nameBn": "মক্কা ৩ স্টার, মিসফালাহ",
+          "rating": "3 star",
+          "ratingBn": "৩ স্টার",
+          "distanceFromHaram": "900 m",
+          "distanceFromHaramBn": "৯০০ মিটার",
+          "roomType": "4-bed sharing",
+          "roomTypeBn": "৪ জনের রুম শেয়ার"
+        },
+        {
+          "city": "Madinah",
+          "name": "Madinah 3-star, central area",
+          "nameBn": "মদিনা ৩ স্টার, কেন্দ্রীয় এলাকা",
+          "rating": "3 star",
+          "ratingBn": "৩ স্টার",
+          "distanceFromHaram": "500 m",
+          "distanceFromHaramBn": "৫০০ মিটার",
+          "roomType": "4-bed sharing",
+          "roomTypeBn": "৪ জনের রুম শেয়ার"
+        }
+      ],
+      "itinerary": [
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Day 0",
+          "nightsBn": "দিন ০",
+          "note": "Departure from Dhaka (DAC), one transit.",
+          "noteBn": "ঢাকা (ডিএসি) থেকে যাত্রা, এক ট্রানজিট।"
+        },
+        {
+          "city": "Jeddah",
+          "nights": "Day 1",
+          "nightsBn": "দিন ১",
+          "note": "Arrival at Jeddah (JED), bus to Makkah.",
+          "noteBn": "জেদ্দায় (জেইডি) পৌঁছানো, বাসে মক্কা যাত্রা।"
+        },
+        {
+          "city": "Makkah",
+          "cityBn": "মক্কা",
+          "nights": "8 nights",
+          "nightsBn": "৮ রাত",
+          "note": "Umrah on arrival, ziyarat on day 4.",
+          "noteBn": "পৌঁছেই ওমরাহ, চতুর্থ দিনে জিয়ারত।"
+        },
+        {
+          "city": "Madinah",
+          "cityBn": "মদিনা",
+          "nights": "5 nights",
+          "nightsBn": "৫ রাত",
+          "note": "Masjid an-Nabawi and historic ziyarat.",
+          "noteBn": "মসজিদে নববী ও ঐতিহাসিক জিয়ারত।"
+        },
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Return",
+          "nightsBn": "ফেরার দিন",
+          "note": "Return to Dhaka (DAC).",
+          "noteBn": "ঢাকায় (ডিএসি) প্রত্যাবর্তন।"
+        }
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Air ticket (return)",
+          "labelBn": "এয়ার টিকেট (রিটার্ন)",
+          "amount": "৳ 145,000"
+        },
+        {
+          "label": "Umrah visa",
+          "labelBn": "ওমরাহ ভিসা",
+          "amount": "৳ 65,000"
+        },
+        {
+          "label": "Hotels, 13 nights",
+          "labelBn": "হোটেল, ১৩ রাত",
+          "amount": "৳ 235,000"
+        },
+        {
+          "label": "Meals and transport",
+          "labelBn": "খাবার ও যাতায়াত",
+          "amount": "৳ 60,000"
+        }
+      ],
+      "featured": true
+    },
+    {
+      "slug": "umrah-standard",
+      "kind": "umrah",
+      "tier": "Standard",
+      "tierBn": "স্ট্যান্ডার্ড",
+      "title": "Umrah Gold Package",
+      "titleBn": "ওমরাহ গোল্ড",
+      "season": "Year round",
+      "seasonBn": "সারা বছর",
+      "durationNights": "14 days",
+      "durationNightsBn": "১৪ দিন",
+      "price": "৳ 145,000",
+      "priceBn": "৳ ১,৪৫,০০০",
+      "priceNote": "per person, triple sharing",
+      "priceNoteBn": "জনপ্রতি, তিনজনের রুম শেয়ারে",
+      "makkahDistance": "450 m from Haram",
+      "makkahDistanceBn": "হারাম থেকে ৪৫০ মিটার",
+      "madinahDistance": "250 m from Masjid an-Nabawi",
+      "madinahDistanceBn": "মসজিদে নববী থেকে ২৫০ মিটার",
+      "highlight": "Family favourite",
+      "highlightBn": "পরিবারের পছন্দ",
+      "inclusions": [
+        "Umrah visa",
+        "Direct return air ticket",
+        "Hotel, triple sharing",
+        "Three meals a day",
+        "Air-conditioned transfers",
+        "Full ziyarat programme"
+      ],
+      "inclusionsBn": [
+        "ওমরাহ ভিসা",
+        "সরাসরি রিটার্ন এয়ার টিকেট",
+        "হোটেল, তিনজনের রুম শেয়ারে",
+        "প্রতিদিন তিন বেলা খাবার",
+        "শীতাতপ নিয়ন্ত্রিত যাতায়াত",
+        "সম্পূর্ণ জিয়ারত কার্যক্রম"
+      ],
+      "exclusions": [
+        "Passport fee",
+        "Personal expenses",
+        "Extra nights"
+      ],
+      "exclusionsBn": [
+        "পাসপোর্ট ফি",
+        "ব্যক্তিগত খরচ",
+        "অতিরিক্ত রাত"
+      ],
+      "hotels": [
+        {
+          "city": "Makkah",
+          "name": "Makkah 4-star, Ajyad",
+          "nameBn": "মক্কা ৪ স্টার, আজইয়াদ",
+          "rating": "4 star",
+          "ratingBn": "৪ স্টার",
+          "distanceFromHaram": "450 m",
+          "distanceFromHaramBn": "৪৫০ মিটার",
+          "roomType": "Triple sharing",
+          "roomTypeBn": "তিনজনের রুম শেয়ার"
+        },
+        {
+          "city": "Madinah",
+          "name": "Madinah 4-star, central area",
+          "nameBn": "মদিনা ৪ স্টার, কেন্দ্রীয় এলাকা",
+          "rating": "4 star",
+          "ratingBn": "৪ স্টার",
+          "distanceFromHaram": "250 m",
+          "distanceFromHaramBn": "২৫০ মিটার",
+          "roomType": "Triple sharing",
+          "roomTypeBn": "তিনজনের রুম শেয়ার"
+        }
+      ],
+      "itinerary": [
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Day 0",
+          "nightsBn": "দিন ০",
+          "note": "Direct departure from Dhaka (DAC).",
+          "noteBn": "ঢাকা (ডিএসি) থেকে সরাসরি যাত্রা।"
+        },
+        {
+          "city": "Jeddah",
+          "nights": "Day 1",
+          "nightsBn": "দিন ১",
+          "note": "Arrival at Jeddah (JED), coach to Makkah.",
+          "noteBn": "জেদ্দায় (জেইডি) পৌঁছানো, কোচে মক্কা যাত্রা।"
+        },
+        {
+          "city": "Makkah",
+          "cityBn": "মক্কা",
+          "nights": "6 nights",
+          "nightsBn": "৬ রাত",
+          "note": "Umrah on arrival, guided ziyarat.",
+          "noteBn": "পৌঁছেই ওমরাহ, গাইডেড জিয়ারত।"
+        },
+        {
+          "city": "Madinah",
+          "cityBn": "মদিনা",
+          "nights": "3 nights",
+          "nightsBn": "৩ রাত",
+          "note": "Central-area hotel, walking distance to the Haram.",
+          "noteBn": "কেন্দ্রীয় এলাকার হোটেল, হারাম থেকে হাঁটার দূরত্বে।"
+        },
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Return",
+          "nightsBn": "ফেরার দিন",
+          "note": "Direct return to Dhaka (DAC).",
+          "noteBn": "ঢাকায় (ডিএসি) সরাসরি প্রত্যাবর্তন।"
+        }
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Air ticket (direct, return)",
+          "labelBn": "এয়ার টিকেট (সরাসরি, রিটার্ন)",
+          "amount": "৳ 145,000"
+        },
+        {
+          "label": "Umrah visa",
+          "labelBn": "ওমরাহ ভিসা",
+          "amount": "৳ 65,000"
+        },
+        {
+          "label": "Hotels, 9 nights",
+          "labelBn": "হোটেল, ৯ রাত",
+          "amount": "৳ 235,000"
+        },
+        {
+          "label": "Meals and transport",
+          "labelBn": "খাবার ও যাতায়াত",
+          "amount": "৳ 60,000"
+        }
+      ],
+      "featured": true
+    },
+    {
+      "slug": "umrah-premium-ramadan",
+      "kind": "umrah",
+      "tier": "Premium",
+      "tierBn": "প্রিমিয়াম",
+      "title": "Umrah Premium — Ramadan",
+      "titleBn": "ওমরাহ প্রিমিয়াম — রমজান",
+      "season": "Ramadan 1448",
+      "seasonBn": "রমজান ১৪৪৮",
+      "durationNights": "21 nights",
+      "durationNightsBn": "২১ রাত",
+      "price": "৳ 175,000",
+      "priceBn": "৳ ১,৭৫,০০০",
+      "priceNote": "per person, twin sharing",
+      "priceNoteBn": "জনপ্রতি, দুইজনের রুম শেয়ারে",
+      "makkahDistance": "200 m from Haram",
+      "makkahDistanceBn": "হারাম থেকে ২০০ মিটার",
+      "madinahDistance": "150 m from Masjid an-Nabawi",
+      "madinahDistanceBn": "মসজিদে নববী থেকে ১৫০ মিটার",
+      "highlight": "Last 10 nights",
+      "highlightBn": "শেষ ১০ রাত",
+      "inclusions": [
+        "Umrah visa for the full Ramadan period",
+        "Direct return air ticket",
+        "Twin-sharing room, Haram-side building",
+        "Sehri and iftar at the hotel",
+        "I'tikaf support for the last 10 nights",
+        "Private transfers and daily ziyarat option"
+      ],
+      "inclusionsBn": [
+        "পুরো রমজান মাসের জন্য ওমরাহ ভিসা",
+        "সরাসরি রিটার্ন এয়ার টিকেট",
+        "দুইজনের রুম শেয়ার, হারাম-মুখী ভবন",
+        "হোটেলে সেহরি ও ইফতার",
+        "শেষ ১০ রাতের ইতিকাফে সহায়তা",
+        "প্রাইভেট যাতায়াত ও প্রতিদিন জিয়ারতের সুযোগ"
+      ],
+      "exclusions": [
+        "Passport fee",
+        "Personal expenses",
+        "Extra nights beyond the group return"
+      ],
+      "exclusionsBn": [
+        "পাসপোর্ট ফি",
+        "ব্যক্তিগত খরচ",
+        "গ্রুপের প্রত্যাবর্তনের পরের অতিরিক্ত রাত"
+      ],
+      "hotels": [
+        {
+          "city": "Makkah",
+          "name": "Makkah 5-star, Haram-side building",
+          "nameBn": "মক্কা ৫ স্টার, হারাম-মুখী ভবন",
+          "rating": "5 star",
+          "ratingBn": "৫ স্টার",
+          "distanceFromHaram": "200 m",
+          "distanceFromHaramBn": "২০০ মিটার",
+          "roomType": "Twin sharing",
+          "roomTypeBn": "দুইজনের রুম শেয়ার"
+        },
+        {
+          "city": "Madinah",
+          "name": "Madinah 5-star, Haram gate",
+          "nameBn": "মদিনা ৫ স্টার, হারাম গেট",
+          "rating": "5 star",
+          "ratingBn": "৫ স্টার",
+          "distanceFromHaram": "150 m",
+          "distanceFromHaramBn": "১৫০ মিটার",
+          "roomType": "Twin sharing",
+          "roomTypeBn": "দুইজনের রুম শেয়ার"
+        }
+      ],
+      "itinerary": [
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Day 0",
+          "nightsBn": "দিন ০",
+          "note": "Group departure before Ramadan begins, Dhaka (DAC).",
+          "noteBn": "রমজান শুরুর আগে ঢাকা (ডিএসি) থেকে দলগত যাত্রা।"
+        },
+        {
+          "city": "Jeddah",
+          "nights": "Day 1",
+          "nightsBn": "দিন ১",
+          "note": "Arrival at Jeddah (JED), private coach to Makkah.",
+          "noteBn": "জেদ্দায় (জেইডি) পৌঁছানো, প্রাইভেট কোচে মক্কা যাত্রা।"
+        },
+        {
+          "city": "Makkah",
+          "cityBn": "মক্কা",
+          "nights": "14 nights",
+          "nightsBn": "১৪ রাত",
+          "note": "Umrah, taraweeh at the Haram, last 10 nights in i'tikaf.",
+          "noteBn": "ওমরাহ, হারামে তারাবিহ, শেষ ১০ রাত ইতিকাফে।"
+        },
+        {
+          "city": "Madinah",
+          "cityBn": "মদিনা",
+          "nights": "6 nights",
+          "nightsBn": "৬ রাত",
+          "note": "Eid at Masjid an-Nabawi, ziyarat programme.",
+          "noteBn": "মসজিদে নববীতে ঈদ, জিয়ারত কার্যক্রম।"
+        },
+        {
+          "city": "Dhaka",
+          "cityBn": "ঢাকা",
+          "nights": "Return",
+          "nightsBn": "ফেরার দিন",
+          "note": "Direct return to Dhaka (DAC) after Eid.",
+          "noteBn": "ঈদের পর ঢাকায় (ডিএসি) সরাসরি প্রত্যাবর্তন।"
+        }
+      ],
+      "priceBreakdown": [
+        {
+          "label": "Air ticket (direct, return)",
+          "labelBn": "এয়ার টিকেট (সরাসরি, রিটার্ন)",
+          "amount": "৳ 145,000"
+        },
+        {
+          "label": "Umrah visa",
+          "labelBn": "ওমরাহ ভিসা",
+          "amount": "৳ 65,000"
+        },
+        {
+          "label": "Hotels, 20 nights (Ramadan rate)",
+          "labelBn": "হোটেল, ২০ রাত (রমজান রেট)",
+          "amount": "৳ 235,000"
+        },
+        {
+          "label": "Sehri, iftar and transport",
+          "labelBn": "সেহরি, ইফতার ও যাতায়াত",
+          "amount": "৳ 60,000"
+        }
+      ],
+      "featured": false
+    }
+  ],
+  "services": [
+    {
+      "slug": "hajj",
+      "title": "Hajj packages",
+      "titleBn": "হজ প্যাকেজ",
+      "summary": "Government-approved Hajj packages with hotel distance, transport and food stated up front.",
+      "summaryBn": "সরকার অনুমোদিত হজ প্যাকেজ — হোটেলের দূরত্ব, পরিবহন ও খাবার আগেই লিখিত।",
+      "bullets": [
+        "Economy, Standard and Premium tiers",
+        "Makkah hotels from 400m of the Haram",
+        "Bangla-speaking guide with every group"
+      ],
+      "bulletsBn": [
+        "ইকোনমি, স্ট্যান্ডার্ড ও প্রিমিয়াম প্যাকেজ",
+        "মক্কার হোটেল হারাম থেকে ৪০০ মিটার থেকে",
+        "প্রতিটি গ্রুপে বাংলাভাষী গাইড"
+      ],
+      "href": "/hajj",
+      "icon": "kaaba"
+    },
+    {
+      "slug": "umrah",
+      "title": "Umrah packages",
+      "titleBn": "ওমরাহ প্যাকেজ",
+      "summary": "Year-round Umrah departures, including Ramadan groups and family rooms.",
+      "summaryBn": "সারা বছর ওমরাহ ফ্লাইট, রমজান গ্রুপ ও ফ্যামিলি রুমসহ।",
+      "bullets": [
+        "10, 14 and 21 night options",
+        "Visa, ticket, hotel and ziyarat included",
+        "Ramadan last-10-nights group"
+      ],
+      "bulletsBn": [
+        "১০, ১৪ ও ২১ রাতের অপশন",
+        "ভিসা, টিকিট, হোটেল ও জিয়ারত অন্তর্ভুক্ত",
+        "রমজানের শেষ দশ রাতের গ্রুপ"
+      ],
+      "href": "/umrah",
+      "icon": "moon"
+    },
+    {
+      "slug": "visa",
+      "title": "Visa processing",
+      "titleBn": "ভিসা প্রসেসিং",
+      "summary": "Tourist, business, work and family visas with a written document checklist before you pay.",
+      "summaryBn": "ট্যুরিস্ট, বিজনেস, ওয়ার্ক ও ফ্যামিলি ভিসা — টাকা নেওয়ার আগে লিখিত ডকুমেন্ট চেকলিস্ট।",
+      "bullets": [
+        "Document check at the counter",
+        "Appointment booking and form filling",
+        "Status update by phone every week"
+      ],
+      "bulletsBn": [
+        "কাউন্টারেই কাগজপত্র যাচাই",
+        "অ্যাপয়েন্টমেন্ট ও ফরম পূরণ",
+        "প্রতি সপ্তাহে ফোনে আপডেট"
+      ],
+      "href": "/visa",
+      "icon": "passport"
+    },
+    {
+      "slug": "air-ticket",
+      "title": "Air tickets",
+      "titleBn": "এয়ার টিকিট",
+      "summary": "Domestic and international tickets from IATA-accredited airline partners.",
+      "summaryBn": "IATA অনুমোদিত এয়ারলাইন্স পার্টনার থেকে দেশি ও আন্তর্জাতিক টিকিট।",
+      "bullets": [
+        "Labour and student fares",
+        "Date change and refund handled in office",
+        "Group booking for 10+ passengers"
+      ],
+      "bulletsBn": [
+        "লেবার ও স্টুডেন্ট ফেয়ার",
+        "ডেট চেঞ্জ ও রিফান্ড অফিসেই",
+        "১০+ যাত্রীর গ্রুপ বুকিং"
+      ],
+      "href": "/air-ticket",
+      "icon": "plane"
+    },
+    {
+      "slug": "manpower",
+      "title": "Manpower & recruitment",
+      "titleBn": "জনশক্তি রপ্তানি",
+      "summary": "BMET-registered overseas recruitment for Gulf, Malaysia and East European employers.",
+      "summaryBn": "BMET নিবন্ধিত জনশক্তি রপ্তানি — গালফ, মালয়েশিয়া ও পূর্ব ইউরোপ।",
+      "bullets": [
+        "Demand letter to flight, one file",
+        "Trade test and medical arranged",
+        "Employer contract shown before signing"
+      ],
+      "bulletsBn": [
+        "ডিমান্ড লেটার থেকে ফ্লাইট, এক ফাইলে",
+        "ট্রেড টেস্ট ও মেডিকেল ব্যবস্থা",
+        "চুক্তি দেখিয়ে তবেই সই"
+      ],
+      "href": "/manpower",
+      "icon": "briefcase"
+    },
+    {
+      "slug": "tours",
+      "title": "Tour packages",
+      "titleBn": "ট্যুর প্যাকেজ",
+      "summary": "Family and corporate tours inside Bangladesh and across Asia.",
+      "summaryBn": "দেশে ও এশিয়াজুড়ে পারিবারিক ও কর্পোরেট ট্যুর।",
+      "bullets": [
+        "Fixed departure and custom itineraries",
+        "Hotel, transfer and guide bundled",
+        "Instalment option for group bookings"
+      ],
+      "bulletsBn": [
+        "ফিক্সড ডিপারচার ও কাস্টম ইটিনারারি",
+        "হোটেল, ট্রান্সফার ও গাইড একসাথে",
+        "গ্রুপ বুকিংয়ে কিস্তির সুযোগ"
+      ],
+      "href": "/tours",
+      "icon": "map"
+    }
+  ],
+  "testimonials": [
+    {
+      "name": "[CUSTOMER_NAME_1]",
+      "location": "Mirpur, Dhaka",
+      "locationBn": "মিরপুর, ঢাকা",
+      "service": "Hajj Standard",
+      "serviceBn": "হজ স্ট্যান্ডার্ড",
+      "year": "[YEAR_1]",
+      "quote": "The hotel was where they said it was — a seven minute walk to the Haram. My father is 68 and he managed it every prayer.",
+      "quoteBn": "হোটেলটা ঠিক যেখানে বলা হয়েছিল সেখানেই ছিল — হারাম পর্যন্ত হেঁটে সাত মিনিট। আমার বাবার বয়স ৬৮, তিনি প্রতি ওয়াক্তে হেঁটেই যেতে পেরেছেন।"
+    },
+    {
+      "name": "[CUSTOMER_NAME_2]",
+      "location": "Sylhet",
+      "locationBn": "সিলেট",
+      "service": "Umrah Standard",
+      "serviceBn": "ওমরাহ স্ট্যান্ডার্ড",
+      "year": "[YEAR_2]",
+      "quote": "They gave me the full cost sheet before I paid anything. No extra charge appeared later, not one taka.",
+      "quoteBn": "টাকা দেওয়ার আগেই পুরো খরচের হিসাব লিখে দিয়েছিল। পরে আর কোনো বাড়তি খরচ আসেনি।"
+    },
+    {
+      "name": "[CUSTOMER_NAME_3]",
+      "location": "Cumilla",
+      "locationBn": "কুমিল্লা",
+      "service": "Manpower — Saudi Arabia",
+      "serviceBn": "জনশক্তি — সৌদি আরব",
+      "year": "[YEAR_3]",
+      "quote": "I read the employer contract in the office before signing. Salary and duty hours were exactly as written when I reached Riyadh.",
+      "quoteBn": "অফিসে সই করার আগে নিয়োগকর্তার চুক্তিপত্র পড়ে নিয়েছিলাম। রিয়াদে পৌঁছানোর পর বেতন ও কাজের সময় লেখা অনুযায়ীই ছিল।"
+    },
+    {
+      "name": "[CUSTOMER_NAME_4]",
+      "location": "Uttara, Dhaka",
+      "locationBn": "উত্তরা, ঢাকা",
+      "service": "Schengen visa",
+      "serviceBn": "শেনজেন ভিসা",
+      "year": "[YEAR_4]",
+      "quote": "My file was refused the first time on a bank statement issue. They fixed it and refiled without charging service again.",
+      "quoteBn": "ব্যাংক স্টেটমেন্টের সমস্যায় প্রথমবার আমার ফাইল রিফিউজ হয়েছিল। তারা সেটা ঠিক করে আবার জমা দিয়েছিল, নতুন করে কোনো সার্ভিস চার্জ ছাড়াই।"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Are you a government-approved Hajj agency?",
+      "questionBn": "আপনারা কি সরকার অনুমোদিত হজ এজেন্সি?",
+      "answer": "Yes. We hold a Hajj licence from the Ministry of Religious Affairs, ATAB membership, IATA accreditation and ISO 9001:2015 certification. Our approvals are printed on every receipt we issue.",
+      "answerBn": "হ্যাঁ। আমাদের ধর্ম মন্ত্রণালয়ের হজ লাইসেন্স, ATAB সদস্যপদ, IATA স্বীকৃতি এবং ISO 9001:2015 সনদ রয়েছে। আমাদের প্রতিটি রসিদে এই অনুমোদনগুলো ছাপা থাকে।"
+    },
+    {
+      "question": "Can I pay in instalments?",
+      "questionBn": "আমি কি কিস্তিতে টাকা দিতে পারব?",
+      "answer": "Hajj and Umrah packages can be paid in three instalments. The booking amount holds your seat, the second payment falls due at visa filing, and the balance 20 days before departure.",
+      "answerBn": "হজ ও ওমরাহ প্যাকেজের টাকা তিন কিস্তিতে দেওয়া যায়। বুকিং মানি দিলে আপনার সিট নিশ্চিত হয়, দ্বিতীয় কিস্তি ভিসা জমা দেওয়ার সময় দিতে হয়, আর বাকি টাকা যাত্রার ২০ দিন আগে।"
+    },
+    {
+      "question": "What happens if my visa is refused?",
+      "questionBn": "ভিসা রিফিউজ হলে কী হবে?",
+      "answer": "Embassy and government fees are non-refundable because they are paid to the mission. Our service charge is returned in full, and we will re-file once at no extra service charge if the refusal reason can be corrected.",
+      "answerBn": "দূতাবাস ও সরকারি ফি ফেরতযোগ্য নয়, কারণ এটি দূতাবাসে জমা হয়ে যায়। আমাদের সার্ভিস চার্জ সম্পূর্ণ ফেরত দেওয়া হবে, এবং রিফিউজালের কারণ সমাধানযোগ্য হলে অতিরিক্ত সার্ভিস চার্জ ছাড়াই একবার পুনরায় জমা দেওয়া হবে।"
+    },
+    {
+      "question": "How far are the hotels from the Haram?",
+      "questionBn": "হোটেলগুলো হারাম থেকে কত দূরে?",
+      "answer": "Distance is written on every package card in metres, not in words. Economy is 900 – 1,200 m with shuttle bus, Standard 450 – 700 m walking, Premium under 200 m.",
+      "answerBn": "প্রতিটি প্যাকেজ কার্ডে দূরত্ব মিটারে সুনির্দিষ্টভাবে লেখা থাকে, আন্দাজে নয়। ইকোনমিতে শাটল বাসসহ ৯০০ – ১,২০০ মিটার, স্ট্যান্ডার্ডে হেঁটে ৪৫০ – ৭০০ মিটার, প্রিমিয়ামে ২০০ মিটারের নিচে।"
+    },
+    {
+      "question": "Do you send a Bangla-speaking guide?",
+      "questionBn": "আপনারা কি বাংলাভাষী গাইড পাঠান?",
+      "answer": "Yes. Every Hajj group travels with a Bangla-speaking guide, one per 45 pilgrims on Economy, one per 15 on Premium. Umrah groups of 15 or more also get a dedicated guide.",
+      "answerBn": "হ্যাঁ। প্রতিটি হজ গ্রুপের সাথে বাংলাভাষী গাইড যায়, ইকোনমিতে প্রতি ৪৫ জনে একজন, প্রিমিয়ামে প্রতি ১৫ জনে একজন। ১৫ জন বা তার বেশি ওমরাহ গ্রুপেও একজন নির্ধারিত গাইড থাকে।"
+    },
+    {
+      "question": "Can I book only the air ticket or only the visa?",
+      "questionBn": "আমি কি শুধু এয়ার টিকেট বা শুধু ভিসা বুক করতে পারব?",
+      "answer": "Yes. Tickets, visa processing and hotel booking are all sold separately. You do not have to take a full package.",
+      "answerBn": "হ্যাঁ। টিকেট, ভিসা প্রসেসিং ও হোটেল বুকিং আলাদাভাবে করা যায়। পুরো প্যাকেজ নেওয়া বাধ্যতামূলক নয়।"
+    },
+    {
+      "question": "How do I confirm my booking is real?",
+      "questionBn": "আমার বুকিং আসল কিনা কীভাবে নিশ্চিত হব?",
+      "answer": "Come to the office, or ask us to send a signed booking confirmation on letterhead with the licence number and your passport details. We do not confirm bookings by voice call alone.",
+      "answerBn": "অফিসে এসে দেখতে পারেন, অথবা লাইসেন্স নম্বর ও আপনার পাসপোর্টের তথ্যসহ স্বাক্ষরিত লেটারহেডে বুকিং কনফার্মেশন চেয়ে নিতে পারেন। শুধু ফোনে কথা বলে আমরা বুকিং নিশ্চিত করি না।"
+    },
+    {
+      "question": "Do you charge for a consultation?",
+      "questionBn": "পরামর্শের জন্য কি কোনো ফি লাগে?",
+      "answer": "No. Document checks and package comparison are free, in the office or over the phone.",
+      "answerBn": "না। কাগজপত্র যাচাই ও প্যাকেজ তুলনা করা বিনামূল্যে, অফিসে বা ফোনে।"
+    }
+  ],
+  "tours": {
+    "tours": [
+      {
+        "slug": "coxs-bazar-3n",
+        "title": "Cox's Bazar beach break",
+        "titleBn": "কক্সবাজার",
+        "scope": "Domestic",
+        "region": "Chattogram",
+        "regionBn": "চট্টগ্রাম",
+        "nights": "3 nights",
+        "nightsBn": "৩ রাত",
+        "price": "৳ 18,500",
+        "priceBn": "৳ ১৮,৫০০",
+        "groupSize": "2 – 40",
+        "groupSizeBn": "২ – ৪০ জন",
+        "highlights": [
+          "Beachfront hotel, sea-facing room",
+          "Inani and Himchari day trip",
+          "Return air or AC coach"
+        ],
+        "highlightsBn": [
+          "সৈকতের ধারে হোটেল, সমুদ্রমুখী রুম",
+          "ইনানি ও হিমছড়ি দিনভ্রমণ",
+          "রিটার্ন এয়ার বা এসি কোচ"
+        ]
+      },
+      {
+        "slug": "sundarbans-3n",
+        "title": "Sundarbans launch tour",
+        "titleBn": "সুন্দরবন লঞ্চ ট্যুর",
+        "scope": "Domestic",
+        "region": "Khulna",
+        "regionBn": "খুলনা",
+        "nights": "3 nights",
+        "nightsBn": "৩ রাত",
+        "price": "৳ 22,000",
+        "priceBn": "৳ ২২,০০০",
+        "groupSize": "10 – 60",
+        "groupSizeBn": "১০ – ৬০ জন",
+        "highlights": [
+          "Full-board launch accommodation",
+          "Karamjal and Kotka landings",
+          "Forest permit and armed guard included"
+        ],
+        "highlightsBn": [
+          "সম্পূর্ণ বোর্ড লঞ্চ আবাসন",
+          "করমজল ও কটকা ভ্রমণ",
+          "বন বিভাগের অনুমতি ও সশস্ত্র প্রহরী অন্তর্ভুক্ত"
+        ]
+      },
+      {
+        "slug": "sylhet-2n",
+        "title": "Sylhet tea valley",
+        "titleBn": "সিলেট",
+        "scope": "Domestic",
+        "region": "Sylhet",
+        "regionBn": "সিলেট",
+        "nights": "2 nights",
+        "nightsBn": "২ রাত",
+        "price": "৳ 14,500",
+        "priceBn": "৳ ১৪,৫০০",
+        "groupSize": "2 – 30",
+        "groupSizeBn": "২ – ৩০ জন",
+        "highlights": [
+          "Ratargul and Jaflong",
+          "Tea estate resort stay",
+          "Private microbus"
+        ],
+        "highlightsBn": [
+          "রাতারগুল ও জাফলং",
+          "চা বাগানের রিসোর্টে থাকা",
+          "প্রাইভেট মাইক্রোবাস"
+        ]
+      },
+      {
+        "slug": "sajek-2n",
+        "title": "Sajek Valley",
+        "titleBn": "সাজেক ভ্যালি",
+        "scope": "Domestic",
+        "region": "Rangamati",
+        "regionBn": "রাঙামাটি",
+        "nights": "2 nights",
+        "nightsBn": "২ রাত",
+        "price": "৳ 12,500",
+        "priceBn": "৳ ১২,৫০০",
+        "groupSize": "4 – 25",
+        "groupSizeBn": "৪ – ২৫ জন",
+        "highlights": [
+          "Hilltop cottage with valley view",
+          "Escort convoy from Khagrachhari",
+          "All meals included"
+        ],
+        "highlightsBn": [
+          "পাহাড়ের চূড়ায় কটেজ, উপত্যকার দৃশ্যসহ",
+          "খাগড়াছড়ি থেকে এসকর্ট কনভয়",
+          "সব খাবার অন্তর্ভুক্ত"
+        ]
+      },
+      {
+        "slug": "malaysia-singapore-6n",
+        "title": "Malaysia and Singapore",
+        "titleBn": "মালয়েশিয়া ও সিঙ্গাপুর",
+        "scope": "International",
+        "region": "Southeast Asia",
+        "regionBn": "দক্ষিণ-পূর্ব এশিয়া",
+        "nights": "6 nights",
+        "nightsBn": "৬ রাত",
+        "price": "৳ 92,000",
+        "priceBn": "৳ ৯২,০০০",
+        "groupSize": "2 – 20",
+        "groupSizeBn": "২ – ২০ জন",
+        "highlights": [
+          "Kuala Lumpur and Sentosa",
+          "Visa and air ticket included",
+          "Bangla-speaking tour leader"
+        ],
+        "highlightsBn": [
+          "কুয়ালালামপুর ও সেন্টোসা",
+          "ভিসা ও এয়ার টিকেট অন্তর্ভুক্ত",
+          "বাংলাভাষী ট্যুর লিডার"
+        ]
+      },
+      {
+        "slug": "thailand-5n",
+        "title": "Bangkok and Pattaya",
+        "titleBn": "ব্যাংকক ও পাতায়া",
+        "scope": "International",
+        "region": "Southeast Asia",
+        "regionBn": "দক্ষিণ-পূর্ব এশিয়া",
+        "nights": "5 nights",
+        "nightsBn": "৫ রাত",
+        "price": "৳ 68,000",
+        "priceBn": "৳ ৬৮,০০০",
+        "groupSize": "2 – 25",
+        "groupSizeBn": "২ – ২৫ জন",
+        "highlights": [
+          "City tour and Coral Island",
+          "4-star hotels with breakfast",
+          "Airport transfers included"
+        ],
+        "highlightsBn": [
+          "সিটি ট্যুর ও কোরাল আইল্যান্ড",
+          "সকালের নাস্তাসহ ৪ স্টার হোটেল",
+          "বিমানবন্দর যাতায়াত অন্তর্ভুক্ত"
+        ]
+      },
+      {
+        "slug": "dubai-4n",
+        "title": "Dubai city and desert",
+        "titleBn": "দুবাই শহর ও মরুভূমি",
+        "scope": "International",
+        "region": "Middle East",
+        "regionBn": "মধ্যপ্রাচ্য",
+        "nights": "4 nights",
+        "nightsBn": "৪ রাত",
+        "price": "৳ 85,000",
+        "priceBn": "৳ ৮৫,০০০",
+        "groupSize": "2 – 20",
+        "groupSizeBn": "২ – ২০ জন",
+        "highlights": [
+          "Burj Khalifa entry",
+          "Desert safari with dinner",
+          "Family rooms available"
+        ],
+        "highlightsBn": [
+          "বুর্জ খলিফায় প্রবেশ",
+          "রাতের খাবারসহ ডেজার্ট সাফারি",
+          "ফ্যামিলি রুম সুবিধা"
+        ]
+      },
+      {
+        "slug": "turkey-7n",
+        "title": "Istanbul and Cappadocia",
+        "titleBn": "ইস্তাম্বুল ও কাপাডোসিয়া",
+        "scope": "International",
+        "region": "Europe / Asia",
+        "regionBn": "ইউরোপ / এশিয়া",
+        "nights": "7 nights",
+        "nightsBn": "৭ রাত",
+        "price": "৳ 155,000",
+        "priceBn": "৳ ১,৫৫,০০০",
+        "groupSize": "6 – 24",
+        "groupSizeBn": "৬ – ২৪ জন",
+        "highlights": [
+          "Blue Mosque and Hagia Sophia",
+          "Cappadocia balloon option",
+          "Halal meals throughout"
+        ],
+        "highlightsBn": [
+          "ব্লু মস্ক ও হাজিয়া সোফিয়া",
+          "কাপাডোসিয়া বেলুন ভ্রমণের সুযোগ",
+          "পুরো ট্যুরে হালাল খাবার"
+        ]
+      }
+    ],
+    "tourRegions": [
+      "All",
+      "Domestic",
+      "International"
+    ]
+  },
+  "visaCountries": [
+    {
+      "slug": "saudi-arabia",
+      "country": "Saudi Arabia",
+      "countryBn": "সৌদি আরব",
+      "types": [
+        "Work",
+        "Family",
+        "Business"
+      ],
+      "processingTime": "15 – 25 working days",
+      "processingTimeBn": "১৫ – ২৫ কর্মদিবস",
+      "governmentFee": "included",
+      "governmentFeeBn": "অন্তর্ভুক্ত",
+      "serviceCharge": "৳ 8,500 all-in",
+      "serviceChargeBn": "৳ ৮,৫০০ সর্বমোট",
+      "documents": [
+        "Passport valid 8+ months",
+        "Employer demand letter",
+        "Police clearance",
+        "Medical (GAMCA) report",
+        "4 photos, white background",
+        "Attested education certificate"
+      ],
+      "documentsBn": [
+        "পাসপোর্টের মেয়াদ ৮ মাসের বেশি",
+        "নিয়োগকর্তার ডিমান্ড লেটার",
+        "পুলিশ ক্লিয়ারেন্স",
+        "মেডিকেল (গামকা) রিপোর্ট",
+        "৪ কপি ছবি, সাদা ব্যাকগ্রাউন্ড",
+        "সত্যায়িত শিক্ষাগত সনদ"
+      ],
+      "note": "Work visas require BMET clearance before the flight. We complete that in the same file.",
+      "noteBn": "কাজের ভিসার ক্ষেত্রে ফ্লাইটের আগে বিএমইটি ক্লিয়ারেন্স লাগে। আমরা একই ফাইলে এটি সম্পন্ন করে দিই।"
+    },
+    {
+      "slug": "uae",
+      "country": "United Arab Emirates",
+      "countryBn": "সংযুক্ত আরব আমিরাত",
+      "types": [
+        "Tourist",
+        "Business",
+        "Work"
+      ],
+      "processingTime": "5 – 10 working days",
+      "processingTimeBn": "৫ – ১০ কর্মদিবস",
+      "governmentFee": "included",
+      "governmentFeeBn": "অন্তর্ভুক্ত",
+      "serviceCharge": "৳ 12,000 all-in",
+      "serviceChargeBn": "৳ ১২,০০০ সর্বমোট",
+      "documents": [
+        "Passport valid 6+ months",
+        "Photo, 45mm x 35mm",
+        "Bank statement, last 6 months",
+        "Confirmed return ticket",
+        "Hotel booking"
+      ],
+      "documentsBn": [
+        "পাসপোর্টের মেয়াদ ৬ মাসের বেশি",
+        "ছবি, ৪৫মিমি x ৩৫মিমি",
+        "গত ৬ মাসের ব্যাংক স্টেটমেন্ট",
+        "নিশ্চিত রিটার্ন টিকেট",
+        "হোটেল বুকিং"
+      ],
+      "note": "Tourist visas are issued as 30-day or 60-day. Both are handled at the counter.",
+      "noteBn": "ট্যুরিস্ট ভিসা ৩০ দিন বা ৬০ দিনের হয়। কাউন্টারেই দুটোই করে দেওয়া হয়।"
+    },
+    {
+      "slug": "malaysia",
+      "country": "Malaysia",
+      "countryBn": "মালয়েশিয়া",
+      "types": [
+        "Tourist",
+        "Work",
+        "Student"
+      ],
+      "processingTime": "7 – 14 working days",
+      "processingTimeBn": "৭ – ১৪ কর্মদিবস",
+      "governmentFee": "included",
+      "governmentFeeBn": "অন্তর্ভুক্ত",
+      "serviceCharge": "৳ 5,500 all-in",
+      "serviceChargeBn": "৳ ৫,৫০০ সর্বমোট",
+      "documents": [
+        "Passport valid 6+ months",
+        "eVISA form",
+        "Bank solvency certificate",
+        "Trade licence or NOC from employer",
+        "Return ticket booking"
+      ],
+      "documentsBn": [
+        "পাসপোর্টের মেয়াদ ৬ মাসের বেশি",
+        "ই-ভিসা ফরম",
+        "ব্যাংক সলভেন্সি সার্টিফিকেট",
+        "ট্রেড লাইসেন্স বা নিয়োগকর্তার এনওসি",
+        "রিটার্ন টিকেট বুকিং"
+      ],
+      "note": "Worker intake follows the Malaysian government quota calendar; we confirm before taking a file.",
+      "noteBn": "শ্রমিক নেওয়া মালয়েশিয়া সরকারের কোটা ক্যালেন্ডার অনুযায়ী হয়; ফাইল নেওয়ার আগে আমরা নিশ্চিত করে নিই।"
+    },
+    {
+      "slug": "india",
+      "country": "India",
+      "countryBn": "ভারত",
+      "types": [
+        "Tourist",
+        "Business"
+      ],
+      "processingTime": "10 – 20 working days",
+      "processingTimeBn": "১০ – ২০ কর্মদিবস",
+      "governmentFee": "as per IVAC",
+      "governmentFeeBn": "IVAC অনুযায়ী",
+      "serviceCharge": "quoted at the counter",
+      "serviceChargeBn": "কাউন্টারে জানানো হয়",
+      "documents": [
+        "Passport valid 6+ months",
+        "Online application printout",
+        "Utility bill as address proof",
+        "Bank statement or dollar endorsement",
+        "NID copy"
+      ],
+      "documentsBn": [
+        "পাসপোর্টের মেয়াদ ৬ মাসের বেশি",
+        "অনলাইন আবেদনের প্রিন্টআউট",
+        "ঠিকানার প্রমাণ হিসেবে ইউটিলিটি বিল",
+        "ব্যাংক স্টেটমেন্ট বা ডলার এন্ডোর্সমেন্ট",
+        "এনআইডি কপি"
+      ],
+      "note": "Appointment slots at IVAC are limited; apply at least a month before travel.",
+      "noteBn": "IVAC-এ অ্যাপয়েন্টমেন্টের সংখ্যা সীমিত; যাত্রার অন্তত এক মাস আগে আবেদন করুন।"
+    },
+    {
+      "slug": "thailand",
+      "country": "Thailand",
+      "countryBn": "থাইল্যান্ড",
+      "types": [
+        "Tourist",
+        "Business"
+      ],
+      "processingTime": "7 – 10 working days",
+      "processingTimeBn": "৭ – ১০ কর্মদিবস",
+      "governmentFee": "as per embassy",
+      "governmentFeeBn": "দূতাবাস অনুযায়ী",
+      "serviceCharge": "quoted at the counter",
+      "serviceChargeBn": "কাউন্টারে জানানো হয়",
+      "documents": [
+        "Passport valid 6+ months",
+        "Two photos, 40mm x 60mm",
+        "Bank statement with minimum balance",
+        "Return ticket and hotel booking",
+        "Employment or business proof"
+      ],
+      "documentsBn": [
+        "পাসপোর্টের মেয়াদ ৬ মাসের বেশি",
+        "দুই কপি ছবি, ৪০মিমি x ৬০মিমি",
+        "সর্বনিম্ন ব্যালেন্সসহ ব্যাংক স্টেটমেন্ট",
+        "রিটার্ন টিকেট ও হোটেল বুকিং",
+        "চাকরি বা ব্যবসায়ের প্রমাণ"
+      ],
+      "note": "Family applications are submitted together so travel dates stay aligned.",
+      "noteBn": "পারিবারিক আবেদনগুলো একসাথে জমা দেওয়া হয় যাতে যাত্রার তারিখ মিলে যায়।"
+    },
+    {
+      "slug": "schengen",
+      "country": "Schengen area",
+      "countryBn": "শেনজেন অঞ্চল",
+      "types": [
+        "Tourist",
+        "Business",
+        "Family"
+      ],
+      "processingTime": "20 – 45 working days",
+      "processingTimeBn": "২০ – ৪৫ কর্মদিবস",
+      "governmentFee": "as per embassy",
+      "governmentFeeBn": "দূতাবাস অনুযায়ী",
+      "serviceCharge": "quoted at the counter",
+      "serviceChargeBn": "কাউন্টারে জানানো হয়",
+      "documents": [
+        "Passport valid 3+ months beyond return",
+        "Travel insurance, 30,000 EUR cover",
+        "Bank statement, last 6 months",
+        "Employment letter and salary slips",
+        "Day-by-day itinerary",
+        "Accommodation proof"
+      ],
+      "documentsBn": [
+        "ফেরার তারিখের পরও ৩ মাসের বেশি মেয়াদসহ পাসপোর্ট",
+        "৩০,০০০ ইউরো কভারেজের ট্রাভেল ইন্স্যুরেন্স",
+        "গত ৬ মাসের ব্যাংক স্টেটমেন্ট",
+        "চাকরির লেটার ও বেতনের স্লিপ",
+        "দিনভিত্তিক ভ্রমণ পরিকল্পনা",
+        "থাকার ব্যবস্থার প্রমাণ"
+      ],
+      "note": "We prepare the file and book the appointment. Approval is decided by the embassy alone.",
+      "noteBn": "আমরা ফাইল প্রস্তুত করি ও অ্যাপয়েন্টমেন্ট বুক করি। অনুমোদন সম্পূর্ণভাবে দূতাবাসের সিদ্ধান্ত।"
+    }
+  ],
+  "manpower": {
+    "sectors": [
+      {
+        "name": "Construction",
+        "nameBn": "নির্মাণ",
+        "roles": "Mason, steel fixer, carpenter, scaffolder",
+        "rolesBn": "রাজমিস্ত্রি, স্টিল ফিক্সার, কাঠমিস্ত্রি, স্ক্যাফোল্ডার",
+        "demand": "High",
+        "demandBn": "বেশি"
+      },
+      {
+        "name": "Hospitality",
+        "nameBn": "হসপিটালিটি",
+        "roles": "Housekeeping, kitchen helper, waiter, cleaner",
+        "rolesBn": "হাউজকিপিং, রান্নাঘরের সহকারী, ওয়েটার, ক্লিনার",
+        "demand": "High",
+        "demandBn": "বেশি"
+      },
+      {
+        "name": "Manufacturing",
+        "nameBn": "উৎপাদন শিল্প",
+        "roles": "Machine operator, packer, quality checker",
+        "rolesBn": "মেশিন অপারেটর, প্যাকার, কোয়ালিটি চেকার",
+        "demand": "Medium",
+        "demandBn": "মাঝারি"
+      },
+      {
+        "name": "Healthcare support",
+        "nameBn": "স্বাস্থ্যসেবা সহায়তা",
+        "roles": "Caregiver, ward assistant, cleaner",
+        "rolesBn": "কেয়ারগিভার, ওয়ার্ড সহকারী, ক্লিনার",
+        "demand": "High",
+        "demandBn": "বেশি"
+      },
+      {
+        "name": "Driving and logistics",
+        "nameBn": "ড্রাইভিং ও লজিস্টিকস",
+        "roles": "Light and heavy driver, warehouse loader",
+        "rolesBn": "লাইট ও হেভি ড্রাইভার, গুদামের লোডার",
+        "demand": "Medium",
+        "demandBn": "মাঝারি"
+      },
+      {
+        "name": "Agriculture",
+        "nameBn": "কৃষি",
+        "roles": "Farm worker, greenhouse operator",
+        "rolesBn": "খামার শ্রমিক, গ্রিনহাউস অপারেটর",
+        "demand": "Seasonal",
+        "demandBn": "মৌসুমি"
+      }
+    ],
+    "destinations": [
+      {
+        "country": "Saudi Arabia",
+        "countryBn": "সৌদি আরব",
+        "sectors": "Construction, hospitality, driving",
+        "sectorsBn": "নির্মাণ, হসপিটালিটি, ড্রাইভিং",
+        "contractLength": "24 months",
+        "contractLengthBn": "২৪ মাস",
+        "salaryRange": "SAR 800 – 2,000 / month",
+        "salaryRangeBn": "SAR ৮০০ – ২,০০০ / মাস"
+      },
+      {
+        "country": "United Arab Emirates",
+        "countryBn": "সংযুক্ত আরব আমিরাত",
+        "sectors": "Construction, hospitality, logistics",
+        "sectorsBn": "নির্মাণ, হসপিটালিটি, লজিস্টিকস",
+        "contractLength": "24 months",
+        "contractLengthBn": "২৪ মাস",
+        "salaryRange": "AED 1,200 – 3,000 / month",
+        "salaryRangeBn": "AED ১,২০০ – ৩,০০০ / মাস"
+      },
+      {
+        "country": "Qatar",
+        "countryBn": "কাতার",
+        "sectors": "Construction, facility management",
+        "sectorsBn": "নির্মাণ, ফ্যাসিলিটি ম্যানেজমেন্ট",
+        "contractLength": "24 months",
+        "contractLengthBn": "২৪ মাস",
+        "salaryRange": "QAR 1,200 – 2,500 / month",
+        "salaryRangeBn": "QAR ১,২০০ – ২,৫০০ / মাস"
+      },
+      {
+        "country": "Malaysia",
+        "countryBn": "মালয়েশিয়া",
+        "sectors": "Manufacturing, plantation",
+        "sectorsBn": "উৎপাদন শিল্প, বাগান",
+        "contractLength": "36 months",
+        "contractLengthBn": "৩৬ মাস",
+        "salaryRange": "MYR 1,200 – 2,000 / month",
+        "salaryRangeBn": "MYR ১,২০০ – ২,০০০ / মাস"
+      },
+      {
+        "country": "Romania",
+        "countryBn": "রোমানিয়া",
+        "sectors": "Construction, manufacturing",
+        "sectorsBn": "নির্মাণ, উৎপাদন শিল্প",
+        "contractLength": "24 months",
+        "contractLengthBn": "২৪ মাস",
+        "salaryRange": "EUR 600 – 900 / month",
+        "salaryRangeBn": "ইউরো ৬০০ – ৯০০ / মাস"
+      },
+      {
+        "country": "Japan",
+        "countryBn": "জাপান",
+        "sectors": "Caregiving, food processing",
+        "sectorsBn": "কেয়ারগিভিং, খাদ্য প্রক্রিয়াকরণ",
+        "contractLength": "36 months",
+        "contractLengthBn": "৩৬ মাস",
+        "salaryRange": "JPY 150,000 – 190,000 / month",
+        "salaryRangeBn": "জাপানি ইয়েন ১,৫০,০০০ – ১,৯০,০০০ / মাস"
+      }
+    ],
+    "candidateProcess": [
+      {
+        "step": "01",
+        "title": "Register and document check",
+        "titleBn": "নিবন্ধন ও কাগজপত্র যাচাই",
+        "detail": "Bring your passport, NID and any trade certificate. We tell you the same day whether a demand matches you.",
+        "detailBn": "পাসপোর্ট, এনআইডি ও যেকোনো ট্রেড সার্টিফিকেট নিয়ে আসুন। আপনার জন্য কোনো ডিমান্ড মিলছে কিনা তা আমরা সেদিনই জানিয়ে দিই।",
+        "duration": "1 day",
+        "durationBn": "১ দিন"
+      },
+      {
+        "step": "02",
+        "title": "Selection and trade test",
+        "titleBn": "নির্বাচন ও ট্রেড টেস্ট",
+        "detail": "Employer interview, in person or by video. Skilled roles include a practical trade test.",
+        "detailBn": "সরাসরি বা ভিডিওতে নিয়োগকর্তার সাক্ষাৎকার। দক্ষ পদের জন্য বাস্তবভিত্তিক ট্রেড টেস্ট অন্তর্ভুক্ত।",
+        "duration": "1 – 3 weeks",
+        "durationBn": "১ – ৩ সপ্তাহ"
+      },
+      {
+        "step": "03",
+        "title": "Medical and police clearance",
+        "titleBn": "মেডিকেল ও পুলিশ ক্লিয়ারেন্স",
+        "detail": "GAMCA medical at an approved centre, plus police clearance certificate.",
+        "detailBn": "অনুমোদিত কেন্দ্রে গামকা মেডিকেল, এবং পুলিশ ক্লিয়ারেন্স সার্টিফিকেট।",
+        "duration": "1 – 2 weeks",
+        "durationBn": "১ – ২ সপ্তাহ"
+      },
+      {
+        "step": "04",
+        "title": "Visa and BMET clearance",
+        "titleBn": "ভিসা ও বিএমইটি ক্লিয়ারেন্স",
+        "detail": "Employer files the visa, we complete attestation and BMET smart card registration.",
+        "detailBn": "নিয়োগকর্তা ভিসা জমা দেন, আমরা সত্যায়ন ও বিএমইটি স্মার্ট কার্ড নিবন্ধন সম্পন্ন করি।",
+        "duration": "3 – 6 weeks",
+        "durationBn": "৩ – ৬ সপ্তাহ"
+      },
+      {
+        "step": "05",
+        "title": "Briefing and flight",
+        "titleBn": "ব্রিফিং ও ফ্লাইট",
+        "detail": "Pre-departure briefing, contract handover in Bangla, ticket issued.",
+        "detailBn": "যাত্রার আগে ব্রিফিং, বাংলায় চুক্তিপত্র হস্তান্তর, টিকেট ইস্যু।",
+        "duration": "3 – 5 days",
+        "durationBn": "৩ – ৫ দিন"
+      }
+    ],
+    "employerProcess": [
+      {
+        "step": "01",
+        "title": "Send the demand letter",
+        "titleBn": "ডিমান্ড লেটার পাঠান",
+        "detail": "Share the demand letter, power of attorney and job contract, attested by the Bangladesh mission.",
+        "detailBn": "বাংলাদেশ মিশন কর্তৃক সত্যায়িত ডিমান্ড লেটার, পাওয়ার অব অ্যাটর্নি ও চাকরির চুক্তিপত্র পাঠান।",
+        "duration": "1 week",
+        "durationBn": "১ সপ্তাহ"
+      },
+      {
+        "step": "02",
+        "title": "Shortlist candidates",
+        "titleBn": "প্রার্থী বাছাই",
+        "detail": "We supply CVs, trade certificates and video interviews from our registered pool.",
+        "detailBn": "আমাদের নিবন্ধিত তালিকা থেকে সিভি, ট্রেড সার্টিফিকেট ও ভিডিও সাক্ষাৎকার সরবরাহ করি।",
+        "duration": "1 – 2 weeks",
+        "durationBn": "১ – ২ সপ্তাহ"
+      },
+      {
+        "step": "03",
+        "title": "Test and select",
+        "titleBn": "টেস্ট ও নির্বাচন",
+        "detail": "Trade test at our partner centre in Dhaka, or online interview for unskilled roles.",
+        "detailBn": "ঢাকায় আমাদের পার্টনার সেন্টারে ট্রেড টেস্ট, অথবা অদক্ষ পদের জন্য অনলাইন সাক্ষাৎকার।",
+        "duration": "1 week",
+        "durationBn": "১ সপ্তাহ"
+      },
+      {
+        "step": "04",
+        "title": "Processing and mobilisation",
+        "titleBn": "প্রসেসিং ও যাত্রার প্রস্তুতি",
+        "detail": "Medical, visa stamping, BMET clearance and flight scheduling, tracked in one file.",
+        "detailBn": "মেডিকেল, ভিসা স্ট্যাম্পিং, বিএমইটি ক্লিয়ারেন্স ও ফ্লাইট সময়সূচি — একটি ফাইলেই সব ট্র্যাক করা হয়।",
+        "duration": "4 – 8 weeks",
+        "durationBn": "৪ – ৮ সপ্তাহ"
+      }
+    ]
+  },
+  "about": {
+    "story": [
+      "SM Travels International was founded in 1998 in Dhaka's Motijheel commercial district with a single mission: to make the sacred Hajj pilgrimage accessible, affordable and stress-free for every Bangladeshi Muslim.",
+      "Over 25 years we have grown from a single-room office to a multi-branch, full-service travel management company — trusted by over 10,000 pilgrims, families and corporate clients across Bangladesh.",
+      "Today we offer Hajj, Umrah, visa, air tickets, manpower, tours and hotels — all under one roof."
+    ],
+    "storyBn": [
+      "এসএম ট্রাভেলস ইন্টারন্যাশনাল ১৯৯৮ সালে ঢাকার মতিঝিল বাণিজ্যিক এলাকায় একটি লক্ষ্য নিয়ে প্রতিষ্ঠিত হয়েছিল: প্রতিটি বাংলাদেশি মুসলমানের জন্য পবিত্র হজ পালনকে সহজলভ্য, সাশ্রয়ী ও নির্ঝঞ্ঝাট করে তোলা।",
+      "গত ২৫ বছরে আমরা এক কক্ষের অফিস থেকে বেড়ে উঠে একাধিক শাখাসম্পন্ন পূর্ণাঙ্গ ট্রাভেল ম্যানেজমেন্ট কোম্পানিতে পরিণত হয়েছি — বাংলাদেশজুড়ে ১০,০০০-এর বেশি হাজি, পরিবার ও করপোরেট গ্রাহকের আস্থাভাজন।",
+      "আজ আমরা হজ, ওমরাহ, ভিসা, এয়ার টিকেট, জনশক্তি, ট্যুর ও হোটেল — সব সেবা এক ছাদের নিচে দিচ্ছি।"
+    ],
+    "mission": "To provide the highest quality Hajj, Umrah and travel services that honour the sacred trust our clients place in us.",
+    "missionBn": "আমাদের গ্রাহকদের রাখা পবিত্র আস্থার সম্মান রেখে সর্বোচ্চ মানের হজ, ওমরাহ ও ভ্রমণ সেবা প্রদান করা।",
+    "vision": "To be South Asia's most respected Islamic travel management company by 2030.",
+    "visionBn": "২০৩০ সালের মধ্যে দক্ষিণ এশিয়ার সবচেয়ে সম্মানিত ইসলামিক ট্রাভেল ম্যানেজমেন্ট কোম্পানি হয়ে ওঠা।",
+    "values": "Integrity, Compassion, Excellence, Accountability — every pilgrim treated as family.",
+    "valuesBn": "সততা, সহানুভূতি, উৎকর্ষতা, জবাবদিহিতা — প্রতিটি হাজিকে পরিবারের সদস্যের মতো দেখা।",
+    "milestones": [
+      {
+        "year": "1998",
+        "event": "Founded in Dhaka's Motijheel commercial area.",
+        "eventBn": "ঢাকার মতিঝিল বাণিজ্যিক এলাকায় প্রতিষ্ঠিত।"
+      },
+      {
+        "year": "2002",
+        "event": "Received first government Hajj pilgrimage licence.",
+        "eventBn": "প্রথম সরকারি হজ লাইসেন্স লাভ।"
+      },
+      {
+        "year": "2007",
+        "event": "Opened Chittagong and Sylhet branch offices.",
+        "eventBn": "চট্টগ্রাম ও সিলেট শাখা অফিস চালু।"
+      },
+      {
+        "year": "2012",
+        "event": "Expanded to year-round Umrah services.",
+        "eventBn": "সারা বছরের ওমরাহ সেবায় সম্প্রসারণ।"
+      },
+      {
+        "year": "2016",
+        "event": "Launched manpower and international recruitment division.",
+        "eventBn": "জনশক্তি ও আন্তর্জাতিক নিয়োগ বিভাগ চালু।"
+      },
+      {
+        "year": "2019",
+        "event": "Served 1,000+ pilgrims in a single Hajj season.",
+        "eventBn": "এক হজ মৌসুমে ১,০০০-এর বেশি হাজিকে সেবা প্রদান।"
+      },
+      {
+        "year": "2022",
+        "event": "ISO 9001:2015 certification achieved.",
+        "eventBn": "ISO 9001:2015 সনদ অর্জন।"
+      },
+      {
+        "year": "2024",
+        "event": "Crossed the 10,000 total pilgrims milestone.",
+        "eventBn": "মোট ১০,০০০ হাজি সেবার মাইলফলক অতিক্রম।"
+      }
+    ],
+    "team": [
+      {
+        "name": "Mohammad Shahadat Hossain",
+        "role": "Chairman & Managing Director",
+        "roleBn": "চেয়ারম্যান ও ব্যবস্থাপনা পরিচালক",
+        "detail": "30+ years in the travel industry.",
+        "detailBn": "ট্রাভেল শিল্পে ৩০ বছরের বেশি অভিজ্ঞতা।"
+      },
+      {
+        "name": "Md. Rafiqul Islam",
+        "role": "Director, Hajj & Umrah Operations",
+        "roleBn": "পরিচালক, হজ ও ওমরাহ অপারেশনস",
+        "detail": "Expert in Saudi regulations and group logistics.",
+        "detailBn": "সৌদি বিধিবিধান ও গ্রুপ লজিস্টিকসে বিশেষজ্ঞ।"
+      },
+      {
+        "name": "Nusrat Jahan",
+        "role": "Head of Visa Services",
+        "roleBn": "ভিসা সেবা বিভাগের প্রধান",
+        "detail": "Specialised in Gulf and European visas.",
+        "detailBn": "গালফ ও ইউরোপীয় ভিসায় বিশেষজ্ঞ।"
+      },
+      {
+        "name": "Abdullah Al Mamun",
+        "role": "Head of Corporate Travel",
+        "roleBn": "করপোরেট ট্রাভেল বিভাগের প্রধান",
+        "detail": "15+ years in corporate travel management.",
+        "detailBn": "করপোরেট ট্রাভেল ম্যানেজমেন্টে ১৫ বছরের বেশি অভিজ্ঞতা।"
+      }
+    ],
+    "officePhotos": [
+      {
+        "caption": "Head office, 32 Motijheel C/A, Dhaka",
+        "captionBn": "প্রধান কার্যালয়, ৩২ মতিঝিল সি/এ, ঢাকা",
+        "alt": "Travel consultants at the SM Travels International head office in Motijheel, Dhaka",
+        "altBn": "ঢাকার মতিঝিলে এসএম ট্রাভেলস ইন্টারন্যাশনালের প্রধান কার্যালয়ে ট্রাভেল কনসালট্যান্টরা",
+        "image": "office"
+      },
+      {
+        "caption": "Hajj and Umrah group operations",
+        "captionBn": "হজ ও ওমরাহ গ্রুপ অপারেশনস",
+        "alt": "Masjid an-Nabawi in Madinah, where our Hajj and Umrah groups stay",
+        "altBn": "মদিনার মসজিদে নববী, যেখানে আমাদের হজ ও ওমরাহ গ্রুপ অবস্থান করে",
+        "image": "madinah"
+      },
+      {
+        "caption": "Visa document desk",
+        "captionBn": "ভিসা কাগজপত্র ডেস্ক",
+        "alt": "Visa documents and passports being checked at the counter",
+        "altBn": "কাউন্টারে ভিসার কাগজপত্র ও পাসপোর্ট যাচাই করা হচ্ছে",
+        "image": "visa"
+      }
+    ]
+  },
+  "knowledge": {
+    "ihram": {
+      "eyebrow": {
+        "bn": "জ্ঞান কেন্দ্র",
+        "en": "Knowledge centre"
+      },
+      "title": {
+        "bn": "ইহরাম কী?",
+        "en": "What is Ihram?"
+      },
+      "subtitle": {
+        "bn": "ইহরাম হজ্ব ও উমরাহর পবিত্র অবস্থা এবং বিশেষ পোশাক।",
+        "en": "Ihram is the sacred state — and the dress — of Hajj and Umrah."
+      },
+      "talbiyahArabic": "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ",
+      "talbiyahTransliteration": {
+        "bn": "লাব্বাইক আল্লাহুম্মা লাব্বাইক",
+        "en": "Labbayk Allahumma labbayk"
+      },
+      "explanation": {
+        "bn": "ইহরাম হলো সেই পবিত্র অবস্থা যেখানে হাজি বা মুতামির নির্দিষ্ট নিয়ম মেনে হজ্ব বা উমরাহ শুরু করেন। পুরুষদের জন্য সাদা দুই কাপড় এবং নারীদের জন্য শালীন পোশাক।",
+        "en": "Ihram is the sacred state in which a pilgrim begins Hajj or Umrah under fixed rules — two unstitched white cloths for men, modest dress for women."
+      },
+      "quotes": [
+        {
+          "text": {
+            "bn": "আর আল্লাহর জন্য হজ্ব ও উমরাহ পূর্ণ করো।",
+            "en": "And complete the Hajj and Umrah for Allah."
+          },
+          "source": {
+            "bn": "সূরা আল-বাকারা ২:১৯৬",
+            "en": "Surah Al-Baqarah 2:196"
+          }
+        },
+        {
+          "text": {
+            "bn": "হজ্বের আমল ইহরাম বাঁধার মাধ্যমে শুরু হয়।",
+            "en": "The rites of Hajj begin with entering Ihram."
+          },
+          "source": {
+            "bn": "বুখারী ও মুসলিম",
+            "en": "Bukhari & Muslim"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "bn": "নিয়ত করুন",
+          "en": "Make the intention"
+        },
+        {
+          "bn": "গোসল ও পবিত্রতা",
+          "en": "Bathe and purify"
+        },
+        {
+          "bn": "ইহরামের কাপড় পরুন",
+          "en": "Wear the Ihram cloths"
+        },
+        {
+          "bn": "তালবিয়া পাঠ করুন",
+          "en": "Recite the Talbiyah"
+        },
+        {
+          "bn": "মিকাতে পৌঁছান",
+          "en": "Reach the Miqat"
+        }
+      ]
+    },
+    "breaksIhram": {
+      "title": {
+        "bn": "যা ইহরাম ভঙ্গ করে",
+        "en": "Things that break Ihram"
+      },
+      "subtitle": {
+        "bn": "নিষিদ্ধ কাজ ও সম্ভাব্য কাফফারা।",
+        "en": "Prohibited acts and the possible expiation."
+      },
+      "explanation": {
+        "bn": "সুগন্ধি, চুল বা নখ কাটা, সেলাই করা পোশাক (পুরুষ), দাম্পত্য সম্পর্ক ইত্যাদি ইহরাম অবস্থায় নিষিদ্ধ। ভুল হয়ে গেলে আলেমের পরামর্শে কাফফারা বা দম দিতে হয়।",
+        "en": "Perfume, cutting hair or nails, stitched clothing (men) and marital relations are forbidden in Ihram. If a mistake happens, expiation (dam) is given on a scholar's advice."
+      },
+      "steps": [
+        {
+          "bn": "নিষেধাজ্ঞাগুলো জানুন",
+          "en": "Learn the prohibitions"
+        },
+        {
+          "bn": "সন্দেহ হলে জিজ্ঞাসা করুন",
+          "en": "Ask when in doubt"
+        },
+        {
+          "bn": "প্রয়োজনে দম দিন",
+          "en": "Give dam if required"
+        }
+      ]
+    },
+    "sunnahActs": [
+      {
+        "bn": "তাওয়াফের সময় দোয়া পড়া",
+        "en": "Recite dua during Tawaf"
+      },
+      {
+        "bn": "সম্ভব হলে হাজরে আসওয়াদ চুম্বন",
+        "en": "Kiss the Black Stone if possible"
+      },
+      {
+        "bn": "সাফা-মারওয়ায় দ্রুত হাঁটা (পুরুষ)",
+        "en": "Brisk pace at Safa–Marwah (men)"
+      },
+      {
+        "bn": "আরাফায় বেশি বেশি দোয়া ও যিকির",
+        "en": "Abundant dua and dhikr at Arafat"
+      },
+      {
+        "bn": "মক্কায় নফল নামাজ বাড়িয়ে দেওয়া",
+        "en": "Increase nafl prayer in Makkah"
+      },
+      {
+        "bn": "তালবিয়া বেশি পড়া ও ধৈর্য ধরা",
+        "en": "Recite Talbiyah often and stay patient"
+      }
+    ],
+    "prohibitedActs": [
+      {
+        "bn": "ইহরাম অবস্থায় সুগন্ধি ব্যবহার",
+        "en": "Using perfume in Ihram"
+      },
+      {
+        "bn": "মাথা ঢাকা (পুরুষ)",
+        "en": "Covering the head (men)"
+      },
+      {
+        "bn": "শিকার করা বা গাছ কাটা",
+        "en": "Hunting or cutting plants"
+      },
+      {
+        "bn": "ঝগড়া বা অশ্লীল কথা",
+        "en": "Quarrelling or indecent speech"
+      },
+      {
+        "bn": "নারীদের ইহরামের নিয়ম ভঙ্গ করা",
+        "en": "Breaking women's Ihram rules"
+      },
+      {
+        "bn": "চুল বা নখ কাটা",
+        "en": "Cutting hair or nails"
+      }
+    ],
+    "relatedGuides": [
+      {
+        "slug": "how-to-wear-ihram",
+        "title": {
+          "bn": "ইহরাম কিভাবে পরবেন",
+          "en": "How to wear Ihram"
+        },
+        "summary": {
+          "bn": "পুরুষদের দুই কাপড় পরার সঠিক পদ্ধতি।",
+          "en": "The correct way for men to wear the two cloths."
+        }
+      },
+      {
+        "slug": "intention-niyyah",
+        "title": {
+          "bn": "নিয়্যত (Intention)",
+          "en": "Intention (Niyyah)"
+        },
+        "summary": {
+          "bn": "হৃদয়ে নিয়ত হজ্ব বা উমরাহর মূল শর্ত।",
+          "en": "Intention in the heart is essential for Hajj or Umrah."
+        }
+      },
+      {
+        "slug": "talbiyah",
+        "title": {
+          "bn": "তালবিয়া",
+          "en": "Talbiyah"
+        },
+        "summary": {
+          "bn": "ইহরামের পর আল্লাহর ডাকে সাড়া দেওয়ার ধ্বনি।",
+          "en": "The response to Allah's call after entering Ihram."
+        }
+      },
+      {
+        "slug": "tawaf",
+        "title": {
+          "bn": "তাওয়াফ",
+          "en": "Tawaf"
+        },
+        "summary": {
+          "bn": "কাবার চারপাশে সাতবার প্রদক্ষিণ।",
+          "en": "Seven circuits around the Kaaba."
+        }
+      },
+      {
+        "slug": "common-mistakes",
+        "title": {
+          "bn": "সাধারণ ভুলসমূহ",
+          "en": "Common mistakes"
+        },
+        "summary": {
+          "bn": "হজ্ব-উমরাহয় প্রায়ই ঘটে যাওয়া ভুল।",
+          "en": "Mistakes pilgrims most often make."
+        }
+      },
+      {
+        "slug": "packing-checklist",
+        "title": {
+          "bn": "প্যাকিং চেকলিস্ট",
+          "en": "Packing checklist"
+        },
+        "summary": {
+          "bn": "হজ্ব-উমরাহর জন্য প্রয়োজনীয় জিনিসপত্র।",
+          "en": "What to carry for Hajj and Umrah."
+        }
+      },
+      {
+        "slug": "medical-checklist",
+        "title": {
+          "bn": "মেডিকেল চেকলিস্ট",
+          "en": "Medical checklist"
+        },
+        "summary": {
+          "bn": "স্বাস্থ্য পরীক্ষা, টিকা ও ওষুধ।",
+          "en": "Health checks, vaccines and medicine."
+        }
+      },
+      {
+        "slug": "travel-checklist",
+        "title": {
+          "bn": "ভ্রমণ চেকলিস্ট",
+          "en": "Travel checklist"
+        },
+        "summary": {
+          "bn": "ফ্লাইট, হোটেল ও গ্রুপ সমন্বয়।",
+          "en": "Flight, hotel and group coordination."
+        }
+      }
+    ],
+    "knowledgeFaqs": [
+      {
+        "q": {
+          "bn": "ইহরাম কখন বাঁধতে হয়?",
+          "en": "When must Ihram be entered?"
+        },
+        "a": {
+          "bn": "মিকাত পার হওয়ার আগেই নিয়ত ও তালবিয়ার সাথে ইহরাম বাঁধতে হয়।",
+          "en": "Before crossing the Miqat, with the intention and the Talbiyah."
+        }
+      },
+      {
+        "q": {
+          "bn": "নারীরা কি সাদা কাপড় পরবেন?",
+          "en": "Must women wear white?"
+        },
+        "a": {
+          "bn": "নারীদের জন্য নির্দিষ্ট রং নেই; শালীন ও সাধারণ পোশাকই যথেষ্ট, মুখ ও হাত খোলা রাখতে হয়।",
+          "en": "There is no fixed colour for women; modest ordinary dress is enough, with the face and hands uncovered."
+        }
+      },
+      {
+        "q": {
+          "bn": "সাবান কি নিষিদ্ধ?",
+          "en": "Is soap forbidden?"
+        },
+        "a": {
+          "bn": "সুগন্ধযুক্ত সাবান এড়িয়ে চলুন; গন্ধহীন সাবান ব্যবহার করা যায়।",
+          "en": "Avoid scented soap; unscented soap is permitted."
+        }
+      }
+    ]
+  },
+  "siteConfig": {
+    "siteConfig": {
+      "name": "SM Travels International",
+      "nameBn": "এসএম ট্রাভেলস ইন্টারন্যাশনাল",
+      "tagline": "“And complete the Hajj and Umrah for Allah.” — Surah Al-Baqarah, verse 196",
+      "taglineBn": "“আর তোমরা আল্লাহর উদ্দেশ্যে হজ ও উমরাহ পূর্ণ করো।” — সূরা আল-বাকারা, আয়াত ১৯৬",
+      "phones": [
+        "+880 2 9553421",
+        "+880 1211 190 022"
+      ],
+      "whatsapp": "+880 1712 345678",
+      "email": "info@smtravel.com.bd",
+      "addressLines": [
+        "32 Motijheel Commercial Area",
+        "Dhaka-1000",
+        "Dhaka, Bangladesh"
+      ],
+      "addressLinesBn": [
+        "৩২ মতিঝিল বাণিজ্যিক এলাকা",
+        "ঢাকা-১০০০",
+        "ঢাকা, বাংলাদেশ"
+      ],
+      "mapLabel": "Office location map — 32 Motijheel C/A, Dhaka (head office)",
+      "mapLabelBn": "অফিসের অবস্থানের মানচিত্র — ৩২ মতিঝিল সি/এ, ঢাকা (প্রধান কার্যালয়)",
+      "hours": [
+        {
+          "days": "Sunday – Thursday",
+          "daysBn": "রবিবার – বৃহস্পতিবার",
+          "hours": "09:00 – 18:00",
+          "hoursBn": "সকাল ৯টা – সন্ধ্যা ৬টা"
+        },
+        {
+          "days": "Support hotline",
+          "daysBn": "সহায়তা হটলাইন",
+          "hours": "24/7",
+          "hoursBn": "সার্বক্ষণিক"
+        }
+      ],
+      "licenses": [
+        {
+          "label": "Hajj licence",
+          "labelBn": "হজ লাইসেন্স",
+          "number": "Ministry approved",
+          "issuer": "Ministry of Religious Affairs",
+          "issuerBn": "ধর্ম মন্ত্রণালয়"
+        },
+        {
+          "label": "ATAB membership",
+          "labelBn": "ATAB সদস্যপদ",
+          "number": "Member agency",
+          "issuer": "Travel Agents Association of Bangladesh",
+          "issuerBn": "ট্রাভেল এজেন্টস অ্যাসোসিয়েশন অব বাংলাদেশ"
+        },
+        {
+          "label": "Recruiting licence",
+          "labelBn": "রিক্রুটিং লাইসেন্স",
+          "number": "BMET registered",
+          "issuer": "BMET / BOESL, Ministry of Expatriates' Welfare",
+          "issuerBn": "বিএমইটি / বিওইএসএল, প্রবাসী কল্যাণ মন্ত্রণালয়"
+        },
+        {
+          "label": "IATA accreditation",
+          "labelBn": "IATA স্বীকৃতি",
+          "number": "IATA accredited",
+          "issuer": "International Air Transport Association",
+          "issuerBn": "আন্তর্জাতিক বিমান পরিবহন সমিতি"
+        },
+        {
+          "label": "Quality certification",
+          "labelBn": "মান সনদ",
+          "number": "ISO 9001:2015",
+          "issuer": "Certified quality management",
+          "issuerBn": "প্রত্যায়িত মান ব্যবস্থাপনা"
+        },
+        {
+          "label": "Civil aviation approval",
+          "labelBn": "সিভিল এভিয়েশন অনুমোদন",
+          "number": "CAAB approved",
+          "issuer": "Civil Aviation Authority of Bangladesh",
+          "issuerBn": "বাংলাদেশ বেসামরিক বিমান চলাচল কর্তৃপক্ষ"
+        }
+      ],
+      "socials": [
+        {
+          "label": "Facebook",
+          "href": "https://smtravelsinternational.com/contact"
+        },
+        {
+          "label": "Instagram",
+          "href": "https://smtravelsinternational.com/contact"
+        },
+        {
+          "label": "Website",
+          "href": "https://smtravelsinternational.com/"
+        }
+      ],
+      "yearsInService": "25+",
+      "pilgrimsServed": "10,000+"
+    },
+    "branches": [
+      {
+        "city": "Dhaka",
+        "cityBn": "ঢাকা",
+        "address": "32 Motijheel Commercial Area, Dhaka-1000",
+        "addressBn": "৩২ মতিঝিল বাণিজ্যিক এলাকা, ঢাকা-১০০০",
+        "phone": "+880 2 9553421",
+        "email": "dhaka@smtravel.com.bd",
+        "hours": "Sun–Thu 9:00 AM – 6:00 PM",
+        "hoursBn": "রবি–বৃহস্পতি সকাল ৯টা – সন্ধ্যা ৬টা",
+        "isHead": true
+      },
+      {
+        "city": "Chittagong",
+        "cityBn": "চট্টগ্রাম",
+        "address": "15 Agrabad Commercial Area, Chittagong-4100",
+        "addressBn": "১৫ আগ্রাবাদ বাণিজ্যিক এলাকা, চট্টগ্রাম-৪১০০",
+        "phone": "+880 31 714532",
+        "email": "ctg@smtravel.com.bd",
+        "hours": "Sun–Thu 9:00 AM – 5:30 PM",
+        "hoursBn": "রবি–বৃহস্পতি সকাল ৯টা – বিকাল ৫:৩০টা"
+      },
+      {
+        "city": "Sylhet",
+        "cityBn": "সিলেট",
+        "address": "Zindabazar Main Road, Sylhet-3100",
+        "addressBn": "জিন্দাবাজার মেইন রোড, সিলেট-৩১০০",
+        "phone": "+880 821 716234",
+        "email": "sylhet@smtravel.com.bd",
+        "hours": "Sun–Thu 9:00 AM – 5:30 PM",
+        "hoursBn": "রবি–বৃহস্পতি সকাল ৯টা – বিকাল ৫:৩০টা"
+      },
+      {
+        "city": "Khulna",
+        "cityBn": "খুলনা",
+        "address": "KDA Avenue, Khulna-9100",
+        "addressBn": "কেডিএ এভিনিউ, খুলনা-৯১০০",
+        "phone": "+880 41 720145",
+        "email": "khulna@smtravel.com.bd",
+        "hours": "Sun–Thu 9:00 AM – 5:00 PM",
+        "hoursBn": "রবি–বৃহস্পতি সকাল ৯টা – বিকাল ৫টা"
+      }
+    ],
+    "hajjLicense": {
+      "label": "Hajj licence",
+      "labelBn": "হজ লাইসেন্স",
+      "number": "Ministry approved",
+      "issuer": "Ministry of Religious Affairs",
+      "issuerBn": "ধর্ম মন্ত্রণালয়"
+    },
+    "atabLicense": {
+      "label": "ATAB membership",
+      "labelBn": "ATAB সদস্যপদ",
+      "number": "Member agency",
+      "issuer": "Travel Agents Association of Bangladesh",
+      "issuerBn": "ট্রাভেল এজেন্টস অ্যাসোসিয়েশন অব বাংলাদেশ"
+    },
+    "recruitingLicense": {
+      "label": "Recruiting licence",
+      "labelBn": "রিক্রুটিং লাইসেন্স",
+      "number": "BMET registered",
+      "issuer": "BMET / BOESL, Ministry of Expatriates' Welfare",
+      "issuerBn": "বিএমইটি / বিওইএসএল, প্রবাসী কল্যাণ মন্ত্রণালয়"
+    }
+  },
+  "airTickets": {
+    "popularRoutes": [
+      {
+        "code": "DAC–JED",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Jeddah",
+        "toBn": "জেদ্দা",
+        "airlines": "Biman, Saudia, flynas",
+        "duration": "07h 05m direct",
+        "durationBn": "৭ ঘণ্টা ৫ মিনিট, সরাসরি",
+        "fareFrom": "৳ 78,000",
+        "fareFromBn": "৳ ৭৮,০০০"
+      },
+      {
+        "code": "DAC–DXB",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Dubai",
+        "toBn": "দুবাই",
+        "airlines": "Emirates, Biman, flydubai",
+        "duration": "05h 40m direct",
+        "durationBn": "৫ ঘণ্টা ৪০ মিনিট, সরাসরি",
+        "fareFrom": "৳ 35,000",
+        "fareFromBn": "৳ ৩৫,০০০"
+      },
+      {
+        "code": "DAC–RUH",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Riyadh",
+        "toBn": "রিয়াদ",
+        "airlines": "Saudia, Biman",
+        "duration": "06h 30m direct",
+        "durationBn": "৬ ঘণ্টা ৩০ মিনিট, সরাসরি",
+        "fareFrom": "৳ 45,000",
+        "fareFromBn": "৳ ৪৫,০০০"
+      },
+      {
+        "code": "DAC–KUL",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Kuala Lumpur",
+        "toBn": "কুয়ালালামপুর",
+        "airlines": "Malaysia Airlines, Batik Air",
+        "duration": "04h 25m direct",
+        "durationBn": "৪ ঘণ্টা ২৫ মিনিট, সরাসরি",
+        "fareFrom": "৳ 38,000",
+        "fareFromBn": "৳ ৩৮,০০০"
+      },
+      {
+        "code": "DAC–SIN",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Singapore",
+        "toBn": "সিঙ্গাপুর",
+        "airlines": "Singapore Airlines, Biman",
+        "duration": "04h 30m direct",
+        "durationBn": "৪ ঘণ্টা ৩০ মিনিট, সরাসরি",
+        "fareFrom": "৳ 42,000",
+        "fareFromBn": "৳ ৪২,০০০"
+      },
+      {
+        "code": "DAC–LHR",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "London",
+        "toBn": "লন্ডন",
+        "airlines": "Biman, Emirates, Qatar Airways",
+        "duration": "10h 30m direct",
+        "durationBn": "১০ ঘণ্টা ৩০ মিনিট, সরাসরি",
+        "fareFrom": "৳ 95,000",
+        "fareFromBn": "৳ ৯৫,০০০"
+      },
+      {
+        "code": "DAC–CXB",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Cox's Bazar",
+        "toBn": "কক্সবাজার",
+        "airlines": "US-Bangla, Novoair, Biman",
+        "duration": "01h 05m direct",
+        "durationBn": "১ ঘণ্টা ৫ মিনিট, সরাসরি",
+        "fareFrom": "৳ 6,500",
+        "fareFromBn": "৳ ৬,৫০০"
+      },
+      {
+        "code": "DAC–DOH",
+        "from": "Dhaka",
+        "fromBn": "ঢাকা",
+        "to": "Doha",
+        "toBn": "দোহা",
+        "airlines": "Qatar Airways, Biman",
+        "duration": "05h 55m direct",
+        "durationBn": "৫ ঘণ্টা ৫৫ মিনিট, সরাসরি",
+        "fareFrom": "৳ 44,000",
+        "fareFromBn": "৳ ৪৪,০০০"
+      }
+    ],
+    "airlinePartners": [
+      {
+        "name": "Biman Bangladesh Airlines",
+        "code": "BG",
+        "hub": "Dhaka",
+        "hubBn": "ঢাকা"
+      },
+      {
+        "name": "Saudia",
+        "code": "SV",
+        "hub": "Jeddah",
+        "hubBn": "জেদ্দা"
+      },
+      {
+        "name": "Emirates",
+        "code": "EK",
+        "hub": "Dubai",
+        "hubBn": "দুবাই"
+      },
+      {
+        "name": "Qatar Airways",
+        "code": "QR",
+        "hub": "Doha",
+        "hubBn": "দোহা"
+      },
+      {
+        "name": "Malaysia Airlines",
+        "code": "MH",
+        "hub": "Kuala Lumpur",
+        "hubBn": "কুয়ালালামপুর"
+      },
+      {
+        "name": "US-Bangla Airlines",
+        "code": "BS",
+        "hub": "Dhaka",
+        "hubBn": "ঢাকা"
+      },
+      {
+        "name": "flynas",
+        "code": "XY",
+        "hub": "Riyadh",
+        "hubBn": "রিয়াদ"
+      },
+      {
+        "name": "Turkish Airlines",
+        "code": "TK",
+        "hub": "Istanbul",
+        "hubBn": "ইস্তাম্বুল"
+      }
+    ]
+  },
+  "howItWorks": [
+    {
+      "number": "01",
+      "title": {
+        "bn": "ফোন বা অফিস ভিজিট",
+        "en": "Call or visit the office"
+      },
+      "body": {
+        "bn": "হটলাইনে ফোন করুন অথবা মতিঝিল অফিসে আসুন। আমরা আপনার বাজেট ও তারিখ শুনে সম্ভাব্য প্যাকেজ দেখাই।",
+        "en": "Call the hotline or walk into the Motijheel office. We listen to your budget and dates, then show the options."
+      }
+    },
+    {
+      "number": "02",
+      "title": {
+        "bn": "লিখিত কোটেশন",
+        "en": "Written quotation"
+      },
+      "body": {
+        "bn": "প্রতিটি খরচ আলাদা করে লেখা একটি কাগজ পাবেন — ভিসা, টিকিট, হোটেল, খাবার ও পরিবহন।",
+        "en": "You get one sheet with every cost itemised — visa, ticket, hotel, food and transport."
+      }
+    },
+    {
+      "number": "03",
+      "title": {
+        "bn": "ফাইল ওপেন ও কাগজপত্র",
+        "en": "File opening and documents"
+      },
+      "body": {
+        "bn": "পাসপোর্ট, ছবি ও প্রয়োজনীয় কাগজ জমা দিন। মেডিকেল ও টিকা আমাদের টিম সমন্বয় করে।",
+        "en": "Submit passport, photos and papers. Our team coordinates the medical and vaccination."
+      }
+    },
+    {
+      "number": "04",
+      "title": {
+        "bn": "ভিসা ও টিকিট নিশ্চিত",
+        "en": "Visa and ticket confirmed"
+      },
+      "body": {
+        "bn": "ভিসা অনুমোদন ও এয়ার টিকিট ইস্যুর পর কপি আপনাকে হাতে দেওয়া হয়, ফোনেও পাঠানো হয়।",
+        "en": "Once the visa is approved and the ticket issued, you get a copy in hand and on your phone."
+      }
+    },
+    {
+      "number": "05",
+      "title": {
+        "bn": "প্রশিক্ষণ ও ব্রিফিং",
+        "en": "Training and briefing"
+      },
+      "body": {
+        "bn": "যাত্রার আগে হজ্ব-উমরাহর নিয়ম, ইহরাম ও দোয়া নিয়ে বাংলা ভাষায় ব্রিফিং হয়।",
+        "en": "Before departure we brief the group in Bangla on the rites, Ihram and duas."
+      }
+    },
+    {
+      "number": "06",
+      "title": {
+        "bn": "যাত্রা ও সৌদিতে সাপোর্ট",
+        "en": "Departure and support in KSA"
+      },
+      "body": {
+        "bn": "বিমানবন্দর থেকে মক্কা-মদিনা পর্যন্ত বাংলাভাষী গাইড এবং ২৪/৭ হেল্পলাইন সঙ্গে থাকে।",
+        "en": "A Bangla-speaking guide from the airport to Makkah and Madinah, plus a 24/7 helpline."
+      }
+    }
+  ],
+  "partners": [
+    {
+      "heading": {
+        "bn": "এয়ারলাইন্স পার্টনার",
+        "en": "Airline partners"
+      },
+      "note": {
+        "bn": "IATA স্বীকৃত এজেন্ট হিসেবে টিকিট ইস্যু করি।",
+        "en": "Tickets issued directly as an IATA-accredited agent."
+      },
+      "partners": [
+        {
+          "name": "Biman Bangladesh",
+          "domain": "biman-airlines.com"
+        },
+        {
+          "name": "Saudia",
+          "domain": "saudia.com"
+        },
+        {
+          "name": "Qatar Airways",
+          "domain": "qatarairways.com"
+        },
+        {
+          "name": "Emirates",
+          "domain": "emirates.com"
+        },
+        {
+          "name": "Flydubai",
+          "domain": "flydubai.com"
+        },
+        {
+          "name": "Air Arabia",
+          "domain": "airarabia.com"
+        },
+        {
+          "name": "Kuwait Airways",
+          "domain": "kuwaitairways.com"
+        },
+        {
+          "name": "US-Bangla",
+          "domain": "usbair.com"
+        }
+      ]
+    },
+    {
+      "heading": {
+        "bn": "হোটেল ও গ্রাউন্ড সার্ভিস",
+        "en": "Hotels and ground services"
+      },
+      "note": {
+        "bn": "মক্কা-মদিনায় হারামের নিকটবর্তী হোটেল সরবরাহকারী।",
+        "en": "Hotel suppliers close to the Haram in Makkah and Madinah."
+      },
+      "partners": [
+        {
+          "name": "Elaf Group",
+          "domain": "elaf.com.sa"
+        },
+        {
+          "name": "Makarem Hotels",
+          "domain": "makarem.com"
+        },
+        {
+          "name": "Dar Al Eiman",
+          "domain": "daraleiman.com"
+        },
+        {
+          "name": "Anjum Makkah",
+          "domain": "anjumhotelmakkah.com"
+        },
+        {
+          "name": "Al Ansar Group",
+          "domain": "alansargroup.com"
+        },
+        {
+          "name": "Saudi Ground Services",
+          "domain": "saudiags.com"
+        }
+      ]
+    },
+    {
+      "heading": {
+        "bn": "বিদেশি নিয়োগকর্তা",
+        "en": "Overseas employers"
+      },
+      "note": {
+        "bn": "BMET অনুমোদিত ডিমান্ড লেটারে জনশক্তি প্রেরণ।",
+        "en": "Manpower sent on BMET-attested demand letters."
+      },
+      "partners": [
+        {
+          "name": "Al Bawani (KSA)",
+          "domain": "albawani.net"
+        },
+        {
+          "name": "Nesma & Partners",
+          "domain": "nesmapartners.com"
+        },
+        {
+          "name": "Emrill Services (UAE)",
+          "domain": "emrill.com"
+        },
+        {
+          "name": "Gamuda Berhad (MY)",
+          "domain": "gamuda.com.my"
+        },
+        {
+          "name": "Ali & Sons (UAE)",
+          "domain": "alisons.ae"
+        },
+        {
+          "name": "Q-Build (Qatar)",
+          "domain": "qbuild.qa"
+        }
+      ]
+    },
+    {
+      "heading": {
+        "bn": "প্রাতিষ্ঠানিক গ্রাহক",
+        "en": "Corporate clients"
+      },
+      "note": {
+        "bn": "কর্পোরেট ট্রাভেল ও গ্রুপ বুকিং ব্যবস্থাপনা।",
+        "en": "Corporate travel desks and group bookings."
+      },
+      "partners": [
+        {
+          "name": "BRAC",
+          "domain": "brac.net"
+        },
+        {
+          "name": "Beximco Group",
+          "domain": "beximco.com"
+        },
+        {
+          "name": "Square Group",
+          "domain": "squaregroup.com"
+        },
+        {
+          "name": "Akij Group",
+          "domain": "akijgroup.com"
+        },
+        {
+          "name": "Walton",
+          "domain": "waltonbd.com"
+        },
+        {
+          "name": "City Bank",
+          "domain": "thecitybank.com"
+        }
+      ]
+    }
+  ]
+}

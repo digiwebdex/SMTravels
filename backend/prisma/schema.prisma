@@ -3346,3 +3346,17 @@ model CustomPackageItem {
 
   @@index([customPackageId])
 }
+
+/// Website content store — the public marketing site (new TanStack design) reads
+/// each content group by `key` (packages, services, about, siteConfig, ...). The
+/// admin CMS edits `data` as structured JSON. Seeded from the design's bundled
+/// content so the live site is unchanged until an editor changes it.
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  data      Json
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@map("site_content")
+}

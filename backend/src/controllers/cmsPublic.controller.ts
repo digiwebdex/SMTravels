@@ -67,3 +67,19 @@ export async function getPublicHeroHandler(req: Request, res: Response): Promise
 export async function listPublicHomeSectionsHandler(_req: Request, res: Response): Promise<void> {
   res.json(await cmsPublic.listPublicHomeSections());
 }
+
+// ── SiteContent (public marketing site content) ─────────────────────────────
+import * as siteContent from "../services/siteContent.service";
+
+export async function listPublicSiteContentHandler(_req: Request, res: Response): Promise<void> {
+  const rows = await siteContent.listSiteContent();
+  // Return as a { key: data } map for easy consumption by the website.
+  const map: Record<string, unknown> = {};
+  for (const r of rows) map[r.key] = r.data;
+  res.json({ content: map });
+}
+
+export async function getPublicSiteContentHandler(req: Request, res: Response): Promise<void> {
+  const row = await siteContent.getSiteContent(req.params.key);
+  res.json({ key: req.params.key, data: row ? row.data : null });
+}

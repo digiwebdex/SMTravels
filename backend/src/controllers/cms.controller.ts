@@ -258,3 +258,19 @@ export async function deleteMediaAssetHandler(req: Request, res: Response): Prom
   await cms.deleteMediaAsset(req.params.id);
   res.json({ ok: true });
 }
+
+// ── SiteContent (website content admin) ─────────────────────────────────────
+import * as siteContentSvc from "../services/siteContent.service";
+
+export async function listSiteContentHandler(_req: Request, res: Response): Promise<void> {
+  res.json({ data: await siteContentSvc.listSiteContent() });
+}
+
+export async function getSiteContentHandler(req: Request, res: Response): Promise<void> {
+  res.json(await siteContentSvc.getSiteContent(req.params.key));
+}
+
+export async function updateSiteContentHandler(req: Request, res: Response): Promise<void> {
+  const body = (req.body ?? {}) as { data?: unknown };
+  res.json(await siteContentSvc.upsertSiteContent(req.params.key, body.data));
+}

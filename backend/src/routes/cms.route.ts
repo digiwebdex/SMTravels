@@ -28,6 +28,9 @@ import {
   updateHomeSectionHandler,
   listHeroesHandler,
   updateHeroHandler,
+  listSiteContentHandler,
+  getSiteContentHandler,
+  updateSiteContentHandler,
   listTestimonialsHandler,
   getTestimonialHandler,
   createTestimonialHandler,
@@ -90,6 +93,9 @@ cmsRouter.get("/cms/home-sections", requireAuth, view, asyncHandler(listHomeSect
 cmsRouter.patch("/cms/home-sections/:id", requireAuth, manage, asyncHandler(updateHomeSectionHandler));
 cmsRouter.get("/cms/heroes", requireAuth, view, asyncHandler(listHeroesHandler));
 cmsRouter.patch("/cms/heroes/:id", requireAuth, manage, asyncHandler(updateHeroHandler));
+cmsRouter.get("/cms/site-content", requireAuth, view, asyncHandler(listSiteContentHandler));
+cmsRouter.get("/cms/site-content/:key", requireAuth, view, asyncHandler(getSiteContentHandler));
+cmsRouter.patch("/cms/site-content/:key", requireAuth, manage, asyncHandler(updateSiteContentHandler));
 
 cmsRouter.get("/cms/testimonials", requireAuth, view, asyncHandler(listTestimonialsHandler));
 cmsRouter.get("/cms/testimonials/:id", requireAuth, view, asyncHandler(getTestimonialHandler));

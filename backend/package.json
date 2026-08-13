@@ -17,7 +17,8 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "seed:nav": "tsx prisma/seed-nav-footer.ts",
     "seed:home": "tsx prisma/seed-home.ts",
-    "seed:rbac": "tsx prisma/seed-rbac.ts"
+    "seed:rbac": "tsx prisma/seed-rbac.ts",
+    "seed:site-content": "tsx prisma/seed-site-content.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

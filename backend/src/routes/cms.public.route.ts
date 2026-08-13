@@ -17,6 +17,8 @@ import {
   listPublicServicesHandler,
   getPublicHeroHandler,
   listPublicHomeSectionsHandler,
+  listPublicSiteContentHandler,
+  getPublicSiteContentHandler,
 } from "../controllers/cmsPublic.controller";
 
 /** Short CDN-friendly cache for anonymous marketing content. */
@@ -46,3 +48,5 @@ cmsPublicRouter.get("/public/statistics", asyncHandler(listPublicStatisticsHandl
 cmsPublicRouter.get("/public/services", asyncHandler(listPublicServicesHandler));
 cmsPublicRouter.get("/public/hero", asyncHandler(getPublicHeroHandler));
 cmsPublicRouter.get("/public/home-sections", asyncHandler(listPublicHomeSectionsHandler));
+cmsPublicRouter.get("/public/site-content", asyncHandler(listPublicSiteContentHandler));
+cmsPublicRouter.get("/public/site-content/:key", asyncHandler(getPublicSiteContentHandler));
