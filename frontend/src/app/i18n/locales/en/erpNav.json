@@ -20,9 +20,16 @@
     "partners": "Partners & Suppliers",
     "finance": "Finance",
     "portals": "Portals",
-    "admin": "Administration"
+    "admin": "Administration",
+    "marketing": "Marketing",
+    "cms": "Website / CMS"
   },
   "item": {
+    "quotations": "Quotations",
+    "reservations": "Reservations",
+    "passportOcr": "Passport OCR",
+    "payments": "Payments",
+    "websiteCms": "Website & CMS",
     "dashboard": "Dashboard",
     "customers": "Customers",
     "leads": "Leads",

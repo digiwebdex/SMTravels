@@ -45,18 +45,18 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
   ] },
   { key: "crm", items: [
     { icon: Users,      labelKey: "customers", path: "/erp/crm", q: "tab=customers", module: "crm" },
-    { icon: Handshake,  labelKey: "agents",    path: "/erp/partners",                module: "partners" },
     { icon: Building2,  labelKey: "corporate", path: "/erp/crm", q: "tab=corporate", module: "crm" },
+    { icon: Handshake,  labelKey: "agents",    path: "/erp/partners", module: "partners" },
   ] },
   { key: "hajjUmrah", items: [
     { icon: Star,       labelKey: "hajj",     path: "/erp/bookings", svc: "HAJJ",  module: "bookings" },
     { icon: Moon,       labelKey: "umrah",    path: "/erp/bookings", svc: "UMRAH", module: "bookings" },
     { icon: Users,      labelKey: "pilgrims", path: "/erp/hajj-ops", q: "tab=pilgrims", module: "ops" },
-    { icon: Package,    labelKey: "packages", path: "/erp/packages", module: "packages" },
-    { icon: FileEdit,   labelKey: "packageInquiries", path: "/erp/packages/inquiries", module: "packages" },
-    { icon: Receipt,    labelKey: "packageQuotes",   path: "/erp/packages/quotes",     module: "packages" },
     { icon: UsersRound, labelKey: "groups",   path: "/erp/hajj-ops", q: "tab=groups", module: "ops" },
     { icon: UserCircle, labelKey: "muallim",  path: "/erp/muallim", module: "operations_team" },
+    { icon: Package,    labelKey: "packages", path: "/erp/packages", module: "packages" },
+    { icon: FileEdit,   labelKey: "packageInquiries", path: "/erp/packages/inquiries", module: "packages" },
+    { icon: Receipt,    labelKey: "packageQuotes",    path: "/erp/packages/quotes", module: "packages" },
   ] },
   { key: "manpower", items: [
     { icon: ClipboardList, labelKey: "jobOrders",   path: "/erp/manpower/job-orders",  module: "manpower" },
@@ -72,43 +72,30 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Stamp,  labelKey: "visaApplications", path: "/erp/bookings", svc: "VISA", module: "bookings" },
     { icon: Layers, labelKey: "visaTypes",        path: "/erp/services", module: "packages" },
   ] },
+  { key: "otherTravel", items: [
+    { icon: CalendarDays, labelKey: "airBookings",   path: "/erp/bookings", svc: "AIR_TICKET", module: "bookings" },
+    { icon: Plane,        labelKey: "tickets",       path: "/erp/bookings", svc: "AIR_TICKET", q: "view=tickets", module: "bookings" },
+    { icon: CalendarDays, labelKey: "hotelBookings", path: "/erp/bookings", svc: "HOTEL", module: "bookings" },
+    { icon: Package,      labelKey: "tourPackages",  path: "/erp/packages", q: "type=tour", module: "packages" },
+    { icon: CalendarDays, labelKey: "tourBookings",  path: "/erp/bookings", svc: "TOUR", module: "bookings" },
+  ] },
+  { key: "bookings", items: [
+    { icon: CalendarDays, labelKey: "reservations", path: "/erp/bookings", module: "bookings" },
+    { icon: FolderOpen,   labelKey: "documents",    path: "/erp/documents", module: "documents" },
+    { icon: ScanLine,     labelKey: "passportOcr",  path: "/erp/ocr", module: "documents" },
+    { icon: Truck,        labelKey: "suppliers",    path: "/erp/suppliers", module: "suppliers" },
+  ] },
   { key: "accounts", items: [
-    { icon: TrendingUp, labelKey: "income",           path: "/erp/accounts", q: "tab=income",   module: "accounts" },
-    { icon: Receipt,    labelKey: "expenses",         path: "/erp/accounts", q: "tab=expenses", module: "accounts" },
-    { icon: Wallet,     labelKey: "customerPayments", path: "/erp/accounts", q: "tab=payments", module: "accounts" },
+    { icon: Receipt,    labelKey: "quotations",       path: "/erp/sales", module: "sales" },
+    { icon: FileEdit,   labelKey: "invoices",         path: "/erp/invoices", module: "invoices" },
+    { icon: Wallet,     labelKey: "payments",         path: "/erp/accounts", q: "tab=payments", module: "accounts" },
     { icon: Truck,      labelKey: "supplierPayments", path: "/erp/accounts", q: "tab=payables", module: "accounts" },
-    { icon: Receipt,    labelKey: "invoices",         path: "/erp/invoices", module: "invoices" },
+    { icon: TrendingUp, labelKey: "expenses",         path: "/erp/accounts", q: "tab=expenses", module: "accounts" },
+    { icon: TrendingUp, labelKey: "income",           path: "/erp/accounts", q: "tab=income", module: "accounts" },
     { icon: BarChart3,  labelKey: "accountsReports",  path: "/erp/reports", q: "tab=accounts", module: "reports" },
   ] },
-  { key: "operations", items: [
-    { icon: ClipboardList, labelKey: "tasks",          path: "/erp/ops", q: "tab=tasks", module: "ops" },
-    { icon: FolderOpen,    labelKey: "assignments",    path: "/erp/ops", q: "tab=assignments", module: "ops" },
-    { icon: UsersRound,    labelKey: "operationsTeam", path: "/erp/ops-team", module: "operations_team" },
-  ] },
-  { key: "businessNetwork", items: [
-    { icon: Building2,  labelKey: "companies",    path: "/erp/network/companies", module: "business_network" },
-    { icon: UserCircle, labelKey: "scholars",     path: "/erp/network/scholars",  module: "business_network" },
-    { icon: Truck,      labelKey: "netSuppliers", path: "/erp/suppliers", module: "suppliers" },
-    { icon: Handshake,  labelKey: "b2bPartners",  path: "/erp/partners",  module: "partners" },
-  ] },
-  // Secondary travel desks (Air / Hotel / Tour) folded into one group to keep the
-  // menu focused on the core Hajj/Umrah/Manpower work.
-  { key: "otherTravel", items: [
-    { icon: CalendarDays, labelKey: "airBookings",  path: "/erp/bookings",  svc: "AIR_TICKET", module: "bookings" },
-    { icon: Plane,        labelKey: "tickets",      path: "/erp/bookings",  svc: "AIR_TICKET", q: "view=tickets", module: "bookings" },
-    { icon: Truck,        labelKey: "airSuppliers", path: "/erp/suppliers", module: "suppliers" },
-    { icon: CalendarDays, labelKey: "hotelBookings", path: "/erp/bookings", svc: "HOTEL", module: "bookings" },
-    { icon: Package,      labelKey: "tourPackages", path: "/erp/packages", q: "type=tour", module: "packages" },
-    { icon: CalendarDays, labelKey: "tourBookings", path: "/erp/bookings", svc: "TOUR", module: "bookings" },
-  ] },
-  { key: "hrPayroll", items: [
-    { icon: Users,           labelKey: "employees",  path: "/erp/hr", q: "tab=employees",  module: "settings" },
-    { icon: CalendarDays,    labelKey: "attendance", path: "/erp/hr", q: "tab=attendance", module: "settings" },
-    { icon: FolderOpen,      labelKey: "leave",      path: "/erp/hr", q: "tab=leave",      module: "settings" },
-    { icon: BadgeDollarSign, labelKey: "payroll",    path: "/erp/hr/payroll", module: "payroll" },
-  ] },
-  { key: "communication", items: [
-    { icon: Smartphone,    labelKey: "sms",           path: "/erp/sms",            module: "communication" },
+  { key: "marketing", items: [
+    { icon: Smartphone,    labelKey: "sms",           path: "/erp/sms", module: "communication" },
     { icon: MessageSquare, labelKey: "notifications", path: "/erp/communications", module: "crm" },
   ] },
   { key: "reports", items: [
@@ -118,12 +105,29 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Wallet,     labelKey: "accountReports",  path: "/erp/reports", q: "tab=accounts",   module: "reports" },
     { icon: Settings2,  labelKey: "opsReports",      path: "/erp/reports", q: "tab=operations", module: "reports" },
   ] },
-  { key: "settings", items: [
-    { icon: Building2,  labelKey: "companySettings", path: "/erp/settings", q: "tab=company",  module: "settings" },
+  { key: "cms", items: [
+    { icon: Globe,      labelKey: "websiteCms", path: "/erp/cms", module: "cms" },
+  ] },
+  { key: "operations", items: [
+    { icon: ClipboardList, labelKey: "tasks",          path: "/erp/ops", q: "tab=tasks", module: "ops" },
+    { icon: FolderOpen,    labelKey: "assignments",    path: "/erp/ops", q: "tab=assignments", module: "ops" },
+    { icon: UsersRound,    labelKey: "operationsTeam", path: "/erp/ops-team", module: "operations_team" },
+  ] },
+  { key: "hrPayroll", items: [
+    { icon: Users,           labelKey: "employees",  path: "/erp/hr", q: "tab=employees",  module: "settings" },
+    { icon: CalendarDays,    labelKey: "attendance", path: "/erp/hr", q: "tab=attendance", module: "settings" },
+    { icon: FolderOpen,      labelKey: "leave",      path: "/erp/hr", q: "tab=leave",      module: "settings" },
+    { icon: BadgeDollarSign, labelKey: "payroll",    path: "/erp/hr/payroll", module: "payroll" },
+  ] },
+  { key: "businessNetwork", items: [
+    { icon: Building2,  labelKey: "companies", path: "/erp/network/companies", module: "business_network" },
+    { icon: UserCircle, labelKey: "scholars",  path: "/erp/network/scholars",  module: "business_network" },
+  ] },
+  { key: "admin", items: [
     { icon: Users,      labelKey: "usersRoles",      path: "/erp/settings", q: "tab=users",    module: "settings" },
     { icon: Globe,      labelKey: "branches",        path: "/erp/settings", q: "tab=branches", module: "settings" },
+    { icon: Building2,  labelKey: "companySettings", path: "/erp/settings", q: "tab=company",  module: "settings" },
     { icon: Wallet,     labelKey: "currency",        path: "/erp/settings/currency", module: "currency" },
-    { icon: FileEdit,   labelKey: "cms",             path: "/erp/cms", module: "cms" },
     { icon: Settings2,  labelKey: "systemSettings",  path: "/erp/settings", q: "tab=system",   module: "settings" },
   ] },
 ];
