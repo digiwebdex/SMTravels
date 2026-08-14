@@ -9,8 +9,8 @@ import {
   HelpCircle, Building2, X, Menu, Briefcase, Star, TrendingUp,
   AlertTriangle, RefreshCw, FolderOpen, MessageSquare, LineChart,
   Moon, Plane, Stamp, ClipboardList,
-  Handshake, Truck, UsersRound, Hotel, Bus, Tag, Megaphone, Smartphone,
-  MessageCircle, ScanLine, Plug, Sparkles, BadgeDollarSign, Plus,
+  Handshake, Truck, UsersRound, Tag, Megaphone, Smartphone,
+  ScanLine, Plug, Sparkles, BadgeDollarSign, Plus,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { MobileDrawer } from "../lib/responsive";
@@ -53,7 +53,6 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Moon,       labelKey: "umrah",    path: "/erp/bookings", svc: "UMRAH", module: "bookings" },
     { icon: Users,      labelKey: "pilgrims", path: "/erp/hajj-ops", q: "tab=pilgrims", module: "ops" },
     { icon: Package,    labelKey: "packages", path: "/erp/packages", module: "packages" },
-    { icon: Layers,     labelKey: "customPackages",  path: "/erp/packages/custom",     module: "packages" },
     { icon: FileEdit,   labelKey: "packageInquiries", path: "/erp/packages/inquiries", module: "packages" },
     { icon: Receipt,    labelKey: "packageQuotes",   path: "/erp/packages/quotes",     module: "packages" },
     { icon: UsersRound, labelKey: "groups",   path: "/erp/hajj-ops", q: "tab=groups", module: "ops" },
@@ -99,10 +98,8 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Plane,        labelKey: "tickets",      path: "/erp/bookings",  svc: "AIR_TICKET", q: "view=tickets", module: "bookings" },
     { icon: Truck,        labelKey: "airSuppliers", path: "/erp/suppliers", module: "suppliers" },
     { icon: CalendarDays, labelKey: "hotelBookings", path: "/erp/bookings", svc: "HOTEL", module: "bookings" },
-    { icon: Hotel,        labelKey: "hotels",        path: "/erp/hotels", module: "suppliers", soon: true },
     { icon: Package,      labelKey: "tourPackages", path: "/erp/packages", q: "type=tour", module: "packages" },
     { icon: CalendarDays, labelKey: "tourBookings", path: "/erp/bookings", svc: "TOUR", module: "bookings" },
-    { icon: Bus,          labelKey: "transport",    path: "/erp/transport", module: "ops", soon: true },
   ] },
   { key: "hrPayroll", items: [
     { icon: Users,           labelKey: "employees",  path: "/erp/hr", q: "tab=employees",  module: "settings" },
@@ -111,7 +108,6 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: BadgeDollarSign, labelKey: "payroll",    path: "/erp/hr/payroll", module: "payroll" },
   ] },
   { key: "communication", items: [
-    { icon: MessageCircle, labelKey: "whatsapp",      path: "/erp/whatsapp",       module: "crm", soon: true },
     { icon: Smartphone,    labelKey: "sms",           path: "/erp/sms",            module: "communication" },
     { icon: MessageSquare, labelKey: "notifications", path: "/erp/communications", module: "crm" },
   ] },
