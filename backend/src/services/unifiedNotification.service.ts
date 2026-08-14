@@ -311,7 +311,7 @@ export async function deliverOutbound(id: string): Promise<void> {
       }
       await sendSms(row.to, row.body);
     } else if (row.channel === OutboundChannel.WHATSAPP) {
-      if (!isWhatsAppEnabled()) {
+      if (!(await isWhatsAppEnabled())) {
         await prisma.outboundNotification.update({
           where: { id },
           data: {
@@ -446,7 +446,7 @@ export async function outboundDashboard() {
     flags: {
       email: isSmtpConfigured(),
       sms: isSmsEnabled(),
-      whatsapp: isWhatsAppEnabled(),
+      whatsapp: await isWhatsAppEnabled(),
     },
     pending,
     scheduled,

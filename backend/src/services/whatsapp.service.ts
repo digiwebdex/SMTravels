@@ -1,19 +1,19 @@
 /**
- * Wasender WhatsApp — feature-flagged. Missing env → disabled (log-only).
+ * WhatsApp delivery — routes through the admin-configurable Wasender gateway
+ * (see wasender.service.ts). Missing/disabled config → logged only (simulated).
  * Does not crash the app when credentials are absent.
  */
-import { env } from "../lib/env";
-import { logger } from "../lib/logger";
-import { whatsappSender } from "../lib/notify";
+import { sendViaWasender, isWasenderConfigured } from "./wasender.service";
 
-export function isWhatsAppEnabled(): boolean {
-  return !!(env.WASENDER_API_URL && env.WASENDER_API_TOKEN && env.WASENDER_PHONE_NUMBER_ID);
+/** Reflects the admin-configured Wasender key (DB), with env fallback. Async. */
+export async function isWhatsAppEnabled(): Promise<boolean> {
+  return isWasenderConfigured();
 }
 
-export async function sendWhatsApp(to: string, message: string): Promise<{ providerId?: string }> {
-  await whatsappSender.send(to, message);
-  if (!isWhatsAppEnabled()) {
-    logger.info({ to, channel: "whatsapp" }, "whatsapp queued as log-only (credentials missing)");
-  }
-  return {};
+export async function sendWhatsApp(
+  to: string,
+  message: string,
+): Promise<{ providerId?: string; simulated?: boolean; error?: string }> {
+  const r = await sendViaWasender(to, message);
+  return { providerId: r.providerId, simulated: r.simulated, error: r.error };
 }
