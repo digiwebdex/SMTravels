@@ -42,6 +42,7 @@ const SuppliersModule      = lazyNamed(() => import("./erp/SuppliersModule"), "S
 const OperationsTeamModule = lazyNamed(() => import("./erp/OperationsTeamModule"), "OperationsTeamModule");
 const MuallimModule = lazyNamed(() => import("./erp/MuallimModule"), "MuallimModule");
 const CurrencyModule = lazyNamed(() => import("./erp/CurrencyModule"), "CurrencyModule");
+const IntegrationsModule = lazyNamed(() => import("./erp/IntegrationsModule"), "IntegrationsModule");
 const CompaniesModule = lazyNamed(() => import("./erp/CompaniesModule"), "CompaniesModule");
 const MuftiScholarModule = lazyNamed(() => import("./erp/MuftiScholarModule"), "MuftiScholarModule");
 const PayrollModule = lazyNamed(() => import("./erp/PayrollModule"), "PayrollModule");
@@ -156,6 +157,7 @@ export const router = createBrowserRouter([
       { path: "network/scholars", element: withSuspense(<MuftiScholarModule />) },
       { path: "hr/payroll", element: withSuspense(<PayrollModule />) },
       { path: "settings/currency", element: withSuspense(<CurrencyModule />) },
+      { path: "integrations", element: withSuspense(<IntegrationsModule />) },
       { path: "packages/inquiries", element: withSuspense(<InquiriesModule />) },
       { path: "packages/quotes", element: withSuspense(<QuotesModule />) },
     ],

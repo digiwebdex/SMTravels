@@ -26,6 +26,7 @@
   },
   "item": {
     "leads": "Leads",
+    "integrations": "Integrations",
     "quotations": "Quotations",
     "reservations": "Reservations",
     "passportOcr": "Passport OCR",

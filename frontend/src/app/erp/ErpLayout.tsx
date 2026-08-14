@@ -9,7 +9,7 @@ import {
   HelpCircle, Building2, X, Menu, Briefcase, Star, TrendingUp,
   AlertTriangle, RefreshCw, FolderOpen, MessageSquare, LineChart,
   Moon, Plane, Stamp, ClipboardList,
-  Handshake, Truck, UsersRound, Tag, Megaphone, Smartphone,
+  Handshake, Truck, UsersRound, Tag, Megaphone, Smartphone, MessageCircle,
   ScanLine, Plug, Sparkles, BadgeDollarSign, Plus,
 } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -97,6 +97,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
   ] },
   { key: "marketing", items: [
     { icon: Smartphone,    labelKey: "sms",           path: "/erp/sms", module: "communication" },
+    { icon: MessageCircle, labelKey: "whatsapp",      path: "/erp/communications", q: "channel=whatsapp", module: "communication" },
     { icon: MessageSquare, labelKey: "notifications", path: "/erp/communications", module: "crm" },
   ] },
   { key: "reports", items: [
@@ -129,6 +130,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: Globe,      labelKey: "branches",        path: "/erp/settings", q: "tab=branches", module: "settings" },
     { icon: Building2,  labelKey: "companySettings", path: "/erp/settings", q: "tab=company",  module: "settings" },
     { icon: Wallet,     labelKey: "currency",        path: "/erp/settings/currency", module: "currency" },
+    { icon: Plug,       labelKey: "integrations",    path: "/erp/integrations", module: "settings" },
     { icon: Settings2,  labelKey: "systemSettings",  path: "/erp/settings", q: "tab=system",   module: "settings" },
   ] },
 ];
