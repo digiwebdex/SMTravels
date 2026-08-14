@@ -44,6 +44,7 @@ const NAV_GROUPS: { key: string; items: NavItem[] }[] = [
     { icon: LayoutDashboard, labelKey: "dashboard", path: "/erp", exact: true, module: "dashboard" },
   ] },
   { key: "crm", items: [
+    { icon: TrendingUp, labelKey: "leads",     path: "/erp/crm", q: "tab=leads", module: "crm" },
     { icon: Users,      labelKey: "customers", path: "/erp/crm", q: "tab=customers", module: "crm" },
     { icon: Building2,  labelKey: "corporate", path: "/erp/crm", q: "tab=corporate", module: "crm" },
     { icon: Handshake,  labelKey: "agents",    path: "/erp/partners", module: "partners" },

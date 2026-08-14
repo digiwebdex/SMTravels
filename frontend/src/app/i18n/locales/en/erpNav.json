@@ -25,6 +25,7 @@
     "cms": "Website / CMS"
   },
   "item": {
+    "leads": "Leads",
     "quotations": "Quotations",
     "reservations": "Reservations",
     "passportOcr": "Passport OCR",

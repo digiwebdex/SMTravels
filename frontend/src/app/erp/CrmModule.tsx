@@ -1,24 +1,27 @@
 import { useSearchParams } from "react-router";
-import { UserCircle, Building2, type LucideIcon } from "lucide-react";
+import { UserCircle, Building2, TrendingUp, type LucideIcon } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ModulePage } from "../design-system/patterns/ModulePage";
+import { LeadsView } from "./crm/LeadsView";
 import { CustomersView } from "./crm/CustomersView";
 import { CorporateView } from "./crm/CorporateView";
 
-type Segment = "customers" | "corporate";
+type Segment = "leads" | "customers" | "corporate";
 
 const SEGMENTS: { key: Segment; label: string; icon: LucideIcon }[] = [
+  { key: "leads", label: "Leads", icon: TrendingUp },
   { key: "customers", label: "Customers", icon: UserCircle },
   { key: "corporate", label: "Corporate", icon: Building2 },
 ];
 
 const SEGMENT_SUBTITLE: Record<Segment, string> = {
+  leads: "Website enquiries and the sales pipeline",
   customers: "Individual customer accounts and history",
   corporate: "B2B and corporate client relationships",
 };
 
 function parseTab(raw: string | null): Segment {
-  if (raw === "customers" || raw === "corporate") return raw;
+  if (raw === "leads" || raw === "customers" || raw === "corporate") return raw;
   return "customers";
 }
 
@@ -59,6 +62,7 @@ export function CrmModule() {
           </div>
         }
       >
+        {seg === "leads" && <LeadsView />}
         {seg === "customers" && <CustomersView />}
         {seg === "corporate" && <CorporateView />}
       </ModulePage>
