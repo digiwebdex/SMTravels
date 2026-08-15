@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Drawer, Field, inputCls, selectCls, PrimaryBtn, GhostBtn } from "./crm/ui";
+import { SiteContentForm } from "./SiteContentForm";
 import {
   useBlogPosts, useBlogPost, useCreateBlogPost, useUpdateBlogPost, useDeleteBlogPost,
   useFaqs, useCreateFaq, useUpdateFaq, useDeleteFaq,
@@ -1754,7 +1755,9 @@ function WebsiteContentView() {
   const update = useUpdateSiteContent();
   const rows = data?.data ?? [];
   const [selected, setSelected] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState<unknown>(null);      // the working copy (object)
+  const [mode, setMode] = useState<"form" | "json">("form");
+  const [jsonText, setJsonText] = useState("");            // advanced mode buffer
   const [error, setError] = useState<string | null>(null);
 
   const current = rows.find((r) => r.key === selected);
@@ -1763,40 +1766,55 @@ function WebsiteContentView() {
     if (!selected && rows.length) setSelected(rows[0].key);
   }, [rows, selected]);
 
+  // Load a fresh working copy when the key changes or the row is refetched.
   useEffect(() => {
     if (current) {
-      setDraft(JSON.stringify(current.data, null, 2));
+      setDraft(structuredClone(current.data));
+      setJsonText(JSON.stringify(current.data, null, 2));
       setError(null);
     }
-    // reload editor when a different key is picked or the row is refetched
   }, [selected, current?.updatedAt]);
 
   const label = (k: string) => SITE_CONTENT_LABELS[k]?.label ?? k;
 
-  const onFormat = () => {
-    try {
-      setDraft(JSON.stringify(JSON.parse(draft), null, 2));
+  // Keep the two modes in sync as the user switches.
+  const switchMode = (next: "form" | "json") => {
+    if (next === mode) return;
+    if (next === "json") {
+      setJsonText(JSON.stringify(draft ?? {}, null, 2));
       setError(null);
-    } catch (e) {
-      setError("Invalid JSON — " + (e as Error).message);
+    } else {
+      try {
+        setDraft(JSON.parse(jsonText));
+        setError(null);
+      } catch (e) {
+        setError("Can't switch to Form view — the JSON is invalid: " + (e as Error).message);
+        return;
+      }
     }
+    setMode(next);
   };
+
   const onReset = () => {
     if (current) {
-      setDraft(JSON.stringify(current.data, null, 2));
+      setDraft(structuredClone(current.data));
+      setJsonText(JSON.stringify(current.data, null, 2));
       setError(null);
     }
   };
   const onSave = () => {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(draft);
-    } catch (e) {
-      setError("Invalid JSON — " + (e as Error).message);
-      return;
+    let payload: unknown = draft;
+    if (mode === "json") {
+      try {
+        payload = JSON.parse(jsonText);
+        setDraft(payload);
+      } catch (e) {
+        setError("Invalid JSON — " + (e as Error).message);
+        return;
+      }
     }
     setError(null);
-    if (selected) update.mutate({ key: selected, data: parsed });
+    if (selected) update.mutate({ key: selected, data: payload });
   };
 
   if (isLoading) return <div className="py-10 text-center text-sm text-slate-400">Loading…</div>;
@@ -1826,7 +1844,7 @@ function WebsiteContentView() {
       <div className="min-w-0 flex-1">
         {current ? (
           <>
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold text-slate-700">{label(current.key)}</div>
                 <div className="text-xs text-slate-400">
@@ -1834,7 +1852,11 @@ function WebsiteContentView() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={onFormat} className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">Format</button>
+                {/* Form ⇄ Advanced (JSON) toggle */}
+                <div className="flex items-center rounded-lg border border-[var(--color-border)] p-0.5 text-xs">
+                  <button onClick={() => switchMode("form")} className={cn("rounded-md px-2.5 py-1", mode === "form" ? "bg-[#1B75BC] text-white" : "text-slate-500 hover:bg-slate-50")}>Form</button>
+                  <button onClick={() => switchMode("json")} className={cn("rounded-md px-2.5 py-1", mode === "json" ? "bg-[#1B75BC] text-white" : "text-slate-500 hover:bg-slate-50")}>Advanced</button>
+                </div>
                 <button onClick={onReset} className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">Reset</button>
                 <button
                   onClick={onSave}
@@ -1848,14 +1870,20 @@ function WebsiteContentView() {
             {error && (
               <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>
             )}
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              spellCheck={false}
-              className="h-[60vh] w-full rounded-lg border border-[var(--color-border)] p-3 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"
-            />
+            {mode === "form" ? (
+              <div className="max-h-[68vh] overflow-y-auto pr-1">
+                <SiteContentForm value={draft as never} onChange={(next) => setDraft(next)} />
+              </div>
+            ) : (
+              <textarea
+                value={jsonText}
+                onChange={(e) => setJsonText(e.target.value)}
+                spellCheck={false}
+                className="h-[60vh] w-full rounded-lg border border-[var(--color-border)] p-3 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#1B75BC]/20"
+              />
+            )}
             <div className="mt-2 text-xs text-slate-400">
-              Change the values (text, prices, phone numbers, image URLs) — keep the field names the same. Edits appear on the public website within a minute.
+              Edit the fields and press Save — changes appear on the public website within a minute. Use “Advanced” only if you need to edit the raw data.
             </div>
           </>
         ) : (
